@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Head office forecast</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0066cc}a:hover{color:#004f9e}
+html{scrollbar-width:thin;scrollbar-color:rgba(128,128,128,.45) transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(128,128,128,.45);border-radius:4px;border:2px solid transparent;background-clip:padding-box}::-webkit-scrollbar-thumb:hover{background-color:rgba(128,128,128,.7)}
+.ad{--bg:#ffffff;--side:#f7f7f9;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--sel:rgba(0,0,0,.06);--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.16);--heroOk:#30d158;--link:#0066cc;--ok:#1f7a35;--okbg:rgba(52,199,89,.14);--warn:#b25000;--warnbg:rgba(255,149,0,.16);--bad:#d70015;--badbg:rgba(255,59,48,.12);min-height:1180px;box-sizing:border-box;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:15px;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;display:flex;flex-direction:column}
+.ad.dark{--bg:#000000;--side:#0c0c0e;--text:#f5f5f7;--sec:#a1a1a6;--sep:rgba(255,255,255,.1);--fill:#1c1c1e;--sel:rgba(255,255,255,.08);--ink:#f5f5f7;--onink:#000000;--hero:#1c1c1e;--heroline:rgba(245,245,247,.14);--link:#2997ff;--ok:#30d158;--okbg:rgba(48,209,88,.16);--warn:#ff9f0a;--warnbg:rgba(255,159,10,.16);--bad:#ff453a;--badbg:rgba(255,69,58,.16)}
+.top{min-height:64px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px;padding:0 40px;border-bottom:.5px solid var(--sep)}
+.tabs{display:flex;flex-wrap:wrap;gap:4px}
+.tab{height:36px;padding:0 14px;border-radius:18px;display:flex;align-items:center;color:var(--sec);text-decoration:none;font-weight:500}
+.tab.on{background:var(--sel);color:var(--text);font-weight:600}
+.wrap{display:flex;flex-wrap:wrap;gap:40px;padding:32px 40px 56px;align-items:flex-start}
+.mainc{flex:999 1 620px;min-width:0;display:flex;flex-direction:column;gap:32px}
+.rail{flex:1 1 320px;max-width:380px;display:flex;flex-direction:column;gap:20px}
+.hero{background:var(--hero);color:var(--onhero);border-radius:24px;padding:26px 28px 20px;display:flex;flex-direction:column;gap:18px;box-shadow:0 24px 48px -24px rgba(0,0,0,.4)}
+.seg{display:flex;background:rgba(245,245,247,.1);border-radius:16px;padding:3px}
+.seg button{height:30px;padding:0 14px;border-radius:15px;border:0;background:transparent;color:var(--herosec);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.seg button.on{background:rgba(245,245,247,.92);color:#1d1d1f}
+.hs{display:flex;flex-direction:column;gap:4px;font-size:22px;font-weight:600;letter-spacing:-.03em;padding-left:22px;border-left:.5px solid var(--heroline)}
+.hs small{font-size:12px;font-weight:400;color:var(--herosec);letter-spacing:0}
+.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--herosec);margin-top:-8px}
+.key{display:flex;gap:16px;font-size:12px;color:var(--herosec);flex-wrap:wrap}
+.key i{display:inline-block;width:14px;height:0;border-top:2px solid #f5f5f7;vertical-align:3px;margin-right:6px}
+.key i.d{border-top:2px dashed #f5f5f7}
+.key i.b{height:8px;border:0;background:rgba(245,245,247,.18);vertical-align:0;border-radius:2px}
+.hd{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:4px}
+.hd h2{font-size:20px;font-weight:700;letter-spacing:-.025em;margin:0}
+.hd span{font-size:14px;color:var(--sec)}
+.scroll{overflow-x:auto}
+.th,.sr{display:grid;grid-template-columns:minmax(200px,2fr) minmax(130px,1.4fr) repeat(2,minmax(90px,1fr)) minmax(150px,1.4fr);gap:16px;align-items:center;min-width:760px}
+.th{font-size:12px;color:var(--sec);padding:0 0 8px}
+.th span:nth-child(3),.th span:nth-child(4),.sr > span:nth-child(3),.sr > span:nth-child(4){text-align:right}
+.sr{min-height:66px;position:relative}
+.sr::before{content:'';position:absolute;top:0;left:56px;right:0;height:.5px;background:var(--sep)}
+.who{display:flex;align-items:center;gap:14px;min-width:0}
+.av{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;font-size:13px;font-weight:700;letter-spacing:-.02em}
+.n{font-weight:600}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}.m{color:var(--sec)}
+.panel{border-radius:20px;background:var(--side);padding:20px;display:flex;flex-direction:column}
+.li{display:flex;align-items:flex-start;gap:12px;padding:12px 0;position:relative}
+.li + .li::before{content:'';position:absolute;top:0;left:52px;right:0;height:.5px;background:var(--sep)}
+.tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tx small{font-size:13px;color:var(--sec);line-height:1.4}
+</style>
+</helmet>
+<div class="ad {{theme}}">
+<header class="top">
+<span style="font-size: 17px; font-weight: 700; letter-spacing: -0.02em">Maginhawa <span style="color: var(--sec); font-weight: 500">Head office</span></span>
+<nav class="tabs" aria-label="Admin"><a class="tab" href="a01-Admin.dc.html">Today</a><a class="tab on" href="a03-AdminForecast.dc.html" aria-current="page">Forecast</a><a class="tab" href="a01-Admin.dc.html">Reports</a><a class="tab" href="a01-Admin.dc.html">Ask your logs</a><a class="tab" href="a02-AdminSettings.dc.html">Settings</a></nav>
+</header>
+<div class="wrap">
+<div class="mainc">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; color: var(--sec)">Tuesday 6 – Monday 12 October · all 9 sites</span><h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.035em">Forecast</h1></div>
+<div class="hero">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 15px; color: var(--herosec)">{{m.label}} · next 7 days</span>
+<span style="font-size: 56px; font-weight: 600; letter-spacing: -0.055em; line-height: 1">{{m.total}}</span>
+<span style="font-size: 14px; color: var(--herosec)">{{m.sub}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 16px; align-items: flex-end">
+<div class="seg" role="group" aria-label="Measure"><button class="{{s0}}" onClick="{{p0}}">Net sales</button><button class="{{s1}}" onClick="{{p1}}">Covers</button><button class="{{s2}}" onClick="{{p2}}">Wage %</button></div>
+<div style="display: flex; gap: 22px"><span class="hs">{{m.peak}}<small>Busiest day</small></span><span class="hs">{{m.low}}<small>Quietest day</small></span></div>
+</div>
+</div>
+<svg viewBox="0 0 1000 220" preserveAspectRatio="none" width="100%" height="220" role="img" aria-label="{{m.aria}}" style="display: block">
+<line x1="0" y1="{{g.y1}}" x2="1000" y2="{{g.y1}}" style="stroke: rgba(245,245,247,.12)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+<line x1="0" y1="{{g.y2}}" x2="1000" y2="{{g.y2}}" style="stroke: rgba(245,245,247,.12)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+<rect x="{{g.fx}}" y="0" width="{{g.fw}}" height="220" style="fill: rgba(245,245,247,.05)"></rect>
+<polygon points="{{g.band}}" style="fill: rgba(245,245,247,.18)"></polygon>
+<polyline points="{{g.act}}" style="fill: none; stroke: #f5f5f7" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+<polyline points="{{g.fc}}" style="fill: none; stroke: #f5f5f7" stroke-width="2.5" stroke-dasharray="6 6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+<line x1="{{g.fx}}" y1="0" x2="{{g.fx}}" y2="220" style="stroke: rgba(245,245,247,.4)" stroke-width="1" stroke-dasharray="2 4" vector-effect="non-scaling-stroke"></line>
+</svg>
+<div class="axis"><span>21 Sep</span><span>28 Sep</span><span style="color: #f5f5f7; font-weight: 600">Today · 5 Oct</span><span>12 Oct</span></div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px"><div class="key"><span><i></i>Actual</span><span><i class="d"></i>Forecast</span><span><i class="b"></i>Likely range</span></div><span style="font-size: 12px; color: var(--herosec)">{{m.l1}} and {{m.l2}} guide lines</span></div>
+</div>
+<section>
+<div class="hd"><h2>By site</h2><span>Example figures · last 2 weeks and next 7 days</span></div>
+<div class="scroll">
+<div class="th"><span>Site</span><span>Trend</span><span>Next 7 days</span><span>vs last week</span><span>Watch</span></div>
+<sc-for list="{{sites}}" as="s" hint-placeholder-count="9">
+<div class="sr"><span class="who"><span class="av">{{s.ini}}</span><span style="font-weight: 600">{{s.name}}</span></span><svg viewBox="0 0 130 34" width="130" height="34" aria-hidden="true"><polyline points="{{s.sa}}" style="fill: none; stroke: var(--text)" stroke-width="1.6" stroke-linejoin="round"></polyline><polyline points="{{s.sf}}" style="fill: none; stroke: var(--sec)" stroke-width="1.6" stroke-dasharray="3 3" stroke-linejoin="round"></polyline></svg><span class="n">{{s.next}}</span><span class="{{s.dTone}}">{{s.delta}}</span><span class="{{s.wTone}}" style="font-size: 14px">{{s.watch}}</span></div>
+</sc-for>
+</div>
+</section>
+</div>
+<aside class="rail">
+<div class="panel">
+<div class="hd"><h2>Watch this week</h2><span>4</span></div>
+<div class="li"><span class="av" style="background: var(--badbg); color: var(--bad)">R</span><span class="tx"><span style="font-weight: 600">Ramo · wages 37% Tue and Wed</span><small>Rota has 11 on for about 70 covers. Suggest 2 fewer front of house.</small></span></div>
+<div class="li"><span class="av" style="background: var(--warnbg); color: var(--warn)">G</span><span class="tx"><span style="font-weight: 600">Guanabana · down 3 weeks running</span><small>Net down 9% on the 6-week average. Lunch covers are the drop.</small></span></div>
+<div class="li"><span class="av" style="background: var(--okbg); color: var(--ok)">Bi</span><span class="tx"><span style="font-weight: 600">Bintang · Saturday looks big</span><small>182 booked already, 30% above a usual Saturday. Check stock and staffing.</small></span></div>
+<div class="li"><span class="av" style="background: var(--warnbg); color: var(--warn)">KT</span><span class="tx"><span style="font-weight: 600">Kentish Town · forecast less sure</span><small>3 closes missing in the last 6 weeks, so the range is wider.</small></span></div>
+</div>
+<div class="panel">
+<div class="hd"><h2>How this is worked out</h2></div>
+<span style="font-size: 14px; color: var(--sec); line-height: 1.55">For each site: the same weekday over the last 6 weeks, nudged by bookings and the recent trend. Wage % uses the published rota against forecast sales. It improves as closes come in, and it's a guide, not a promise.</span>
+</div>
+</aside>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { metric: 0 };
+  }
+  renderVals() {
+    const mi = this.state.metric;
+    const net = [16400, 15200, 16900, 19300, 27100, 30200, 20800, 16900, 15100, 17300, 19500, 27600, 30600, 21000, 20790];
+    const netF = [15800, 17500, 20000, 28100, 31100, 21500, 17200];
+    const cov = net.map((v) => Math.round(v / 24.5));
+    const covF = netF.map((v) => Math.round(v / 24.5));
+    const wg = [31.2, 32.4, 30.1, 28.0, 24.9, 23.8, 28.4, 30.6, 32.0, 29.8, 28.3, 24.6, 23.5, 27.9, 30.1];
+    const wgF = [32.3, 30.2, 28.6, 25.1, 23.7, 28.0, 31.0];
+    const k = (v) => '£' + Math.round(v / 100) / 10 + 'k';
+    const days = ['Tue 6', 'Wed 7', 'Thu 8', 'Fri 9', 'Sat 10', 'Sun 11', 'Mon 12'];
+    const pk = (arr, hi) => { let b = 0; arr.forEach((v, i) => { if (hi ? v > arr[b] : v < arr[b]) b = i; }); return b; };
+    const sets = [
+      { a: net, f: netF, max: 36000, lines: [10000, 25000], fmt: k, label: 'Group net sales', total: '£151,200', sub: 'About level with the last 7 days (£151,890)', aria: 'Group net sales, last 15 days and 7-day forecast' },
+      { a: cov, f: covF, max: 1500, lines: [500, 1000], fmt: (v) => String(v), label: 'Group covers', total: covF.reduce((s, v) => s + v, 0).toLocaleString('en-GB'), sub: 'Weekend carries 41% of the week', aria: 'Group covers, last 15 days and 7-day forecast' },
+      { a: wg, f: wgF, max: 40, lines: [25, 35], fmt: (v) => v + '%', label: 'Group wage %', total: '27.6%', sub: 'Tuesday and Monday run above 30%', aria: 'Group wage percent, last 15 days and 7-day forecast' }
+    ];
+    const s = sets[mi];
+    const W = 1000, H = 220, n = s.a.length + s.f.length - 1;
+    const x = (i) => Math.round((i / n) * W * 10) / 10;
+    const y = (v) => Math.round((H - (v / s.max) * H) * 10) / 10;
+    const last = s.a.length - 1;
+    const fpts = [[last, s.a[last]]].concat(s.f.map((v, i) => [last + 1 + i, v]));
+    const up = fpts.map((p, i) => x(p[0]) + ',' + y(p[1] * (1 + 0.022 * i))).join(' ');
+    const lo = fpts.slice().reverse().map((p) => { const i = p[0] - last; return x(p[0]) + ',' + y(p[1] * (1 - 0.022 * i)); }).join(' ');
+    const fmtV = mi === 0 ? (v) => '£' + v.toLocaleString('en-GB') : (mi === 1 ? (v) => v.toLocaleString('en-GB') : (v) => v + '%');
+    const hiI = pk(s.f, mi !== 2), loI = pk(s.f, mi === 2);
+    const pattern = [0.75, 0.7, 0.8, 0.92, 1.3, 1.45, 1.0];
+    const siteRaw = [
+      { name: 'Belly', ini: 'Be', next: 27400, d: 4.1, trend: 0.004, watch: 'Steady', wTone: 'm' },
+      { name: 'Bunso', ini: 'B', next: 23240, d: 3.9, trend: 0.003, watch: 'Tue wages 32%', wTone: 'warn' },
+      { name: 'Bintang', ini: 'Bi', next: 22900, d: 6.2, trend: 0.006, watch: 'Sat 182 booked', wTone: 'ok' },
+      { name: 'Hoodwood', ini: 'H', next: 19800, d: 0.8, trend: 0.001, watch: 'Steady', wTone: 'm' },
+      { name: 'Mamasons China Town', ini: 'CT', next: 15400, d: -1.2, trend: -0.001, watch: 'Steady', wTone: 'm' },
+      { name: 'Guanabana', ini: 'G', next: 14100, d: -9.0, trend: -0.008, watch: 'Down 3 weeks', wTone: 'warn' },
+      { name: 'Ramo', ini: 'R', next: 12300, d: -2.5, trend: -0.002, watch: 'Wages 37% Tue–Wed', wTone: 'bad' },
+      { name: 'Cafe Mamasons', ini: 'CM', next: 8600, d: 1.4, trend: 0.001, watch: 'Steady', wTone: 'm' },
+      { name: 'Mamasons Kentish Town', ini: 'KT', next: 7500, d: -3.8, trend: -0.002, watch: 'Range wider', wTone: 'warn' }
+    ];
+    const sites = siteRaw.map((r, si) => {
+      const base = r.next / 7;
+      const vals = [];
+      for (let i = 0; i < 22; i++) vals.push(base * pattern[i % 7] * (1 + r.trend * (i - 14)) * (1 + 0.04 * Math.sin(i * 1.7 + si)));
+      const mx = Math.max.apply(null, vals) * 1.05;
+      const px = (i) => Math.round((i / 21) * 130 * 10) / 10;
+      const py = (v) => Math.round((34 - (v / mx) * 32) * 10) / 10;
+      return {
+        name: r.name, ini: r.ini, watch: r.watch, wTone: r.wTone,
+        next: '£' + r.next.toLocaleString('en-GB'),
+        delta: (r.d >= 0 ? '+' : '−') + Math.abs(r.d).toFixed(1) + '%',
+        dTone: r.d >= 3 ? 'ok' : (r.d <= -5 ? 'warn' : 'm'),
+        sa: vals.slice(0, 15).map((v, i) => px(i) + ',' + py(v)).join(' '),
+        sf: vals.slice(14).map((v, i) => px(i + 14) + ',' + py(v)).join(' ')
+      };
+    });
+    const pick = (i) => () => this.setState({ metric: i });
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      m: { ...s, peak: days[hiI] + ' · ' + fmtV(s.f[hiI]), low: days[loI] + ' · ' + fmtV(s.f[loI]), l1: s.fmt(s.lines[0]), l2: s.fmt(s.lines[1]) },
+      s0: mi === 0 ? 'on' : '', s1: mi === 1 ? 'on' : '', s2: mi === 2 ? 'on' : '',
+      p0: pick(0), p1: pick(1), p2: pick(2),
+      g: {
+        act: s.a.map((v, i) => x(i) + ',' + y(v)).join(' '),
+        fc: fpts.map((p) => x(p[0]) + ',' + y(p[1])).join(' '),
+        band: up + ' ' + lo,
+        y1: y(s.lines[0]), y2: y(s.lines[1]),
+        fx: x(last), fw: W - x(last)
+      },
+      sites
+    };
+  }
+}
+</script>
+</body>
+</html>

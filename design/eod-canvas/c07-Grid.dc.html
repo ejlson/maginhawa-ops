@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Desktop · Checks grid</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="checks.css" rel="stylesheet">
+</helmet>
+<div class="ad {{theme}}" style="min-height: 1040px">
+<header class="atop">
+<span style="font-size: 17px; font-weight: 700; letter-spacing: -0.02em">Maginhawa <span style="color: var(--sec); font-weight: 500">Head office</span></span>
+<nav class="tabs" aria-label="Admin"><a class="tab" href="a01-Admin.dc.html">Today</a><a class="tab on" href="c06-Compliance.dc.html">Checks</a><a class="tab" href="c05-Repair.dc.html">Repairs</a><a class="tab" href="a03-AdminForecast.dc.html">Forecast</a><a class="tab" href="a01-Admin.dc.html">Reports</a><a class="tab" href="a01-Admin.dc.html">Ask your logs</a><a class="tab" href="a02-AdminSettings.dc.html">Settings</a></nav>
+<span style="margin-left: auto; display: flex; align-items: center; gap: 10px"><span style="font-size: 13px; color: var(--sec)">Admin</span><span class="av ink" style="width: 34px; height: 34px; font-size: 12px">AD</span></span>
+</header>
+<div style="padding: 32px 40px 56px; display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; color: var(--sec)">Wed 30 Sep – Tue 6 Oct</span><h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.035em">Bunso · last 7 days</h1></div>
+<div style="display: flex; gap: 12px; align-items: center"><div class="seg"><a class="" href="c06-Compliance.dc.html">Overview</a><a class="on" href="c07-Grid.dc.html">Grid</a><a class="" href="c08-Builder.dc.html">Checklists</a></div><button class="sm" style="height: 36px; display: inline-flex; align-items: center; gap: 6px"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5v9M5.5 6L9 2.5 12.5 6M3 11v4.5h12V11"></path></svg>Export to Excel</button></div>
+</div>
+<div style="display: flex; gap: 20px; font-size: 13px; color: var(--sec); flex-wrap: wrap">
+<span><span class="dot ok"></span>In range or Yes</span><span><span class="dot bad"></span>Failed, action taken</span><span><span class="dot warn"></span>Done late</span><span><span class="dot" style="color: var(--sep)"></span>Missed</span><span style="margin-left: auto">Tap any cell to see who, when and the photo</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 32px">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+<section style="display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: minmax(260px, 2fr) repeat(7, minmax(84px, 1fr)); gap: 8px; align-items: end; padding-bottom: 8px">
+<span style="font-size: 20px; font-weight: 700; letter-spacing: -0.025em">{{g.name}}</span>
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7"><span style="text-align: center; font-size: 12px; color: var(--sec)">{{d}}</span></sc-for>
+</div>
+<sc-for list="{{g.rows}}" as="r" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: minmax(260px, 2fr) repeat(7, minmax(84px, 1fr)); gap: 8px; align-items: center; min-height: 48px; border-top: .5px solid var(--sep)">
+<span class="tx"><span style="font-size: 15px">{{r.name}}</span><small style="font-size: 13px">{{r.rule}}</small></span>
+<sc-for list="{{r.cells}}" as="c" hint-placeholder-count="7"><span style="height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; {{c.style}}">{{c.v}}</span></sc-for>
+</div>
+</sc-for>
+</section>
+</sc-for>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "$preview": {"width": 1440, "height": 1040}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ok = 'background: var(--okbg); color: var(--ok)';
+    const bad = 'background: var(--badbg); color: var(--bad)';
+    const late = 'background: var(--warnbg); color: var(--warn)';
+    const miss = 'background: transparent; color: var(--sec); box-shadow: inset 0 0 0 1px var(--sep)';
+    const cell = (v) => {
+      if (v === '-') return { v: 'Missed', style: miss };
+      if (v === '') return { v: '', style: 'background: transparent' };
+      if (v.startsWith('!')) return { v: v.slice(1), style: bad };
+      if (v.startsWith('~')) return { v: v.slice(1), style: late };
+      return { v, style: ok };
+    };
+    const r = (name, rule, vals) => ({ name, rule, cells: vals.map(cell) });
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      days: ['Wed 30', 'Thu 1', 'Fri 2', 'Sat 3', 'Sun 4', 'Mon 5', 'Tue 6'],
+      groups: [
+        { name: 'Opening checks', rows: [
+          r('Walk-in fridge', '8°C or below', ['4.2°', '4.0°', '3.8°', '4.4°', '4.1°', '5.6°', '!9.2°']),
+          r('Reach-in fridge 1', '8°C or below', ['3.9°', '4.1°', '4.0°', '3.7°', '~4.2°', '4.0°', '4.1°']),
+          r('Freezer', '−18°C or below', ['−19°', '−20°', '−19°', '−19°', '−18°', '−19°', '−19°']),
+          r('Door seals clean', 'Yes / No', ['✓', '✓', '✓', '✓', '✓', '✓', '✓'])
+        ] },
+        { name: 'Hot holding', rows: [
+          r('Pass · 12:00', '63°C or above', ['71°', '68°', '70°', '69°', '-', '72°', '70°']),
+          r('Pass · 15:00', '63°C or above', ['66°', '67°', '~65°', '68°', '66°', '!52°', '']),
+          r('Soup well · 18:00', '63°C or above', ['74°', '75°', '73°', '76°', '74°', '75°', ''])
+        ] },
+        { name: 'Closing checks', rows: [
+          r('Fridges at close', '8°C or below', ['4.5°', '4.2°', '4.6°', '~4.8°', '4.3°', '4.4°', '']),
+          r('Kitchen cleaned', 'Signed by closer', ['✓', '✓', '✓', '✓', '✓', '✓', '']),
+          r('Doors locked, alarm set', 'Yes / No', ['✓', '✓', '✓', '✓', '-', '✓', ''])
+        ] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

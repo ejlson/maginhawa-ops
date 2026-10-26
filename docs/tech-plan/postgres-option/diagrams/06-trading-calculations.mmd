@@ -1,0 +1,24 @@
+flowchart LR
+  g["Gross sales"] --> n1
+  sc["Service charge"] --> n1
+  tx["Tax (VAT)"] --> n1
+  dc["Discounts & comps"] --> n1
+  n1["Session net<br/>= gross − SC − tax − discounts<br/>(old form forgot discounts)"] --> dn["Dine-in net<br/>lunch + dinner"]
+  bk["Booked covers"] --> cv["Covers<br/>= booked + walk-ins"]
+  wi["Walk-ins"] --> cv
+  dn --> asph["ASPH net<br/>= dine-in net ÷ covers"]
+  cv --> asph
+  fs["Food sales"] --> fp["Food %<br/>= food ÷ dine-in net"]
+  dn --> fp
+  ds["Drink sales"] --> dp["Drink %<br/>= drink ÷ dine-in net"]
+  dn --> dp
+  dg["Delivery gross"] --> dln["Delivery net<br/>= actual payout, else<br/>gross ÷ (1+VAT) × platform %"]
+  dn --> tn["Total net<br/>= dine-in net + delivery net"]
+  dln --> tn
+  wc["Wage cost<br/>(rota or manual)"] --> wp["Wage %<br/>= wages ÷ total net"]
+  tn --> wp
+  tgt[("Site targets<br/>& settings")] --> rag{"RAG status"}
+  wp --> rag
+  tn --> rag
+  ce["Cash in EPOS"] --> cvar["Cash variance<br/>= collected − EPOS"]
+  cc["Cash collected"] --> cvar

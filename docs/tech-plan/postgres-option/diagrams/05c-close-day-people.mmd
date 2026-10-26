@@ -1,0 +1,6 @@
+flowchart TB
+  deliv["Delivery sales<br/>and refunds"] --> staff["Staff on shift and<br/>wage cost (rota)"]
+  staff --> fb["Feedback and<br/>handover notes"]
+  fb --> maint{"Urgent maintenance<br/>mentioned?"}
+  maint -- "Yes" --> wo["Create work order<br/>(photo, asset)"] --> next
+  maint -- "No" --> next(["Go to submit"])

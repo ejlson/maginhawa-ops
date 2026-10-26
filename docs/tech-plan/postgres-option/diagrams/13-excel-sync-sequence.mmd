@@ -1,0 +1,22 @@
+sequenceDiagram
+  autonumber
+  actor M as Manager
+  participant A as API
+  participant D as PostgreSQL
+  participant J as Sync job (pg-boss)
+  participant G as Microsoft Graph
+  participant X as Excel on SharePoint
+  participant F as Existing Flows 2 & 3
+  M->>A: Submit EOD (logged in)
+  A->>A: Recalculate totals server-side
+  A->>D: Save trading_day (status = submitted)
+  A->>D: Enqueue outbound_sync_job (payload hash)
+  J->>D: Pick job
+  J->>G: Add/update row in EOD table (same columns as today)
+  G->>X: Write row
+  X-->>F: Targets lookup & emails keep working (Stage 1)
+  alt Graph error
+    J->>D: attempts+1, retry with backoff
+    J-->>M: Alert finance if still failing after retries
+  end
+  J->>G: Read targets sheet nightly → site_targets

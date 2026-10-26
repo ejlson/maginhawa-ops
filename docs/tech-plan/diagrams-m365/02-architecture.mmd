@@ -1,0 +1,42 @@
+flowchart TB
+  subgraph L1["1 · Your own apps (one TypeScript codebase)"]
+    direction LR
+    tab["<b>Tablet app</b> (Expo / React Native)<br/>kitchen kiosk · staff PIN<br/>offline cache + upload queue"]
+    ph["<b>Phone app</b> (same Expo code)<br/>alerts · sign-offs · close the day<br/>EOD report · camera / QR"]
+    web["<b>Web console</b> (Next.js)<br/>builder · spreadsheet view<br/>finance & admin<br/>hosted on Netlify or Azure"]
+  end
+  subgraph L2["2 · Sign-in"]
+    direction LR
+    entra["<b>Entra ID</b> via MSAL<br/>managers / finance: own Microsoft login<br/>kitchen tablet: one device account per site<br/>+ staff PIN inside the app"]
+  end
+  subgraph L3["3 · How the apps talk to Microsoft 365"]
+    direction LR
+    msgraph["<b>Microsoft Graph API</b><br/>read & write SharePoint list items<br/>upload photos / files<br/>(standard — no premium licence)"]
+    http["<b>Secured flow calls</b> (optional, premium)<br/>HTTP-trigger flows with Entra auth<br/>for 'submit EOD' style actions"]
+  end
+  subgraph L4["4 · Backend logic: Power Automate"]
+    direction LR
+    auto["<b>On list change</b><br/>recalculate & validate EOD<br/>failed check → corrective action<br/>→ work order → contractor email"]
+    sched["<b>Scheduled</b><br/>create today's checklists<br/>missed-check alerts · EOD email<br/>targets lookup · reminders"]
+  end
+  subgraph L5["5 · Data: SharePoint site"]
+    direction LR
+    lists[("<b>Lists</b><br/>trading days · sessions · adjustments<br/>cash · delivery · staff · targets<br/>checklists · responses · work orders ...")]
+    libs[("<b>Libraries</b><br/>photos · how-to media · policies<br/>certificates · invoices · PDFs")]
+  end
+  subgraph L6["6 · Outputs"]
+    direction LR
+    xl["Excel (finance view)"]
+    bi["Power BI dashboards"]
+    mail["Outlook / Teams emails & alerts"]
+  end
+  L1 --> L2
+  L2 --> L3
+  msgraph --> L5
+  http -.-> L4
+  L5 --> L4
+  L4 --> L5
+  L5 --> L6
+  L4 --> mail
+  classDef opt fill:#f3f0fa,stroke:#6b5ca5,color:#3b2f6b;
+  class http opt

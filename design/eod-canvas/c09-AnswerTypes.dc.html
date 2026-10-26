@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kitchen iPad · Every answer type</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="checks.css" rel="stylesheet">
+</helmet>
+<div class="tb {{theme}}">
+<nav class="side" aria-label="Checks in this list">
+<a class="back" href="c01-KitchenToday.dc.html" style="padding: 0 4px"><svg width="10" height="17" viewBox="0 0 11 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2L2 9l7 7"></path></svg>Today's checks</a>
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 0 12px 8px"><span style="font-size: 15px; color: var(--sec)">Due 16:30 · Bunso bar</span><span style="font-size: 28px; font-weight: 700; letter-spacing: -0.035em">Bar opening</span></div>
+<div class="sg">8 checks · made by [Manager]</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{side}}" as="x" hint-placeholder-count="8"><a class="si" href="c09-AnswerTypes.dc.html" style="min-height: 44px; font-size: 15px"><span class="pie" style="width: 22px"><sc-if value="{{x.done}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" style="fill: var(--ok)"></circle><path d="M6 10.2l2.7 2.6L14 7.5" style="fill: none; stroke: #ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if><sc-if value="{{x.fail}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" style="fill: var(--bad)"></circle><path d="M7 7l6 6M13 7l-6 6" style="fill: none; stroke: #ffffff" stroke-width="1.8" stroke-linecap="round"></path></svg></sc-if><sc-if value="{{x.todo}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.6" style="fill: none; stroke: var(--sec); opacity: 0.45" stroke-width="1.6"></circle></svg></sc-if></span>{{x.n}}</a></sc-for>
+</div>
+<div style="margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 0 12px"><span class="av ink">DP</span><span class="tx"><span style="font-size: 15px">[Bartender]</span><small>Doing this check</small></span></div>
+</nav>
+<main class="main">
+<div class="top"><span style="font-size: 17px; font-weight: 600">Bar opening</span><span style="font-size: 13px; color: var(--sec)"><span class="dot ok"></span>Saved on this iPad · 16:21</span></div>
+<div class="cont" style="gap: 26px">
+<div class="hero" style="padding: 20px 28px">
+<div style="display: flex; flex-direction: column; gap: 6px"><span class="hl">Bar opening</span><div class="big"><b style="font-size: 48px">{{doneCount}}</b><i style="font-size: 24px">&nbsp;of 8 done</i></div></div>
+<div style="display: flex; gap: 22px"><span class="hs">9 min<small>Left before 16:30</small></span><span class="hs" style="{{failStyle}}">{{failCount}}<small>Failed</small></span></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 44px; align-items: start">
+<div class="sub">
+<div class="fr"><span class="tx"><span>Ice machine cleaned</span><small>Yes / No · empty, wipe and refill</small></span><span class="yn"><button class="y" aria-pressed="{{ice.y}}" onClick="{{ice.setY}}">Yes</button><button class="n" aria-pressed="{{ice.n}}" onClick="{{ice.setN}}">No</button></span></div>
+<label class="fr"><span class="tx"><span>Beer cellar temperature</span><small>Temperature · pass 11–13°C</small></span><span style="display: flex; align-items: center; gap: 10px"><span class="pill {{cellar.pill}}">{{cellar.label}}</span><input class="in {{cellar.cls}}" type="text" inputmode="decimal" value="{{v.cellar}}" onChange="{{setCellar}}" style="width: 96px" aria-label="Cellar temperature"></span></label>
+<label class="fr"><span class="tx"><span>Float in the till</span><small>Number · should be £150</small></span><span style="display: flex; align-items: center; gap: 10px"><span class="pill {{flt.pill}}">{{flt.label}}</span><input class="in {{flt.cls}}" type="text" inputmode="decimal" value="{{v.flt}}" onChange="{{setFlt}}" style="width: 96px" aria-label="Float in pounds"></span></label>
+<div class="fr" style="flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 0"><span class="tx"><span>Garnishes prepped</span><small>Pick from a list · pick any</small></span><div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{garn}}" as="g" hint-placeholder-count="4"><button class="mini" aria-pressed="{{g.on}}" onClick="{{g.flip}}">{{g.label}}</button></sc-for></div></div>
+</div>
+<div class="sub">
+<div class="fr" style="padding: 10px 0"><span class="tx"><span>Photo of the bar top</span><small>Photo · camera only</small></span><span style="width: 76px; height: 64px; border-radius: 12px; background: linear-gradient(135deg, #8a6a4a, #3b2c20); display: flex; align-items: flex-end; justify-content: flex-end; padding: 6px; box-sizing: border-box; flex: none"><span class="pill p-ok" style="height: 22px; font-size: 11px; background: rgba(255,255,255,.9)">16:18</span></span></div>
+<label class="fr"><span class="tx"><span>Open juice use-by date</span><small>Date · fails if it has passed</small></span><span style="display: flex; align-items: center; gap: 10px"><span class="pill p-ok">In date</span><input class="in" type="text" value="09/10/2026" style="width: 132px" aria-label="Use-by date"></span></label>
+<div class="fr" style="flex-direction: column; align-items: stretch; gap: 8px; padding: 12px 0"><span class="tx"><span>Anything to report?</span><small>Text · optional</small></span><textarea class="ta" style="min-height: 56px" placeholder="e.g. 2 pint glasses broken, low on tonic"></textarea></div>
+<div class="fr" style="flex-direction: column; align-items: stretch; gap: 8px; padding: 12px 0"><span class="tx"><span>Signed off by</span><small>Signature · the person doing it</small></span><span style="height: 60px; border-radius: 14px; border: 1.5px dashed var(--sep); display: flex; align-items: center; padding: 0 14px; color: var(--sec); font-size: 14px">Sign here with your finger</span></div>
+</div>
+</div>
+</div>
+<div class="bar"><a class="btn b2" href="c01-KitchenToday.dc.html">Save for later</a><a class="btn {{finishCls}}" href="c01-KitchenToday.dc.html">{{finishLabel}}</a></div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "$preview": {"width": 1194, "height": 834}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { ice: 'y', cellar: '12', flt: '150', garn: { Lemons: true, Limes: true, Mint: false, Calamansi: true } }; }
+  renderVals() {
+    const s = this.state;
+    const num = (x) => { const r = parseFloat(String(x).replace(/[£,\s]/g, '')); return isFinite(r) ? r : null; };
+    const c = num(s.cellar), f = num(s.flt);
+    const cellar = c === null ? { pill: 'p-mut', label: 'To do', cls: '' } : (c < 11 || c > 13 ? { pill: 'p-bad', label: c > 13 ? 'Too warm' : 'Too cold', cls: 'bad' } : { pill: 'p-ok', label: 'OK', cls: '' });
+    const flt = f === null ? { pill: 'p-mut', label: 'To do', cls: '' } : (f !== 150 ? { pill: 'p-bad', label: (f < 150 ? '£' + (150 - f).toFixed(2) + ' short' : '£' + (f - 150).toFixed(2) + ' over'), cls: 'bad' } : { pill: 'p-ok', label: 'OK', cls: '' });
+    const fails = [s.ice === 'n', cellar.cls === 'bad', flt.cls === 'bad'].filter(Boolean).length;
+    const garnDone = Object.values(s.garn).some(Boolean);
+    const done = [s.ice, c !== null, f !== null, garnDone, true, true].filter(Boolean).length;
+    const names = ['Ice machine', 'Cellar temperature', 'Float', 'Garnishes', 'Bar top photo', 'Juice use-by', 'Anything to report', 'Sign off'];
+    const st = [s.ice ? (s.ice === 'n' ? 'fail' : 'done') : 'todo', c === null ? 'todo' : (cellar.cls ? 'fail' : 'done'), f === null ? 'todo' : (flt.cls ? 'fail' : 'done'), garnDone ? 'done' : 'todo', 'done', 'done', 'todo', 'todo'];
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      v: s, cellar, flt,
+      setCellar: (e) => this.setState({ cellar: e.target.value }), setFlt: (e) => this.setState({ flt: e.target.value }),
+      ice: { y: s.ice === 'y' ? 'true' : 'false', n: s.ice === 'n' ? 'true' : 'false', setY: () => this.setState({ ice: 'y' }), setN: () => this.setState({ ice: 'n' }) },
+      garn: Object.keys(s.garn).map((k) => ({ label: k, on: s.garn[k] ? 'true' : 'false', flip: () => this.setState({ garn: Object.assign({}, s.garn, { [k]: !s.garn[k] }) }) })),
+      side: names.map((n, i) => ({ n, done: st[i] === 'done', fail: st[i] === 'fail', todo: st[i] === 'todo' })),
+      doneCount: String(done), failCount: String(fails), failStyle: fails ? 'color: var(--heroBad)' : '',
+      finishCls: fails ? 'bd' : 'b1', finishLabel: fails ? 'Fix ' + fails + ' failed check' + (fails > 1 ? 's' : '') + ' first' : 'Sign and finish'
+    };
+  }
+}
+</script>
+</body>
+</html>

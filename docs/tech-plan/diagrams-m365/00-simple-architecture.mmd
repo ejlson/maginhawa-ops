@@ -1,0 +1,28 @@
+flowchart TB
+  user(["Users<br/>staff · managers · finance · admin"])
+  subgraph Apps["Our apps"]
+    direction LR
+    desk["<b>Desktop</b><br/>web console (Next.js)<br/>hosted on Netlify<br/>(your domain via DNS)"]
+    mob["<b>Tablet / phone</b><br/>Expo app<br/>(App Store / Play / MDM)<br/>+ offline store on device"]
+  end
+  entra["<b>Microsoft Entra ID</b><br/>sign-in service<br/>(apps use the MSAL library)"]
+  graphapi["<b>Microsoft Graph API</b><br/>read / write list items<br/>upload files"]
+  subgraph SPS["Microsoft SharePoint site"]
+    direction LR
+    lists[("<b>Lists</b><br/>structured records<br/>(not SQL)")]
+    libs[("<b>Document libraries</b><br/>photos, policies,<br/>certificates, PDFs")]
+  end
+  pa["<b>Microsoft Power Automate</b><br/>flows triggered by list changes<br/>or schedules (business logic)"]
+  out["<b>Outputs</b><br/>Outlook / Teams emails & alerts<br/>Excel finance view · Power BI"]
+  user --> desk
+  user --> mob
+  desk -- "1 · sign in" --> entra
+  mob -- "1 · sign in" --> entra
+  entra -- "2 · access token" --> Apps
+  desk -- "3 · API calls + token" --> graphapi
+  mob -- "3 · API calls + token" --> graphapi
+  graphapi -- "4 · reads / writes" --> SPS
+  SPS -- "5 · item created / changed" --> pa
+  pa -- "6 · writes results back" --> SPS
+  pa -- "7 · sends" --> out
+  SPS -- "reads" --> out

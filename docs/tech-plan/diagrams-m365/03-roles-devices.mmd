@@ -1,0 +1,17 @@
+flowchart LR
+  st["Staff"] --> tb
+  st -.-> ph
+  mg["Manager"] --> ph
+  mg --> tb
+  mg --> dt
+  ow["Owner / Area manager"] --> ph
+  ow --> dt
+  ad["Admin"] --> dt
+  fi["Finance"] --> dt
+  fi --> xl
+  ins["Inspector (read-only)"] --> pdf
+  tb["<b>Tablet kiosk</b><br/>site device account + staff PIN<br/>checklists, temperatures,<br/>faults, policy sign-off"]
+  ph["<b>Phone app</b><br/>own Microsoft login<br/>alerts, sign-offs, close the day,<br/>EOD, QR scan"]
+  dt["<b>Web console</b><br/>own Microsoft login<br/>builder, spreadsheet view,<br/>finance, admin"]
+  xl["<b>Excel / Power BI</b><br/>finance views and dashboards"]
+  pdf["<b>EHO pack PDF</b><br/>shared by a manager"]

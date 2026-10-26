@@ -1,0 +1,39 @@
+flowchart LR
+  subgraph People
+    staff["Staff<br/>kitchen & FOH"]
+    mgr["Managers<br/>duty / GM"]
+    own["Owner / Area manager"]
+    fin["Finance team"]
+    adm["Admin"]
+    eho["EHO / Inspector"]
+    con["Contractors"]
+  end
+  app(("Restaurant<br/>Operations<br/>Platform"))
+  subgraph External["External systems"]
+    epos["EPOS<br/>Epos Now · Square · Lightspeed"]
+    rota["Rota<br/>Deputy · RotaCloud"]
+    del["Delivery<br/>Deliveroo · Uber Eats"]
+    ms["Microsoft 365<br/>Excel · SharePoint · Power Automate"]
+    acc["Accounting<br/>Xero · QuickBooks · Sage"]
+    fsa["FSA FHRS<br/>open data API"]
+    ai["Claude API"]
+    comms["Push · SMS · Email"]
+    pay["Stripe billing"]
+  end
+  staff -- "checklists, temps, faults<br/>(tablet PIN / phone)" --> app
+  mgr -- "sign-offs, close the day,<br/>EOD trading report" --> app
+  own -- "dashboards, Ask your logs" --> app
+  fin -- "trading data, targets,<br/>invoices, exports" --> app
+  adm -- "templates, users, sites" --> app
+  app -- "read-only EHO pack link" --> eho
+  app -- "work order link (SMS)" --> con
+  con -- "status, photos, invoice" --> app
+  epos -- "sales, discounts, voids" --> app
+  rota -- "shifts, wage cost" --> app
+  del -- "orders, payouts" --> app
+  app <-- "targets in / EOD rows out" --> ms
+  app -- "invoices, costs" --> acc
+  fsa -- "ratings" --> app
+  app <-- "AI features" --> ai
+  app --> comms
+  app <--> pay

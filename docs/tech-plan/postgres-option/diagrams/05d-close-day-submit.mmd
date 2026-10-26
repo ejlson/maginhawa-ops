@@ -1,0 +1,6 @@
+flowchart TB
+  review["Review totals<br/>vs daily targets<br/>(wage % RAG)"] --> submit(["Submit and sign<br/>(logged-in user)"])
+  submit --> calc["Server recalculates<br/>and locks the day"]
+  calc --> out1["EOD email + PDF<br/>to managers and finance"]
+  calc --> out2["Row synced to Excel<br/>(idempotent job)"]
+  calc --> out3["Finance dashboard<br/>and Ask your logs"]

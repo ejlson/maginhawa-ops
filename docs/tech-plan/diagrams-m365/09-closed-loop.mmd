@@ -1,0 +1,17 @@
+flowchart LR
+  chk["Temperature check<br/>walk-in reads 9°C"] --> eval{"Flow F04 checks vs<br/>RulesThresholds list<br/>(e.g. max 8°C)"}
+  eval -- "Pass" --> ok(["Logged OK"])
+  eval -- "Fail" --> ca["Corrective action<br/>required"]
+  ca --> re["Re-check<br/>in 30 min"]
+  re --> eval2{"Re-check<br/>passes?"}
+  eval2 -- "Yes" --> close1(["Corrective action<br/>verified"])
+  eval2 -- "No / repeat" --> wo["Work order on the<br/>asset (QR record)"]
+  ai["Power BI / flow warning<br/>fridge drifting warmer"] -.-> wo
+  fault["Staff fault report<br/>photo + voice note"] -.-> wo
+  wo --> disp["Contractor emailed<br/>(flow F06)"]
+  disp --> visit["Visit logged<br/>sign-in, photos"]
+  visit --> res["Resolved"]
+  res --> inv["Invoice uploaded<br/>Finance approves"]
+  inv --> cost[("Asset history<br/>cost, warranty,<br/>repair vs replace")]
+  ca --> pack[("EHO pack<br/>confidence in management")]
+  res --> pack

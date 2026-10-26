@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+.react-router
+.netlify
+coverage
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+
+# Original handoff archive: same files as this folder
+Maginhawa handoff.zip

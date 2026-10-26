@@ -1,0 +1,203 @@
+import { describe, expect, it } from 'vitest';
+import { screen, within } from '@testing-library/react';
+import { renderApp, seedVerifiedDraft, admin } from './harness';
+import { deviceStore } from '../app/lib/store';
+
+describe('sign-in', () => {
+  it('sends people who are not signed in to sign-in', async () => {
+    renderApp('/close', null);
+    expect(await screen.findByRole('heading', { name: 'Close the day' })).toBeInTheDocument();
+    expect(screen.getByText(/Demo mode/)).toBeInTheDocument();
+  });
+
+  it('signs a manager in and lands on the app home', async () => {
+    const { user } = renderApp('/sign-in', null);
+    await user.type(screen.getByPlaceholderText('e.g. Jo'), 'Sam');
+    await user.click(screen.getByRole('button', { name: /Continue/ }));
+    expect(await screen.findByRole('heading', { name: /, Sam$/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: "Start today's close" })).toBeInTheDocument();
+  });
+});
+
+describe('home', () => {
+  it('shows today\'s close and the trading day', () => {
+    renderApp('/');
+    expect(screen.getByText('Monday 5 October')).toBeInTheDocument();
+    expect(screen.getByText('0 of 8 sections done')).toBeInTheDocument();
+  });
+});
+
+describe('lunch', () => {
+  it('works out net sales as the manager types (discounts subtracted)', async () => {
+    const { user } = renderApp('/close/lunch');
+    await user.type(screen.getByLabelText('Gross sales'), '£1,200.00');
+    await user.type(screen.getByLabelText('Service charge'), '120');
+    await user.type(screen.getByLabelText('VAT'), '180');
+    await user.type(screen.getByLabelText('Discounts & comps'), '50');
+    expect(screen.getByTestId('net')).toHaveTextContent('£850.00');
+  });
+
+  it('editing a filled field replaces the figure instead of adding to "£180.00"', async () => {
+    const { user } = renderApp('/close/lunch');
+    const vat = screen.getByLabelText('VAT');
+    await user.type(vat, '180');
+    await user.tab();
+    expect(vat).toHaveValue('£180.00');
+    await user.click(vat);
+    expect(vat).toHaveValue('180');
+    await user.clear(vat);
+    await user.type(vat, '175.5');
+    await user.tab();
+    expect(vat).toHaveValue('£175.50');
+  });
+
+  it('flags food and drink that don\'t add up, until confirmed', async () => {
+    const { user } = renderApp('/close/lunch');
+    await user.type(screen.getByLabelText('Gross sales'), '1000');
+    await user.type(screen.getByLabelText('Food'), '600');
+    await user.type(screen.getByLabelText('Drink'), '300');
+    expect(screen.getByText('£100.00 under net')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: "It's right" }));
+    expect(screen.getByText('Confirmed by you')).toBeInTheDocument();
+  });
+
+  it('asks for a reason when cash is out by more than £1', async () => {
+    const { user } = renderApp('/close/lunch');
+    await user.type(screen.getByLabelText('Till says'), '20');
+    // Nothing counted: £0 − £150 float − £20 till = £170 short.
+    expect(screen.getByTestId('cash-status')).toHaveTextContent('£170.00 short');
+    expect(screen.getByText('Needed to submit')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Miscount, recounted' }));
+    expect(screen.getByRole('button', { name: 'Miscount, recounted' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText('Needed to submit')).not.toBeInTheDocument();
+  });
+
+  it('adds a discount line and shows what is still to list', async () => {
+    const { user } = renderApp('/close/lunch');
+    await user.type(screen.getByLabelText('Discounts & comps'), '50');
+    await user.click(screen.getByRole('button', { name: 'Add discount, comp or void' }));
+    await user.click(screen.getByRole('button', { name: 'Staff meal 20%' }));
+    await user.type(screen.getByLabelText('Line amount'), '9.40');
+    await user.click(screen.getByRole('button', { name: 'Add line' }));
+    expect(screen.getByText('£40.60 still to list')).toBeInTheDocument();
+  });
+
+  it('saving marks the section done on the hub', async () => {
+    const { user } = renderApp('/close/lunch');
+    await user.type(screen.getByLabelText('Gross sales'), '100');
+    await user.click(screen.getByRole('button', { name: 'Save lunch' }));
+    expect(await screen.findByRole('heading', { name: "Today's close" })).toBeInTheDocument();
+    expect(screen.getByText('1 of 8 sections done')).toBeInTheDocument();
+  });
+});
+
+describe('cash count', () => {
+  it('only lists the notes and coins that were added', async () => {
+    const { user } = renderApp('/close/lunch/cash');
+    expect(screen.queryByLabelText('Number of £50')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '£20' }));
+    await user.type(screen.getByLabelText('Number of £20'), '10');
+    await user.click(screen.getByRole('button', { name: '50p' }));
+    await user.type(screen.getByLabelText('Number of 50p'), '4');
+    expect(screen.getByLabelText('£202.00')).toBeInTheDocument();
+    expect(screen.getByTestId('taken')).toHaveTextContent('£52.00 taken');
+    expect(screen.queryByLabelText('Number of £50')).not.toBeInTheDocument();
+  });
+
+  it('removes a denomination left blank', async () => {
+    const { user } = renderApp('/close/lunch/cash');
+    await user.click(screen.getByRole('button', { name: '£5' }));
+    await user.click(screen.getByRole('button', { name: 'Remove' }));
+    expect(screen.queryByLabelText('Number of £5')).not.toBeInTheDocument();
+  });
+});
+
+describe('hub', () => {
+  it('switching a service off skips its section', async () => {
+    const { user } = renderApp('/close');
+    await user.click(screen.getByRole('switch', { name: 'Lunch ran today' }));
+    expect(screen.getByText("Didn't run today")).toBeInTheDocument();
+    expect(screen.getByText('0 of 7 sections done')).toBeInTheDocument();
+  });
+});
+
+describe('wages, delivery, notes', () => {
+  it('wage % turns amber over 30%', async () => {
+    await seedVerifiedDraft((d) => { d.wages.wageCost = null; d.completed.wages = false; });
+    const { user } = renderApp('/close/wages');
+    await user.type(screen.getByLabelText('Wage cost'), '850');
+    expect(screen.getByTestId('wage-pct')).toHaveTextContent('31.6%');
+    expect(screen.getByText('Between 30% and 35%')).toBeInTheDocument();
+  });
+
+  it('delivery uses each platform\'s share', async () => {
+    const { user } = renderApp('/close/delivery');
+    await user.type(screen.getByLabelText('Deliveroo gross'), '300');
+    expect(screen.getByLabelText('£137.50')).toBeInTheDocument();
+  });
+
+  it('adds a handover note for the opener', async () => {
+    const { user } = renderApp('/close/handover');
+    await user.click(screen.getByRole('button', { name: 'Stock' }));
+    await user.type(screen.getByLabelText('Note'), 'Low on limes');
+    await user.click(screen.getByRole('button', { name: 'Add note' }));
+    expect(screen.getByText('Low on limes')).toBeInTheDocument();
+    expect(screen.getByText('1 note')).toBeInTheDocument();
+  });
+});
+
+describe('review and submit', () => {
+  it('shows the verified day total and wage %', async () => {
+    await seedVerifiedDraft();
+    renderApp('/close/review');
+    expect(screen.getByTestId('day-total')).toHaveTextContent('£2,687.50');
+    expect(screen.getByText('29.8%')).toBeInTheDocument();
+  });
+
+  it('keeps Submit off until the confirmation is ticked', async () => {
+    await seedVerifiedDraft();
+    const { user } = renderApp('/close/review');
+    const submit = screen.getByRole('button', { name: 'Submit Monday · £2,687.50' });
+    expect(submit).toBeDisabled();
+    await user.click(screen.getByRole('checkbox'));
+    expect(submit).toBeEnabled();
+  });
+
+  it('an unexplained cash difference blocks submit, even when ticked', async () => {
+    await seedVerifiedDraft((d) => { d.sessions.dinner.cash.tillCash = 40000; });
+    const { user } = renderApp('/close/review');
+    await user.click(screen.getByRole('checkbox'));
+    expect(screen.getByRole('button', { name: /Submit Monday/ })).toBeDisabled();
+    expect(screen.getByText('Fix 1 issue to submit.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Fix in Dinner' })).toBeInTheDocument();
+  });
+
+  it('submits, shows Day closed, and locks the day', async () => {
+    await seedVerifiedDraft();
+    const { user } = renderApp('/close/review');
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: 'Submit Monday · £2,687.50' }));
+    expect(await screen.findByRole('heading', { name: 'Day closed' })).toBeInTheDocument();
+    const saved = await deviceStore().get('BUN', '2026-10-05');
+    expect(saved?.status).toBe('submitted');
+    expect(saved?.official?.totalNet).toBe(268750);
+  });
+});
+
+describe('head office', () => {
+  it('lists submitted sites and approves clean closes', async () => {
+    await seedVerifiedDraft((d) => { d.confirmed = true; });
+    const { submitReport } = await import('@maginhawa/core');
+    const { settingsFor } = await import('../app/lib/draft');
+    const d = (await deviceStore().get('BUN', '2026-10-05'))!.draft;
+    await submitReport(d, { store: deviceStore(), settings: settingsFor('BUN'), submittedBy: 'Jo' });
+
+    const { user } = renderApp('/head-office', admin);
+    const table = await screen.findByRole('table', { name: 'Sites' });
+    const bunso = within(table).getByText('Bunso').closest('[role="row"]') as HTMLElement;
+    expect(await within(bunso).findByText('£2,687.50')).toBeInTheDocument();
+    expect(within(table).getByText('Mamasons Kentish Town').closest('[role="row"]')).toHaveTextContent('Not started');
+    await user.click(screen.getByRole('button', { name: 'Approve 1 clean close' }));
+    expect(await within(bunso).findByText('Approved')).toBeInTheDocument();
+  });
+});

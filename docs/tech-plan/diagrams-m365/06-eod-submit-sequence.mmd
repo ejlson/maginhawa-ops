@@ -1,0 +1,23 @@
+sequenceDiagram
+  autonumber
+  actor M as Manager
+  participant A as Your phone app
+  participant Q as On-device queue
+  participant G as Microsoft Graph
+  participant L as SharePoint lists
+  participant F as Flow: on new EOD
+  participant O as Outlook / Teams
+  M->>A: Fill EOD (draft saved on device)
+  A->>A: Live totals with the same formulas the flow uses
+  M->>A: Submit
+  A->>Q: Queue submission (works with no signal)
+  Q->>G: When online: create Trading day + child items (signed in via MSAL)
+  G->>L: Items written (Site + Date unique key blocks duplicates)
+  L-->>F: "When an item is created" trigger (standard connector)
+  F->>F: Recalculate totals, check cash variance, look up target
+  F->>L: Write official totals, status = Submitted (or flag problems)
+  alt Urgent maintenance entered
+    F->>L: Create work order
+  end
+  F->>O: EOD summary email to finance & managers
+  A->>G: Refresh: show official totals and status

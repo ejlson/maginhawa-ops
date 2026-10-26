@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tablet PIN sign in</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0066cc}a:hover{color:#004f9e}
+.tb{--bg:#ffffff;--side:#f7f7f9;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--sel:rgba(0,0,0,.06);--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.16);--link:#0066cc;--ok:#1f7a35;width:1194px;height:834px;box-sizing:border-box;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:17px;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;display:flex;gap:48px;padding:40px;overflow:hidden}
+.tb.dark{--bg:#000000;--side:#0c0c0e;--text:#f5f5f7;--sec:#a1a1a6;--sep:rgba(255,255,255,.1);--fill:#1c1c1e;--sel:rgba(255,255,255,.1);--ink:#f5f5f7;--onink:#000000;--hero:#1c1c1e;--heroline:rgba(245,245,247,.14);--link:#2997ff;--ok:#30d158}
+.left{flex:1 1 0;display:flex;flex-direction:column;gap:24px;min-width:0}
+.hero{background:var(--hero);color:var(--onhero);border-radius:26px;padding:28px;display:flex;flex-direction:column;gap:14px;box-shadow:0 24px 48px -24px rgba(0,0,0,.45)}
+.hd{font-size:20px;font-weight:700;letter-spacing:-.025em;margin:0 0 4px}
+.li{display:flex;align-items:center;gap:14px;min-height:60px;position:relative;border:0;background:transparent;font:inherit;color:var(--text);text-align:left;cursor:pointer;border-radius:14px;padding:0 10px;width:100%}
+.li.on{background:var(--sel)}
+.av{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;font-size:14px;font-weight:600}
+.tx{display:flex;flex-direction:column;gap:2px}
+.tx small{font-size:14px;color:var(--sec)}
+.right{flex:0 0 400px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+.dots{display:flex;gap:18px}
+.dots span{width:14px;height:14px;border-radius:7px;border:1.6px solid var(--sec)}
+.dots span.f{background:var(--text);border-color:var(--text)}
+.pad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 24px}
+.key{width:84px;height:84px;border-radius:42px;border:0;background:var(--fill);color:var(--text);font:inherit;font-size:32px;font-weight:400;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.key.ghost{background:transparent;font-size:16px;color:var(--link)}
+.btn{height:54px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;text-decoration:none;padding:0 32px}
+.b1{background:var(--ink);color:var(--onink)}.b1:hover{color:var(--onink)}
+</style>
+</helmet>
+<div class="tb {{theme}}">
+<div class="left">
+<div class="hero">
+<span style="font-size: 15px; color: var(--herosec)">Shared tablet</span>
+<span style="font-size: 40px; font-weight: 700; letter-spacing: -0.04em; line-height: 1">Bunso kitchen</span>
+<span style="font-size: 15px; color: var(--herosec); padding-top: 12px; border-top: 0.5px solid var(--heroline)">Locked to this site. Signs out after 2 minutes idle.</span>
+</div>
+<div>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><p class="hd">On today's rota</p><span style="font-size: 15px; color: var(--sec)">Tap your face</span></div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 8px">
+<sc-for list="{{people}}" as="p" hint-placeholder-count="8">
+<button class="li {{p.on}}" onClick="{{p.pick}}" aria-pressed="{{p.pressed}}" style="flex-direction: column; justify-content: center; gap: 8px; min-height: 120px; padding: 12px 6px; text-align: center"><span class="av" style="width: 60px; height: 60px; border-radius: 30px; font-size: 18px; {{p.avStyle}}">{{p.ini}}</span><span class="tx" style="align-items: center; font-size: 15px">{{p.name}}<small style="font-size: 12px">{{p.role}}</small></span></button>
+</sc-for>
+</div>
+<p style="margin: 14px 0 0; font-size: 14px; color: var(--sec)">Not on the list? <a href="l02-Pin.dc.html" style="color: var(--link); text-decoration: none; font-weight: 500">Scan your badge instead</a></p>
+</div>
+</div>
+<div class="right">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center"><span style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em">{{title}}</span><span style="font-size: 15px; color: var(--sec)">{{sub}}</span></div>
+<div class="dots" role="status" aria-live="polite" aria-label="{{pinCount}} of 4 digits entered"><sc-for list="{{dots}}" as="d" hint-placeholder-count="4"><span class="{{d.c}}"></span></sc-for></div>
+<sc-if value="{{notDone}}" hint-placeholder-val="{{ true }}">
+<div class="pad">
+<sc-for list="{{keys}}" as="k" hint-placeholder-count="9"><button class="key" onClick="{{k.press}}">{{k.d}}</button></sc-for>
+<button class="key ghost" onClick="{{clear}}">Clear</button>
+<button class="key" onClick="{{zero}}">0</button>
+<button class="key ghost" onClick="{{back}}" aria-label="Delete last digit">⌫</button>
+</div>
+</sc-if>
+<sc-if value="{{done}}" hint-placeholder-val="{{ false }}">
+<a class="btn b1" href="t01-Tablet.dc.html">Continue to today's close</a>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":true},"$preview":{"width":1194,"height":834}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { who: 0, pin: '' };
+  }
+  renderVals() {
+    const ppl = [
+      { name: '[Manager]', ini: 'JM', role: 'Manager' },
+      { name: '[Assistant]', ini: 'AM', role: 'Asst manager' },
+      { name: '[Duty mgr]', ini: 'DM', role: 'Duty manager' },
+      { name: '[Head chef]', ini: 'HC', role: 'Kitchen' },
+      { name: '[CDP]', ini: 'RT', role: 'Kitchen' },
+      { name: '[Waiter]', ini: 'LS', role: 'Front' },
+      { name: '[Bartender]', ini: 'DP', role: 'Front' },
+      { name: '[KP]', ini: 'MO', role: 'Kitchen' }
+    ];
+    const pin = this.state.pin;
+    const add = (d) => () => { if (this.state.pin.length < 4) this.setState({ pin: this.state.pin + d }); };
+    const done = pin.length === 4;
+    const who = ppl[this.state.who];
+    return {
+      theme: this.props.dark === false ? '' : 'dark',
+      people: ppl.map((p, i) => ({ ...p, on: i === this.state.who ? 'on' : '', avStyle: i === this.state.who ? 'background: var(--ink); color: var(--onink)' : '', pressed: i === this.state.who ? 'true' : 'false', pick: () => this.setState({ who: i, pin: '' }) })),
+      title: done ? 'Welcome back' : 'Enter your PIN',
+      sub: done ? who.name + ' · Bunso · Not you? Tap another face' : who.name,
+      pinCount: pin.length,
+      dots: [0, 1, 2, 3].map((i) => ({ c: i < pin.length ? 'f' : '' })),
+      keys: ['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => ({ d, press: add(d) })),
+      zero: add('0'),
+      clear: () => this.setState({ pin: '' }),
+      back: () => this.setState({ pin: this.state.pin.slice(0, -1) }),
+      done,
+      notDone: !done
+    };
+  }
+}
+</script>
+</body>
+</html>

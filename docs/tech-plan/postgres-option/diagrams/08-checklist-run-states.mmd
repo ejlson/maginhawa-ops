@@ -1,0 +1,15 @@
+stateDiagram-v2
+  [*] --> scheduled: job creates run from schedule (RRULE)
+  scheduled --> in_progress: staff opens list
+  scheduled --> missed: window passes, nothing done
+  in_progress --> completed: all required checkpoints answered
+  in_progress --> auto_closed: deadline reached, partially done
+  scheduled --> cancelled: site paused (closure / refurb)
+  missed --> [*]
+  auto_closed --> [*]
+  completed --> [*]
+  cancelled --> [*]
+  note right of missed
+    Manager alerted (push)
+    Shows in EOD report
+  end note

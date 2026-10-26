@@ -1,0 +1,29 @@
+erDiagram
+  SITES ||--o{ TRADINGDAYS : "one per date"
+  SITES ||--o{ TARGETS : "daily targets"
+  TRADINGDAYS ||--o{ TRADINGSESSIONS : "lunch / dinner"
+  TRADINGSESSIONS ||--o{ ADJUSTMENTS : "discounts, comps, voids"
+  REASONCODES ||--o{ ADJUSTMENTS : reason
+  TRADINGSESSIONS ||--o{ SHIFTSTAFF : "who worked"
+  TRADINGDAYS ||--o{ DELIVERYSALES : "per platform"
+  DELIVERYPLATFORMS ||--o{ DELIVERYSALES : platform
+  TRADINGDAYS ||--o{ DELIVERYREFUNDS : refunds
+  TRADINGDAYS ||--o{ FEEDBACK : notes
+  TRADINGDAYS {
+    text Title "SiteCode + Date (unique)"
+    choice Status
+    currency WageCost
+    currency TotalNet "flow F01"
+    number WagePct "flow F01"
+    choice WageRAG "flow F01"
+  }
+  TRADINGSESSIONS {
+    currency Gross
+    currency ServiceCharge
+    currency Tax
+    currency DiscountsComps
+    currency CashInEpos
+    currency CashCollected
+    currency Net "flow F01"
+    currency CashVariance "flow F01"
+  }

@@ -1,0 +1,498 @@
+erDiagram
+  TradingDays ||--o{ Feedback : "TradingDay"
+  WorkOrders ||--o{ Feedback : "WorkOrder"
+  Sites ||--o{ Staff : "HomeSite"
+  Sites ||--o{ WorkOrders : "Site"
+  Assets ||--o{ WorkOrders : "Asset"
+  Contractors ||--o{ WorkOrders : "Contractor"
+  Staff ||--o{ WorkOrders : "ReportedBy"
+  Sites ||--o{ DayClosures : "Site"
+  Staff ||--o{ DayClosures : "ClosedBy"
+  Responses ||--o{ CorrectiveActions : "Response"
+  Sites ||--o{ CorrectiveActions : "Site"
+  WorkOrders ||--o{ CorrectiveActions : "WorkOrder"
+  Staff ||--o{ CorrectiveActions : "VerifiedBy"
+  TradingDays ||--o{ DeliveryRefunds : "TradingDay"
+  DeliveryPlatforms ||--o{ DeliveryRefunds : "Platform"
+  TradingDays ||--o{ DeliverySales : "TradingDay"
+  DeliveryPlatforms ||--o{ DeliverySales : "Platform"
+  Sites ||--o{ Assets : "Site"
+  Contractors ||--o{ Assets : "DefaultContractor"
+  TradingDays ||--o{ TradingSessions : "TradingDay"
+  Sites ||--o{ TradingSessions : "Site"
+  Staff ||--o{ StaffCertificates : "Staff"
+  Sites ||--o{ HandoverNotes : "Site"
+  Staff ||--o{ HandoverNotes : "Author"
+  ChecklistTemplates ||--o{ Schedules : "Template"
+  Sites ||--o{ Schedules : "Site"
+  Contractors ||--o{ Invoices : "Contractor"
+  WorkOrders ||--o{ Invoices : "WorkOrder"
+  Assets ||--o{ Invoices : "Asset"
+  Staff ||--o{ Invoices : "ApprovedBy"
+  Sites ||--o{ ComplianceItems : "Site"
+  Assets ||--o{ ComplianceItems : "Asset"
+  Contractors ||--o{ ComplianceItems : "Contractor"
+  Staff ||--o{ FitnessToWork : "ClearedBy, Staff"
+  Sites ||--o{ VisitorLog : "Site"
+  WorkOrders ||--o{ VisitorLog : "WorkOrder"
+  Staff ||--o{ PolicyAcknowledgements : "Staff"
+  Devices ||--o{ PolicyAcknowledgements : "Device"
+  ChecklistTemplates ||--o{ Checkpoints : "Template"
+  Assets ||--o{ Checkpoints : "Asset"
+  Sites ||--o{ TradingDays : "Site"
+  Staff ||--o{ TradingDays : "ApprovedBy, SubmittedBy"
+  Sites ||--o{ ChecklistRuns : "Site"
+  ChecklistTemplates ||--o{ ChecklistRuns : "Template"
+  Staff ||--o{ ChecklistRuns : "CompletedBy"
+  TradingSessions ||--o{ Adjustments : "TradingSession"
+  Sites ||--o{ Adjustments : "Site"
+  ReasonCodes ||--o{ Adjustments : "ReasonCode"
+  Staff ||--o{ Adjustments : "ApprovedBy, PerformedBy"
+  ChecklistRuns ||--o{ Responses : "Run"
+  Sites ||--o{ Responses : "Site"
+  Staff ||--o{ Responses : "RecordedBy"
+  Devices ||--o{ Responses : "Device"
+  Sites ||--o{ Devices : "Site"
+  Sites ||--o{ Targets : "Site"
+  TradingSessions ||--o{ ShiftStaff : "TradingSession"
+  Staff ||--o{ ShiftStaff : "Staff"
+  Sites }o--o{ ChecklistTemplates : "Sites"
+  Checkpoints ||--o{ Responses : "CheckpointId"
+  Responses |o--o| Responses : "Supersedes"
+  Responses |o--o{ WorkOrders : "SourceResponse"
+  Policies ||--o{ PolicyAcknowledgements : "PolicyFileId"
+  Sites {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Text SiteCode UK "required"
+    Choice Nation "required"
+    Text Timezone
+    Number FHRSId
+    MultiChoice Sessions
+    Number VATRatePct
+    Number WageTargetPct
+    Number WageAmberPct
+    Choice NetSalesRule
+    Text DayCloseTime
+    YesNo Active "indexed"
+  }
+  Staff {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Text Email "indexed"
+    Lookup HomeSite FK "indexed"
+    Choice Department
+    Choice Position
+    Choice AppRole "required"
+    Text PinHash
+    Text PreferredLanguage
+    YesNo Active "indexed"
+  }
+  Devices {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Site FK "indexed"
+    Text DeviceAccount
+    Choice Platform
+    DateTime LastSeen
+    YesNo Revoked "indexed"
+  }
+  Targets {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, SiteCode + yyyy-mm-dd"
+    Lookup Site FK "indexed"
+    Date TargetDate "indexed"
+    Currency NetSalesTarget
+    Currency GrossSalesTarget
+    Number CoversTarget
+    Number WagePctTarget
+  }
+  ReasonCodes {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Choice Kind "required, indexed"
+    Choice Scope
+    Number DefaultPct
+    YesNo IsWaste
+    Choice AppliesTo
+    Text NotePrompt
+    Choice ApprovalRole
+    Number SortOrder
+    YesNo Active "indexed"
+  }
+  DeliveryPlatforms {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required"
+    Number EstimatedNetPct
+    YesNo PricesIncludeVAT
+    YesNo Active
+  }
+  RulesThresholds {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, Nation + CheckCode"
+    Choice Nation "indexed"
+    Text CheckCode
+    Number MinValue
+    Number MaxValue
+    Text Unit
+    Text LegalBasis
+    YesNo Verified
+  }
+  ChecklistTemplates {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Choice Kind "indexed"
+    Number CurrentVersion
+    Choice Status "indexed"
+    MultiLookup Sites FK
+  }
+  Checkpoints {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Template FK "indexed"
+    Number TemplateVersion "indexed"
+    Number Position
+    Text Section
+    Note Guidance
+    Note MediaLinks
+    Choice ResponseType "required"
+    Note Options
+    Text CheckCode
+    Lookup Asset FK
+    YesNo Required
+    YesNo PhotoRequired
+    YesNo CorrectiveActionOnFail
+  }
+  Schedules {
+    Number ID PK "SharePoint item id"
+    Text Title
+    Lookup Template FK "indexed"
+    Lookup Site FK "indexed"
+    Text DueTime "required"
+    MultiChoice Days
+    Number WindowMinutes
+    YesNo AutoClose
+    Choice AssignedRole
+    Date PausedFrom
+    Date PausedUntil
+  }
+  ChecklistRuns {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, SiteCode + yyyy-mm-dd + ScheduleId"
+    Lookup Site FK "indexed"
+    Date BusinessDate "indexed"
+    Lookup Template FK
+    Number TemplateVersion
+    DateTime DueAt
+    Choice Status "indexed"
+    Lookup CompletedBy FK
+    DateTime CompletedAt
+    Number DurationSeconds
+    Number FailedCount "set by flow"
+  }
+  Responses {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required"
+    Lookup Run FK "indexed"
+    Lookup Site FK "indexed"
+    Date BusinessDate "indexed"
+    Number CheckpointId FK
+    Number ValueNumber
+    Note ValueText
+    YesNo Passed "indexed"
+    Text ThresholdSnapshot
+    Choice Source
+    Link PhotoUrl
+    Text PhotoSha256
+    YesNo CapturedLive
+    Lookup RecordedBy FK
+    Lookup Device FK
+    DateTime ClientRecordedAt
+    Number Supersedes FK
+    Text CorrectionReason
+  }
+  CorrectiveActions {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Response FK "indexed"
+    Lookup Site FK "indexed"
+    Note ActionTaken
+    YesNo FoodDisposed
+    Choice Status "indexed"
+    DateTime RecheckDue "indexed"
+    Lookup WorkOrder FK
+    Lookup VerifiedBy FK
+  }
+  DayClosures {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, SiteCode + yyyy-mm-dd"
+    Lookup Site FK "indexed"
+    Date BusinessDate "indexed"
+    Lookup ClosedBy FK
+    Note Stats "set by flow"
+    Link ReportLink "set by flow"
+  }
+  HandoverNotes {
+    Number ID PK "SharePoint item id"
+    Text Title
+    Lookup Site FK "indexed"
+    Date BusinessDate "indexed"
+    Note Body
+    Lookup Author FK
+  }
+  Assets {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Site FK "indexed"
+    Choice Category "indexed"
+    Text Make
+    Text Model
+    Text SerialNumber
+    Text QRCode UK
+    Date InstallDate
+    Date WarrantyExpires "indexed"
+    Lookup DefaultContractor FK
+    Link PhotoUrl
+    YesNo Retired
+  }
+  Contractors {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Choice Trade "indexed"
+    Text ContactName
+    Text Phone
+    Text Email
+    Text GasSafeNumber
+    Text Accreditation
+  }
+  WorkOrders {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required"
+    Lookup Site FK "indexed"
+    Lookup Asset FK "indexed"
+    Text Summary "required"
+    Note Description
+    Choice Source
+    Number SourceResponse FK
+    Choice Priority "indexed"
+    Choice Status "indexed"
+    Lookup Contractor FK
+    Lookup ReportedBy FK
+    DateTime DispatchedAt
+    DateTime AttendedAt
+    DateTime ResolvedAt
+    Note PhotoUrls
+    Note History
+  }
+  ComplianceItems {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Site FK "indexed"
+    Lookup Asset FK
+    Choice RequirementCode
+    Number IntervalMonths
+    Date LastDone
+    Date NextDue "indexed"
+    Lookup Contractor FK
+    Link CertificateLink
+    YesNo Verified
+  }
+  Invoices {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Contractor FK "indexed"
+    Lookup WorkOrder FK "indexed"
+    Lookup Asset FK "indexed"
+    Date InvoiceDate "indexed"
+    Currency Net
+    Currency VAT
+    Currency Gross
+    Link DocumentLink
+    Lookup ApprovedBy FK
+    DateTime ExportedAt
+  }
+  VisitorLog {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Site FK "indexed"
+    Text Company
+    Text Purpose
+    Lookup WorkOrder FK
+    DateTime SignedIn "indexed"
+    DateTime SignedOut
+    YesNo HealthDeclaration
+  }
+  TradingDays {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, SiteCode + yyyy-mm-dd"
+    Lookup Site FK "indexed"
+    Date BusinessDate "indexed"
+    Choice Status "indexed"
+    Currency WageCost
+    Note NextShiftNotes
+    Lookup SubmittedBy FK
+    DateTime SubmittedAt
+    Lookup ApprovedBy FK
+    Currency TotalGross "set by flow"
+    Currency TotalNet "set by flow"
+    Currency DineInNet "set by flow"
+    Number Covers "set by flow"
+    Currency ASPHNet "set by flow"
+    Number FoodPct "set by flow"
+    Number DrinkPct "set by flow"
+    Number WagePct "set by flow"
+    Choice WageRAG "set by flow"
+    Currency NetVsTarget "set by flow"
+    Note CheckIssues "set by flow"
+    Text CalcVersion "set by flow"
+  }
+  TradingSessions {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, SiteCode + yyyy-mm-dd + Session"
+    Lookup TradingDay FK "indexed"
+    Lookup Site FK "indexed"
+    Date BusinessDate "indexed"
+    Choice Session
+    Currency Gross
+    Currency ServiceCharge
+    Currency Tax
+    Currency DiscountsComps
+    Currency FoodSales
+    Currency DrinkSales
+    Number BookedCovers
+    Number Walkins
+    Currency CashInEpos
+    Currency CashCollected
+    Note CashExplanation
+    Currency Net "set by flow"
+    Number Covers "set by flow"
+    Currency CashVariance "set by flow"
+  }
+  Adjustments {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required"
+    Lookup TradingSession FK "indexed"
+    Lookup Site FK "indexed"
+    Date BusinessDate "indexed"
+    Choice Kind "indexed"
+    Lookup ReasonCode FK "required"
+    Text GuestOrStaffName
+    Text Items
+    Currency SaleAmount
+    Currency Amount "required"
+    Text Time
+    Lookup PerformedBy FK
+    Lookup ApprovedBy FK
+    Note Notes
+  }
+  DeliverySales {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, SiteCode + yyyy-mm-dd + Platform"
+    Lookup TradingDay FK "indexed"
+    Lookup Platform FK
+    Currency Gross
+    Currency EstimatedNet "set by flow"
+    Currency ActualPayout
+    Text CurrentPromotion
+  }
+  DeliveryRefunds {
+    Number ID PK "SharePoint item id"
+    Text Title
+    Lookup TradingDay FK "indexed"
+    Lookup Platform FK
+    Currency Amount "required"
+    Note Details
+    Choice Issued "indexed"
+  }
+  ShiftStaff {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup TradingSession FK "indexed"
+    Lookup Staff FK
+    Choice Department
+    Choice Position
+    Number Hours
+  }
+  Feedback {
+    Number ID PK "SharePoint item id"
+    Text Title
+    Lookup TradingDay FK "indexed"
+    Choice Category "indexed"
+    Note Body "required"
+    Lookup WorkOrder FK "set by flow"
+  }
+  PolicyAcknowledgements {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, PolicyFileId + Version + StaffId"
+    Number PolicyFileId FK "indexed"
+    Text PolicyVersion
+    Lookup Staff FK "indexed"
+    DateTime AcknowledgedAt
+    Lookup Device FK
+    Note SignatureJson
+  }
+  StaffCertificates {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Staff FK "indexed"
+    Text Issuer
+    Date IssuedOn
+    Date ExpiresOn "indexed"
+    Link DocumentLink
+  }
+  FitnessToWork {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Staff FK "indexed"
+    Date ReportedOn
+    Choice SymptomsCategory
+    Date ExcludedUntil
+    Lookup ClearedBy FK
+    Date ClearedOn
+  }
+  Policies {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Choice Category
+    YesNo RequiresAck
+    MultiChoice AppliesToRoles
+    Text VersionLabel
+  }
+  classDef ref fill:#ebe9fb,stroke:#5b52b8,color:#1b1640
+  classDef chk fill:#e3f4f1,stroke:#1f6f5c,color:#0f2e27
+  classDef mnt fill:#e5effa,stroke:#2d6ab0,color:#0f2440
+  classDef trd fill:#e8f5e2,stroke:#3d8b37,color:#16330f
+  classDef ppl fill:#fdf2df,stroke:#b7791f,color:#3d2a08
+  classDef rst fill:#fde8e8,stroke:#b71c1c,color:#4a0b0b
+  class Sites ref
+  class Staff ref
+  class Devices ref
+  class Targets ref
+  class ReasonCodes ref
+  class DeliveryPlatforms ref
+  class RulesThresholds ref
+  class ChecklistTemplates chk
+  class Checkpoints chk
+  class Schedules chk
+  class ChecklistRuns chk
+  class Responses chk
+  class CorrectiveActions chk
+  class DayClosures chk
+  class HandoverNotes chk
+  class Assets mnt
+  class Contractors mnt
+  class WorkOrders mnt
+  class ComplianceItems mnt
+  class Invoices mnt
+  class VisitorLog mnt
+  class TradingDays trd
+  class TradingSessions trd
+  class Adjustments trd
+  class DeliverySales trd
+  class DeliveryRefunds trd
+  class ShiftStaff trd
+  class Feedback trd
+  class PolicyAcknowledgements ppl
+  class StaffCertificates ppl
+  class FitnessToWork rst
+  class Policies ppl

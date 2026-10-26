@@ -1,0 +1,22 @@
+sequenceDiagram
+  autonumber
+  actor U as Manager
+  participant C as Console / phone
+  participant AI as AI service
+  participant M as Claude API
+  participant T as Query tools
+  participant D as PostgreSQL (RLS as user)
+  U->>C: "Which site misses closing checks most, and on which days?"
+  C->>AI: question + user session
+  AI->>M: system prompt + tool definitions (cached) + question
+  M-->>AI: tool_use: aggregate(metric=missed_runs, group_by=[site, weekday], kind=closing)
+  AI->>T: validate params (strict schema)
+  T->>D: parameterised query under user's RLS
+  D-->>T: rows (+ record ids)
+  T-->>AI: results
+  AI->>M: tool_result
+  M-->>AI: answer text + chart spec + cited record ids
+  AI->>D: log ai_interactions (tools, citations, tokens)
+  AI-->>C: answer, chart, clickable records
+  U->>C: "Save as weekly report"
+  C->>AI: save_query → saved_queries (schedule Mon 07:00)

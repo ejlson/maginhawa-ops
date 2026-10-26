@@ -1,0 +1,61 @@
+erDiagram
+  Staff ||--o{ StaffCertificates : "Staff"
+  Staff ||--o{ FitnessToWork : "ClearedBy, Staff"
+  Staff ||--o{ PolicyAcknowledgements : "Staff"
+  Devices ||--o{ PolicyAcknowledgements : "Device"
+  Policies ||--o{ PolicyAcknowledgements : "PolicyFileId"
+  PolicyAcknowledgements {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, PolicyFileId + Version + StaffId"
+    Number PolicyFileId FK "indexed"
+    Text PolicyVersion
+    Lookup Staff FK "indexed"
+    DateTime AcknowledgedAt
+    Lookup Device FK
+    Note SignatureJson
+  }
+  StaffCertificates {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Staff FK "indexed"
+    Text Issuer
+    Date IssuedOn
+    Date ExpiresOn "indexed"
+    Link DocumentLink
+  }
+  FitnessToWork {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Staff FK "indexed"
+    Date ReportedOn
+    Choice SymptomsCategory
+    Date ExcludedUntil
+    Lookup ClearedBy FK
+    Date ClearedOn
+  }
+  Policies {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Choice Category
+    YesNo RequiresAck
+    MultiChoice AppliesToRoles
+    Text VersionLabel
+  }
+  Devices {
+    Number ID PK "SharePoint item id"
+  }
+  Staff {
+    Number ID PK "SharePoint item id"
+  }
+  classDef ref fill:#ebe9fb,stroke:#5b52b8,color:#1b1640
+  classDef chk fill:#e3f4f1,stroke:#1f6f5c,color:#0f2e27
+  classDef mnt fill:#e5effa,stroke:#2d6ab0,color:#0f2440
+  classDef trd fill:#e8f5e2,stroke:#3d8b37,color:#16330f
+  classDef ppl fill:#fdf2df,stroke:#b7791f,color:#3d2a08
+  classDef rst fill:#fde8e8,stroke:#b71c1c,color:#4a0b0b
+  class PolicyAcknowledgements ppl
+  class StaffCertificates ppl
+  class FitnessToWork rst
+  class Policies ppl
+  class Devices ref
+  class Staff ref

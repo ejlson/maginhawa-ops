@@ -1,0 +1,15 @@
+stateDiagram-v2
+  direction LR
+  [*] --> reported: fault report / failed check / statutory due / AI warning
+  reported --> triaged: manager sets priority & asset
+  triaged --> dispatched: contractor sent SMS link
+  dispatched --> scheduled: contractor books visit
+  scheduled --> in_progress: contractor on site
+  in_progress --> awaiting_parts
+  awaiting_parts --> in_progress
+  in_progress --> resolved: fix confirmed (photo)
+  resolved --> closed: invoice matched & approved
+  reported --> cancelled
+  triaged --> cancelled
+  closed --> [*]
+  cancelled --> [*]

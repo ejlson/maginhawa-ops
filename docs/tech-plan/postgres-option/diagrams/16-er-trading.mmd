@@ -1,0 +1,39 @@
+erDiagram
+  SITES ||--o{ TRADING_DAYS : "one per date"
+  SITES ||--|| SITE_FINANCE_SETTINGS : "VAT, wage targets"
+  SITES ||--o{ SITE_TARGETS : "daily targets"
+  TRADING_DAYS ||--o{ TRADING_SESSIONS : "lunch / dinner"
+  TRADING_SESSIONS ||--o{ TRADING_ADJUSTMENTS : "discounts, comps, voids"
+  REASON_CODES ||--o{ TRADING_ADJUSTMENTS : "reason"
+  TRADING_SESSIONS ||--o| CASH_RECONCILIATIONS : "cash check"
+  TRADING_SESSIONS ||--o{ SHIFT_STAFF : "who worked"
+  STAFF_POSITIONS ||--o{ SHIFT_STAFF : position
+  TRADING_DAYS ||--o{ DELIVERY_SALES : "per platform"
+  DELIVERY_PLATFORMS ||--o{ DELIVERY_SALES : platform
+  TRADING_DAYS ||--o{ DELIVERY_REFUNDS : refunds
+  TRADING_DAYS ||--o{ TRADING_FEEDBACK : feedback
+  TRADING_DAYS }o--o| DAY_CLOSURES : "linked ops EOD"
+  INTEGRATION_CONNECTIONS ||--o{ OUTBOUND_SYNC_JOBS : "Excel / Graph push"
+  TRADING_SESSIONS {
+    numeric gross_sales
+    numeric service_charge
+    numeric tax
+    numeric discounts_comps_total
+    numeric net_sales "generated"
+    int booked_covers
+    int walkins
+    int covers "generated"
+  }
+  CASH_RECONCILIATIONS {
+    numeric cash_in_epos
+    numeric cash_collected
+    numeric variance "generated"
+    text explanation "required if variance"
+  }
+  REASON_CODES {
+    adjustment_kind kind
+    text label
+    adjustment_scope scope
+    numeric default_pct
+    boolean is_waste
+  }

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Count the cash</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0066cc}a:hover{color:#004f9e}
+html{scrollbar-width:thin;scrollbar-color:rgba(128,128,128,.45) transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(128,128,128,.45);border-radius:4px;border:2px solid transparent;background-clip:padding-box}::-webkit-scrollbar-thumb:hover{background-color:rgba(128,128,128,.7)}
+.ph{--bg:#ffffff;--scrim:#9a9aa0;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.16);--link:#0066cc;width:390px;height:1120px;box-sizing:border-box;background:var(--scrim);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:17px;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;overflow:hidden}
+.ph.dark{--bg:#0e0e10;--scrim:#000000;--text:#f5f5f7;--sec:#a1a1a6;--sep:rgba(255,255,255,.1);--fill:#1c1c1e;--ink:#f5f5f7;--onink:#000000;--hero:#1c1c1e;--heroline:rgba(245,245,247,.14);--link:#2997ff}
+.sheet{margin-top:44px;flex:1;background:var(--bg);border-radius:26px 26px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.grab{width:36px;height:5px;border-radius:3px;background:var(--sep);align-self:center;margin-top:8px}
+.bar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.bar a{font-size:17px;text-decoration:none;color:var(--link);min-height:44px;display:flex;align-items:center}
+.body{padding:4px 20px 28px;display:flex;flex-direction:column;gap:28px}
+.hero{background:var(--hero);color:var(--onhero);border-radius:26px;padding:22px 24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 24px 48px -24px rgba(0,0,0,.4)}
+.hd{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:2px}
+.hd h2{font-size:20px;font-weight:700;letter-spacing:-.025em;margin:0}
+.hd span{font-size:15px;color:var(--sec)}
+.dr{display:flex;align-items:center;gap:14px;min-height:58px;position:relative;cursor:text}
+.dr + .dr::before{content:'';position:absolute;top:0;left:56px;right:0;height:.5px;background:var(--sep)}
+.av{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;font-size:14px;font-weight:700;letter-spacing:-.02em}
+.x{color:var(--sec);font-size:15px;flex:1}
+.in{border:0;background:var(--fill);border-radius:10px;text-align:center;font:inherit;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text);width:72px;height:40px;padding:0 8px;outline:none;box-sizing:border-box}
+.in:focus{box-shadow:0 0 0 2px var(--link)}
+.lt{width:84px;text-align:right;font-weight:600}
+.lt.z{color:var(--sec);font-weight:400}
+.rm{width:84px;text-align:right;border:0;background:none;font:inherit;font-size:15px;color:var(--link);cursor:pointer;padding:0}
+.add{display:flex;align-items:center;gap:14px;min-height:56px;border:0;background:none;font:inherit;color:var(--link);font-weight:500;cursor:pointer;padding:0;text-align:left}
+.add .av{background:transparent;border:1.5px dashed var(--sep);color:var(--link)}
+.pick{display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:18px;background:var(--fill)}
+.pick .sl{font-size:13px;font-weight:600;color:var(--sec)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{height:40px;min-width:56px;padding:0 14px;border-radius:20px;border:0;background:var(--bg);color:var(--text);font:inherit;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 0 0 .5px var(--sep)}
+.empty{font-size:15px;color:var(--sec);padding:14px 0;margin:0}
+</style>
+</helmet>
+<div class="ph {{theme}}">
+<div class="sheet" role="dialog" aria-label="Count the cash">
+<div class="grab"></div>
+<div class="bar"><a href="m02-Lunch.dc.html">Cancel</a><span style="font-weight: 600">Count the cash</span><a href="m02-Lunch.dc.html" style="font-weight: 600">Done</a></div>
+<div class="body">
+<div class="hero" role="status" aria-live="polite" aria-atomic="true">
+<span style="font-size: 15px; color: var(--herosec)">In the drawer</span>
+<div style="display: flex; align-items: baseline; line-height: 1"><span style="font-size: 54px; font-weight: 600; letter-spacing: -0.055em">{{totP}}</span><span style="font-size: 28px; font-weight: 500; color: var(--herosec)">{{totD}}</span></div>
+<div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 0.5px solid var(--heroline); font-size: 15px"><span style="color: var(--herosec)">Less £150.00 float</span><span style="font-weight: 600">{{takenLabel}} taken</span></div>
+</div>
+<section>
+<div class="hd"><h2>What you counted</h2><span>{{usedLabel}}</span></div>
+<sc-if value="{{noneUsed}}" hint-placeholder-val="{{ false }}"><p class="empty">Add the notes and coins you have. Skip any you don't.</p></sc-if>
+<sc-if value="{{hasNotes}}" hint-placeholder-val="{{ true }}">
+<div class="hd" style="padding-top: 8px"><span style="font-weight: 600">Notes</span><span>{{notesTotal}}</span></div>
+<sc-for list="{{notes}}" as="d" hint-placeholder-count="4">
+<label class="dr"><span class="av">{{d.label}}</span><span class="x">×</span><input class="in" type="text" inputmode="numeric" value="{{d.q}}" onChange="{{d.set}}" aria-label="Number of {{d.label}}"><sc-if value="{{d.filled}}" hint-placeholder-val="{{ true }}"><span class="lt">{{d.line}}</span></sc-if><sc-if value="{{d.blank}}" hint-placeholder-val="{{ false }}"><button class="rm" onClick="{{d.remove}}">Remove</button></sc-if></label>
+</sc-for>
+</sc-if>
+<sc-if value="{{hasCoins}}" hint-placeholder-val="{{ true }}">
+<div class="hd" style="padding-top: 16px"><span style="font-weight: 600">Coins</span><span>{{coinsTotal}}</span></div>
+<sc-for list="{{coins}}" as="d" hint-placeholder-count="3">
+<label class="dr"><span class="av">{{d.label}}</span><span class="x">×</span><input class="in" type="text" inputmode="numeric" value="{{d.q}}" onChange="{{d.set}}" aria-label="Number of {{d.label}}"><sc-if value="{{d.filled}}" hint-placeholder-val="{{ true }}"><span class="lt">{{d.line}}</span></sc-if><sc-if value="{{d.blank}}" hint-placeholder-val="{{ false }}"><button class="rm" onClick="{{d.remove}}">Remove</button></sc-if></label>
+</sc-for>
+</sc-if>
+</section>
+<section style="gap: 12px; display: flex; flex-direction: column">
+<sc-if value="{{pickerClosed}}" hint-placeholder-val="{{ true }}">
+<button class="add" onClick="{{openPicker}}"><span class="av"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 3v12M3 9h12"></path></svg></span>Add a note or coin</button>
+</sc-if>
+<sc-if value="{{pickerOpen}}" hint-placeholder-val="{{ false }}">
+<div class="pick">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-weight: 600">Tap to add</span><button class="rm" style="width: auto" onClick="{{closePicker}}">Done</button></div>
+<sc-if value="{{hasFreeNotes}}" hint-placeholder-val="{{ true }}"><div style="display: flex; flex-direction: column; gap: 8px"><span class="sl">Notes</span><div class="chips"><sc-for list="{{freeNotes}}" as="c" hint-placeholder-count="2"><button class="chip" onClick="{{c.add}}">{{c.label}}</button></sc-for></div></div></sc-if>
+<sc-if value="{{hasFreeCoins}}" hint-placeholder-val="{{ true }}"><div style="display: flex; flex-direction: column; gap: 8px"><span class="sl">Coins</span><div class="chips"><sc-for list="{{freeCoins}}" as="c" hint-placeholder-count="5"><button class="chip" onClick="{{c.add}}">{{c.label}}</button></sc-for></div></div></sc-if>
+</div>
+</sc-if>
+<p style="margin: 0; font-size: 14px; color: var(--sec); line-height: 1.45">Only add what's in the drawer. Done sends the total back to Lunch.</p>
+</section>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1120}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    // Only the denominations the manager has added. Order is kept by value.
+    this.state = { q: { 5000: '2', 2000: '7', 1000: '6', 500: '8', 200: '8', 100: '10', 50: '8' }, picker: false };
+  }
+  renderVals() {
+    const q = this.state.q;
+    const num = (k) => parseInt(String(q[k] || '').replace(/\D/g, ''), 10) || 0;
+    const gbp = (p) => '£' + (p / 100).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const label = (k) => (k >= 100 ? '£' + k / 100 : k + 'p');
+    const N = [5000, 2000, 1000, 500];
+    const C = [200, 100, 50, 20, 10, 5, 2, 1];
+    const used = (k) => Object.prototype.hasOwnProperty.call(q, k);
+    const setQ = (next) => this.setState({ q: next });
+    const mk = (k) => ({
+      label: label(k), q: q[k], line: gbp(k * num(k)),
+      filled: String(q[k]).trim() !== '', blank: String(q[k]).trim() === '',
+      set: (e) => setQ(Object.assign({}, this.state.q, { [k]: e.target.value })),
+      remove: (e) => { if (e && e.preventDefault) e.preventDefault(); const n = Object.assign({}, this.state.q); delete n[k]; setQ(n); }
+    });
+    const add = (k) => () => setQ(Object.assign({}, this.state.q, { [k]: '' }));
+    const notes = N.filter(used), coins = C.filter(used);
+    const sum = (ks) => ks.reduce((s, k) => s + k * num(k), 0);
+    const total = sum(notes) + sum(coins);
+    const t = gbp(total);
+    const dot = t.lastIndexOf('.');
+    const freeN = N.filter((k) => !used(k)), freeC = C.filter((k) => !used(k));
+    const count = notes.length + coins.length;
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      notes: notes.map(mk), coins: coins.map(mk),
+      hasNotes: notes.length > 0, hasCoins: coins.length > 0, noneUsed: count === 0,
+      usedLabel: count + (count === 1 ? ' type' : ' types'),
+      notesTotal: gbp(sum(notes)), coinsTotal: gbp(sum(coins)),
+      freeNotes: freeN.map((k) => ({ label: label(k), add: add(k) })),
+      freeCoins: freeC.map((k) => ({ label: label(k), add: add(k) })),
+      hasFreeNotes: freeN.length > 0, hasFreeCoins: freeC.length > 0,
+      pickerOpen: this.state.picker, pickerClosed: !this.state.picker,
+      openPicker: () => this.setState({ picker: true }), closePicker: () => this.setState({ picker: false }),
+      totP: t.slice(0, dot), totD: t.slice(dot),
+      takenLabel: gbp(total - 15000)
+    };
+  }
+}
+</script>
+</body>
+</html>

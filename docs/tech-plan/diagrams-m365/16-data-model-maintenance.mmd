@@ -1,0 +1,20 @@
+erDiagram
+  SITES ||--o{ ASSETS : contains
+  CONTRACTORS ||--o{ ASSETS : "default for"
+  ASSETS ||--o{ WORKORDERS : "faults on"
+  CORRECTIVEACTIONS }o--o| WORKORDERS : escalates
+  FEEDBACK }o--o| WORKORDERS : "urgent maintenance"
+  CONTRACTORS ||--o{ WORKORDERS : assigned
+  WORKORDERS ||--o{ INVOICES : billed
+  SITES ||--o{ COMPLIANCEITEMS : "statutory calendar"
+  ASSETS ||--o{ COMPLIANCEITEMS : "e.g. gas CP42"
+  WORKORDERS ||--o{ VISITORLOG : visits
+  WORKORDERS {
+    text Title "WO reference (unique)"
+    lookup Site
+    lookup Asset
+    choice Source
+    choice Priority
+    choice Status
+    lookup Contractor
+  }

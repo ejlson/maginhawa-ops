@@ -1,0 +1,11 @@
+flowchart TB
+  src{"EPOS<br/>connected?"}
+  src -- "Yes" --> pre["Pre-fill sales, tax,<br/>discounts, voids"]
+  src -- "No" --> man["Manual entry<br/>(draft auto-saved)"]
+  pre --> adj["Discounts, comps, voids:<br/>reason code + approver"]
+  man --> adj
+  adj --> rec{"Line items match<br/>discount total?"}
+  rec -- "No" --> warn1["Fix or explain"] --> rec
+  rec -- "Yes" --> cash{"Cash variance<br/>over 1p?"}
+  cash -- "Yes" --> exp["Explanation<br/>required"] --> next
+  cash -- "No" --> next(["Continue"])

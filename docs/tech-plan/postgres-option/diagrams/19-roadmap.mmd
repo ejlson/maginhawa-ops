@@ -1,0 +1,23 @@
+gantt
+  title Build roadmap (indicative, 2-week sprints)
+  dateFormat YYYY-MM-DD
+  axisFormat %b %Y
+  todayMarker off
+  section Foundations
+  Monorepo, auth, orgs, sites, rules packs     :f1, 2026-11-02, 4w
+  section Core ops (MVP)
+  Checklist builder + tablet kiosk + offline sync :m1, after f1, 4w
+  Corrective actions, schedules, phone app, EOD    :m2, after m1, 4w
+  Assets, work orders, contractor SMS, EHO pack     :m3, after m2, 4w
+  Handbook, acknowledgements, certificates          :m4, after m3, 2w
+  section Trading / finance
+  EOD trading module + Excel sync (Stage 1)       :t1, after m2, 6w
+  Targets import + finance dashboard (Stage 2)    :t2, after t1, 4w
+  section AI
+  Snap-to-setup, thermometer OCR, Ask the handbook :a1, after m3, 4w
+  Ask your logs + AI EOD summary                   :a2, after a1, 4w
+  section Launch
+  Pilot at Maginhawa sites                          :milestone, p1, after a2, 0d
+  section Phase 2
+  EPOS / rota / delivery auto-fill (Stage 3)      :p2a, after a2, 8w
+  Statutory calendar, allergens, probes            :p2b, after a2, 8w

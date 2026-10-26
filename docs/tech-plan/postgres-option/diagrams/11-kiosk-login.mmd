@@ -1,0 +1,11 @@
+flowchart LR
+  idle(["Tablet locked<br/>(site kiosk)"]) --> pick["Tap your name"] --> pin["Enter 4-digit PIN"]
+  pin --> ver{"PIN matches hash?<br/>(checked on device,<br/>works offline)"}
+  ver -- "No, under 5 tries" --> pin
+  ver -- "Too many tries" --> lock["Locked out:<br/>manager resets"]
+  ver -- "Yes" --> home["Today's tasks<br/>for your role"]
+  home --> work["Checks, faults,<br/>policy sign-off"]
+  work --> stamp["Each record stamped:<br/>user, device,<br/>both timestamps"]
+  stamp --> to{"Idle 60s or<br/>tap Done?"}
+  to -- "No" --> work
+  to -- "Yes" --> idle

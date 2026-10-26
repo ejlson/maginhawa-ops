@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Review and submit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0066cc}a:hover{color:#004f9e}
+html{scrollbar-width:thin;scrollbar-color:rgba(128,128,128,.45) transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(128,128,128,.45);border-radius:4px;border:2px solid transparent;background-clip:padding-box}::-webkit-scrollbar-thumb:hover{background-color:rgba(128,128,128,.7)}
+.ph{--bg:#ffffff;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.16);--heroOk:#30d158;--heroWarn:#ff9f0a;--link:#0066cc;--ok:#1f7a35;--okbg:rgba(52,199,89,.14);--warn:#b25000;--warnbg:rgba(255,149,0,.16);--bad:#d70015;--badbg:rgba(255,59,48,.12);--nav:rgba(255,255,255,.82);width:390px;min-height:1720px;box-sizing:border-box;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:17px;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;display:flex;flex-direction:column}
+.ph.dark{--bg:#000000;--text:#f5f5f7;--sec:#a1a1a6;--sep:rgba(255,255,255,.1);--fill:#1c1c1e;--ink:#f5f5f7;--onink:#000000;--hero:#1c1c1e;--heroline:rgba(245,245,247,.14);--link:#2997ff;--ok:#30d158;--okbg:rgba(48,209,88,.16);--warn:#ff9f0a;--warnbg:rgba(255,159,10,.16);--bad:#ff453a;--badbg:rgba(255,69,58,.16);--nav:rgba(0,0,0,.75)}
+.nav{position:sticky;top:0;z-index:3;background:var(--nav);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px 0 10px;font-size:15px}
+.back{display:flex;align-items:center;gap:6px;font-size:17px;text-decoration:none;color:var(--link);min-height:44px;padding:0 8px}
+.saved{font-size:13px;color:var(--sec);display:flex;align-items:center;gap:6px}
+.saved i{width:6px;height:6px;border-radius:3px;background:var(--ok);display:inline-block}
+.body{padding:4px 20px 180px;display:flex;flex-direction:column;gap:44px}
+.grp{display:flex;flex-direction:column;gap:24px}
+.sub{display:flex;flex-direction:column}
+.sl{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;font-weight:600;color:var(--sec);letter-spacing:-.01em;padding-bottom:2px}
+.sl span:last-child{font-weight:400}
+.tot{display:flex;justify-content:space-between;align-items:center;min-height:52px;font-weight:700;position:relative}
+.tot::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:var(--text);opacity:.14}
+.confirm{padding-top:28px;border-top:.5px solid var(--sep)}
+.hero{background:var(--hero);color:var(--onhero);border-radius:26px;padding:24px;display:flex;flex-direction:column;gap:20px;box-shadow:0 24px 48px -24px rgba(0,0,0,.4)}
+.hm{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px;padding-top:18px;border-top:.5px solid var(--heroline)}
+.hm span{display:flex;flex-direction:column;gap:3px;font-size:22px;font-weight:600;letter-spacing:-.03em}
+.hm small{font-size:12px;font-weight:400;color:var(--herosec);letter-spacing:0}
+.hd{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:0}
+.hd h2{font-size:20px;font-weight:700;letter-spacing:-.025em;margin:0}
+.hd span{font-size:15px;color:var(--sec)}
+.li{display:flex;align-items:center;gap:14px;min-height:68px;color:var(--text);text-decoration:none;position:relative;padding:4px 0}
+.li + .li::before{content:'';position:absolute;top:0;left:56px;right:0;height:.5px;background:var(--sep)}
+.av{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;color:var(--text)}
+.tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.tx small{font-size:14px;color:var(--sec);line-height:1.35}
+.tx a{color:var(--link);text-decoration:none;font-size:15px;font-weight:500;margin-top:2px}
+.amt{font-weight:600;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.amt small{font-size:13px;font-weight:400;color:var(--sec)}
+.chev{width:7px;height:12px;flex:none;color:var(--sec);opacity:.5}
+.cf{display:flex;gap:14px;align-items:flex-start;padding:4px 0;cursor:pointer;font-size:15px;line-height:1.45}
+.cb{appearance:none;-webkit-appearance:none;width:24px;height:24px;border-radius:12px;border:1.6px solid var(--sec);margin:0;flex:none;cursor:pointer;display:grid;place-content:center}
+.cb:checked{background:var(--link);border-color:var(--link)}
+.cb:checked::after{content:'';width:10px;height:5px;border-left:2.2px solid #ffffff;border-bottom:2.2px solid #ffffff;transform:rotate(-45deg) translate(1px,-1px)}
+.foot{position:sticky;bottom:0;background:var(--nav);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);padding:14px 20px 30px;margin-top:auto;display:flex;flex-direction:column;gap:10px}
+.btn{height:54px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;text-decoration:none}
+.b1{background:var(--ink);color:var(--onink)}.b1:hover{color:var(--onink)}
+.bd{background:var(--fill);color:var(--sec)}.bd:hover{color:var(--sec)}
+.fn{font-size:13px;color:var(--sec);text-align:center;margin:0}
+</style>
+</helmet>
+<div class="ph {{theme}}">
+<div class="nav"><a class="back" href="m01-Start.dc.html"><svg width="10" height="17" viewBox="0 0 11 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2L2 9l7 7"></path></svg>Today</a><span style="font-weight: 600">Review</span><span class="saved"><i></i>Saved</span></div>
+<div class="body">
+<div class="hero">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 15px; color: var(--herosec)">Bunso · Mon 5 Oct</span><span style="font-size: 13px; font-weight: 600; color: var(--heroOk)">+£187.50 vs target</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; align-items: baseline; line-height: 1"><span style="font-size: 60px; font-weight: 600; letter-spacing: -0.055em">£2,687</span><span style="font-size: 30px; font-weight: 500; letter-spacing: -0.03em; color: var(--herosec)">.50</span></div><span style="font-size: 13px; color: var(--herosec)">Net sales for the day</span></div>
+<div class="hm">
+<span>105<small>Covers · 40 lunch, 65 dinner</small></span>
+<span>£24.29<small>Net a head, dine-in</small></span>
+<span>29.8%<small style="color: var(--heroOk)">Wages · under 30% target</small></span>
+<span>−£20.00<small style="color: var(--heroWarn)">Cash · short, explained</small></span>
+</div>
+</div>
+<section class="grp">
+<div class="hd"><h2>Check before sending</h2><span>{{issueCount}}</span></div>
+<div class="sub">
+<div class="sl"><span>Needs a look</span></div>
+<sc-if value="{{blocking}}" hint-placeholder-val="{{ false }}">
+<div class="li"><span class="av" style="background: var(--badbg); color: var(--bad)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></span><span class="tx">Dinner cash £12.40 over<small>Add a reason to submit.</small><a href="m02-Lunch.dc.html">Add reason</a></span></div>
+</sc-if>
+<div class="li"><span class="av" style="background: var(--warnbg); color: var(--warn)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M8 3v6"></path><path d="M8 12.5v.1"></path></svg></span><span class="tx">£22.60 of discounts not itemised<small>Lunch · the till shows £50.00, lines add up to £27.40.</small><a href="m02-Lunch.dc.html">Review in Lunch</a></span></div>
+<div class="li"><span class="av" style="background: var(--warnbg); color: var(--warn)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M8 3v6"></path><path d="M8 12.5v.1"></path></svg></span><span class="tx">Deliveroo refund pending<small>You can still submit. Finance will follow it up.</small></span></div>
+</div>
+<div class="sub">
+<div class="sl"><span>Already explained</span></div>
+<div class="li"><span class="av" style="background: var(--okbg); color: var(--ok)"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"></path></svg></span><span class="tx">Lunch cash £20.00 short<small>Reason: Refund paid in cash · "table 4"</small></span></div>
+</div>
+</section>
+<section class="grp">
+<div class="hd"><h2>The day</h2><span>Tap to edit</span></div>
+<div class="sub">
+<div class="sl"><span>Sales</span></div>
+<a class="li" href="m02-Lunch.dc.html"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5v1.5M9 14v1.5M2.5 9H4M14 9h1.5M4.4 4.4l1 1M12.6 12.6l1 1M4.4 13.6l1-1M12.6 5.4l1-1M12 9a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"></path></svg></span><span class="tx">Lunch<small>40 covers · £1,200.00 gross</small></span><span class="amt">£850.00</span><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></a>
+<a class="li" href="t01-Tablet.dc.html"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 10.5A6 6 0 0 1 7.5 3.5a6 6 0 1 0 7 7z"></path></svg></span><span class="tx">Dinner<small>65 covers · £2,400.00 gross</small></span><span class="amt">£1,700.00</span><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></a>
+<a class="li" href="m01-Start.dc.html"><span class="av" style="background: rgba(0,204,188,.14); color: #00756b; font-size: 13px; font-weight: 700">D</span><span class="tx">Deliveroo<small>£300.00 gross · refund pending</small></span><span class="amt">£137.50</span><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></a>
+<a class="li" href="m01-Start.dc.html"><span class="av" style="font-size: 13px; font-weight: 700; color: var(--sec)">U</span><span class="tx" style="color: var(--sec)">Uber Eats<small>Didn't trade</small></span><span class="amt" style="color: var(--sec)">£0.00</span><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></a>
+<div class="tot"><span>Day total net</span><span>£2,687.50</span></div>
+</div>
+<div class="sub">
+<div class="sl"><span>Team</span></div>
+<a class="li" href="m01-Start.dc.html"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM2 15c0-2.5 2-4.5 4.5-4.5S11 12.5 11 15M12 3.5a2.5 2.5 0 0 1 0 4.5M13.5 10.8c1.5.6 2.5 2.2 2.5 4.2"></path></svg></span><span class="tx">Wages<small>29.8% of net</small></span><span class="amt">£800.00</span><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></a>
+<a class="li" href="m01-Start.dc.html"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5h12v8H3zM6 6.5V5a3 3 0 0 1 6 0v1.5M9 9.5v2"></path></svg></span><span class="tx">Tips &amp; service charge<small>Card £186.40 · cash £42.00 · to tronc</small></span><span class="amt">£228.40</span><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></a>
+</div>
+<div class="sub">
+<div class="sl"><span>Notes</span></div>
+<a class="li" href="m01-Start.dc.html"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.5 8.5c0 3.3-2.9 6-6.5 6-1 0-2-.2-2.8-.6L2.5 15l1.1-3.1A5.7 5.7 0 0 1 2.5 8.5c0-3.3 2.9-6 6.5-6s6.5 2.7 6.5 6z"></path></svg></span><span class="tx">Feedback<small>2 notes · 1 repair raised</small></span><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></a>
+<a class="li" href="m01-Start.dc.html"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h11M10 5l4 4-4 4"></path></svg></span><span class="tx">Handover<small>3 items for the opener</small></span><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></a>
+</div>
+</section>
+<section class="grp confirm">
+<label class="cf"><input class="cb" type="checkbox" checked="{{confirmed}}" onChange="{{toggleConfirm}}"><span>I confirm these figures match the till reports and the cash I counted.</span></label>
+</section>
+</div>
+<div class="foot">
+<sc-if value="{{canSubmit}}" hint-placeholder-val="{{ false }}"><a class="btn b1" href="m05-Done.dc.html">Submit Monday · £2,687.50</a></sc-if>
+<sc-if value="{{cannotSubmit}}" hint-placeholder-val="{{ true }}"><a class="btn bd" href="m04-Review.dc.html" aria-disabled="true">Submit Monday · £2,687.50</a></sc-if>
+<p class="fn">{{footNote}}</p>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"blocking":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1720}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { confirmed: false };
+  }
+  renderVals() {
+    const blocking = !!this.props.blocking;
+    const ok = this.state.confirmed && !blocking;
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      blocking,
+      issueCount: blocking ? '1 to fix' : '2 to note',
+      confirmed: this.state.confirmed,
+      toggleConfirm: () => this.setState({ confirmed: !this.state.confirmed }),
+      canSubmit: ok,
+      cannotSubmit: !ok,
+      footNote: blocking ? 'Fix 1 issue to submit.' : (this.state.confirmed ? 'Goes to finance and the daily sheet.' : 'Tick the confirmation to submit.')
+    };
+  }
+}
+</script>
+</body>
+</html>

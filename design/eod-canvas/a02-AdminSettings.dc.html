@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Head office settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0066cc}a:hover{color:#004f9e}
+html{scrollbar-width:thin;scrollbar-color:rgba(128,128,128,.45) transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(128,128,128,.45);border-radius:4px;border:2px solid transparent;background-clip:padding-box}::-webkit-scrollbar-thumb:hover{background-color:rgba(128,128,128,.7)}
+.ad{--bg:#ffffff;--side:#f7f7f9;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--sel:rgba(0,0,0,.06);--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--link:#0066cc;--ok:#1f7a35;--warn:#b25000;--bad:#d70015;min-height:1060px;box-sizing:border-box;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:15px;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;display:flex;flex-direction:column}
+.ad.dark{--bg:#000000;--side:#0c0c0e;--text:#f5f5f7;--sec:#a1a1a6;--sep:rgba(255,255,255,.1);--fill:#1c1c1e;--sel:rgba(255,255,255,.08);--ink:#f5f5f7;--onink:#000000;--hero:#1c1c1e;--link:#2997ff;--ok:#30d158;--warn:#ff9f0a;--bad:#ff453a}
+.top{min-height:64px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px;padding:0 40px;border-bottom:.5px solid var(--sep)}
+.tabs{display:flex;flex-wrap:wrap;gap:4px}
+.tab{height:36px;padding:0 14px;border-radius:18px;display:flex;align-items:center;color:var(--sec);text-decoration:none;font-weight:500}
+.tab.on{background:var(--sel);color:var(--text);font-weight:600}
+.body{display:flex;flex-wrap:wrap;flex:1}
+.side{flex:1 1 240px;max-width:280px;background:var(--side);padding:24px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px}
+.si{display:flex;align-items:center;gap:12px;min-height:42px;padding:0 12px;border-radius:10px;color:var(--text);text-decoration:none}
+.si.on{background:var(--sel);font-weight:600}
+.si small{margin-left:auto;color:var(--sec);font-size:13px;font-weight:400}
+.gh{font-size:12px;color:var(--sec);padding:16px 12px 6px;font-weight:600}
+.cont{flex:999 1 560px;min-width:0;padding:32px 48px 56px;display:flex;flex-direction:column;gap:32px;max-width:860px}
+.hero{background:var(--hero);color:var(--onhero);border-radius:24px;padding:24px 28px;display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 48px -24px rgba(0,0,0,.4)}
+.scale{display:flex;height:10px;border-radius:5px;overflow:hidden}
+.hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:2px}
+.hd h2{font-size:20px;font-weight:700;letter-spacing:-.025em;margin:0}
+.hd span{font-size:14px;color:var(--sec)}
+.fr{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;min-height:60px;position:relative;padding:6px 0}
+.fr + .fr::before{content:'';position:absolute;top:0;left:0;right:0;height:.5px;background:var(--sep)}
+.tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 260px}
+.tx small{font-size:13px;color:var(--sec);line-height:1.4}
+.iv{display:flex;align-items:center;gap:6px}
+.in{border:0;background:var(--fill);border-radius:9px;text-align:right;font:inherit;font-variant-numeric:tabular-nums;color:var(--text);width:96px;height:38px;padding:0 12px;outline:none;box-sizing:border-box}
+.in:focus{box-shadow:0 0 0 2px var(--link)}
+.u{color:var(--sec);font-size:14px;min-width:16px}
+.li{display:flex;align-items:center;gap:14px;min-height:56px;position:relative}
+.li + .li::before{content:'';position:absolute;top:0;left:54px;right:0;height:.5px;background:var(--sep)}
+.av{width:40px;height:40px;border-radius:20px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;font-size:13px;font-weight:700}
+.tg{width:46px;height:28px;border-radius:14px;background:var(--fill);border:0;padding:0;position:relative;flex:none;cursor:pointer}
+.tg.on{background:#34c759}
+.tg span{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:12px;background:#ffffff;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.tg.on span{left:20px}
+.btn{height:46px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;text-decoration:none;padding:0 22px}
+.b1{background:var(--ink);color:var(--onink)}.b1:hover{color:var(--onink)}
+.b2{color:var(--link);font-weight:500}
+</style>
+</helmet>
+<div class="ad {{theme}}">
+<header class="top">
+<span style="font-size: 17px; font-weight: 700; letter-spacing: -0.02em">Maginhawa <span style="color: var(--sec); font-weight: 500">Head office</span></span>
+<nav class="tabs" aria-label="Admin"><a class="tab" href="a01-Admin.dc.html">Today</a><a class="tab" href="a03-AdminForecast.dc.html">Forecast</a><a class="tab" href="a01-Admin.dc.html">Reports</a><a class="tab" href="a01-Admin.dc.html">Ask your logs</a><a class="tab on" href="a02-AdminSettings.dc.html" aria-current="page">Settings</a></nav>
+</header>
+<div class="body">
+<nav class="side" aria-label="Settings">
+<span class="gh">Business</span>
+<a class="si" href="a02-AdminSettings.dc.html">Sites<small>9</small></a>
+<a class="si" href="a02-AdminSettings.dc.html">People &amp; roles<small>64</small></a>
+<a class="si" href="a02-AdminSettings.dc.html">Daily targets</a>
+<span class="gh">End of day form</span>
+<a class="si on" href="a02-AdminSettings.dc.html" aria-current="page">Thresholds &amp; checks</a>
+<a class="si" href="a02-AdminSettings.dc.html">Discount &amp; comp reasons<small>23</small></a>
+<a class="si" href="a02-AdminSettings.dc.html">Void codes<small>15</small></a>
+<a class="si" href="a02-AdminSettings.dc.html">Delivery platforms<small>2</small></a>
+<a class="si" href="a02-AdminSettings.dc.html">Sections &amp; questions</a>
+<span class="gh">Notifications</span>
+<a class="si" href="a02-AdminSettings.dc.html">Emails &amp; alerts</a>
+</nav>
+<main class="cont">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; color: var(--sec)">Applies to all 9 sites unless a site overrides it</span><h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.035em">Thresholds &amp; checks</h1></div>
+<div class="hero">
+<span style="font-size: 15px; color: var(--herosec)">Wage cost colours, as managers and finance see them</span>
+<div class="scale" aria-hidden="true"><span style="flex: {{w.g}}; background: #30d158"></span><span style="flex: {{w.a}}; background: #ff9f0a"></span><span style="flex: {{w.r}}; background: #ff453a"></span></div>
+<div style="display: flex; justify-content: space-between; font-size: 14px"><span>Green under {{v.amber}}%</span><span style="color: var(--herosec)">Amber {{v.amber}}–{{v.red}}%</span><span>Red over {{v.red}}%</span></div>
+</div>
+<section>
+<div class="hd"><h2>Wages</h2></div>
+<label class="fr"><span class="tx">Amber from<small>Wage cost as a share of net sales</small></span><span class="iv"><input class="in" type="text" inputmode="decimal" value="{{v.amber}}" onChange="{{set.amber}}"><span class="u">%</span></span></label>
+<label class="fr"><span class="tx">Red from<small>Shown to finance as needing attention</small></span><span class="iv"><input class="in" type="text" inputmode="decimal" value="{{v.red}}" onChange="{{set.red}}"><span class="u">%</span></span></label>
+</section>
+<section>
+<div class="hd"><h2>Cash</h2></div>
+<label class="fr"><span class="tx">Counts as balanced within<small>Smaller differences show green, no reason needed</small></span><span class="iv"><span class="u">£</span><input class="in" type="text" inputmode="decimal" value="{{v.tol}}" onChange="{{set.tol}}"></span></label>
+<div class="fr"><span class="tx">Reason needed above that<small>Managers can't submit until they explain it</small></span><button class="tg on" aria-label="Require a reason" aria-pressed="true"><span></span></button></div>
+<label class="fr"><span class="tx">Default float<small>Taken off the drawer count automatically</small></span><span class="iv"><span class="u">£</span><input class="in" type="text" inputmode="decimal" value="150.00"></span></label>
+</section>
+<section>
+<div class="hd"><h2>Sales checks</h2><span>Warnings only, never block</span></div>
+<label class="fr"><span class="tx">Discounts &amp; comps above<small>Share of gross sales that triggers a check</small></span><span class="iv"><input class="in" type="text" inputmode="decimal" value="8"><span class="u">%</span></span></label>
+<label class="fr"><span class="tx">Net sales differ from same day last week by<small>Catches typos like an extra zero</small></span><span class="iv"><input class="in" type="text" inputmode="decimal" value="40"><span class="u">%</span></span></label>
+<div class="fr"><span class="tx">Food + drink must match net<small>Managers can confirm a mismatch is right</small></span><button class="tg on" aria-label="Check food and drink against net" aria-pressed="true"><span></span></button></div>
+</section>
+<section>
+<div class="hd"><h2>Deadlines</h2></div>
+<label class="fr"><span class="tx">Trading day ends at<small>Reports opened before this count as the day before</small></span><span class="iv"><input class="in" type="text" value="04:00"></span></label>
+<div class="fr"><span class="tx">Nudge the manager when late<small>Email to the manager, then to the area manager after 2 hours</small></span><button class="tg on" aria-label="Late reminders" aria-pressed="true"><span></span></button></div>
+</section>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"><a class="btn b1" href="a02-AdminSettings.dc.html">Save changes</a><a class="btn b2" href="a02-AdminSettings.dc.html">See change history</a><span style="font-size: 13px; color: var(--sec)">Changes apply from tomorrow's trading day.</span></div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1060}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { amber: '30', red: '35', tol: '1.00' };
+  }
+  renderVals() {
+    const v = this.state;
+    const n = (x) => { const r = parseFloat(String(x)); return isFinite(r) ? r : 0; };
+    const set = {};
+    ['amber', 'red', 'tol'].forEach((k) => { set[k] = (e) => this.setState({ [k]: e.target.value }); });
+    const a = Math.max(1, n(v.amber));
+    const r = Math.max(a + 0.5, n(v.red));
+    return { theme: this.props.dark ? 'dark' : '', v, set, w: { g: a, a: r - a, r: Math.max(5, 50 - r) } };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+erDiagram
+  ORGANISATIONS ||--o{ SITES : has
+  ORGANISATIONS ||--o{ USERS : employs
+  USERS ||--o{ MEMBERSHIPS : "holds role"
+  SITES ||--o{ MEMBERSHIPS : "scopes"
+  SITES }o--|| RULES_PACKS : "uses (by nation)"
+  RULES_PACKS ||--o{ RULE_THRESHOLDS : defines
+  SITES ||--o{ DEVICES : registers
+  CHECKLIST_TEMPLATES ||--o{ CHECKLIST_TEMPLATE_VERSIONS : versions
+  CHECKLIST_TEMPLATE_VERSIONS ||--o{ CHECKPOINTS : contains
+  CHECKPOINTS ||--o{ CHECKPOINT_MEDIA : "how-to media"
+  CHECKLIST_TEMPLATES ||--o{ CHECKLIST_SCHEDULES : "scheduled at"
+  SITES ||--o{ CHECKLIST_RUNS : runs
+  CHECKLIST_TEMPLATE_VERSIONS ||--o{ CHECKLIST_RUNS : "instance of"
+  CHECKLIST_RUNS ||--o{ CHECKPOINT_RESPONSES : records
+  CHECKPOINTS ||--o{ CHECKPOINT_RESPONSES : answers
+  CHECKPOINT_RESPONSES ||--o| CORRECTIVE_ACTIONS : "on fail"
+  CHECKPOINT_RESPONSES ||--o| CHECKPOINT_RESPONSES : supersedes
+  SITES ||--o{ DAY_CLOSURES : "closes day"
+  SITES ||--o{ PERIODIC_REVIEWS : "4-weekly review"
+  CHECKPOINT_RESPONSES {
+    uuid id PK
+    uuid run_id FK
+    numeric value_num
+    boolean passed
+    jsonb threshold_snapshot
+    timestamptz client_recorded_at
+    timestamptz server_received_at
+    uuid supersedes_id FK
+  }

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dinner on iPad</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0066cc}a:hover{color:#004f9e}
+html{scrollbar-width:thin;scrollbar-color:rgba(128,128,128,.45) transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(128,128,128,.45);border-radius:4px;border:2px solid transparent;background-clip:padding-box}::-webkit-scrollbar-thumb:hover{background-color:rgba(128,128,128,.7)}
+.tb{--bg:#ffffff;--side:#f7f7f9;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--sel:rgba(0,0,0,.06);--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.16);--link:#0066cc;--ok:#1f7a35;--okbg:rgba(52,199,89,.14);--warn:#b25000;--warnbg:rgba(255,149,0,.16);width:1194px;height:834px;box-sizing:border-box;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:17px;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;display:flex;overflow:hidden}
+.tb.dark{--bg:#000000;--side:#0c0c0e;--text:#f5f5f7;--sec:#a1a1a6;--sep:rgba(255,255,255,.1);--fill:#1c1c1e;--sel:rgba(255,255,255,.08);--ink:#f5f5f7;--onink:#000000;--hero:#1c1c1e;--heroline:rgba(245,245,247,.14);--link:#2997ff;--ok:#30d158;--okbg:rgba(48,209,88,.16);--warn:#ff9f0a;--warnbg:rgba(255,159,10,.16)}
+.side{width:300px;flex:none;background:var(--side);display:flex;flex-direction:column;gap:24px;padding:32px 14px 24px;box-sizing:border-box}
+.si{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 12px;border-radius:12px;color:var(--text);text-decoration:none;font-size:16px}
+.si.on{background:var(--sel);font-weight:600}
+.si small{margin-left:auto;font-size:13px;color:var(--sec);font-weight:400}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.top{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;flex:none}
+.saved{font-size:13px;color:var(--sec);display:flex;align-items:center;gap:6px}
+.saved i{width:6px;height:6px;border-radius:3px;background:var(--ok);display:inline-block}
+.cont{flex:1;overflow:hidden;padding:0 40px;display:flex;flex-direction:column;gap:30px}
+.hero{background:var(--hero);color:var(--onhero);border-radius:26px;padding:24px 28px;display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr));gap:24px;align-items:end;box-shadow:0 24px 48px -24px rgba(0,0,0,.45)}
+.hs{display:flex;flex-direction:column;gap:4px;font-size:24px;font-weight:600;letter-spacing:-.03em;padding-left:24px;border-left:.5px solid var(--heroline)}
+.hs small{font-size:12px;font-weight:400;color:var(--herosec);letter-spacing:0}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:48px;align-items:start}
+.col{display:flex;flex-direction:column;gap:44px}
+.grp{display:flex;flex-direction:column;gap:24px}
+.sub{display:flex;flex-direction:column}
+.sl{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;font-weight:600;color:var(--sec);letter-spacing:-.01em;padding:0 0 2px}
+.sl span:last-child{font-weight:400}
+.sg{font-size:13px;font-weight:600;color:var(--sec);padding:0 12px 4px}
+.fr.tot::before{height:1px!important;background:var(--text)!important;opacity:.14}
+.hd{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:0}
+.hd h2{font-size:20px;font-weight:700;letter-spacing:-.025em;margin:0}
+.fr{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:54px;color:var(--text);text-decoration:none;position:relative}
+.fr + .fr::before{content:'';position:absolute;top:0;left:0;right:0;height:.5px;background:var(--sep)}
+.fr.tot{font-weight:700}
+label.fr{cursor:text}
+.in{border:0;background:var(--fill);border-radius:10px;text-align:right;font:inherit;letter-spacing:inherit;font-variant-numeric:tabular-nums;color:var(--text);width:136px;height:40px;padding:0 12px;outline:none;box-sizing:border-box}
+.in:focus{box-shadow:0 0 0 2px var(--link)}
+.av{width:40px;height:40px;border-radius:20px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none}
+.pill{display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:15px;font-size:15px;font-weight:600}
+.p-ok{background:var(--okbg);color:var(--ok)}.p-warn{background:var(--warnbg);color:var(--warn)}
+.bar{height:88px;flex:none;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 40px}
+.btn{height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;text-decoration:none;padding:0 28px}
+.b1{background:var(--ink);color:var(--onink)}.b1:hover{color:var(--onink)}
+.b2{color:var(--link);font-weight:500}
+</style>
+</helmet>
+<div class="tb {{theme}}">
+<nav class="side" aria-label="Sections">
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 0 12px"><span style="font-size: 15px; color: var(--sec)">Bunso · Mon 5 Oct</span><span style="font-size: 28px; font-weight: 700; letter-spacing: -0.035em">Today's close</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div class="sg">Sales</div>
+<a class="si" href="m02-Lunch.dc.html"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" style="fill: var(--ok)"></circle><path d="M6 10.2l2.7 2.6L14 7.5" style="fill: none; stroke: #ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>Lunch<small>£850.00</small></a>
+<a class="si on" href="t01-Tablet.dc.html" aria-current="page"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.6" style="fill: none; stroke: var(--warn)" stroke-width="1.6"></circle><path d="M10 10V4.4a5.6 5.6 0 0 1 0 11.2z" style="fill: var(--warn)"></path></svg>Dinner</a>
+<a class="si" href="t01-Tablet.dc.html"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.6" style="fill: none; stroke: var(--sec); opacity: 0.45" stroke-width="1.6"></circle></svg>Delivery</a>
+<a class="si" href="t01-Tablet.dc.html"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.6" style="fill: none; stroke: var(--sec); opacity: 0.45" stroke-width="1.6"></circle></svg>Promotions &amp; other</a>
+<div class="sg" style="padding-top: 16px">Team &amp; notes</div>
+<a class="si" href="t01-Tablet.dc.html"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.6" style="fill: none; stroke: var(--sec); opacity: 0.45" stroke-width="1.6"></circle></svg>Wages</a>
+<a class="si" href="t01-Tablet.dc.html"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.6" style="fill: none; stroke: var(--sec); opacity: 0.45" stroke-width="1.6"></circle></svg>Tips &amp; service charge</a>
+<a class="si" href="t01-Tablet.dc.html"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.6" style="fill: none; stroke: var(--sec); opacity: 0.45" stroke-width="1.6"></circle></svg>Feedback</a>
+<a class="si" href="t01-Tablet.dc.html"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.6" style="fill: none; stroke: var(--sec); opacity: 0.45" stroke-width="1.6"></circle></svg>Handover</a>
+</div>
+<div style="margin-top: auto; padding: 0 12px"><a href="m04-Review.dc.html" style="font-size: 15px; color: var(--link); text-decoration: none; font-weight: 500">Review and submit · 7 to go</a></div>
+</nav>
+<main class="main">
+<div class="top"><span style="font-size: 17px; font-weight: 600">Dinner</span><span class="saved"><i></i>Saved on this iPad · 23:58</span></div>
+<div class="cont">
+<div class="hero" role="status" aria-live="polite" aria-atomic="true">
+<div style="display: flex; flex-direction: column; gap: 10px"><span style="font-size: 15px; color: var(--herosec)">Dinner net sales</span><div style="display: flex; align-items: baseline; line-height: 1"><span style="font-size: 56px; font-weight: 600; letter-spacing: -0.055em">{{netP}}</span><span style="font-size: 28px; font-weight: 500; color: var(--herosec)">{{netD}}</span></div></div>
+<span class="hs">{{coversLabel}}<small>Covers</small></span>
+<span class="hs">{{perHead}}<small>A head</small></span>
+<span class="hs">£2,550<small>Day so far</small></span>
+</div>
+<div class="cols">
+<div class="col">
+<section class="grp">
+<div class="hd"><h2>Sales</h2></div>
+<div class="sub">
+<div class="sl"><span>From the till</span></div>
+<label class="fr"><span>Gross sales</span><input class="in" type="text" inputmode="decimal" value="{{v.gross}}" onChange="{{set.gross}}"></label>
+<label class="fr"><span>Service charge</span><input class="in" type="text" inputmode="decimal" value="{{v.sc}}" onChange="{{set.sc}}"></label>
+<label class="fr"><span>VAT</span><input class="in" type="text" inputmode="decimal" value="{{v.vat}}" onChange="{{set.vat}}"></label>
+<label class="fr"><span>Discounts &amp; comps</span><input class="in" type="text" inputmode="decimal" value="{{v.disc}}" onChange="{{set.disc}}"></label>
+<div class="fr tot"><span>Net sales</span><span>{{netLabel}}</span></div>
+</div>
+</section>
+</div>
+<div class="col">
+<section>
+<div class="hd"><h2>Covers</h2></div>
+<label class="fr"><span>Booked</span><input class="in" type="text" inputmode="numeric" value="{{v.booked}}" onChange="{{set.booked}}"></label>
+<label class="fr"><span>Walk-ins</span><input class="in" type="text" inputmode="numeric" value="{{v.walk}}" onChange="{{set.walk}}"></label>
+</section>
+<section>
+<div class="hd"><h2>Cash</h2></div>
+<a class="fr" href="m03-CashCount.dc.html"><span style="display: flex; align-items: center; gap: 12px"><span class="av"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5h14v9H2zM9 11.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path></svg></span>Counted, less float</span><span style="font-weight: 600">£362.40 ›</span></a>
+<label class="fr"><span>Till says</span><input class="in" type="text" inputmode="decimal" value="{{v.till}}" onChange="{{set.till}}"></label>
+<div class="fr tot"><span>Difference</span><span class="pill {{cash.pill}}">{{cash.text}}</span></div>
+</section>
+</div>
+</div>
+</div>
+<div class="bar"><a class="btn b2" href="m02-Lunch.dc.html">Back to Lunch</a><a class="btn b1" href="t01-Tablet.dc.html">Save and go to Delivery</a></div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":true},"$preview":{"width":1194,"height":834}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { gross: '£2,400.00', sc: '£240.00', vat: '£360.00', disc: '£100.00', booked: '52', walk: '13', till: '£362.40' };
+  }
+  renderVals() {
+    const v = this.state;
+    const n = (x) => { const r = parseFloat(String(x).replace(/[£,\s]/g, '')); return isFinite(r) ? r : 0; };
+    const gbp = (x) => (x < 0 ? '−' : '') + '£' + Math.abs(x).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const set = {};
+    ['gross', 'sc', 'vat', 'disc', 'booked', 'walk', 'till'].forEach((k) => { set[k] = (e) => this.setState({ [k]: e.target.value }); });
+    const net = n(v.gross) - n(v.sc) - n(v.vat) - n(v.disc);
+    const s = gbp(net);
+    const dot = s.lastIndexOf('.');
+    const covers = Math.round(n(v.booked) + n(v.walk));
+    const diff = Math.round((362.40 - n(v.till)) * 100) / 100;
+    const cash = Math.abs(diff) <= 1 ? { pill: 'p-ok', text: 'Balanced' } : { pill: 'p-warn', text: gbp(Math.abs(diff)) + (diff < 0 ? ' short' : ' over') };
+    return {
+      theme: this.props.dark === false ? '' : 'dark',
+      v,
+      set,
+      netLabel: s,
+      netP: s.slice(0, dot),
+      netD: s.slice(dot),
+      coversLabel: String(covers),
+      perHead: covers > 0 ? gbp(net / covers) : '—',
+      cash
+    };
+  }
+}
+</script>
+</body>
+</html>

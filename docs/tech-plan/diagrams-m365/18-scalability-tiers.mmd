@@ -1,0 +1,15 @@
+flowchart LR
+  a["<b>Now: 9 sites</b><br/>~1,250 items/day<br/>~460k items/year<br/>~9 GB photos/year<br/><br/>Comfortable with rules 1–3, 6"]
+  b["<b>~20–40 sites</b><br/>~3–5k items/day<br/><br/>Yearly archiving,<br/>premium licence for busy flows,<br/>all reporting via Power BI"]
+  c["<b>50+ sites or selling<br/>to other companies</b><br/><br/>Throttling, flow allowances,<br/>per-customer separation<br/>→ move data to Dataverse /<br/>Azure SQL / Postgres"]
+  a ==> b ==> c
+  d["Apps (Expo, Next.js)<br/>scale without change"] -.-> a
+  d -.-> b
+  d -.-> c
+  e["Data access kept in one<br/>module (rule 9) → swap<br/>the backend, not the apps"] -.-> c
+  classDef ok fill:#e8f5e9,stroke:#1b5e20;
+  classDef warn fill:#fff3e0,stroke:#e65100;
+  classDef stop fill:#fdecea,stroke:#b71c1c;
+  class a ok
+  class b warn
+  class c stop

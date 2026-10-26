@@ -1,0 +1,6 @@
+flowchart TB
+  start(["Manager taps<br/>Close the day"]) --> ops{"All checklists<br/>done or closed?"}
+  ops -- "No" --> fix1["Complete missed checks<br/>or record a reason"] --> ops
+  ops -- "Yes" --> ca{"Open corrective<br/>actions?"}
+  ca -- "Yes" --> fix2["Resolve, or escalate<br/>to a work order"] --> ca
+  ca -- "No" --> next(["Go to trading report"])

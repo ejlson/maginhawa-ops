@@ -1,0 +1,10 @@
+flowchart LR
+  m["Manager<br/>(no login)"] -->|"fills one long page,<br/>calcs run in browser"| n["Netlify static page<br/>EOD form + inline JS"]
+  n -->|"POST JSON to<br/>public URL (RISK)"| f1["Flow 1<br/>HTTP trigger"]
+  f1 -->|"append row"| x[("Excel table<br/>on SharePoint")]
+  x --> f2["Flow 2<br/>look up<br/>daily target"]
+  t[("Targets sheet<br/>Excel, by date")] --> f2
+  f2 --> f3["Flow 3<br/>send / receive<br/>emails"]
+  f3 --> inbox["Finance and<br/>managers'<br/>inboxes"]
+  classDef risk fill:#fdecea,stroke:#b71c1c,color:#7f1d1d;
+  class f1,n risk

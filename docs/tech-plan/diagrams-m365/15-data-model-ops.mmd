@@ -1,0 +1,26 @@
+erDiagram
+  SITES ||--o{ STAFF : "home site"
+  SITES ||--o{ DEVICES : registers
+  SITES ||--o{ SCHEDULES : has
+  CHECKLISTTEMPLATES ||--o{ CHECKPOINTS : "versioned questions"
+  CHECKLISTTEMPLATES ||--o{ SCHEDULES : "scheduled as"
+  RULESTHRESHOLDS ||--o{ CHECKPOINTS : "CheckCode"
+  SITES ||--o{ CHECKLISTRUNS : "per day"
+  CHECKLISTTEMPLATES ||--o{ CHECKLISTRUNS : "instance of"
+  CHECKLISTRUNS ||--o{ RESPONSES : records
+  STAFF ||--o{ RESPONSES : "recorded by"
+  RESPONSES ||--o| CORRECTIVEACTIONS : "on fail"
+  SITES ||--o{ DAYCLOSURES : "closes day"
+  SITES ||--o{ HANDOVERNOTES : logs
+  STAFF ||--o{ POLICYACKNOWLEDGEMENTS : signs
+  STAFF ||--o{ STAFFCERTIFICATES : holds
+  RESPONSES {
+    text Title "ClientId (unique)"
+    lookup Run
+    date BusinessDate "indexed"
+    number ValueNumber
+    bool Passed
+    text ThresholdSnapshot
+    datetime ClientRecordedAt
+    number Supersedes
+  }

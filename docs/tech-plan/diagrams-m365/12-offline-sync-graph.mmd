@@ -1,0 +1,24 @@
+sequenceDiagram
+  autonumber
+  participant S as Staff (tablet, PIN)
+  participant C as On-device store (SQLite)
+  participant Q as Upload queue
+  participant G as Microsoft Graph
+  participant L as SharePoint lists
+  participant F as Flow F04
+  Note over C: Morning: app caches today's runs, checkpoints,<br/>thresholds, staff (PIN hashes), reason codes
+  S->>C: Record 9°C on walk-in (ClientId = UUID)
+  C-->>S: Instant red "fail" from cached thresholds + corrective action prompt
+  C->>Q: Queue response + photo
+  Note over S,Q: No Wi-Fi in the cellar, app keeps working
+  Q->>G: Back online: $batch create items (up to 20 per call)
+  G->>L: Responses written (ClientId unique, so retries never duplicate)
+  alt 429 throttled
+    G-->>Q: Retry-After → wait and retry
+  end
+  Q->>G: Upload compressed photo to Photos library
+  S->>C: Complete checklist
+  Q->>G: Run Status = Completed
+  L-->>F: Trigger on run completed
+  F->>L: Confirm pass/fail, create corrective actions / work order
+  G-->>C: Next refresh pulls official results

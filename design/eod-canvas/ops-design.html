@@ -1,0 +1,399 @@
+<title>Maginhawa Ops design</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
+<style>
+  /* Layout: a sticky top bar, a home view with two module entries, then one gallery per module. */
+  :root {
+    --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f; --sec: #6e6e73; --line: rgba(0,0,0,.08);
+    --ink: #1d1d1f; --onink: #ffffff; --hero: #1d1d1f; --onhero: #f5f5f7; --herosec: rgba(245,245,247,.62);
+    --link: #0066cc; --ok: #1f7a35; --okbg: rgba(52,199,89,.14);
+    --font: -apple-system, BlinkMacSystemFont, "Geist", "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #000000; --card: #1c1c1e; --text: #f5f5f7; --sec: #a1a1a6; --line: rgba(255,255,255,.1);
+      --ink: #f5f5f7; --onink: #000000; --hero: #1c1c1e; --onhero: #f5f5f7; --herosec: rgba(245,245,247,.62);
+      --link: #2997ff; --ok: #30d158; --okbg: rgba(48,209,88,.16); color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #000000; --card: #1c1c1e; --text: #f5f5f7; --sec: #a1a1a6; --line: rgba(255,255,255,.1);
+    --ink: #f5f5f7; --onink: #000000; --hero: #1c1c1e; --onhero: #f5f5f7; --herosec: rgba(245,245,247,.62);
+    --link: #2997ff; --ok: #30d158; --okbg: rgba(48,209,88,.16); color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 16px; letter-spacing: -.011em; -webkit-font-smoothing: antialiased; }
+  .gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  @media (min-width: 720px) { .gut { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); } }
+
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: saturate(180%) blur(18px); -webkit-backdrop-filter: saturate(180%) blur(18px); border-bottom: .5px solid var(--line); }
+  .bar { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; padding-block: 12px; }
+  .brand { font-weight: 700; font-size: 17px; letter-spacing: -.02em; color: var(--text); text-decoration: none; margin-right: auto; }
+  .brand span { color: var(--sec); font-weight: 500; }
+  .seg { display: flex; background: var(--card); border-radius: 999px; padding: 3px; gap: 2px; box-shadow: 0 0 0 .5px var(--line); }
+  .seg button { font: inherit; font-size: 14px; font-weight: 600; border: 0; background: transparent; color: var(--sec); height: 32px; padding: 0 14px; border-radius: 999px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--onink); }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+
+  main { padding-block: 28px 64px; display: flex; flex-direction: column; gap: 48px; max-width: 1600px; margin: 0 auto; }
+
+  /* Home */
+  .intro { display: flex; flex-direction: column; gap: 10px; max-width: 62ch; }
+  .eyebrow { font-size: 14px; color: var(--sec); }
+  h1 { margin: 0; font-size: clamp(32px, 5vw, 46px); font-weight: 700; letter-spacing: -.04em; line-height: 1.05; text-wrap: balance; }
+  .lead { margin: 0; font-size: 17px; line-height: 1.5; color: var(--sec); }
+  .home { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+  @media (max-width: 860px) { .home { grid-template-columns: minmax(0, 1fr); } }
+  .mods { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .mod-eod { background: var(--hero); color: var(--onhero); border-radius: 26px; padding: 28px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 24px 48px -24px rgba(0,0,0,.45); }
+  .mod-eod .k { font-size: 14px; color: var(--herosec); }
+  .mod-eod h2 { margin: 0; font-size: 30px; font-weight: 650; letter-spacing: -.035em; }
+  .mod-eod p { margin: 0; color: var(--herosec); line-height: 1.5; max-width: 52ch; }
+  .facts { display: flex; flex-wrap: wrap; gap: 18px; padding-top: 16px; border-top: .5px solid rgba(245,245,247,.16); }
+  .facts span { display: flex; flex-direction: column; gap: 2px; font-size: 20px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .facts small { font-size: 12px; font-weight: 400; color: var(--herosec); letter-spacing: 0; }
+  .go { align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 26px; border-radius: 999px; border: 0; background: var(--onhero); color: var(--hero); font: inherit; font-size: 17px; font-weight: 600; cursor: pointer; }
+  .mod-row { display: flex; align-items: center; gap: 16px; padding: 18px 20px; border-radius: 20px; background: var(--card); box-shadow: 0 0 0 .5px var(--line); }
+  .mod-row .ic { width: 44px; height: 44px; border-radius: 22px; background: var(--bg); display: flex; align-items: center; justify-content: center; flex: none; color: var(--text); }
+  .mod-row .tx { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+  .mod-row .tx b { font-size: 17px; }
+  .mod-row .tx small { font-size: 14px; color: var(--sec); line-height: 1.4; }
+  .linkbtn { font: inherit; font-size: 16px; font-weight: 600; color: var(--link); background: none; border: 0; cursor: pointer; padding: 8px 0; white-space: nowrap; }
+  .notes { display: flex; flex-direction: column; gap: 4px; padding: 6px 20px; border-radius: 20px; background: var(--card); box-shadow: 0 0 0 .5px var(--line); }
+  .notes div { display: flex; gap: 12px; padding: 12px 0; font-size: 15px; line-height: 1.45; color: var(--sec); }
+  .notes div + div { border-top: .5px solid var(--line); }
+  .notes b { color: var(--text); font-weight: 600; min-width: 92px; }
+  .preview { display: flex; flex-direction: column; gap: 10px; align-items: center; min-width: 0; }
+  .preview .cap { font-size: 13px; color: var(--sec); }
+
+  /* Galleries */
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .tools .hint { font-size: 13px; color: var(--sec); margin-right: auto; }
+  section.g { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  section.g > h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.025em; }
+  .row { display: flex; gap: 28px; overflow-x: auto; padding-bottom: 14px; align-items: flex-start; scrollbar-width: thin; }
+  figure { margin: 0; flex: none; display: flex; flex-direction: column; gap: 8px; }
+  figcaption { font-size: 13px; color: var(--sec); display: flex; justify-content: space-between; gap: 12px; }
+  figcaption a { color: var(--link); text-decoration: none; }
+  .frame { overflow: hidden; border-radius: 20px; background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 10px 30px -12px rgba(0,0,0,.18); max-width: 100%; }
+  iframe { border: 0; display: block; transform-origin: 0 0; }
+  @media (prefers-reduced-motion: no-preference) { .frame { transition: box-shadow .2s; } }
+
+  /* Tour */
+  .tourbtn { display: inline-flex; align-items: center; gap: 10px; height: 46px; padding: 0 22px; border-radius: 999px; border: 0; background: var(--ink); color: var(--onink); font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; align-self: flex-start; }
+  .tour { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 32px; align-items: start; }
+  @media (max-width: 860px) { .tour { grid-template-columns: minmax(0, 1fr); gap: 20px; } }
+  .tcap { display: flex; flex-direction: column; gap: 18px; position: sticky; top: 84px; min-width: 0; }
+  @media (max-width: 860px) { .tcap { position: static; } }
+  .tprog { display: flex; gap: 3px; }
+  .tprog span { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
+  .tprog span.on { background: var(--text); }
+  .tstep { font-size: 14px; color: var(--sec); font-variant-numeric: tabular-nums; }
+  .tcap h2 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -.03em; line-height: 1.1; text-wrap: balance; }
+  .twho { display: inline-flex; align-self: flex-start; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; background: var(--card); box-shadow: 0 0 0 .5px var(--line); font-size: 13px; font-weight: 600; color: var(--sec); }
+  .tcap p { margin: 0; font-size: 16px; line-height: 1.55; color: var(--sec); max-width: 52ch; }
+  .ttry { padding: 14px 16px; border-radius: 16px; background: var(--okbg); color: var(--text); font-size: 15px; line-height: 1.45; }
+  .ttry b { color: var(--ok); }
+  .tnav { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .tnav button { height: 46px; padding: 0 22px; border-radius: 999px; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; border: 0; }
+  .tnav .next { background: var(--ink); color: var(--onink); }
+  .tnav .prev { background: var(--card); color: var(--text); box-shadow: 0 0 0 .5px var(--line); }
+  .tnav .prev:disabled { opacity: .4; cursor: default; }
+  .tnav small { font-size: 13px; color: var(--sec); }
+  .tchap { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tchap button { height: 32px; padding: 0 12px; border-radius: 16px; border: 0; background: var(--card); box-shadow: 0 0 0 .5px var(--line); color: var(--sec); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .tchap button[aria-pressed="true"] { background: var(--ink); color: var(--onink); box-shadow: none; }
+  .tstage { display: flex; justify-content: center; min-width: 0; }
+  .tscroll { overflow-y: auto; overflow-x: hidden; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 20px 50px -20px rgba(0,0,0,.3); background: var(--card); max-width: 100%; }
+</style>
+
+<header>
+  <div class="bar gut">
+    <a class="brand" href="#home" data-go="home">Maginhawa <span>Ops design</span></a>
+    <nav class="seg" aria-label="Sections">
+      <button id="nav-home" data-go="home" aria-pressed="true">Home</button>
+      <button id="nav-tour" data-go="tour" aria-pressed="false">Tour</button>
+      <button id="nav-eod" data-go="eod" aria-pressed="false">End of day</button>
+      <button id="nav-checks" data-go="checks" aria-pressed="false">Checks</button>
+    </nav>
+  </div>
+</header>
+
+<main class="gut">
+  <div id="view-home">
+    <div style="display: flex; flex-direction: column; gap: 32px">
+      <div class="intro">
+        <span class="eyebrow">Internal operations app · 9 London sites</span>
+        <h1>Maginhawa Ops</h1>
+        <p class="lead">Designs for the managers' end-of-day report and the kitchen checks module. Phone, kitchen iPad and head-office desktop. All figures and names are made-up examples.</p>
+        <button class="tourbtn" id="start-tour" data-go="tour">Take the tour · one day at Bunso <span aria-hidden="true">→</span></button>
+      </div>
+      <div class="home">
+        <div class="mods">
+          <div class="mod-eod">
+            <span class="k">Module 1 · first to build</span>
+            <h2>End of day</h2>
+            <p>Managers close the day in any order: sales, cash, wages, tips and handover. The maths is done for them, and finance gets every site's report by morning.</p>
+            <div class="facts"><span>17<small>Screens</small></span><span>3<small>Devices</small></span><span>Live<small>Lunch, cash, review</small></span></div>
+            <button class="go" id="open-eod" data-go="eod">Open End of day</button>
+          </div>
+          <div class="mod-row">
+            <span class="ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4.5h9M6.5 9h9M6.5 13.5h9M2.5 4.5h.01M2.5 9h.01M2.5 13.5h.01"></path></svg></span>
+            <span class="tx"><b>Checks</b><small>Opening and closing checks, temperatures, fixes, repairs, and checklists managers build themselves. 11 screens.</small></span>
+            <button class="linkbtn" id="open-checks" data-go="checks">See Checks →</button>
+          </div>
+          <div class="notes">
+            <div><b>Try it</b><span>Inputs and buttons work. Change a figure on Lunch, or a fridge reading on the iPad, and watch the checks react.</span></div>
+            <div><b>Dark mode</b><span>Use "Dark boards" in each section to see every screen at night.</span></div>
+            <div><b>Not real data</b><span>Every figure, name and temperature limit is an example.</span></div>
+          </div>
+        </div>
+        <div class="preview">
+          <div class="frame" id="home-frame"></div>
+          <span class="cap">App home on a manager's phone</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-tour" hidden>
+    <div class="tour">
+      <div class="tcap" aria-live="polite">
+        <div class="tprog" id="t-prog" aria-hidden="true"></div>
+        <span class="tstep" id="t-step"></span>
+        <span class="twho" id="t-who"></span>
+        <h2 id="t-title"></h2>
+        <p id="t-text"></p>
+        <div class="ttry" id="t-try" hidden></div>
+        <div class="tnav">
+          <button class="prev" id="t-prev">Back</button>
+          <button class="next" id="t-next">Next</button>
+          <small>or use the ← → keys</small>
+        </div>
+        <div class="tchap" id="t-chap" role="group" aria-label="Jump to part of the day"></div>
+      </div>
+      <div class="tstage" id="t-stage"></div>
+    </div>
+  </div>
+
+  <div id="view-gallery" hidden>
+    <div style="display: flex; flex-direction: column; gap: 40px">
+      <div class="tools">
+        <span class="hint" id="gal-hint"></span>
+        <div class="seg" role="group" aria-label="Size">
+          <button id="size-fit" aria-pressed="true">Fit</button>
+          <button id="size-actual" aria-pressed="false">Actual size</button>
+        </div>
+        <div class="seg"><button id="dark-toggle" aria-pressed="false">Dark boards</button></div>
+      </div>
+      <div id="gallery" style="display: flex; flex-direction: column; gap: 44px"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const MODULES = {
+    eod: { hint: 'End of day · 17 screens', groups: [
+      ['Phone', [
+        ['h01-Home.dc.html', 'App home', 390, 1480],
+        ['l01-Login.dc.html', 'Sign in', 390, 844],
+        ['m01-Start.dc.html', "Today's close (hub)", 390, 1400],
+        ['m02-Lunch.dc.html', 'Lunch (live maths)', 390, 2150],
+        ['m03-CashCount.dc.html', 'Count the cash', 390, 1120],
+        ['m04-Review.dc.html', 'Review (live)', 390, 1720],
+        ['m05-Done.dc.html', 'Submitted', 390, 844],
+        ['m06-Trends.dc.html', 'Trends and forecast', 390, 1640]
+      ]],
+      ['Kitchen iPad', [
+        ['l02-Pin.dc.html', 'Shared iPad PIN sign-in', 1194, 834],
+        ['t01-Tablet.dc.html', 'Dinner, night mode', 1194, 834]
+      ]],
+      ['Desktop', [
+        ['d01-Desktop.dc.html', 'Manager closing the day', 1440, 1000],
+        ['a01-Admin.dc.html', 'Head office · all sites today', 1440, 1060],
+        ['a02-AdminSettings.dc.html', 'Head office · settings', 1440, 1060],
+        ['a03-AdminForecast.dc.html', 'Head office · forecast', 1440, 1180]
+      ]],
+      ['Design language', [['Main.dc.html', 'Colours, cards and lists', 1440, 1000]]]
+    ]},
+    checks: { hint: 'Checks · 11 screens', groups: [
+      ['Kitchen iPad · staff', [
+        ['c01-KitchenToday.dc.html', "Today's checks", 1194, 834],
+        ['c02-RunChecklist.dc.html', 'Doing a checklist (live)', 1194, 834],
+        ['c03-FixFailed.dc.html', 'Fix a failed check (live)', 1194, 834],
+        ['c09-AnswerTypes.dc.html', 'Custom list, every answer type (live)', 1194, 834]
+      ]],
+      ['Phone · manager', [
+        ['c04-ManagerFeed.dc.html', 'What needs you', 390, 1300],
+        ['c05-Repair.dc.html', 'Repair job', 390, 1340],
+        ['c10-NewChecklist.dc.html', 'Make your own checklist', 390, 1790],
+        ['c11-AddCheck.dc.html', 'Add a check', 390, 920]
+      ]],
+      ['Desktop · head office', [
+        ['c06-Compliance.dc.html', 'All sites', 1440, 1060],
+        ['c07-Grid.dc.html', 'Grid, last 7 days', 1440, 1040],
+        ['c08-Builder.dc.html', 'Checklist builder (live)', 1440, 1180]
+      ]]
+    ]}
+  };
+
+  // One day at Bunso. [file, width, height, part of day, who, title, text, try-this]
+  const TOUR = [
+    ['l02-Pin.dc.html', 1194, 834, 'Morning', 'Chef · kitchen iPad', 'Sign in with a tap and a PIN', 'The kitchen iPad shows the faces on today\'s rota. Staff tap their own and type a 4-digit PIN. No email or password, and it locks itself after 2 minutes.', 'Tap a face, then type any 4 digits.'],
+    ['c01-KitchenToday.dc.html', 1194, 834, 'Morning', 'Chef · kitchen iPad', 'Today\'s checks', 'One card shows how many checks are done. Below it: what to do now, what\'s later today, and what\'s done. One big button for the most urgent job.', ''],
+    ['c02-RunChecklist.dc.html', 1194, 834, 'Morning', 'Chef · kitchen iPad', 'Doing the opening checks', 'The chef probes the walk-in fridge and types 9.2°C. It turns red, and the checklist can\'t be finished until the problem is dealt with.', 'Change the walk-in fridge reading to 5. The warning disappears.'],
+    ['c03-FixFailed.dc.html', 1194, 834, 'Morning', 'Chef · kitchen iPad', 'Fix a failed check', 'They tap what they did, say whether any food was thrown away, set a re-check and report a fault on the fridge. The manager is told straight away.', 'Change the re-check time and watch the due time update.'],
+    ['h01-Home.dc.html', 390, 1480, 'Daytime', 'Manager · phone', 'App home', 'The first screen after signing in. Tonight\'s close at the top, then one "Needs you" list across everything, today\'s checks, last night\'s handover and tomorrow\'s outlook.', ''],
+    ['c04-ManagerFeed.dc.html', 390, 1300, 'Daytime', 'Manager · phone', 'Only what needs you', 'Checks show exceptions, not a wall of green. The manager signs off the fridge once the re-check passes, and nudges staff about an unsigned policy.', ''],
+    ['c05-Repair.dc.html', 390, 1340, 'Daytime', 'Manager · phone', 'A repair, start to finish', 'The fryer fault was emailed to the contractor with photos. Every step is tracked: reported, sent, visit booked, fixed, then the cost is added.', ''],
+    ['c10-NewChecklist.dc.html', 390, 1790, 'Daytime', 'Manager · phone', 'Make your own checklist', 'Managers can add lists for their own site. Here, "Bar opening": who does it, which days, the due time, and the checks in order.', ''],
+    ['c11-AddCheck.dc.html', 390, 920, 'Daytime', 'Manager · phone', 'Eight kinds of answer', 'Each check can be yes/no, a temperature, a number, text, a photo, a pick from a list, a date or a signature.', ''],
+    ['c09-AnswerTypes.dc.html', 1194, 834, 'Daytime', 'Bartender · kitchen iPad', 'The custom list in use', 'At 16:30 the bartender does "Bar opening" on the iPad. Every answer type works the way it was set up.', 'Type 15 for the cellar, or 140 for the float. Both fail and block Finish.'],
+    ['m01-Start.dc.html', 390, 1400, 'Night', 'Manager · phone', 'Close the day', 'Eight sections in two groups, done in any order. Everything saves on the phone as they go, even without signal.', ''],
+    ['m02-Lunch.dc.html', 390, 2150, 'Night', 'Manager · phone', 'Lunch: the maths is done for you', 'They copy the till report. Net sales work themselves out, food and drink must match net, and discount lines must add up to the till total.', 'Change Gross sales. Net and the card at the top update as you type.'],
+    ['m03-CashCount.dc.html', 390, 1120, 'Night', 'Manager · phone', 'Count the cash', 'Add only the notes and coins in the drawer. The float comes off automatically, and the total goes back to Lunch.', 'Tap "Add a note or coin", add 20p and type a count.'],
+    ['m04-Review.dc.html', 390, 1720, 'Night', 'Manager · phone', 'Review and submit', 'Things to look at come first, then the day\'s figures with a clear total. The button says exactly what it sends.', 'Tick the confirmation. The Submit button switches on.'],
+    ['m05-Done.dc.html', 390, 844, 'Night', 'Manager · phone', 'Day closed', '"Received by head office", not just "sent". The server re-checks the maths and emails finance.', ''],
+    ['m06-Trends.dc.html', 390, 1640, 'Night', 'Manager · phone', 'Tomorrow, before it happens', 'The last two weeks and a 7-day forecast. A warning if the rota will push wages over target.', 'Switch between Net sales, Covers and Wage %.'],
+    ['a01-Admin.dc.html', 1440, 1060, 'Next morning', 'Head office · desktop', 'All sites at a glance', 'Every site\'s close in one table. Approve the clean ones in one click, and deal with what needs attention.', 'Tap "Approve 4 clean closes", or click a site.'],
+    ['c06-Compliance.dc.html', 1440, 1060, 'Next morning', 'Head office · desktop', 'Checks across 9 sites', 'On-time checks for the whole group, worst site first, plus repairs and certificates coming due.', ''],
+    ['c07-Grid.dc.html', 1440, 1040, 'Next morning', 'Head office · desktop', 'The grid', 'One site\'s checks over 7 days, colour-coded, ready to export to Excel.', ''],
+    ['c08-Builder.dc.html', 1440, 1180, 'Next morning', 'Head office · desktop', 'Build checklists for every site', 'Head office edits the group lists. Pick an answer type, set the rule, and see exactly what staff will see.', 'Click "Add a check" and pick a type.'],
+    ['a03-AdminForecast.dc.html', 1440, 1180, 'Next morning', 'Head office · desktop', 'The week ahead', 'Next week\'s forecast for the group and each site, with the sites to watch. That\'s the loop: check, fix, close, review.', '']
+  ];
+  const PARTS = ['Morning', 'Daytime', 'Night', 'Next morning'];
+  let tourI = 0;
+
+  let view = 'home', fit = true, dark = false;
+  const $ = (id) => document.getElementById(id);
+
+  function makeFrame(file, label, w, h, scale) {
+    const frame = document.createElement('div');
+    frame.className = 'frame';
+    frame.style.width = Math.round(w * scale) + 'px';
+    frame.style.height = Math.round(h * scale) + 'px';
+    const ifr = document.createElement('iframe');
+    ifr.src = file + (dark ? '#dark' : '');
+    ifr.title = label;
+    ifr.loading = 'lazy';
+    ifr.width = w; ifr.height = h;
+    ifr.style.transform = 'scale(' + scale + ')';
+    frame.appendChild(ifr);
+    return frame;
+  }
+
+  function fitScale(w) {
+    const avail = Math.max(280, document.querySelector('main').clientWidth - 8);
+    if (!fit) return 1;
+    const target = w > 600 ? Math.min(0.5, avail / w) : Math.min(0.78, avail / w);
+    return Math.round(target * 1000) / 1000;
+  }
+
+  function renderGallery() {
+    const mod = MODULES[view];
+    $('gal-hint').textContent = mod.hint + ' · scroll each row sideways';
+    const g = $('gallery');
+    g.replaceChildren();
+    for (const [title, boards] of mod.groups) {
+      const sec = document.createElement('section');
+      sec.className = 'g';
+      const h = document.createElement('h2'); h.textContent = title; sec.appendChild(h);
+      const row = document.createElement('div'); row.className = 'row';
+      for (const [file, label, w, hgt] of boards) {
+        const fig = document.createElement('figure');
+        const cap = document.createElement('figcaption');
+        const s = document.createElement('span'); s.textContent = label;
+        const a = document.createElement('a'); a.href = file + (dark ? '#dark' : ''); a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Open ↗';
+        cap.append(s, a);
+        fig.append(cap, makeFrame(file, label, w, hgt, fitScale(w)));
+        row.appendChild(fig);
+      }
+      sec.appendChild(row);
+      g.appendChild(sec);
+    }
+  }
+
+  function renderHome() {
+    const box = $('home-frame');
+    const avail = Math.min(390, box.parentElement.clientWidth || 390);
+    const scale = Math.min(0.9, avail / 390);
+    const f = makeFrame('h01-Home.dc.html', 'App home', 390, 1480, scale);
+    box.replaceWith(f);
+    f.id = 'home-frame';
+    f.style.height = Math.round(980 * scale) + 'px';
+  }
+
+  function renderTour() {
+    const [file, w, h, part, who, title, text, tryIt] = TOUR[tourI];
+    $('t-prog').replaceChildren(...TOUR.map((_, i) => { const s = document.createElement('span'); if (i <= tourI) s.className = 'on'; return s; }));
+    $('t-step').textContent = 'Step ' + (tourI + 1) + ' of ' + TOUR.length + ' · ' + part;
+    $('t-who').textContent = who;
+    $('t-title').textContent = title;
+    $('t-text').textContent = text;
+    const t = $('t-try');
+    t.hidden = !tryIt;
+    t.replaceChildren();
+    if (tryIt) { const b = document.createElement('b'); b.textContent = 'Try it: '; t.append(b, tryIt); }
+    $('t-prev').disabled = tourI === 0;
+    $('t-next').textContent = tourI === TOUR.length - 1 ? 'Finish' : 'Next';
+    $('t-chap').replaceChildren(...PARTS.map((p) => {
+      const b = document.createElement('button');
+      b.textContent = p;
+      b.setAttribute('aria-pressed', String(p === part));
+      b.addEventListener('click', () => { tourI = TOUR.findIndex((s) => s[3] === p); renderTour(); });
+      return b;
+    }));
+    // Fit the screen to the space: full width where possible, scroll inside for tall phone screens.
+    const stage = $('t-stage');
+    const availW = Math.max(260, stage.clientWidth || document.querySelector('main').clientWidth);
+    const scale = Math.min(w > 600 ? 0.72 : 1, availW / w);
+    const availH = Math.max(420, window.innerHeight - 120);
+    const box = document.createElement('div');
+    box.className = 'tscroll';
+    box.style.width = Math.round(w * scale) + 'px';
+    box.style.height = Math.min(Math.round(h * scale), availH) + 'px';
+    const inner = document.createElement('div');
+    inner.style.height = Math.round(h * scale) + 'px';
+    inner.style.overflow = 'hidden';
+    const ifr = document.createElement('iframe');
+    ifr.src = file;
+    ifr.title = title;
+    ifr.width = w; ifr.height = h;
+    ifr.style.transform = 'scale(' + scale + ')';
+    inner.appendChild(ifr);
+    box.appendChild(inner);
+    stage.replaceChildren(box);
+  }
+  function tourStep(d) {
+    const n = tourI + d;
+    if (n >= TOUR.length) { go('home'); return; }
+    if (n < 0) return;
+    tourI = n;
+    renderTour();
+    window.scrollTo(0, 0);
+  }
+  $('t-prev').addEventListener('click', () => tourStep(-1));
+  $('t-next').addEventListener('click', () => tourStep(1));
+  document.addEventListener('keydown', (e) => {
+    if (view !== 'tour' || e.target.closest('input, textarea')) return;
+    if (e.key === 'ArrowRight') tourStep(1);
+    if (e.key === 'ArrowLeft') tourStep(-1);
+  });
+
+  function go(v) {
+    view = (v in MODULES || v === 'tour') ? v : 'home';
+    for (const k of ['home', 'tour', 'eod', 'checks']) $('nav-' + k).setAttribute('aria-pressed', String(k === view));
+    $('view-home').hidden = view !== 'home';
+    $('view-tour').hidden = view !== 'tour';
+    $('view-gallery').hidden = !(view in MODULES);
+    if (view === 'home') renderHome(); else if (view === 'tour') { tourI = 0; renderTour(); } else renderGallery();
+    if (location.hash.slice(1) !== view) history.replaceState(null, '', '#' + view);
+    window.scrollTo(0, 0);
+  }
+
+  document.querySelectorAll('[data-go]').forEach((el) => el.addEventListener('click', (e) => { e.preventDefault(); go(el.dataset.go); }));
+  $('size-fit').addEventListener('click', () => { fit = true; $('size-fit').setAttribute('aria-pressed', 'true'); $('size-actual').setAttribute('aria-pressed', 'false'); renderGallery(); });
+  $('size-actual').addEventListener('click', () => { fit = false; $('size-fit').setAttribute('aria-pressed', 'false'); $('size-actual').setAttribute('aria-pressed', 'true'); renderGallery(); });
+  $('dark-toggle').addEventListener('click', () => { dark = !dark; $('dark-toggle').setAttribute('aria-pressed', String(dark)); renderGallery(); });
+  go(location.hash.slice(1));
+</script>

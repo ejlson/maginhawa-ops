@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maginhawa Ops design</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#f5f5f7; --text:#1d1d1f; --sec:#6e6e73; --card:#fff; --line:rgba(0,0,0,.08); }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111; --text:#f5f5f7; --sec:#a1a1a6; --card:#1c1c1e; --line:rgba(255,255,255,.1); } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Geist",system-ui,sans-serif; }
+  header { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:14px 24px; background:color-mix(in srgb,var(--bg) 85%,transparent); backdrop-filter:blur(16px); border-bottom:.5px solid var(--line); }
+  header h1 { margin:0; font-size:20px; font-weight:700; letter-spacing:-.02em; }
+  header small { color:var(--sec); font-size:13px; }
+  nav { display:flex; gap:6px; margin-left:auto; flex-wrap:wrap; }
+  nav.mods { margin-left:8px; background:var(--card); padding:3px; border-radius:999px; gap:2px; }
+  nav.mods button { background:transparent; }
+  nav.mods button[aria-pressed="true"] { background:var(--text); color:var(--bg); }
+  nav a, nav button { font:inherit; font-size:14px; padding:7px 14px; border-radius:999px; border:0; background:var(--card); color:var(--text); text-decoration:none; cursor:pointer; }
+  nav button[aria-pressed="true"] { background:var(--text); color:var(--bg); }
+  main { padding:24px; }
+  section { margin-bottom:48px; }
+  section > h2 { font-size:15px; font-weight:600; color:var(--sec); margin:0 0 14px; text-transform:none; }
+  .row { display:flex; gap:28px; overflow-x:auto; padding-bottom:12px; align-items:flex-start; }
+  figure { margin:0; flex:none; }
+  figcaption { font-size:13px; color:var(--sec); margin-bottom:8px; display:flex; justify-content:space-between; gap:10px; }
+  figcaption a { color:inherit; }
+  .frame { overflow:hidden; border-radius:20px; background:var(--card); box-shadow:0 1px 3px rgba(0,0,0,.08), 0 8px 30px rgba(0,0,0,.06); }
+  iframe { border:0; display:block; transform-origin:0 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Maginhawa Ops design</h1>
+  <nav class="mods"><button data-mod="eod" aria-pressed="true">End of day</button><button data-mod="checks" aria-pressed="false">Checks</button></nav>
+  <small>All figures are made-up examples · inputs and toggles are live</small>
+  <nav>
+    <button id="scaleSm" aria-pressed="false">Fit</button>
+    <button id="scaleLg" aria-pressed="true">Actual size</button>
+    <button id="dark" aria-pressed="false">Dark boards</button>
+  </nav>
+</header>
+<main id="main"></main>
+<script>
+  const modules = {
+    eod: { title: 'End of day', groups: [
+      ['Design language', [['Main.dc.html','Design language',1440,1000]]],
+      ['Phone', [
+        ['l01-Login.dc.html','0 · Sign in',390,844],
+        ['m01-Start.dc.html',"1 · Today's close (hub)",390,1400],
+        ['m02-Lunch.dc.html','2 · Lunch (live maths)',390,2150],
+        ['m03-CashCount.dc.html','Sheet · Count the cash',390,1120],
+        ['m04-Review.dc.html','8 · Review',390,1720],
+        ['m05-Done.dc.html','Submitted',390,844],
+        ['m06-Trends.dc.html','Trends · forecast',390,1640]
+      ]],
+      ['iPad', [
+        ['l02-Pin.dc.html','Shared tablet PIN sign-in',1194,834],
+        ['t01-Tablet.dc.html','Dinner, night mode',1194,834]
+      ]],
+      ['Desktop', [
+        ['d01-Desktop.dc.html','Manager closing the day',1440,1000],
+        ['a01-Admin.dc.html','Admin · all sites today',1440,1060],
+        ['a02-AdminSettings.dc.html','Admin · settings',1440,1060],
+        ['a03-AdminForecast.dc.html','Admin · forecast',1440,1180]
+      ]]
+    ]},
+    checks: { title: 'Checks', groups: [
+      ['Kitchen iPad · staff', [
+        ['c01-KitchenToday.dc.html',"Today's checks",1194,834],
+        ['c02-RunChecklist.dc.html','Doing a checklist (live)',1194,834],
+        ['c03-FixFailed.dc.html','Fix a failed check (live)',1194,834],
+        ['c09-AnswerTypes.dc.html','Custom list · every answer type (live)',1194,834]
+      ]],
+      ['Phone · manager', [
+        ['c04-ManagerFeed.dc.html','What needs you',390,1300],
+        ['c05-Repair.dc.html','Repair job',390,1340],
+        ['c10-NewChecklist.dc.html','Make your own checklist',390,1790],
+        ['c11-AddCheck.dc.html','Add a check · answer types',390,920]
+      ]],
+      ['Desktop · head office', [
+        ['c06-Compliance.dc.html','All sites',1440,1060],
+        ['c07-Grid.dc.html','Grid · last 7 days',1440,1040],
+        ['c08-Builder.dc.html','Checklist builder (live)',1440,1180]
+      ]]
+    ]}
+  };
+  let mod = (location.hash.slice(1) in modules) ? location.hash.slice(1) : 'eod';
+  let fit = false, dark = false;
+  function render() {
+    const main = document.getElementById('main');
+    main.innerHTML = '';
+    document.querySelectorAll('[data-mod]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mod === mod));
+    for (const [title, boards] of modules[mod].groups) {
+      const sec = document.createElement('section');
+      sec.innerHTML = '<h2></h2><div class="row"></div>';
+      sec.querySelector('h2').textContent = title;
+      const row = sec.querySelector('.row');
+      for (const [file, label, w, h] of boards) {
+        const s = fit ? (w > 600 ? 0.5 : 0.75) : 1;
+        const fig = document.createElement('figure');
+        const src = file + '?v=' + Date.now() + (dark ? '&dark=1' : '');
+        fig.innerHTML = '<figcaption><span></span><a target="_blank">Open ↗</a></figcaption><div class="frame"><iframe loading="lazy"></iframe></div>';
+        fig.querySelector('span').textContent = label;
+        fig.querySelector('a').href = src;
+        const frame = fig.querySelector('.frame');
+        frame.style.width = w * s + 'px';
+        frame.style.height = h * s + 'px';
+        const ifr = fig.querySelector('iframe');
+        ifr.src = src; ifr.width = w; ifr.height = h; ifr.title = label;
+        ifr.style.transform = 'scale(' + s + ')';
+        row.appendChild(fig);
+      }
+      main.appendChild(sec);
+    }
+  }
+  const set = (id, v) => document.getElementById(id).setAttribute('aria-pressed', v);
+  document.getElementById('scaleSm').onclick = () => { fit = true; set('scaleSm', true); set('scaleLg', false); render(); };
+  document.getElementById('scaleLg').onclick = () => { fit = false; set('scaleSm', false); set('scaleLg', true); render(); };
+  document.getElementById('dark').onclick = () => { dark = !dark; set('dark', dark); render(); };
+  document.querySelectorAll('[data-mod]').forEach(b => b.onclick = () => { mod = b.dataset.mod; history.replaceState(null, '', '#' + mod); render(); });
+  render();
+</script>
+</body>
+</html>

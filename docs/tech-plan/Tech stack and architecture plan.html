@@ -1,0 +1,2640 @@
+<!doctype html><html><head><meta charset='utf-8'><title>Tech stack and architecture plan</title><style>@page{size:A4;margin:16mm 15mm}
+body{font-family:-apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:9.8pt;line-height:1.5;color:#1d2433}
+.cover{height:250mm;display:flex;flex-direction:column;justify-content:center;page-break-after:always;border-left:8px solid #1f6f5c;padding-left:14mm}
+.cover .k{color:#1f6f5c;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:10pt}
+.cover h1{font-size:30pt;line-height:1.15;margin:8mm 0 6mm;color:#0f1b2d}.cover p{color:#556;font-size:11pt}
+h2{font-size:15pt;color:#0f1b2d;border-bottom:2px solid #1f6f5c;padding-bottom:3px;margin-top:22px;page-break-after:avoid}
+h3{font-size:12pt;color:#1f6f5c;margin-top:16px;page-break-after:avoid}
+h4{font-size:11pt;color:#0f1b2d;margin:14px 0 6px;page-break-after:avoid;background:#eef5f2;padding:4px 8px;border-radius:4px}
+a{color:#1f6f5c}
+table{border-collapse:collapse;width:100%;font-size:7.6pt;line-height:1.3;margin:8px 0}
+th{background:#1f6f5c;color:#fff;text-align:left;padding:4px 5px;vertical-align:bottom}
+td{border-bottom:1px solid #d9dee5;padding:3.5px 5px;vertical-align:top}
+tr:nth-child(even) td{background:#f4f7f6}tr{page-break-inside:avoid}thead{display:table-header-group}
+code{font-family:Menlo,Consolas,monospace;font-size:.86em;background:#f0f2f5;padding:0 3px;border-radius:3px}
+p.lead{font-size:10.5pt;background:#f0f6f4;border-left:4px solid #1f6f5c;padding:10px 12px}
+img{box-sizing:border-box;max-width:100%;display:block;margin:8px auto;border:1px solid #e3e7ec;border-radius:6px;padding:4px;background:#fff}
+</style></head><body><div class='cover'><div class='k'>Engineering plan · Microsoft 365 edition · October 2026</div><h1>Tech stack and architecture plan</h1>
+<p>Our own tablet, phone and web apps on top of Maginhawa's Microsoft 365: SharePoint for data and files, Power Automate for business logic, Entra ID for sign-in. Includes the SharePoint list design (31 lists, 7 libraries), the flow catalogue, the EOD trading module, security, scalability and limits, licensing and the build order.</p></div>
+<p class='lead'><strong>Decision:</strong> we build <strong>our own apps</strong> (a kitchen tablet app, a phone app and a web console) and keep Maginhawa's <strong>Microsoft 365</strong> as the backend: <strong>SharePoint</strong> stores the data and files, <strong>Power Automate</strong> runs the business logic, and <strong>Entra ID</strong> handles sign-in. There is no separate server or database to run. Users get fast, purpose-built apps that work offline. Finance keeps Excel, Outlook and Power BI. Running costs stay inside the existing Microsoft 365 licences as long as we stick to <strong>standard connectors</strong>. This setup comfortably handles Maginhawa's <strong>9 sites</strong>. With the design rules in the scalability section it stretches to roughly 20–40 sites. It is an <strong>internal tool</strong>. If the product is later sold to other restaurants, or grows past ~50 sites, the data moves to a database. The Postgres design for that is kept in the <code>postgres-option/</code> folder, and keeping all data access in one module makes the move a backend swap rather than a rewrite. Several regulatory values, such as temperature limits and inspection intervals, are still <strong>[verify]</strong> items from the product plan. They live as data in SharePoint, never in code.</p>
+<h2 style="page-break-before:always">The simple picture</h2>
+
+<p>Users open <strong>our apps</strong>. The apps sign in through <strong>Microsoft Entra ID</strong> (using the MSAL library), then use the token to call the <strong>Microsoft Graph API</strong>, which reads and writes the <strong>SharePoint</strong> lists and libraries. <strong>Power Automate</strong> sits <em>beside</em> SharePoint, not inside Graph: flows start when items change or on a schedule, write results back to SharePoint, and send emails and alerts. Excel and Power BI read SharePoint for finance.</p>
+<p><img src="diagrams-m365/00-simple-architecture.svg" style="width:100%;max-height:160mm;object-fit:contain"></p>
+<h2>Architecture at a glance</h2>
+<p><img src="diagrams-m365/02-architecture.svg" style="width:100%;max-height:175mm;object-fit:contain"></p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Choice</th>
+<th>Why</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tablet + phone app</strong></td>
+<td><strong>Expo (React Native)</strong>, TypeScript</td>
+<td>One codebase for iPad and Android tablets and phones. Native speed, an offline store and the camera. Over-the-air updates for quick fixes</td>
+<td>The tablet layout is a shared kiosk; the phone layout is for managers</td>
+</tr>
+<tr>
+<td><strong>Web console</strong></td>
+<td><strong>Next.js</strong> (React) + Tailwind; a data-grid component for the spreadsheet view; ExcelJS export</td>
+<td>Builder, spreadsheet view, finance and admin screens. Shares types and the data module with the mobile app</td>
+<td>Hosted on <strong>Netlify</strong> (already used) or Azure Static Web Apps</td>
+</tr>
+<tr>
+<td><strong>Sign-in</strong></td>
+<td><strong>Entra ID</strong> via <strong>MSAL</strong></td>
+<td>Managers, finance and admins use their own Microsoft accounts. Each kitchen tablet uses a <strong>site device account</strong>, and staff identify themselves with a <strong>PIN</strong> inside the app</td>
+<td>Confirm device-account licensing with Maginhawa's Microsoft partner</td>
+</tr>
+<tr>
+<td><strong>Data access</strong></td>
+<td><strong>Microsoft Graph API</strong> (SharePoint list items and drive files)</td>
+<td>A standard API, so <strong>no premium licence</strong> and no public URLs. Supports <code>$batch</code> (20 requests per call) and <code>Retry-After</code> throttling</td>
+<td>Wrapped in one <code>data</code> module in our code (rule 9)</td>
+</tr>
+<tr>
+<td><strong>Data</strong></td>
+<td><strong>SharePoint site "Maginhawa Ops"</strong>: 31 lists + 7 document libraries</td>
+<td>Structured records in lists; photos, policies, certificates, invoices and PDFs in libraries</td>
+<td>Version history on; indexes and unique keys defined below</td>
+</tr>
+<tr>
+<td><strong>Business logic</strong></td>
+<td><strong>Power Automate</strong>: 11 flows, owned by a <strong>service account</strong></td>
+<td>Calculations, checks, alerts, emails, scheduling and escalation</td>
+<td>Triggered by list changes or on a schedule, not by public HTTP calls</td>
+</tr>
+<tr>
+<td><strong>Finance views</strong></td>
+<td><strong>Excel</strong> (Power Query reading the lists) + <strong>Power BI</strong></td>
+<td>Finance keeps working in Excel; dashboards for sales vs target, wage %, missed checks and repairs</td>
+<td>Power BI Pro licences for viewers (check the existing licence)</td>
+</tr>
+<tr>
+<td><strong>Notifications</strong></td>
+<td><strong>Outlook</strong> and <strong>Teams</strong> connectors (standard)</td>
+<td>EOD emails, missed-check alerts, reminders and contractor emails</td>
+<td>SMS via Twilio is premium, so it comes later</td>
+</tr>
+<tr>
+<td><strong>Device management</strong></td>
+<td><strong>Intune</strong> (if licensed): iPad Guided Access / Android kiosk mode</td>
+<td>Locks the shared tablet to our app</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Later, optional</strong></td>
+<td><strong>Azure Function "AI proxy"</strong> + Claude API; EPOS, rota and delivery connectors; Xero/QuickBooks/Sage</td>
+<td>The first small piece of our own backend, needed only because API keys can't live in the apps</td>
+<td>Stage 3</td>
+</tr>
+</tbody>
+</table>
+<h2>Who uses what</h2>
+<p><img src="diagrams-m365/03-roles-devices.svg" style="width:100%;max-height:120mm;object-fit:contain"></p>
+<ul>
+<li><strong>Kitchen tablet.</strong> It is signed in with that site's <strong>device account</strong>. Staff tap their name and enter a 4-digit PIN. The PIN is checked against an argon2 hash from the <code>Staff</code> list that is cached on the device, so login works offline. The session auto-locks after inactivity. Every record stores the staff member, the device and both timestamps.</li>
+<li><strong>Phone app.</strong> Each manager or owner signs in with their own Microsoft account. They get alerts for exceptions only, sign off corrective actions, close the day, submit the EOD and scan asset QR codes. On small sites without a tablet, staff can use phones too.</li>
+<li><strong>Web console.</strong> Admins, managers, finance and owners use it to build checklists, view the spreadsheet summary, manage finance, users and settings, and generate the EHO pack.</li>
+<li><strong>Roles.</strong> Roles come from Entra <strong>security groups</strong> (Staff, Managers, Finance, Admins/Owners) plus the <code>AppRole</code> column on <code>Staff</code>. Kiosk-only staff need no Microsoft licence.</li>
+</ul>
+<h2>Offline-first in our apps</h2>
+<p>Kitchens and cellars have poor signal. The apps never wait on the network:</p>
+<ol>
+<li><strong>Morning cache.</strong> On opening, the app downloads today's checklist runs, checkpoints, thresholds, staff, reason codes and assets into an on-device SQLite store.</li>
+<li><strong>Local first.</strong> Every answer saves on the device instantly. The app shows pass or fail straight away from the cached thresholds and prompts for a corrective action on failure.</li>
+<li><strong>Upload queue.</strong> Writes are queued and sent through Graph <code>$batch</code> when the connection returns. Each record carries a <strong><code>ClientId</code> (UUID)</strong> stored in a unique column, so retries never create duplicates.</li>
+<li><strong>Photos.</strong> Photos are compressed on the device (~300 KB) and uploaded in the background to the <code>Photos</code> library.</li>
+<li><strong>Official result.</strong> Power Automate re-checks the results afterwards (flow F04 for checklists, F01 for the EOD) and writes the official values. The app refreshes and shows them.</li>
+<li><strong>Throttling.</strong> When Microsoft throttles requests (HTTP 429), the queue waits for the <code>Retry-After</code> time and tries again. Nothing is lost.</li>
+</ol>
+<p><img src="diagrams-m365/12-offline-sync-graph.svg" style="width:100%;max-height:150mm;object-fit:contain"></p>
+<h2>SharePoint site design</h2>
+<p>One SharePoint site, <strong>"Maginhawa Ops"</strong>, holds everything. Lists store structured records, and libraries store files. Each table in the Postgres design maps to a list, so moving to a database later is a straight copy. The full column-by-column specification is in <strong>Appendix A</strong> and in the machine-readable file <code>sharepoint/sharepoint-lists.json</code>, which will also drive the provisioning script.</p>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>List</th>
+<th>Purpose</th>
+<th>Written by</th>
+<th>Unique key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reference</td>
+<td><strong>Sites</strong></td>
+<td>One row per restaurant; drives rules, targets and settings</td>
+<td>Admin (console)</td>
+<td>SiteCode</td>
+</tr>
+<tr>
+<td>Reference</td>
+<td><strong>Staff</strong></td>
+<td>Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts</td>
+<td>Admin / Manager</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Reference</td>
+<td><strong>Devices</strong></td>
+<td>Registered kiosk tablets and phones</td>
+<td>Admin</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Reference</td>
+<td><strong>Targets</strong></td>
+<td>Daily targets per site (imported from finance Excel or edited in console)</td>
+<td>Flow F09 / Finance</td>
+<td>SiteCode|yyyy-mm-dd</td>
+</tr>
+<tr>
+<td>Reference</td>
+<td><strong>ReasonCodes</strong></td>
+<td>Discount / comp / void reasons (23 discount/comp + 15 void codes from the current form)</td>
+<td>Finance / Admin</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Reference</td>
+<td><strong>DeliveryPlatforms</strong></td>
+<td>Deliveroo, Uber Eats, Just Eat…</td>
+<td>Finance</td>
+<td>Platform name</td>
+</tr>
+<tr>
+<td>Reference</td>
+<td><strong>RulesThresholds</strong></td>
+<td>Food-safety limits per nation (data, not code); consultant-verified</td>
+<td>Admin (consultant sign-off)</td>
+<td>Nation|CheckCode</td>
+</tr>
+<tr>
+<td>Checklists</td>
+<td><strong>ChecklistTemplates</strong></td>
+<td>Checklist definitions (opening, closing, cleaning, food safety, custom)</td>
+<td>Admin / Manager (console builder)</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Checklists</td>
+<td><strong>Checkpoints</strong></td>
+<td>Questions inside a template version — the customisable checkpoints with media</td>
+<td>Admin / Manager (builder)</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Checklists</td>
+<td><strong>Schedules</strong></td>
+<td>When each checklist is due at each site</td>
+<td>Admin / Manager</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Checklists</td>
+<td><strong>ChecklistRuns</strong></td>
+<td>One instance of a checklist on a day (created each morning by flow F02)</td>
+<td>Flow F02 creates; app completes</td>
+<td>SiteCode|yyyy-mm-dd|ScheduleId</td>
+</tr>
+<tr>
+<td>Checklists</td>
+<td><strong>Responses</strong></td>
+<td>Every answer — the compliance record (largest list)</td>
+<td>App (append-only by convention + Purview record label)</td>
+<td>ClientId</td>
+</tr>
+<tr>
+<td>Checklists</td>
+<td><strong>CorrectiveActions</strong></td>
+<td>What was done about a failed check</td>
+<td>App + flows F04/F05</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Checklists</td>
+<td><strong>DayClosures</strong></td>
+<td>Ops end-of-day sign-off per site</td>
+<td>App + flow F01</td>
+<td>SiteCode|yyyy-mm-dd</td>
+</tr>
+<tr>
+<td>Checklists</td>
+<td><strong>HandoverNotes</strong></td>
+<td>Shift handover log</td>
+<td>App</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Maintenance</td>
+<td><strong>Assets</strong></td>
+<td>Equipment register with QR sticker per unit</td>
+<td>Manager / Admin</td>
+<td>QRCode</td>
+</tr>
+<tr>
+<td>Maintenance</td>
+<td><strong>Contractors</strong></td>
+<td>Refrigeration, gas, electrical, extraction, pest…</td>
+<td>Manager / Admin</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Maintenance</td>
+<td><strong>WorkOrders</strong></td>
+<td>Repairs: from fault report, failed check, statutory due or EOD note</td>
+<td>App + flows F05/F06</td>
+<td>Reference WO-2026-00123</td>
+</tr>
+<tr>
+<td>Maintenance</td>
+<td><strong>ComplianceItems</strong></td>
+<td>Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest</td>
+<td>Admin / flow F07</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Maintenance</td>
+<td><strong>Invoices</strong></td>
+<td>Contractor invoices for the Finance role</td>
+<td>Finance</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Maintenance</td>
+<td><strong>VisitorLog</strong></td>
+<td>Contractor and visitor sign-in</td>
+<td>App</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Trading (EOD)</td>
+<td><strong>TradingDays</strong></td>
+<td>One per site per service date — replaces the Netlify form's Excel row</td>
+<td>App creates; flow F01 writes official totals</td>
+<td>SiteCode|yyyy-mm-dd</td>
+</tr>
+<tr>
+<td>Trading (EOD)</td>
+<td><strong>TradingSessions</strong></td>
+<td>Lunch / dinner figures and cash</td>
+<td>App; flow F01 adds net &amp; variance</td>
+<td>SiteCode|yyyy-mm-dd|Session</td>
+</tr>
+<tr>
+<td>Trading (EOD)</td>
+<td><strong>Adjustments</strong></td>
+<td>Discounts, comps and voids as rows (were text blobs)</td>
+<td>App</td>
+<td>ClientId (UUID)</td>
+</tr>
+<tr>
+<td>Trading (EOD)</td>
+<td><strong>DeliverySales</strong></td>
+<td>Per platform per day</td>
+<td>App; flow F01 adds estimated net</td>
+<td>SiteCode|yyyy-mm-dd|Platform</td>
+</tr>
+<tr>
+<td>Trading (EOD)</td>
+<td><strong>DeliveryRefunds</strong></td>
+<td>Refund requests from delivery platforms</td>
+<td>App</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Trading (EOD)</td>
+<td><strong>ShiftStaff</strong></td>
+<td>Who worked each session (fixes lunch managers being dropped)</td>
+<td>App (rota later)</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Trading (EOD)</td>
+<td><strong>Feedback</strong></td>
+<td>Service, kitchen, staff, complaints, maintenance notes</td>
+<td>App; flow F01 links work orders</td>
+<td>–</td>
+</tr>
+<tr>
+<td>People &amp; handbook</td>
+<td><strong>PolicyAcknowledgements</strong></td>
+<td>E-signed policy sign-offs</td>
+<td>App</td>
+<td>PolicyFileId|Version|StaffId</td>
+</tr>
+<tr>
+<td>People &amp; handbook</td>
+<td><strong>StaffCertificates</strong></td>
+<td>Level 2/3 food hygiene, personal licence, first aid…</td>
+<td>Manager</td>
+<td>–</td>
+</tr>
+<tr>
+<td>People &amp; handbook</td>
+<td><strong>FitnessToWork</strong></td>
+<td>Illness exclusion / return to work — restricted to Owner/Admin</td>
+<td>Manager (restricted list)</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Document libraries</strong></p>
+<table>
+<thead>
+<tr>
+<th>Library</th>
+<th>Holds</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Photos</strong></td>
+<td>Check, fault and work-order photos</td>
+<td>Folders Site/yyyy/mm; images compressed on device (~300 KB)</td>
+</tr>
+<tr>
+<td><strong>HowToMedia</strong></td>
+<td>Images and short videos attached to checkpoints</td>
+<td>Read-only for staff</td>
+</tr>
+<tr>
+<td><strong>Policies</strong></td>
+<td>Handbook and policies (Word/PDF) with metadata: Category, RequiresAck, AppliesToRoles</td>
+<td>Major versions only; publishing a major version triggers flow F08</td>
+</tr>
+<tr>
+<td><strong>Certificates</strong></td>
+<td>Staff and contractor certificates (gas CP42, TR19, EICR…)</td>
+<td>Linked from StaffCertificates / ComplianceItems</td>
+</tr>
+<tr>
+<td><strong>Invoices</strong></td>
+<td>Contractor invoice PDFs</td>
+<td>Finance + Admin only</td>
+</tr>
+<tr>
+<td><strong>Reports</strong></td>
+<td>Generated EOD, day-closure and EHO pack PDFs</td>
+<td>Written by flows</td>
+</tr>
+<tr>
+<td><strong>Archive</strong></td>
+<td>Yearly CSV/list exports for archived years</td>
+<td>Created by flow F12</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Design conventions</strong></p>
+<ul>
+<li><strong>Unique keys.</strong> Rows that must exist only once use a composite key in <code>Title</code> with "enforce unique values" switched on, for example <code>BUN|2026-10-06</code> for a trading day, plus a <code>ClientId</code> for anything an offline device creates.</li>
+<li><strong>Filter columns.</strong> Every large list has <strong>indexed <code>Site</code> and <code>BusinessDate</code></strong> columns, and <strong>every query filters on them</strong>. Each list has at most 5 indexes including unique keys (SharePoint allows 20) and at most 5 lookup columns (a query allows 12).</li>
+<li><strong>Flow-owned columns.</strong> Columns marked <em>set by flow</em> are written only by Power Automate, and the apps treat them as read-only.</li>
+<li><strong>Corrections.</strong> A correction is a <strong>new item</strong> whose <code>Supersedes</code> column points to the old one, never an edit in place. Version history stays on.</li>
+<li><strong>Records labels.</strong> Where Maginhawa's Microsoft 365 plan includes <strong>Microsoft Purview retention labels</strong> (check the licence), apply a "record" label to <code>Responses</code>, <code>CorrectiveActions</code> and submitted <code>TradingDays</code>. This blocks edits and deletes and makes the compliance record tamper-resistant.</li>
+</ul>
+<h2>Power Automate flows</h2>
+<p>All flows are <strong>owned by a dedicated service account</strong>, so they don't consume a manager's daily allowance or stop working when someone leaves. They use <strong>standard connectors only</strong> (SharePoint, Outlook, Teams, Excel Online) unless marked premium.</p>
+<p><img src="diagrams-m365/10-flow-catalogue.svg" style="width:100%;max-height:170mm;object-fit:contain"></p>
+<table>
+<thead>
+<tr>
+<th>Flow</th>
+<th>Trigger</th>
+<th>What it does</th>
+<th>Approx. runs per day (9 sites)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F01 EOD calculate &amp; report</strong></td>
+<td><code>TradingDays</code> item: Status → Submitted</td>
+<td>Reads sessions, adjustments, delivery, targets and site settings. Calculates net (discounts subtracted), covers, ASPH, food/drink %, delivery estimated net, total net, wage % and RAG, and net vs target. Flags discount lines that don't match the EPOS total and cash variances with no explanation. Writes official totals; creates work orders from maintenance feedback; emails the EOD summary</td>
+<td>~9</td>
+</tr>
+<tr>
+<td><strong>F02 Create today's checklist runs</strong></td>
+<td>Daily 04:00</td>
+<td>Creates <code>ChecklistRuns</code> items from <code>Schedules</code>, skipping paused sites</td>
+<td>1 (creates ~54 runs)</td>
+</tr>
+<tr>
+<td><strong>F03 Late / missed checks</strong></td>
+<td>Every 15 min during trading hours</td>
+<td>Marks overdue runs Missed or Auto-closed and alerts the duty manager (Teams or email)</td>
+<td>~60</td>
+</tr>
+<tr>
+<td><strong>F04 Evaluate completed checklist</strong></td>
+<td><code>ChecklistRuns</code> item: Status → Completed</td>
+<td>Re-checks that run's responses against <code>RulesThresholds</code>, sets <code>FailedCount</code>, creates corrective actions with re-check times and alerts the manager. <strong>One run per checklist, not per answer</strong></td>
+<td>~54</td>
+</tr>
+<tr>
+<td><strong>F05 Re-check &amp; escalate</strong></td>
+<td>Every 15 min</td>
+<td>Finds corrective actions past their re-check time with no passing re-check, or repeat failures on the same asset, and escalates them to a <strong>work order</strong> on that asset</td>
+<td>~60 (most do nothing)</td>
+</tr>
+<tr>
+<td><strong>F06 Work order dispatch &amp; updates</strong></td>
+<td><code>WorkOrders</code> item: Status changes</td>
+<td>Emails the contractor the job details (photos, asset, site contact), appends to the timeline and notifies the manager on resolution. Contractors reply by email or through a Microsoft Forms link (standard), so they need no login</td>
+<td>~5–15</td>
+</tr>
+<tr>
+<td><strong>F07 Compliance &amp; certificate reminders</strong></td>
+<td>Daily 07:00</td>
+<td>Sends reminders for <code>ComplianceItems</code> due within 30 days, expiring <code>StaffCertificates</code> and expiring asset warranties</td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>F08 Policy sign-off requests</strong></td>
+<td>Major version published in <code>Policies</code></td>
+<td>Notifies the affected roles and creates sign-off requests. A weekly chase covers anyone who hasn't signed</td>
+<td>Occasional</td>
+</tr>
+<tr>
+<td><strong>F09 Import targets</strong></td>
+<td>Nightly 02:00</td>
+<td>Reads finance's targets workbook (Excel Online connector) and creates or updates <code>Targets</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>F10 Weekly owner digest</strong></td>
+<td>Monday 07:00</td>
+<td>Summarises the week by site: sales vs target, wage %, missed checks, open repairs, expiring certificates</td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>F12 Yearly archive</strong></td>
+<td>1 January</td>
+<td>Copies last year's high-volume items to archive lists or CSV in the <code>Archive</code> library, then clears the live lists</td>
+<td>1 per year</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Finance's existing Flows 2 and 3</strong> (the targets lookup and emails) are replaced by F01, F09 and F10. During the switch-over, F01 can also append the same row to finance's current Excel table, so nothing breaks while they move to the new views.</p>
+<h2>Trading / EOD module (replacing the current form)</h2>
+<p>Today's EOD form is a static Netlify page that calculates in the browser and posts JSON to a <strong>public Power Automate URL</strong>, which appends a row to Excel. A code review of it found five problems:</p>
+<ul>
+<li>The Power Automate signature is visible in the page source, so anyone could submit data.</li>
+<li><strong>Net sales ignores discounts and comps</strong>, even though the form's label says it includes them.</li>
+<li>The delivery net (<code>gross ÷ 1.2 × 0.55</code>) and the wage target (35%) are hard-coded.</li>
+<li>Lunch managers are dropped from the submission.</li>
+<li>Discounts, comps, voids and refunds are flattened into text strings that can't be analysed.</li>
+</ul>
+<p>The new module keeps the form's <strong>23 discount/comp reasons</strong>, <strong>15 W/NW void codes</strong> and staff positions as editable lists, and fixes the rest:</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Old form</th>
+<th>New module</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Identity</td>
+<td>Typed names</td>
+<td>Signed-in Microsoft user; approvers are real people</td>
+</tr>
+<tr>
+<td>Calculations</td>
+<td>Browser only; net omits discounts</td>
+<td>App preview, then <strong>flow F01</strong> writes the official totals</td>
+</tr>
+<tr>
+<td>Settings</td>
+<td>20% VAT, 55% delivery retention, 35%/30% wage thresholds in code</td>
+<td>Settings in the <code>Sites</code>, <code>DeliveryPlatforms</code> and <code>Targets</code> lists</td>
+</tr>
+<tr>
+<td>Line items</td>
+<td>Text strings</td>
+<td><code>Adjustments</code> rows with <code>ReasonCodes</code>, amount, approver and time</td>
+</tr>
+<tr>
+<td>Cash</td>
+<td>Warning only</td>
+<td>Variance written by F01. The app requires an explanation above 1p, and F01 flags it if missing</td>
+</tr>
+<tr>
+<td>Duplicates</td>
+<td>Possible</td>
+<td>Unique Site + Date key</td>
+</tr>
+<tr>
+<td>Maintenance notes</td>
+<td>Text in an email</td>
+<td>A <code>Feedback</code> item that F01 turns into a <strong>work order</strong></td>
+</tr>
+<tr>
+<td>Excel</td>
+<td>The only data store</td>
+<td>A view that reads the lists (Power Query)</td>
+</tr>
+</tbody>
+</table>
+<p><img src="diagrams-m365/06-eod-submit-sequence.svg" style="width:100%;max-height:120mm;object-fit:contain"></p>
+<p><strong>Do now, whatever else happens:</strong> regenerate the exposed Power Automate trigger URL.</p>
+<h2>AI in this architecture</h2>
+<p>The apps <strong>cannot hold an AI API key</strong>, because anyone could extract it from the app. So AI arrives in Stage 3 with the <strong>first small piece of our own backend</strong>: an <strong>Azure Function "AI proxy"</strong> in the UK South region. It holds the Claude API key, checks the user's Microsoft sign-in token and queries SharePoint through Graph <strong>as that user</strong>, so it can never see more than the person asking. That enables the features from the product plan:</p>
+<ul>
+<li><strong>Ask your logs</strong>, with tool calls and record citations</li>
+<li><strong>Ask the handbook</strong></li>
+<li><strong>Reading thermometer photos and invoices</strong></li>
+<li><strong>AI-written EOD summaries</strong></li>
+</ul>
+<p>Until then, <strong>Copilot in Power BI</strong> (it needs a specific paid capacity, so check) can answer natural-language questions over the finance dataset.</p>
+<h2>Security and data protection</h2>
+<ul>
+<li><strong>Data stays in Maginhawa's Microsoft 365</strong>, in its existing data location, so no new processor is needed for core data. The AI proxy, when added, means signing Anthropic's data processing terms and keeping to UK GDPR data minimisation. Never send health or HR lists to the AI.</li>
+<li><strong>App registrations</strong> use <strong>delegated Graph permissions limited to the one SharePoint site</strong> (<code>Sites.Selected</code>), so the apps can't read anything else in the organisation.</li>
+<li><strong>No public trigger URLs.</strong> Flows start from list changes or schedules.</li>
+<li><strong>Permissions by group.</strong> Staff and device accounts can add and read operational lists. Finance has contribute rights on finance lists and read rights on trading lists. Restricted lists (<code>FitnessToWork</code>) are open only to Owners/Admins. No item-level permissions are used, because they don't scale.</li>
+<li><strong>Device management.</strong> Use Conditional Access and Intune where licensed: managed devices only for device accounts, MFA for managers and finance, and remote wipe or revocation (<code>Devices.Revoked</code>).</li>
+<li><strong>Audit.</strong> Version history and SharePoint audit logs, plus optional Purview record labels for tamper-resistance.</li>
+</ul>
+<p><img src="diagrams-m365/20-security-access.svg" style="width:100%;max-height:120mm;object-fit:contain"></p>
+<h2>Scalability and limits</h2>
+<p>Microsoft limits change, so <strong>check the current documentation</strong> before relying on any number below.</p>
+<p><strong>Expected volume at Maginhawa (9 sites, estimate):</strong> about 1,250 new list items a day (≈800 checklist answers plus runs, EOD rows, discounts/comps/voids and staff rows). That is <strong>about 460k items a year</strong>, plus about 80 photos a day, <strong>about 9 GB a year</strong> once compressed.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Limit</th>
+<th>Risk at 9 sites</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Our apps (Expo, Next.js on Netlify)</td>
+<td>Effectively none</td>
+<td>✅ None</td>
+</tr>
+<tr>
+<td>SharePoint list size</td>
+<td>~30 million items per list</td>
+<td>✅ Fine</td>
+</tr>
+<tr>
+<td><strong>5,000-item list view threshold</strong></td>
+<td>Queries that don't filter on an <strong>indexed</strong> column fail once a list has more than 5,000 items; up to 20 indexes per list</td>
+<td>⚠️ <code>Responses</code> passes 5,000 within weeks. Index and always filter (rule 2)</td>
+</tr>
+<tr>
+<td>Lookup columns per query</td>
+<td>12</td>
+<td>✅ Max 5 per list in this design</td>
+</tr>
+<tr>
+<td>Microsoft Graph throttling</td>
+<td>Per-user and per-app limits; returns 429 + <code>Retry-After</code></td>
+<td>✅ Low; the app retries (rule 7)</td>
+</tr>
+<tr>
+<td><strong>Power Automate daily action allowance</strong></td>
+<td>Per licence, <strong>charged to the flow owner</strong>; standard Microsoft 365 allowances are modest</td>
+<td>⚠️ <strong>Main risk.</strong> A flow per checklist answer would use thousands of actions a day (rule 1)</td>
+</tr>
+<tr>
+<td>Flow trigger delay</td>
+<td>SharePoint triggers poll, so a flow can take minutes to start on standard licences</td>
+<td>⚠️ Fine for EOD and alerts. The app shows an instant preview, so users never wait</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>Organisation pool ~1 TB plus extra per licence</td>
+<td>✅ Fine with on-device compression (rule 5)</td>
+</tr>
+<tr>
+<td>Reporting across history</td>
+<td>SharePoint isn't an analytics engine</td>
+<td>⚠️ Power BI imports on a schedule (rule 8)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rules that keep it scaling</strong></p>
+<ol>
+<li><strong>Don't run a flow per checkpoint answer.</strong> Trigger on the <strong>completed checklist</strong> (F04), or run a scheduled batch every 10–15 minutes. This is the biggest saving.</li>
+<li><strong>Index <code>Site</code>, <code>BusinessDate</code> and <code>Status</code>, and always filter on them.</strong> Never load a whole list, in the app, the flows or Power Query.</li>
+<li><strong>Archive yearly</strong> (F12). Keep the live lists to the current year.</li>
+<li><strong>Batch writes</strong> with Graph <code>$batch</code> (20 per call) and <strong>cache reference data</strong> on the device.</li>
+<li><strong>Compress photos on the device</strong> before upload.</li>
+<li><strong>Flows are owned by a service account</strong> with a licence suited to the load. Move the busiest flows to a premium or per-flow licence if allowances run short.</li>
+<li><strong>Honour <code>Retry-After</code></strong> when throttled. The offline queue does this automatically.</li>
+<li><strong>Power BI uses scheduled imports</strong>, not live list queries.</li>
+<li><strong>Keep all data access in one module of our code.</strong> Swapping SharePoint for Dataverse, Azure SQL or Postgres then only touches that module.</li>
+</ol>
+<p><img src="diagrams-m365/18-scalability-tiers.svg" style="width:100%;max-height:85mm;object-fit:contain"></p>
+<p><strong>When to move off SharePoint:</strong> at <strong>50+ sites</strong>, when <strong>selling to other companies</strong>, when you need <strong>true record immutability</strong> without Purview, when you need <strong>heavy AI or analytics over history</strong>, or when flow allowances keep running out despite rules 1 and 6. Thanks to rule 9, the apps don't change.</p>
+<h2>Licensing checklist</h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Standard (in Microsoft 365)</th>
+<th>Premium / extra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SharePoint, Outlook, Teams, Excel Online connectors</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>Graph API from our apps</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>Flows triggered by list changes or schedules</td>
+<td>✅</td>
+<td>Busy flows may need a premium/process licence (rule 6)</td>
+</tr>
+<tr>
+<td>HTTP-trigger flows, SMS (Twilio), Word→PDF templates, Dataverse, custom connectors</td>
+<td></td>
+<td>£ Premium</td>
+</tr>
+<tr>
+<td>Power BI viewers</td>
+<td></td>
+<td>£ Power BI Pro (unless already licensed)</td>
+</tr>
+<tr>
+<td>Purview record labels, Intune, Conditional Access</td>
+<td>Depends on plan (e.g. Business Premium / E3)</td>
+<td>Check</td>
+</tr>
+<tr>
+<td>Kitchen tablet device accounts</td>
+<td></td>
+<td>Confirm with the Microsoft partner</td>
+</tr>
+<tr>
+<td>Azure Function AI proxy (Stage 3)</td>
+<td></td>
+<td>£ Small Azure consumption + Claude API usage</td>
+</tr>
+</tbody>
+</table>
+<h2>Build order</h2>
+<p><img src="diagrams-m365/19-roadmap.svg" style="width:100%;max-height:120mm;object-fit:contain"></p>
+<table>
+<thead>
+<tr>
+<th>Sprint (2 weeks)</th>
+<th>Build</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Entra app registrations (<code>Sites.Selected</code>), service account, <strong>SharePoint site and lists provisioned from <code>sharepoint-lists.json</code></strong>, seed reference data (sites, reason codes, positions, platforms)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>App shell (Expo + Next.js monorepo), MSAL sign-in, device account + PIN, the <code>data</code> module over Graph with an offline queue</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>EOD screens + F01 + Excel view; retire the Netlify form</strong> (Stage 1 quick win)</td>
+</tr>
+<tr>
+<td>4–5</td>
+<td>Checklist builder (console), tablet kiosk checklists with media, F02, F03, F04</td>
+</tr>
+<tr>
+<td>6–7</td>
+<td>Corrective actions, assets + QR, work orders, contractors, F05, F06, day closure and spreadsheet view</td>
+</tr>
+<tr>
+<td>8–9</td>
+<td>Handbook and policies, sign-offs, certificates, F07, F08, F09, F10; Power BI dashboards</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Hardening: indexes check, load test at 3× volume, throttling test, F12 archive dry run, Purview labels; <strong>pilot at all 9 sites</strong></td>
+</tr>
+<tr>
+<td>Stage 3</td>
+<td>EPOS, rota and delivery auto-fill; AI proxy + Ask your logs; statutory calendar, allergens, probes</td>
+</tr>
+</tbody>
+</table>
+<h2>Decisions to confirm</h2>
+<ol>
+<li><strong>Microsoft 365 plan</strong> (Business Standard, Business Premium or E3/E5). This decides Purview labels, Intune and Conditional Access.</li>
+<li><strong>Device accounts for kitchen tablets.</strong> Confirm the licensing approach with the Microsoft partner.</li>
+<li><strong>Power BI licences</strong> for finance and owners.</li>
+<li><strong>Net sales formula.</strong> Is EPOS "gross" before or after discounts? This is set by <code>Sites.NetSalesRule</code>.</li>
+<li><strong>Delivery estimate.</strong> Keep 55% retention per platform, or capture actual payouts weekly?</li>
+<li><strong>Finance's Excel.</strong> Keep the existing workbook layout, fed by F01 during the switch-over, or move straight to the Power Query view?</li>
+<li><strong>Who owns the service account and the flows</strong> inside Maginhawa's IT.</li>
+<li><strong>Food-safety thresholds and inspection intervals.</strong> Every <code>RulesThresholds</code> and <code>ComplianceItems</code> value starts unverified until a consultant signs it off.</li>
+</ol>
+<hr />
+<h2>Appendix A: SharePoint list specification</h2>
+<p><em>Tags: </em><em>unique</em><em> = "enforce unique values" (indexed); </em><em>indexed</em><em> = column index; </em><em>set by flow</em><em> = written only by Power Automate.</em></p>
+<h4>Reference</h4>
+<p><strong>Sites</strong>: One row per restaurant; drives rules, targets and settings. <em>Written by:</em> Admin (console).</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Restaurant name, e.g. Bunso</td>
+</tr>
+<tr>
+<td><code>SiteCode</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>Short code used in keys, e.g. BUN</td>
+</tr>
+<tr>
+<td><code>Nation</code> <em>(required)</em></td>
+<td>Choice</td>
+<td>England / Wales / Scotland / Northern Ireland (selects rules pack)</td>
+</tr>
+<tr>
+<td><code>Timezone</code></td>
+<td>Text</td>
+<td>Europe/London</td>
+</tr>
+<tr>
+<td><code>FHRSId</code></td>
+<td>Number</td>
+<td>FSA establishment id for rating sync</td>
+</tr>
+<tr>
+<td><code>Sessions</code></td>
+<td>Choice (multi)</td>
+<td>Lunch, Dinner, All day</td>
+</tr>
+<tr>
+<td><code>VATRatePct</code></td>
+<td>Number</td>
+<td>Default 20</td>
+</tr>
+<tr>
+<td><code>WageTargetPct</code></td>
+<td>Number</td>
+<td>Red above (default 35)</td>
+</tr>
+<tr>
+<td><code>WageAmberPct</code></td>
+<td>Number</td>
+<td>Amber above (default 30)</td>
+</tr>
+<tr>
+<td><code>NetSalesRule</code></td>
+<td>Choice</td>
+<td>GrossMinusSCTaxDiscounts (default) / GrossMinusSCTax — confirm with finance</td>
+</tr>
+<tr>
+<td><code>DayCloseTime</code></td>
+<td>Text</td>
+<td>e.g. 23:30 — when EOD/missed-check jobs run</td>
+</tr>
+<tr>
+<td><code>Active</code> <em>(indexed)</em></td>
+<td>Yes/No</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> SiteCode, Active</p>
+<p><strong>Staff</strong>: Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts. <em>Written by:</em> Admin / Manager.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Full name</td>
+</tr>
+<tr>
+<td><code>Email</code> <em>(indexed)</em></td>
+<td>Text</td>
+<td>Microsoft account (blank for kiosk-only staff)</td>
+</tr>
+<tr>
+<td><code>HomeSite</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Department</code></td>
+<td>Choice</td>
+<td>Kitchen / FOH / Management / Finance / Admin</td>
+</tr>
+<tr>
+<td><code>Position</code></td>
+<td>Choice</td>
+<td>Head chef, Sous chef, CDP, Commis, KP, Floor manager, Senior waiter, Waiter, Runner, Host, Bartender, RM, GM, AM, Duty manager, Supervisor</td>
+</tr>
+<tr>
+<td><code>AppRole</code> <em>(required)</em></td>
+<td>Choice</td>
+<td>Staff / Manager / Admin / Finance / Owner</td>
+</tr>
+<tr>
+<td><code>PinHash</code></td>
+<td>Text</td>
+<td>argon2 hash of 4-digit kiosk PIN (never the PIN)</td>
+</tr>
+<tr>
+<td><code>PreferredLanguage</code></td>
+<td>Text</td>
+<td>en-GB default</td>
+</tr>
+<tr>
+<td><code>Active</code> <em>(indexed)</em></td>
+<td>Yes/No</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (3):</em> Email, HomeSite, Active</p>
+<p><strong>Devices</strong>: Registered kiosk tablets and phones. <em>Written by:</em> Admin.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Label, e.g. Bunso kitchen tablet</td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DeviceAccount</code></td>
+<td>Text</td>
+<td>Site device Microsoft account (UPN)</td>
+</tr>
+<tr>
+<td><code>Platform</code></td>
+<td>Choice</td>
+<td>iPadOS / Android / iOS / Web</td>
+</tr>
+<tr>
+<td><code>LastSeen</code></td>
+<td>Date/Time</td>
+<td>Updated by app</td>
+</tr>
+<tr>
+<td><code>Revoked</code> <em>(indexed)</em></td>
+<td>Yes/No</td>
+<td>Revoked devices are refused by the app</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> Site, Revoked</p>
+<p><strong>Targets</strong>: Daily targets per site (imported from finance Excel or edited in console). <em>Written by:</em> Flow F09 / Finance.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>Key = SiteCode|yyyy-mm-dd</td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>TargetDate</code> <em>(indexed)</em></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>NetSalesTarget</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>GrossSalesTarget</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CoversTarget</code></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>WagePctTarget</code></td>
+<td>Number</td>
+<td>Overrides site default</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (3):</em> Title, Site, TargetDate</p>
+<p><strong>ReasonCodes</strong>: Discount / comp / void reasons (23 discount/comp + 15 void codes from the current form). <em>Written by:</em> Finance / Admin.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Label, e.g. Employee Dining up to 4 Food Only</td>
+</tr>
+<tr>
+<td><code>Kind</code> <em>(indexed, required)</em></td>
+<td>Choice</td>
+<td>Discount / Comp / Void</td>
+</tr>
+<tr>
+<td><code>Scope</code></td>
+<td>Choice</td>
+<td>Check / Item</td>
+</tr>
+<tr>
+<td><code>DefaultPct</code></td>
+<td>Number</td>
+<td>20 / 50 / 100; blank = chosen amount</td>
+</tr>
+<tr>
+<td><code>IsWaste</code></td>
+<td>Yes/No</td>
+<td>Voids: W (waste) vs NW</td>
+</tr>
+<tr>
+<td><code>AppliesTo</code></td>
+<td>Choice</td>
+<td>Food / Drinks / Food &amp; drink</td>
+</tr>
+<tr>
+<td><code>NotePrompt</code></td>
+<td>Text</td>
+<td>What the note must contain</td>
+</tr>
+<tr>
+<td><code>ApprovalRole</code></td>
+<td>Choice</td>
+<td>Manager / Owner</td>
+</tr>
+<tr>
+<td><code>SortOrder</code></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Active</code> <em>(indexed)</em></td>
+<td>Yes/No</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> Kind, Active</p>
+<p><strong>DeliveryPlatforms</strong>: Deliveroo, Uber Eats, Just Eat…. <em>Written by:</em> Finance.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>Platform name</td>
+</tr>
+<tr>
+<td><code>EstimatedNetPct</code></td>
+<td>Number</td>
+<td>Replaces hard-coded 55% (net ≈ gross ÷ (1+VAT) × pct)</td>
+</tr>
+<tr>
+<td><code>PricesIncludeVAT</code></td>
+<td>Yes/No</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Active</code></td>
+<td>Yes/No</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (1):</em> Title</p>
+<p><strong>RulesThresholds</strong>: Food-safety limits per nation (data, not code); consultant-verified. <em>Written by:</em> Admin (consultant sign-off).</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>Key = Nation|CheckCode</td>
+</tr>
+<tr>
+<td><code>Nation</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CheckCode</code></td>
+<td>Text</td>
+<td>cold_hold, hot_hold, reheat, cook_core, freezer, cooling_stage1 …</td>
+</tr>
+<tr>
+<td><code>MinValue</code></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>MaxValue</code></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Unit</code></td>
+<td>Text</td>
+<td>C</td>
+</tr>
+<tr>
+<td><code>LegalBasis</code></td>
+<td>Text</td>
+<td>Citation shown to EHO</td>
+</tr>
+<tr>
+<td><code>Verified</code></td>
+<td>Yes/No</td>
+<td>False until checked against primary source</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> Title, Nation</p>
+<h4>Checklists</h4>
+<p><strong>ChecklistTemplates</strong>: Checklist definitions (opening, closing, cleaning, food safety, custom). <em>Written by:</em> Admin / Manager (console builder).</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Name</td>
+</tr>
+<tr>
+<td><code>Kind</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td>Opening / Closing / Cleaning / Food safety / Delivery / Handover / Custom</td>
+</tr>
+<tr>
+<td><code>CurrentVersion</code></td>
+<td>Number</td>
+<td>Bumped on publish; runs store the version used</td>
+</tr>
+<tr>
+<td><code>Status</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td>Draft / Published / Archived</td>
+</tr>
+<tr>
+<td><code>Sites</code></td>
+<td>Lookup (multi) → Sites</td>
+<td>Where it applies</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> Kind, Status</p>
+<p><strong>Checkpoints</strong>: Questions inside a template version — the customisable checkpoints with media. <em>Written by:</em> Admin / Manager (builder).</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Prompt, e.g. Walk-in chiller temperature</td>
+</tr>
+<tr>
+<td><code>Template</code> <em>(indexed)</em></td>
+<td>Lookup → ChecklistTemplates</td>
+<td></td>
+</tr>
+<tr>
+<td><code>TemplateVersion</code> <em>(indexed)</em></td>
+<td>Number</td>
+<td>Published versions are never edited</td>
+</tr>
+<tr>
+<td><code>Position</code></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Section</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Guidance</code></td>
+<td>Multi-line text</td>
+<td>'How to do it right' description</td>
+</tr>
+<tr>
+<td><code>MediaLinks</code></td>
+<td>Multi-line text</td>
+<td>Links to images/videos in HowToMedia library</td>
+</tr>
+<tr>
+<td><code>ResponseType</code> <em>(required)</em></td>
+<td>Choice</td>
+<td>Yes/No, Number, Temperature, Text, Select, Multi-select, Photo, Signature, Date, Time</td>
+</tr>
+<tr>
+<td><code>Options</code></td>
+<td>Multi-line text</td>
+<td>JSON for select options</td>
+</tr>
+<tr>
+<td><code>CheckCode</code></td>
+<td>Text</td>
+<td>Links to RulesThresholds for pass/fail</td>
+</tr>
+<tr>
+<td><code>Asset</code></td>
+<td>Lookup → Assets</td>
+<td>Optional: checkpoint about a specific unit</td>
+</tr>
+<tr>
+<td><code>Required</code></td>
+<td>Yes/No</td>
+<td></td>
+</tr>
+<tr>
+<td><code>PhotoRequired</code></td>
+<td>Yes/No</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CorrectiveActionOnFail</code></td>
+<td>Yes/No</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> Template, TemplateVersion</p>
+<p><strong>Schedules</strong>: When each checklist is due at each site. <em>Written by:</em> Admin / Manager.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code></td>
+<td>Text</td>
+<td>Description</td>
+</tr>
+<tr>
+<td><code>Template</code> <em>(indexed)</em></td>
+<td>Lookup → ChecklistTemplates</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DueTime</code> <em>(required)</em></td>
+<td>Text</td>
+<td>e.g. 08:00</td>
+</tr>
+<tr>
+<td><code>Days</code></td>
+<td>Choice (multi)</td>
+<td>Mon–Sun</td>
+</tr>
+<tr>
+<td><code>WindowMinutes</code></td>
+<td>Number</td>
+<td>Late after this</td>
+</tr>
+<tr>
+<td><code>AutoClose</code></td>
+<td>Yes/No</td>
+<td></td>
+</tr>
+<tr>
+<td><code>AssignedRole</code></td>
+<td>Choice</td>
+<td></td>
+</tr>
+<tr>
+<td><code>PausedFrom</code></td>
+<td>Date</td>
+<td>Closures / refurb</td>
+</tr>
+<tr>
+<td><code>PausedUntil</code></td>
+<td>Date</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> Template, Site</p>
+<p><strong>ChecklistRuns</strong>: One instance of a checklist on a day (created each morning by flow F02). <em>Written by:</em> Flow F02 creates; app completes.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>Key = SiteCode|yyyy-mm-dd|ScheduleId</td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>BusinessDate</code> <em>(indexed)</em></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Template</code></td>
+<td>Lookup → ChecklistTemplates</td>
+<td></td>
+</tr>
+<tr>
+<td><code>TemplateVersion</code></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DueAt</code></td>
+<td>Date/Time</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Status</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td>Scheduled / In progress / Completed / Missed / Auto-closed / Cancelled</td>
+</tr>
+<tr>
+<td><code>CompletedBy</code></td>
+<td>Lookup → Staff</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CompletedAt</code></td>
+<td>Date/Time</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DurationSeconds</code></td>
+<td>Number</td>
+<td>Pencil-whip signal</td>
+</tr>
+<tr>
+<td><code>FailedCount</code> <em>(set by flow)</em></td>
+<td>Number</td>
+<td>Set by flow F04</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (4):</em> Title, Site, BusinessDate, Status</p>
+<p><strong>Responses</strong>: Every answer — the compliance record (largest list). <em>Written by:</em> App (append-only by convention + Purview record label).</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>ClientId — UUID from the device; makes offline retries idempotent</td>
+</tr>
+<tr>
+<td><code>Run</code> <em>(indexed)</em></td>
+<td>Lookup → ChecklistRuns</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>BusinessDate</code> <em>(indexed)</em></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CheckpointId</code></td>
+<td>Number</td>
+<td>Checkpoint item id</td>
+</tr>
+<tr>
+<td><code>ValueNumber</code></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ValueText</code></td>
+<td>Multi-line text</td>
+<td>Text / select / signature JSON</td>
+</tr>
+<tr>
+<td><code>Passed</code> <em>(indexed)</em></td>
+<td>Yes/No</td>
+<td>App preview; confirmed by flow F04</td>
+</tr>
+<tr>
+<td><code>ThresholdSnapshot</code></td>
+<td>Text</td>
+<td>Min/max/legal basis used, frozen</td>
+</tr>
+<tr>
+<td><code>Source</code></td>
+<td>Choice</td>
+<td>Manual / Bluetooth probe / Camera OCR</td>
+</tr>
+<tr>
+<td><code>PhotoUrl</code></td>
+<td>Hyperlink</td>
+<td>Photos library</td>
+</tr>
+<tr>
+<td><code>PhotoSha256</code></td>
+<td>Text</td>
+<td>Detects reused photos</td>
+</tr>
+<tr>
+<td><code>CapturedLive</code></td>
+<td>Yes/No</td>
+<td>In-app camera, not gallery</td>
+</tr>
+<tr>
+<td><code>RecordedBy</code></td>
+<td>Lookup → Staff</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Device</code></td>
+<td>Lookup → Devices</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ClientRecordedAt</code></td>
+<td>Date/Time</td>
+<td>Device clock (Created = server time)</td>
+</tr>
+<tr>
+<td><code>Supersedes</code></td>
+<td>Number</td>
+<td>Id of the response this corrects (never edit in place)</td>
+</tr>
+<tr>
+<td><code>CorrectionReason</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (5):</em> Title, Run, Site, BusinessDate, Passed</p>
+<p><strong>CorrectiveActions</strong>: What was done about a failed check. <em>Written by:</em> App + flows F04/F05.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Short description</td>
+</tr>
+<tr>
+<td><code>Response</code> <em>(indexed)</em></td>
+<td>Lookup → Responses</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ActionTaken</code></td>
+<td>Multi-line text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>FoodDisposed</code></td>
+<td>Yes/No</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Status</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td>Open / Action taken / Verified / Escalated</td>
+</tr>
+<tr>
+<td><code>RecheckDue</code> <em>(indexed)</em></td>
+<td>Date/Time</td>
+<td></td>
+</tr>
+<tr>
+<td><code>WorkOrder</code></td>
+<td>Lookup → WorkOrders</td>
+<td>Set when escalated</td>
+</tr>
+<tr>
+<td><code>VerifiedBy</code></td>
+<td>Lookup → Staff</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (4):</em> Response, Site, Status, RecheckDue</p>
+<p><strong>DayClosures</strong>: Ops end-of-day sign-off per site. <em>Written by:</em> App + flow F01.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>Key = SiteCode|yyyy-mm-dd</td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>BusinessDate</code> <em>(indexed)</em></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ClosedBy</code></td>
+<td>Lookup → Staff</td>
+<td>Blank = auto-closed</td>
+</tr>
+<tr>
+<td><code>Stats</code> <em>(set by flow)</em></td>
+<td>Multi-line text</td>
+<td>JSON: completion %, failures, open CAs, faults</td>
+</tr>
+<tr>
+<td><code>ReportLink</code> <em>(set by flow)</em></td>
+<td>Hyperlink</td>
+<td>PDF in Reports library</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (3):</em> Title, Site, BusinessDate</p>
+<p><strong>HandoverNotes</strong>: Shift handover log. <em>Written by:</em> App.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code></td>
+<td>Text</td>
+<td>Summary</td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>BusinessDate</code> <em>(indexed)</em></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Body</code></td>
+<td>Multi-line text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Author</code></td>
+<td>Lookup → Staff</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> Site, BusinessDate</p>
+<h4>Maintenance</h4>
+<p><strong>Assets</strong>: Equipment register with QR sticker per unit. <em>Written by:</em> Manager / Admin.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>e.g. Walk-in chiller</td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Category</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td>Refrigeration, Cooking, Extraction, Gas, Electrical, Dishwash, Ice, Coffee, Lift, Other</td>
+</tr>
+<tr>
+<td><code>Make</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Model</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>SerialNumber</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>QRCode</code> <em>(unique)</em></td>
+<td>Text</td>
+<td>Value on the sticker</td>
+</tr>
+<tr>
+<td><code>InstallDate</code></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>WarrantyExpires</code> <em>(indexed)</em></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DefaultContractor</code></td>
+<td>Lookup → Contractors</td>
+<td></td>
+</tr>
+<tr>
+<td><code>PhotoUrl</code></td>
+<td>Hyperlink</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Retired</code></td>
+<td>Yes/No</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (4):</em> Site, Category, QRCode, WarrantyExpires</p>
+<p><strong>Contractors</strong>: Refrigeration, gas, electrical, extraction, pest…. <em>Written by:</em> Manager / Admin.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Company</td>
+</tr>
+<tr>
+<td><code>Trade</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ContactName</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Phone</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Email</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>GasSafeNumber</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Accreditation</code></td>
+<td>Text</td>
+<td>e.g. BESA TR19</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (1):</em> Trade</p>
+<p><strong>WorkOrders</strong>: Repairs: from fault report, failed check, statutory due or EOD note. <em>Written by:</em> App + flows F05/F06.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>Reference WO-2026-00123</td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Asset</code> <em>(indexed)</em></td>
+<td>Lookup → Assets</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Summary</code> <em>(required)</em></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Description</code></td>
+<td>Multi-line text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Source</code></td>
+<td>Choice</td>
+<td>Fault report / Failed check / Statutory / Planned / EOD note / AI warning</td>
+</tr>
+<tr>
+<td><code>SourceResponse</code></td>
+<td>Number</td>
+<td>Response id when source = failed check</td>
+</tr>
+<tr>
+<td><code>Priority</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td>Low / Normal / High / Urgent</td>
+</tr>
+<tr>
+<td><code>Status</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td>Reported / Triaged / Dispatched / Scheduled / In progress / Awaiting parts / Resolved / Closed / Cancelled</td>
+</tr>
+<tr>
+<td><code>Contractor</code></td>
+<td>Lookup → Contractors</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ReportedBy</code></td>
+<td>Lookup → Staff</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DispatchedAt</code></td>
+<td>Date/Time</td>
+<td></td>
+</tr>
+<tr>
+<td><code>AttendedAt</code></td>
+<td>Date/Time</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ResolvedAt</code></td>
+<td>Date/Time</td>
+<td></td>
+</tr>
+<tr>
+<td><code>PhotoUrls</code></td>
+<td>Multi-line text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>History</code></td>
+<td>Multi-line text (append)</td>
+<td>Timeline notes (append changes on)</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (5):</em> Title, Site, Asset, Priority, Status</p>
+<p><strong>ComplianceItems</strong>: Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest. <em>Written by:</em> Admin / flow F07.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Requirement name</td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Asset</code></td>
+<td>Lookup → Assets</td>
+<td>Optional</td>
+</tr>
+<tr>
+<td><code>RequirementCode</code></td>
+<td>Choice</td>
+<td></td>
+</tr>
+<tr>
+<td><code>IntervalMonths</code></td>
+<td>Number</td>
+<td>[verify] per requirement</td>
+</tr>
+<tr>
+<td><code>LastDone</code></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>NextDue</code> <em>(indexed)</em></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Contractor</code></td>
+<td>Lookup → Contractors</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CertificateLink</code></td>
+<td>Hyperlink</td>
+<td>Certificates library</td>
+</tr>
+<tr>
+<td><code>Verified</code></td>
+<td>Yes/No</td>
+<td>Interval checked by consultant</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> Site, NextDue</p>
+<p><strong>Invoices</strong>: Contractor invoices for the Finance role. <em>Written by:</em> Finance.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Invoice number</td>
+</tr>
+<tr>
+<td><code>Contractor</code> <em>(indexed)</em></td>
+<td>Lookup → Contractors</td>
+<td></td>
+</tr>
+<tr>
+<td><code>WorkOrder</code> <em>(indexed)</em></td>
+<td>Lookup → WorkOrders</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Asset</code> <em>(indexed)</em></td>
+<td>Lookup → Assets</td>
+<td></td>
+</tr>
+<tr>
+<td><code>InvoiceDate</code> <em>(indexed)</em></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Net</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>VAT</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Gross</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DocumentLink</code></td>
+<td>Hyperlink</td>
+<td>Invoices library</td>
+</tr>
+<tr>
+<td><code>ApprovedBy</code></td>
+<td>Lookup → Staff</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ExportedAt</code></td>
+<td>Date/Time</td>
+<td>To Xero / QuickBooks / Sage (phase 2)</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (4):</em> Contractor, WorkOrder, Asset, InvoiceDate</p>
+<p><strong>VisitorLog</strong>: Contractor and visitor sign-in. <em>Written by:</em> App.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Visitor name</td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Company</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Purpose</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>WorkOrder</code></td>
+<td>Lookup → WorkOrders</td>
+<td></td>
+</tr>
+<tr>
+<td><code>SignedIn</code> <em>(indexed)</em></td>
+<td>Date/Time</td>
+<td></td>
+</tr>
+<tr>
+<td><code>SignedOut</code></td>
+<td>Date/Time</td>
+<td></td>
+</tr>
+<tr>
+<td><code>HealthDeclaration</code></td>
+<td>Yes/No</td>
+<td>Food-handler fitness questions answered</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> Site, SignedIn</p>
+<h4>Trading (EOD)</h4>
+<p><strong>TradingDays</strong>: One per site per service date — replaces the Netlify form's Excel row. <em>Written by:</em> App creates; flow F01 writes official totals.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>Key = SiteCode|yyyy-mm-dd (blocks duplicates)</td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>BusinessDate</code> <em>(indexed)</em></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Status</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td>Draft / Submitted / Checked / Approved / Reopened</td>
+</tr>
+<tr>
+<td><code>WageCost</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>NextShiftNotes</code></td>
+<td>Multi-line text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>SubmittedBy</code></td>
+<td>Lookup → Staff</td>
+<td>Signed-in user, not typed</td>
+</tr>
+<tr>
+<td><code>SubmittedAt</code></td>
+<td>Date/Time</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ApprovedBy</code></td>
+<td>Lookup → Staff</td>
+<td>Finance sign-off</td>
+</tr>
+<tr>
+<td><code>TotalGross</code> <em>(set by flow)</em></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>TotalNet</code> <em>(set by flow)</em></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DineInNet</code> <em>(set by flow)</em></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Covers</code> <em>(set by flow)</em></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ASPHNet</code> <em>(set by flow)</em></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>FoodPct</code> <em>(set by flow)</em></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DrinkPct</code> <em>(set by flow)</em></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>WagePct</code> <em>(set by flow)</em></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>WageRAG</code> <em>(set by flow)</em></td>
+<td>Choice</td>
+<td>Green / Amber / Red</td>
+</tr>
+<tr>
+<td><code>NetVsTarget</code> <em>(set by flow)</em></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CheckIssues</code> <em>(set by flow)</em></td>
+<td>Multi-line text</td>
+<td>Problems found by flow (e.g. discount lines ≠ EPOS total)</td>
+</tr>
+<tr>
+<td><code>CalcVersion</code> <em>(set by flow)</em></td>
+<td>Text</td>
+<td>Formula version used</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (4):</em> Title, Site, BusinessDate, Status</p>
+<p><strong>TradingSessions</strong>: Lunch / dinner figures and cash. <em>Written by:</em> App; flow F01 adds net &amp; variance.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>Key = SiteCode|yyyy-mm-dd|Session</td>
+</tr>
+<tr>
+<td><code>TradingDay</code> <em>(indexed)</em></td>
+<td>Lookup → TradingDays</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>BusinessDate</code> <em>(indexed)</em></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Session</code></td>
+<td>Choice</td>
+<td>Lunch / Dinner / All day</td>
+</tr>
+<tr>
+<td><code>Gross</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ServiceCharge</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Tax</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DiscountsComps</code></td>
+<td>Currency</td>
+<td>EPOS total; reconciled to Adjustments</td>
+</tr>
+<tr>
+<td><code>FoodSales</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DrinkSales</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>BookedCovers</code></td>
+<td>Number</td>
+<td>'Starting covers' in old form</td>
+</tr>
+<tr>
+<td><code>Walkins</code></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CashInEpos</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CashCollected</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CashExplanation</code></td>
+<td>Multi-line text</td>
+<td>Required by app if variance &gt; 1p</td>
+</tr>
+<tr>
+<td><code>Net</code> <em>(set by flow)</em></td>
+<td>Currency</td>
+<td>Gross − SC − tax − discounts</td>
+</tr>
+<tr>
+<td><code>Covers</code> <em>(set by flow)</em></td>
+<td>Number</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CashVariance</code> <em>(set by flow)</em></td>
+<td>Currency</td>
+<td>Collected − EPOS</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (4):</em> Title, TradingDay, Site, BusinessDate</p>
+<p><strong>Adjustments</strong>: Discounts, comps and voids as rows (were text blobs). <em>Written by:</em> App.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>ClientId (UUID)</td>
+</tr>
+<tr>
+<td><code>TradingSession</code> <em>(indexed)</em></td>
+<td>Lookup → TradingSessions</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Site</code> <em>(indexed)</em></td>
+<td>Lookup → Sites</td>
+<td></td>
+</tr>
+<tr>
+<td><code>BusinessDate</code> <em>(indexed)</em></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Kind</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td>Discount / Comp / Void</td>
+</tr>
+<tr>
+<td><code>ReasonCode</code> <em>(required)</em></td>
+<td>Lookup → ReasonCodes</td>
+<td></td>
+</tr>
+<tr>
+<td><code>GuestOrStaffName</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Items</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>SaleAmount</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Amount</code> <em>(required)</em></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Time</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>PerformedBy</code></td>
+<td>Lookup → Staff</td>
+<td>'Voided by'</td>
+</tr>
+<tr>
+<td><code>ApprovedBy</code></td>
+<td>Lookup → Staff</td>
+<td>Real user</td>
+</tr>
+<tr>
+<td><code>Notes</code></td>
+<td>Multi-line text</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (5):</em> Title, TradingSession, Site, BusinessDate, Kind</p>
+<p><strong>DeliverySales</strong>: Per platform per day. <em>Written by:</em> App; flow F01 adds estimated net.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>Key = SiteCode|yyyy-mm-dd|Platform</td>
+</tr>
+<tr>
+<td><code>TradingDay</code> <em>(indexed)</em></td>
+<td>Lookup → TradingDays</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Platform</code></td>
+<td>Lookup → DeliveryPlatforms</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Gross</code></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>EstimatedNet</code> <em>(set by flow)</em></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ActualPayout</code></td>
+<td>Currency</td>
+<td>From platform statement (later)</td>
+</tr>
+<tr>
+<td><code>CurrentPromotion</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> Title, TradingDay</p>
+<p><strong>DeliveryRefunds</strong>: Refund requests from delivery platforms. <em>Written by:</em> App.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code></td>
+<td>Text</td>
+<td>Summary</td>
+</tr>
+<tr>
+<td><code>TradingDay</code> <em>(indexed)</em></td>
+<td>Lookup → TradingDays</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Platform</code></td>
+<td>Lookup → DeliveryPlatforms</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Amount</code> <em>(required)</em></td>
+<td>Currency</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Details</code></td>
+<td>Multi-line text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Issued</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td>Yes / No / Pending</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> TradingDay, Issued</p>
+<p><strong>ShiftStaff</strong>: Who worked each session (fixes lunch managers being dropped). <em>Written by:</em> App (rota later).</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Name</td>
+</tr>
+<tr>
+<td><code>TradingSession</code> <em>(indexed)</em></td>
+<td>Lookup → TradingSessions</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Staff</code></td>
+<td>Lookup → Staff</td>
+<td>Blank if no account</td>
+</tr>
+<tr>
+<td><code>Department</code></td>
+<td>Choice</td>
+<td>Kitchen / FOH / Management</td>
+</tr>
+<tr>
+<td><code>Position</code></td>
+<td>Choice</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Hours</code></td>
+<td>Number</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (1):</em> TradingSession</p>
+<p><strong>Feedback</strong>: Service, kitchen, staff, complaints, maintenance notes. <em>Written by:</em> App; flow F01 links work orders.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code></td>
+<td>Text</td>
+<td>Category</td>
+</tr>
+<tr>
+<td><code>TradingDay</code> <em>(indexed)</em></td>
+<td>Lookup → TradingDays</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Category</code> <em>(indexed)</em></td>
+<td>Choice</td>
+<td>Service / Kitchen / Staff / Complaints / Maintenance</td>
+</tr>
+<tr>
+<td><code>Body</code> <em>(required)</em></td>
+<td>Multi-line text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>WorkOrder</code> <em>(set by flow)</em></td>
+<td>Lookup → WorkOrders</td>
+<td>Created by F01 for urgent maintenance</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> TradingDay, Category</p>
+<h4>People &amp; handbook</h4>
+<p><strong>PolicyAcknowledgements</strong>: E-signed policy sign-offs. <em>Written by:</em> App.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(unique, required)</em></td>
+<td>Text</td>
+<td>Key = PolicyFileId|Version|StaffId</td>
+</tr>
+<tr>
+<td><code>PolicyFileId</code> <em>(indexed)</em></td>
+<td>Number</td>
+<td>Item id in Policies library</td>
+</tr>
+<tr>
+<td><code>PolicyVersion</code></td>
+<td>Text</td>
+<td>Library version label at signing</td>
+</tr>
+<tr>
+<td><code>Staff</code> <em>(indexed)</em></td>
+<td>Lookup → Staff</td>
+<td></td>
+</tr>
+<tr>
+<td><code>AcknowledgedAt</code></td>
+<td>Date/Time</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Device</code></td>
+<td>Lookup → Devices</td>
+<td></td>
+</tr>
+<tr>
+<td><code>SignatureJson</code></td>
+<td>Multi-line text</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (3):</em> Title, PolicyFileId, Staff</p>
+<p><strong>StaffCertificates</strong>: Level 2/3 food hygiene, personal licence, first aid…. <em>Written by:</em> Manager.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Certificate type</td>
+</tr>
+<tr>
+<td><code>Staff</code> <em>(indexed)</em></td>
+<td>Lookup → Staff</td>
+<td></td>
+</tr>
+<tr>
+<td><code>Issuer</code></td>
+<td>Text</td>
+<td></td>
+</tr>
+<tr>
+<td><code>IssuedOn</code></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ExpiresOn</code> <em>(indexed)</em></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>DocumentLink</code></td>
+<td>Hyperlink</td>
+<td>Certificates library</td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (2):</em> Staff, ExpiresOn</p>
+<p><strong>FitnessToWork</strong>: Illness exclusion / return to work — restricted to Owner/Admin. <em>Written by:</em> Manager (restricted list).</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> <em>(required)</em></td>
+<td>Text</td>
+<td>Staff name</td>
+</tr>
+<tr>
+<td><code>Staff</code> <em>(indexed)</em></td>
+<td>Lookup → Staff</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ReportedOn</code></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>SymptomsCategory</code></td>
+<td>Choice</td>
+<td>Minimal data — no free-text diagnosis</td>
+</tr>
+<tr>
+<td><code>ExcludedUntil</code></td>
+<td>Date</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ClearedBy</code></td>
+<td>Lookup → Staff</td>
+<td></td>
+</tr>
+<tr>
+<td><code>ClearedOn</code></td>
+<td>Date</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>Indexed (1):</em> Staff</p>
+<h2>Appendix B: the database option (if we ever sell it)</h2>
+<p>The original architecture uses <strong>Postgres on Supabase</strong> in London, PowerSync offline sync and a small Node API. Its full write-up, tested <code>schema.sql</code> (67 tables) and diagrams are kept in <code>postgres-option/</code>. Use it if the product is sold to other restaurants or grows beyond ~50 sites. The SharePoint lists mirror those tables, so migrating is a data copy, and because of rule 9 the apps keep working.</p></body></html>

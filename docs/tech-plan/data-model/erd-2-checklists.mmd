@@ -1,0 +1,166 @@
+erDiagram
+  Sites ||--o{ Assets : "Site"
+  Sites ||--o{ Staff : "HomeSite"
+  Sites ||--o{ ChecklistRuns : "Site"
+  ChecklistTemplates ||--o{ ChecklistRuns : "Template"
+  Staff ||--o{ ChecklistRuns : "CompletedBy"
+  ChecklistRuns ||--o{ Responses : "Run"
+  Sites ||--o{ Responses : "Site"
+  Staff ||--o{ Responses : "RecordedBy"
+  Devices ||--o{ Responses : "Device"
+  Sites ||--o{ WorkOrders : "Site"
+  Assets ||--o{ WorkOrders : "Asset"
+  Staff ||--o{ WorkOrders : "ReportedBy"
+  Sites ||--o{ Devices : "Site"
+  Sites }o--o{ ChecklistTemplates : "Sites"
+  Sites ||--o{ DayClosures : "Site"
+  Staff ||--o{ DayClosures : "ClosedBy"
+  ChecklistTemplates ||--o{ Checkpoints : "Template"
+  Assets ||--o{ Checkpoints : "Asset"
+  Responses ||--o{ CorrectiveActions : "Response"
+  Sites ||--o{ CorrectiveActions : "Site"
+  WorkOrders ||--o{ CorrectiveActions : "WorkOrder"
+  Staff ||--o{ CorrectiveActions : "VerifiedBy"
+  Sites ||--o{ HandoverNotes : "Site"
+  Staff ||--o{ HandoverNotes : "Author"
+  ChecklistTemplates ||--o{ Schedules : "Template"
+  Sites ||--o{ Schedules : "Site"
+  Checkpoints ||--o{ Responses : "CheckpointId"
+  Responses |o--o| Responses : "Supersedes"
+  Responses |o--o{ WorkOrders : "SourceResponse"
+  ChecklistTemplates {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Choice Kind "indexed"
+    Number CurrentVersion
+    Choice Status "indexed"
+    MultiLookup Sites FK
+  }
+  Checkpoints {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Template FK "indexed"
+    Number TemplateVersion "indexed"
+    Number Position
+    Text Section
+    Note Guidance
+    Note MediaLinks
+    Choice ResponseType "required"
+    Note Options
+    Text CheckCode
+    Lookup Asset FK
+    YesNo Required
+    YesNo PhotoRequired
+    YesNo CorrectiveActionOnFail
+  }
+  Schedules {
+    Number ID PK "SharePoint item id"
+    Text Title
+    Lookup Template FK "indexed"
+    Lookup Site FK "indexed"
+    Text DueTime "required"
+    MultiChoice Days
+    Number WindowMinutes
+    YesNo AutoClose
+    Choice AssignedRole
+    Date PausedFrom
+    Date PausedUntil
+  }
+  ChecklistRuns {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, SiteCode + yyyy-mm-dd + ScheduleId"
+    Lookup Site FK "indexed"
+    Date BusinessDate "indexed"
+    Lookup Template FK
+    Number TemplateVersion
+    DateTime DueAt
+    Choice Status "indexed"
+    Lookup CompletedBy FK
+    DateTime CompletedAt
+    Number DurationSeconds
+    Number FailedCount "set by flow"
+  }
+  Responses {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required"
+    Lookup Run FK "indexed"
+    Lookup Site FK "indexed"
+    Date BusinessDate "indexed"
+    Number CheckpointId FK
+    Number ValueNumber
+    Note ValueText
+    YesNo Passed "indexed"
+    Text ThresholdSnapshot
+    Choice Source
+    Link PhotoUrl
+    Text PhotoSha256
+    YesNo CapturedLive
+    Lookup RecordedBy FK
+    Lookup Device FK
+    DateTime ClientRecordedAt
+    Number Supersedes FK
+    Text CorrectionReason
+  }
+  CorrectiveActions {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Response FK "indexed"
+    Lookup Site FK "indexed"
+    Note ActionTaken
+    YesNo FoodDisposed
+    Choice Status "indexed"
+    DateTime RecheckDue "indexed"
+    Lookup WorkOrder FK
+    Lookup VerifiedBy FK
+  }
+  DayClosures {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, SiteCode + yyyy-mm-dd"
+    Lookup Site FK "indexed"
+    Date BusinessDate "indexed"
+    Lookup ClosedBy FK
+    Note Stats "set by flow"
+    Link ReportLink "set by flow"
+  }
+  HandoverNotes {
+    Number ID PK "SharePoint item id"
+    Text Title
+    Lookup Site FK "indexed"
+    Date BusinessDate "indexed"
+    Note Body
+    Lookup Author FK
+  }
+  Assets {
+    Number ID PK "SharePoint item id"
+  }
+  Devices {
+    Number ID PK "SharePoint item id"
+  }
+  Sites {
+    Number ID PK "SharePoint item id"
+  }
+  Staff {
+    Number ID PK "SharePoint item id"
+  }
+  WorkOrders {
+    Number ID PK "SharePoint item id"
+  }
+  classDef ref fill:#ebe9fb,stroke:#5b52b8,color:#1b1640
+  classDef chk fill:#e3f4f1,stroke:#1f6f5c,color:#0f2e27
+  classDef mnt fill:#e5effa,stroke:#2d6ab0,color:#0f2440
+  classDef trd fill:#e8f5e2,stroke:#3d8b37,color:#16330f
+  classDef ppl fill:#fdf2df,stroke:#b7791f,color:#3d2a08
+  classDef rst fill:#fde8e8,stroke:#b71c1c,color:#4a0b0b
+  class ChecklistTemplates chk
+  class Checkpoints chk
+  class Schedules chk
+  class ChecklistRuns chk
+  class Responses chk
+  class CorrectiveActions chk
+  class DayClosures chk
+  class HandoverNotes chk
+  class Assets mnt
+  class Devices ref
+  class Sites ref
+  class Staff ref
+  class WorkOrders mnt

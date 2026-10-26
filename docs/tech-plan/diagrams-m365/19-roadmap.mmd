@@ -1,0 +1,18 @@
+gantt
+  title Build roadmap (indicative, 2-week sprints)
+  dateFormat YYYY-MM-DD
+  axisFormat %b %Y
+  todayMarker off
+  section Setup
+  Entra app registrations, SharePoint site and lists, service account :s1, 2026-11-02, 2w
+  App shell, Microsoft sign-in, device account + PIN                :s2, after s1, 2w
+  section Stage 1 · EOD
+  EOD screens, flow F01, Excel view, retire Netlify                :e1, after s2, 2w
+  section Stage 2 · Operations
+  Checklist builder, tablet kiosk, offline queue, F02–F04          :o1, after e1, 4w
+  Corrective actions, assets, work orders, F05–F06                 :o2, after o1, 4w
+  Handbook, sign-offs, certificates, F07–F08, Power BI             :o3, after o2, 4w
+  Hardening — archiving, throttling tests, record labels            :o4, after o3, 2w
+  Pilot at all 9 sites                                             :milestone, p1, after o4, 0d
+  section Stage 3 · Later
+  EPOS / rota / delivery, AI proxy + Ask your logs                 :l1, after o4, 8w

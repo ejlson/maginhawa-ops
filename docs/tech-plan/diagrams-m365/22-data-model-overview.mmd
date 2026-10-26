@@ -1,0 +1,65 @@
+flowchart LR
+  subgraph REF["Reference (set up once)"]
+    direction TB
+    Sites["<b>Sites</b><br/>9 restaurants · nation · wage targets"]
+    Staff["<b>Staff</b><br/>name · role · position · PIN hash"]
+    Devices["<b>Devices</b><br/>kiosk tablets"]
+    Rules["<b>RulesThresholds</b><br/>temp limits per nation"]
+    Reason["<b>ReasonCodes</b><br/>discount / comp / void"]
+    Plat["<b>DeliveryPlatforms</b>"]
+    Targets["<b>Targets</b><br/>per site per day"]
+  end
+  subgraph CHK["Checklists (daily operations)"]
+    direction TB
+    Tmpl["<b>ChecklistTemplates</b>"] --> Cp["<b>Checkpoints</b><br/>question · type · guidance · media"]
+    Tmpl --> Sch["<b>Schedules</b><br/>when · which site"]
+    Sch -. "flow F02 each morning" .-> Run["<b>ChecklistRuns</b><br/>one checklist on one day"]
+    Run --> Resp["<b>Responses</b><br/>every answer (the compliance record)"]
+    Resp --> CA["<b>CorrectiveActions</b><br/>what was done on a fail"]
+    DC["<b>DayClosures</b><br/>ops sign-off per day"]
+    HN["<b>HandoverNotes</b>"]
+  end
+  subgraph MNT["Repairs & maintenance"]
+    direction TB
+    Asset["<b>Assets</b><br/>fridge, fryer… QR code"] --> WO["<b>WorkOrders</b><br/>repair jobs"]
+    Con["<b>Contractors</b>"] --> WO
+    WO --> Inv["<b>Invoices</b><br/>cost per job / asset"]
+    WO --> Vis["<b>VisitorLog</b>"]
+    Comp["<b>ComplianceItems</b><br/>gas, TR19, EICR… due dates"]
+  end
+  subgraph TRD["Trading / EOD (finance)"]
+    direction TB
+    TD["<b>TradingDays</b><br/>one per site per date · official totals"] --> TS["<b>TradingSessions</b><br/>lunch / dinner sales · cash"]
+    TS --> Adj["<b>Adjustments</b><br/>discounts · comps · voids"]
+    TS --> SS["<b>ShiftStaff</b><br/>who worked"]
+    TD --> DS["<b>DeliverySales</b>"]
+    TD --> DR["<b>DeliveryRefunds</b>"]
+    TD --> FB["<b>Feedback</b><br/>service · kitchen · maintenance"]
+  end
+  subgraph PPL["People & handbook"]
+    direction TB
+    Pol[("<b>Policies</b> library<br/>handbook documents")] --> Ack["<b>PolicyAcknowledgements</b><br/>who signed which version"]
+    Cert["<b>StaffCertificates</b><br/>food hygiene, first aid…"]
+    Fit["<b>FitnessToWork</b><br/>restricted"]
+  end
+  Rules -. "pass / fail limits" .-> Cp
+  Resp == "fail, repeated" ==> WO
+  CA == "escalates" ==> WO
+  FB == "urgent maintenance" ==> WO
+  Asset --> Comp
+  Asset -. "checkpoint about a unit" .-> Cp
+  Reason --> Adj
+  Plat --> DS
+  Targets -. "vs actuals" .-> TD
+  Staff --> Ack
+  Staff --> Cert
+  Staff --> Fit
+  Staff -. "recorded by / approved by" .-> Resp
+  Devices -. "recorded on" .-> Resp
+  Sites -. "every operational list has<br/>Site + BusinessDate (indexed)" .-> CHK
+  Sites -.-> TRD
+  Sites -.-> MNT
+  classDef ref fill:#f6f7f9,stroke:#5b6575;
+  classDef big fill:#fff8ec,stroke:#b7791f;
+  class Sites,Staff,Devices,Rules,Reason,Plat,Targets ref
+  class Resp,TD big

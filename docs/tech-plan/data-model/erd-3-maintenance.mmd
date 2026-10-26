@@ -1,0 +1,127 @@
+erDiagram
+  Sites ||--o{ Assets : "Site"
+  Contractors ||--o{ Assets : "DefaultContractor"
+  Contractors ||--o{ Invoices : "Contractor"
+  WorkOrders ||--o{ Invoices : "WorkOrder"
+  Assets ||--o{ Invoices : "Asset"
+  Staff ||--o{ Invoices : "ApprovedBy"
+  Sites ||--o{ Staff : "HomeSite"
+  Sites ||--o{ Responses : "Site"
+  Staff ||--o{ Responses : "RecordedBy"
+  Sites ||--o{ WorkOrders : "Site"
+  Assets ||--o{ WorkOrders : "Asset"
+  Contractors ||--o{ WorkOrders : "Contractor"
+  Staff ||--o{ WorkOrders : "ReportedBy"
+  Sites ||--o{ ComplianceItems : "Site"
+  Assets ||--o{ ComplianceItems : "Asset"
+  Contractors ||--o{ ComplianceItems : "Contractor"
+  Sites ||--o{ VisitorLog : "Site"
+  WorkOrders ||--o{ VisitorLog : "WorkOrder"
+  Responses |o--o| Responses : "Supersedes"
+  Responses |o--o{ WorkOrders : "SourceResponse"
+  Assets {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Site FK "indexed"
+    Choice Category "indexed"
+    Text Make
+    Text Model
+    Text SerialNumber
+    Text QRCode UK
+    Date InstallDate
+    Date WarrantyExpires "indexed"
+    Lookup DefaultContractor FK
+    Link PhotoUrl
+    YesNo Retired
+  }
+  Contractors {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Choice Trade "indexed"
+    Text ContactName
+    Text Phone
+    Text Email
+    Text GasSafeNumber
+    Text Accreditation
+  }
+  WorkOrders {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required"
+    Lookup Site FK "indexed"
+    Lookup Asset FK "indexed"
+    Text Summary "required"
+    Note Description
+    Choice Source
+    Number SourceResponse FK
+    Choice Priority "indexed"
+    Choice Status "indexed"
+    Lookup Contractor FK
+    Lookup ReportedBy FK
+    DateTime DispatchedAt
+    DateTime AttendedAt
+    DateTime ResolvedAt
+    Note PhotoUrls
+    Note History
+  }
+  ComplianceItems {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Site FK "indexed"
+    Lookup Asset FK
+    Choice RequirementCode
+    Number IntervalMonths
+    Date LastDone
+    Date NextDue "indexed"
+    Lookup Contractor FK
+    Link CertificateLink
+    YesNo Verified
+  }
+  Invoices {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Contractor FK "indexed"
+    Lookup WorkOrder FK "indexed"
+    Lookup Asset FK "indexed"
+    Date InvoiceDate "indexed"
+    Currency Net
+    Currency VAT
+    Currency Gross
+    Link DocumentLink
+    Lookup ApprovedBy FK
+    DateTime ExportedAt
+  }
+  VisitorLog {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Site FK "indexed"
+    Text Company
+    Text Purpose
+    Lookup WorkOrder FK
+    DateTime SignedIn "indexed"
+    DateTime SignedOut
+    YesNo HealthDeclaration
+  }
+  Responses {
+    Number ID PK "SharePoint item id"
+  }
+  Sites {
+    Number ID PK "SharePoint item id"
+  }
+  Staff {
+    Number ID PK "SharePoint item id"
+  }
+  classDef ref fill:#ebe9fb,stroke:#5b52b8,color:#1b1640
+  classDef chk fill:#e3f4f1,stroke:#1f6f5c,color:#0f2e27
+  classDef mnt fill:#e5effa,stroke:#2d6ab0,color:#0f2440
+  classDef trd fill:#e8f5e2,stroke:#3d8b37,color:#16330f
+  classDef ppl fill:#fdf2df,stroke:#b7791f,color:#3d2a08
+  classDef rst fill:#fde8e8,stroke:#b71c1c,color:#4a0b0b
+  class Assets mnt
+  class Contractors mnt
+  class WorkOrders mnt
+  class ComplianceItems mnt
+  class Invoices mnt
+  class VisitorLog mnt
+  class Responses chk
+  class Sites ref
+  class Staff ref

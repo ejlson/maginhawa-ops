@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Head office: today's closes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0066cc}a:hover{color:#004f9e}
+html{scrollbar-width:thin;scrollbar-color:rgba(128,128,128,.45) transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(128,128,128,.45);border-radius:4px;border:2px solid transparent;background-clip:padding-box}::-webkit-scrollbar-thumb:hover{background-color:rgba(128,128,128,.7)}
+.ad{--bg:#ffffff;--side:#f7f7f9;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--sel:rgba(0,0,0,.06);--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.16);--heroOk:#30d158;--link:#0066cc;--ok:#1f7a35;--okbg:rgba(52,199,89,.14);--warn:#b25000;--warnbg:rgba(255,149,0,.16);--bad:#d70015;--badbg:rgba(255,59,48,.12);min-height:1060px;box-sizing:border-box;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:15px;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;display:flex;flex-direction:column}
+.ad.dark{--bg:#000000;--side:#0c0c0e;--text:#f5f5f7;--sec:#a1a1a6;--sep:rgba(255,255,255,.1);--fill:#1c1c1e;--sel:rgba(255,255,255,.08);--ink:#f5f5f7;--onink:#000000;--hero:#1c1c1e;--heroline:rgba(245,245,247,.14);--link:#2997ff;--ok:#30d158;--okbg:rgba(48,209,88,.16);--warn:#ff9f0a;--warnbg:rgba(255,159,10,.16);--bad:#ff453a;--badbg:rgba(255,69,58,.16)}
+.top{min-height:64px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px;padding:0 40px;border-bottom:.5px solid var(--sep)}
+.tabs{display:flex;flex-wrap:wrap;gap:4px}
+.tab{height:36px;padding:0 14px;border-radius:18px;display:flex;align-items:center;color:var(--sec);text-decoration:none;font-weight:500}
+.tab.on{background:var(--sel);color:var(--text);font-weight:600}
+.wrap{display:flex;flex-wrap:wrap;gap:40px;padding:32px 40px 56px;align-items:flex-start}
+.mainc{flex:999 1 620px;min-width:0;display:flex;flex-direction:column;gap:32px}
+.rail{flex:1 1 320px;max-width:380px;display:flex;flex-direction:column;gap:20px}
+.hero{background:var(--hero);color:var(--onhero);border-radius:24px;padding:26px 28px;display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;align-items:flex-end;box-shadow:0 24px 48px -24px rgba(0,0,0,.4)}
+.hs{display:flex;flex-direction:column;gap:4px;font-size:22px;font-weight:600;letter-spacing:-.03em;padding-left:22px;border-left:.5px solid var(--heroline)}
+.hs small{font-size:12px;font-weight:400;color:var(--herosec);letter-spacing:0}
+.bars{display:flex;align-items:flex-end;gap:6px;height:56px}
+.bars span{width:14px;border-radius:4px 4px 2px 2px;background:var(--heroline)}
+.hd{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:4px}
+.hd h2{font-size:20px;font-weight:700;letter-spacing:-.025em;margin:0}
+.hd span{font-size:14px;color:var(--sec)}
+.scroll{overflow-x:auto}
+.th{display:grid;grid-template-columns:minmax(220px,2.4fr) repeat(4,minmax(90px,1fr)) 20px;gap:16px;align-items:center;font-size:12px;color:var(--sec);padding:0 0 8px;min-width:720px}
+.th span:not(:first-child){text-align:right}
+.sr{display:grid;grid-template-columns:minmax(220px,2.4fr) repeat(4,minmax(90px,1fr)) 20px;gap:16px;align-items:center;min-height:68px;color:var(--text);text-decoration:none;position:relative;min-width:720px;border-radius:12px}
+.sr::before{content:'';position:absolute;top:0;left:56px;right:0;height:.5px;background:var(--sep)}
+.sr:hover{background:var(--side)}
+.sr.on{background:var(--sel)}
+.sr > span:not(:first-child){text-align:right}
+.who{display:flex;align-items:center;gap:14px;min-width:0}
+.av{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;font-size:13px;font-weight:700;letter-spacing:-.02em}
+.tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tx small{font-size:13px;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.n{font-weight:600}
+.m{color:var(--sec)}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:4px;background:currentColor;margin-right:6px;vertical-align:1px}
+.chev{width:7px;height:12px;color:var(--sec);opacity:.5}
+.panel{border-radius:20px;background:var(--side);padding:20px;display:flex;flex-direction:column}
+.li{display:flex;align-items:flex-start;gap:12px;padding:12px 0;position:relative}
+.li + .li::before{content:'';position:absolute;top:0;left:52px;right:0;height:.5px;background:var(--sep)}
+.li .av{width:40px;height:40px}
+.acts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.sm{height:32px;border-radius:16px;border:0;padding:0 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;background:var(--bg);color:var(--text);box-shadow:0 0 0 .5px var(--sep)}
+.sm.pri{background:var(--ink);color:var(--onink);box-shadow:none}
+.seg{display:flex;background:var(--fill);border-radius:18px;padding:3px}
+.seg a{height:30px;padding:0 14px;border-radius:15px;display:flex;align-items:center;font-size:13px;font-weight:600;color:var(--sec);text-decoration:none}
+.seg a.on{background:var(--bg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+</style>
+</helmet>
+<div class="ad {{theme}}">
+<header class="top">
+<span style="font-size: 17px; font-weight: 700; letter-spacing: -0.02em">Maginhawa <span style="color: var(--sec); font-weight: 500">Head office</span></span>
+<nav class="tabs" aria-label="Admin"><a class="tab on" href="a01-Admin.dc.html" aria-current="page">Today</a><a class="tab" href="a03-AdminForecast.dc.html">Forecast</a><a class="tab" href="a01-Admin.dc.html">Reports</a><a class="tab" href="a01-Admin.dc.html">Ask your logs</a><a class="tab" href="a02-AdminSettings.dc.html">Settings</a></nav>
+<span style="margin-left: auto; display: flex; align-items: center; gap: 10px"><span style="font-size: 13px; color: var(--sec)">Admin</span><span class="av" style="width: 34px; height: 34px; background: var(--ink); color: var(--onink); font-size: 12px">AD</span></span>
+</header>
+<div class="wrap">
+<div class="mainc">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; color: var(--sec)">Monday 5 October · 09:12 Tuesday</span><h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.035em">All sites</h1></div>
+<div class="seg"><a class="on" href="a01-Admin.dc.html">Day</a><a href="a01-Admin.dc.html">Week</a><a href="a01-Admin.dc.html">Month</a></div>
+</div>
+<div class="hero">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 15px; color: var(--herosec)">Group net sales · 7 of 9 sites in</span>
+<div style="display: flex; align-items: baseline; line-height: 1"><span style="font-size: 60px; font-weight: 600; letter-spacing: -0.055em">£18,477</span><span style="font-size: 30px; font-weight: 500; color: var(--herosec)">.45</span></div>
+<span style="font-size: 14px; font-weight: 600; color: var(--heroOk)">+£477.45 vs target for those 7 sites</span>
+</div>
+<div style="display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-end">
+<span class="hs">795<small>Covers</small></span>
+<span class="hs">30.1%<small>Wage cost</small></span>
+<span class="hs">−£7.60<small>Net cash variance</small></span>
+<div style="display: flex; flex-direction: column; gap: 6px; padding-left: 22px; border-left: 0.5px solid var(--heroline)"><div class="bars" role="img" aria-label="Group net, last 7 days and 7-day forecast"><span style="height: 52%"></span><span style="height: 60%"></span><span style="height: 70%"></span><span style="height: 92%"></span><span style="height: 100%"></span><span style="height: 74%"></span><span style="height: 58%; background: #f5f5f7"></span><span style="height: 54%; background: transparent; border: 1.5px dashed rgba(245,245,247,.55); box-sizing: border-box"></span><span style="height: 61%; background: transparent; border: 1.5px dashed rgba(245,245,247,.55); box-sizing: border-box"></span><span style="height: 71%; background: transparent; border: 1.5px dashed rgba(245,245,247,.55); box-sizing: border-box"></span><span style="height: 94%; background: transparent; border: 1.5px dashed rgba(245,245,247,.55); box-sizing: border-box"></span><span style="height: 100%; background: transparent; border: 1.5px dashed rgba(245,245,247,.55); box-sizing: border-box"></span><span style="height: 76%; background: transparent; border: 1.5px dashed rgba(245,245,247,.55); box-sizing: border-box"></span><span style="height: 60%; background: transparent; border: 1.5px dashed rgba(245,245,247,.55); box-sizing: border-box"></span></div><small style="font-size: 12px; color: var(--herosec)">Last 7 days · next 7 forecast £151k</small></div>
+</div>
+</div>
+<section>
+<div class="hd"><h2>Sites</h2><span style="display: flex; align-items: center; gap: 12px">Example figures<button class="sm pri" onClick="{{approveAll}}">{{approveLabel}}</button></span></div>
+<div class="scroll">
+<div class="th"><span>Site</span><span>Net</span><span>vs target</span><span>Wages</span><span>Cash</span><span></span></div>
+<sc-for list="{{sites}}" as="s" hint-placeholder-count="9">
+<a class="sr {{s.on}}" href="a01-Admin.dc.html" onClick="{{s.pick}}"><span class="who"><span class="av" style="{{s.avStyle}}">{{s.ini}}</span><span class="tx"><span style="font-weight: 600">{{s.name}}</span><small class="{{s.stTone}}">{{s.status}}</small></span></span><span class="n">{{s.net}}</span><span class="{{s.vtTone}}">{{s.vt}}</span><span class="{{s.wgTone}}">{{s.wg}}</span><span class="{{s.cashTone}}">{{s.cash}}</span><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></a>
+</sc-for>
+</div>
+</section>
+</div>
+<aside class="rail">
+<div class="panel">
+<div class="hd"><h2>Needs attention</h2><span>4</span></div>
+<div class="li"><span class="av" style="background: var(--badbg); color: var(--bad)">MK</span><span class="tx" style="flex: 1"><span style="font-weight: 600">Mamasons Kentish Town</span><small style="white-space: normal">Not submitted · due 04:00, now 5h late</small><span class="acts"><button class="sm pri">Nudge manager</button><button class="sm">Call site</button></span></span></div>
+<div class="li"><span class="av" style="background: var(--warnbg); color: var(--warn)">R</span><span class="tx" style="flex: 1"><span style="font-weight: 600">Ramo · wages 36.2%</span><small style="white-space: normal">Over the 35% red line. 2 extra FOH on the rota.</small><span class="acts"><button class="sm">Open report</button></span></span></div>
+<div class="li"><span class="av" style="background: var(--warnbg); color: var(--warn)">G</span><span class="tx" style="flex: 1"><span style="font-weight: 600">Guanabana · cash £12.40 over</span><small style="white-space: normal">"Tip left in drawer, table 9"</small><span class="acts"><button class="sm">Accept</button><button class="sm">Query</button></span></span></div>
+<div class="li"><span class="av" style="background: var(--warnbg); color: var(--warn)">B</span><span class="tx" style="flex: 1"><span style="font-weight: 600">Bunso · £22.60 discounts unlisted</span><small style="white-space: normal">Till £50.00, lines £27.40</small><span class="acts"><button class="sm">Ask to reopen</button></span></span></div>
+</div>
+<div class="panel">
+<div class="hd"><h2>{{sel.name}}</h2><span>{{sel.status}}</span></div>
+<div class="li"><span class="tx" style="flex: 1">Net sales</span><span class="n">{{sel.net}}</span></div>
+<div class="li"><span class="tx" style="flex: 1">Covers</span><span>{{sel.covers}}</span></div>
+<div class="li"><span class="tx" style="flex: 1">Wages</span><span class="{{sel.wgTone}}">{{sel.wg}}</span></div>
+<div class="li"><span class="tx" style="flex: 1">Cash</span><span class="{{sel.cashTone}}">{{sel.cash}}</span></div>
+<a href="m04-Review.dc.html" style="margin-top: 12px; height: 44px; border-radius: 22px; background: var(--ink); color: var(--onink); display: flex; align-items: center; justify-content: center; font-weight: 600; text-decoration: none">Open full report</a>
+</div>
+</aside>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1060}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { picked: 'Bunso', approved: false };
+  }
+  renderVals() {
+    const raw = [
+      { name: 'Belly', ini: 'Be', st: 'Submitted 23:52 · [manager]', stTone: 'm', net: '£4,105.75', vt: '+£305.75', vtTone: 'ok', wg: '26.1%', wgTone: 'm', cash: 'Balanced', cashTone: 'm', covers: '171' },
+      { name: 'Bintang', ini: 'Bi', st: 'Submitted 00:05 · [manager]', stTone: 'm', net: '£3,412.00', vt: '+£212.00', vtTone: 'ok', wg: '27.4%', wgTone: 'm', cash: 'Balanced', cashTone: 'm', covers: '142' },
+      { name: 'Hoodwood', ini: 'H', st: 'Submitted 23:41 · [manager]', stTone: 'm', net: '£2,954.00', vt: '−£46.00', vtTone: 'm', wg: '28.9%', wgTone: 'm', cash: '−£0.60', cashTone: 'm', covers: '119' },
+      { name: 'Bunso', ini: 'B', st: 'Submitted 00:31 · 1 to check', stTone: 'warn', net: '£2,687.50', vt: '+£187.50', vtTone: 'ok', wg: '29.8%', wgTone: 'm', cash: '−£20.00', cashTone: 'warn', covers: '105' },
+      { name: 'Guanabana', ini: 'G', st: 'Submitted 00:12 · 1 to check', stTone: 'warn', net: '£2,198.40', vt: '−£101.60', vtTone: 'm', wg: '31.8%', wgTone: 'warn', cash: '+£12.40', cashTone: 'warn', covers: '88' },
+      { name: 'Ramo', ini: 'R', st: 'Submitted 23:30 · 1 to check', stTone: 'warn', net: '£1,876.20', vt: '−£123.80', vtTone: 'm', wg: '36.2%', wgTone: 'bad', cash: 'Balanced', cashTone: 'm', covers: '74' },
+      { name: 'Cafe Mamasons', ini: 'CM', st: 'Submitted 18:20 · [manager]', stTone: 'm', net: '£1,243.60', vt: '−£6.40', vtTone: 'm', wg: '33.0%', wgTone: 'warn', cash: 'Balanced', cashTone: 'm', covers: '96' },
+      { name: 'Mamasons China Town', ini: 'CT', st: 'In progress · 5 of 7 sections', stTone: 'm', net: '£2,310.90', vt: 'Draft', vtTone: 'm', wg: '—', wgTone: 'm', cash: '—', cashTone: 'm', covers: '—' },
+      { name: 'Mamasons Kentish Town', ini: 'KT', st: 'Not submitted · 5h late', stTone: 'bad', net: '—', vt: '—', vtTone: 'm', wg: '—', wgTone: 'm', cash: '—', cashTone: 'm', covers: '—' }
+    ];
+    const picked = this.state.picked;
+    const appr = this.state.approved;
+    const sites = raw.map((s) => ({
+      ...s,
+      status: appr && s.stTone === 'm' && s.st.indexOf('Submitted') === 0 ? 'Approved · ' + s.st.replace('Submitted ', '') : s.st,
+      on: s.name === picked ? 'on' : '',
+      avStyle: s.stTone === 'bad' ? 'background: var(--badbg); color: var(--bad)' : (s.stTone === 'warn' ? 'background: var(--warnbg); color: var(--warn)' : ''),
+      pick: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ picked: s.name }); }
+    }));
+    const sel = sites.find((s) => s.name === picked) || sites[0];
+    return { theme: this.props.dark ? 'dark' : '', sites, sel, approveLabel: appr ? 'Approved 4 clean · Undo' : 'Approve 4 clean closes', approveAll: () => this.setState({ approved: !this.state.approved }) };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+sequenceDiagram
+  autonumber
+  participant S as Staff (tablet)
+  participant L as On-device SQLite
+  participant Q as Upload queue
+  participant P as Sync service
+  participant A as API (rules engine)
+  participant D as PostgreSQL
+  S->>L: Record temp 9°C (UUIDv7, client time)
+  L-->>S: Instant red "fail" + corrective action prompt
+  L->>Q: Queue write (offline)
+  Note over S,Q: Wi-Fi drops in the cellar — app keeps working
+  Q->>A: Connection back → upload queued writes in order
+  A->>A: Re-evaluate vs site rules pack, check clock skew
+  A->>D: Insert response (server_received_at, threshold snapshot)
+  D-->>P: Change stream
+  P-->>L: Sync down authoritative row + new work order
+  L-->>S: "All synced" badge
+  Q->>A: Photo uploaded in background

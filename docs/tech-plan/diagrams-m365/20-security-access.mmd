@@ -1,0 +1,33 @@
+flowchart LR
+  subgraph Identities["Entra ID"]
+    direction TB
+    gS["Group: Staff"]
+    gM["Group: Managers"]
+    gF["Group: Finance"]
+    gA["Group: Admins / Owners"]
+    dev["Site device accounts<br/>(one per kitchen tablet)"]
+    svc["Service account<br/>(owns all flows)"]
+  end
+  subgraph Apps["App registrations"]
+    direction TB
+    reg["Tablet/phone + web console<br/>delegated Graph permission,<br/>limited to the one site<br/>(Sites.Selected)"]
+  end
+  subgraph SP["SharePoint site"]
+    direction TB
+    ops["Ops lists<br/>(checklists, responses,<br/>work orders)"]
+    trd["Trading lists"]
+    fin["Invoices, Targets"]
+    hr["FitnessToWork,<br/>restricted lists"]
+    cfg["Reference lists<br/>(sites, thresholds, codes)"]
+  end
+  gS -->|"add + read"| ops
+  dev -->|"add + read"| ops
+  gM -->|"contribute"| ops
+  gM -->|"contribute"| trd
+  gF -->|"read"| trd
+  gF -->|"contribute"| fin
+  gA -->|"full control"| SP
+  gA -->|"only group with access"| hr
+  gS -->|"read"| cfg
+  svc -->|"edit (flows)"| SP
+  reg -.-> SP

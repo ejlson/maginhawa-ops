@@ -1,0 +1,45 @@
+flowchart LR
+  subgraph People
+    direction TB
+    staff["Staff<br/>kitchen & FOH"]
+    mgr["Managers"]
+    own["Owners / Area managers"]
+    fin["Finance"]
+    adm["Admin"]
+    con["Contractors"]
+    eho["EHO / Inspector"]
+  end
+  subgraph Ours["What we build"]
+    direction TB
+    apps["Tablet + phone app<br/>(Expo)"]
+    web["Web console<br/>(Next.js)"]
+  end
+  subgraph M365["Maginhawa Microsoft 365"]
+    direction TB
+    entra["Entra ID<br/>sign-in, groups"]
+    sp["SharePoint<br/>lists + libraries"]
+    pa["Power Automate<br/>flows"]
+    out["Excel · Power BI ·<br/>Outlook · Teams"]
+  end
+  subgraph Later["Later (optional)"]
+    direction TB
+    pos["EPOS · rota · delivery"]
+    ai["AI proxy (Azure Function)<br/>→ Claude"]
+    acc["Xero / QuickBooks / Sage"]
+  end
+  staff --> apps
+  mgr --> apps
+  mgr --> web
+  own --> web
+  fin --> web
+  adm --> web
+  fin --> out
+  apps --> entra
+  web --> entra
+  apps -->|"Microsoft Graph"| sp
+  web -->|"Microsoft Graph"| sp
+  sp <--> pa
+  pa --> out
+  pa -->|"email"| con
+  web -->|"EHO pack PDF"| eho
+  Later -.-> pa

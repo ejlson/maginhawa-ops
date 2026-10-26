@@ -1,0 +1,22 @@
+flowchart TB
+  fix["Do now: regenerate the exposed Power Automate URL"]
+  subgraph S1["Stage 1 (weeks 1–6): Replace the EOD form"]
+    direction LR
+    a1["Create SharePoint site<br/>+ trading lists"] --> a2["EOD screens in the<br/>new phone/web app"]
+    a2 --> a3["Flow F01: recalculate,<br/>email, link work orders"]
+    a3 --> a4["Excel finance view reads lists;<br/>retire Netlify form"]
+  end
+  subgraph S2["Stage 2 (weeks 7–20): Operations"]
+    direction LR
+    b1["Checklists + tablet kiosk<br/>(offline)"] --> b2["Corrective actions,<br/>assets, work orders"]
+    b2 --> b3["Handbook, sign-offs,<br/>certificates"]
+    b3 --> b4["Power BI dashboards;<br/>pilot at all 9 sites"]
+  end
+  subgraph S3["Stage 3 (later): Integrations and AI"]
+    direction LR
+    c1["EPOS, rota, delivery<br/>auto-fill"] --> c2["AI proxy (Azure Function)<br/>Ask your logs"]
+    c2 --> c3["Statutory calendar,<br/>allergens, probes"]
+    c3 --> c4["If selling or 50+ sites:<br/>move data to a database"]
+  end
+  fix -.-> S1
+  S1 ==> S2 ==> S3

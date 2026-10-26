@@ -1,0 +1,43 @@
+flowchart LR
+  subgraph Clients["Clients (one TypeScript monorepo)"]
+    direction TB
+    tab["Tablet kiosk app<br/>Expo / React Native<br/>PIN login, offline SQLite"]
+    ph["Phone app<br/>same Expo codebase<br/>push, biometrics, camera"]
+    web["Web console<br/>Next.js<br/>grid, charts, builder"]
+  end
+  subgraph Backend["Backend (UK region, London)"]
+    direction TB
+    sync["Sync service<br/>PowerSync, per-site buckets"]
+    api["API service<br/>Node + Hono + Zod<br/>rules engine, trading calcs"]
+    jobs["Job workers (pg-boss)<br/>schedules, auto-close,<br/>EOD reports, Excel sync"]
+    aisvc["AI service<br/>Claude tools, citations,<br/>usage metering"]
+  end
+  subgraph Data["Data (UK region)"]
+    direction TB
+    pg[("PostgreSQL 16<br/>RLS, pgvector,<br/>append-only records")]
+    obj[("Object storage<br/>photos, certificates,<br/>invoices")]
+  end
+  subgraph Ext["External services"]
+    direction TB
+    claude["Claude API"]
+    msgraph["Microsoft Graph<br/>Excel / SharePoint"]
+    posx["EPOS, rota,<br/>delivery APIs"]
+    msg["Push, SMS, email"]
+    stripe["Stripe"]
+  end
+  tab -- "offline sync" --> sync
+  ph -- "offline sync" --> sync
+  tab -- "uploads" --> api
+  ph -- "uploads" --> api
+  web -- "HTTPS" --> api
+  sync --> pg
+  api --> pg
+  api --> obj
+  jobs --> pg
+  aisvc -- "tools run as the user" --> pg
+  api --> aisvc
+  aisvc --> claude
+  jobs --> msgraph
+  jobs --> posx
+  jobs --> msg
+  api --> stripe

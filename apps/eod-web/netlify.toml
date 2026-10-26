@@ -1,0 +1,14 @@
+[build]
+  base = "apps/eod-web"
+  command = "npm run build"
+  publish = "build/client"
+
+[functions]
+  directory = "../functions/netlify/functions"
+  node_bundler = "esbuild"
+
+# SPA: every route is handled in the browser.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kitchen iPad · Fix a failed check</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="checks.css" rel="stylesheet">
+</helmet>
+<div class="tb {{theme}}" style="background: rgba(0,0,0,.42); align-items: center; justify-content: center">
+<div style="width: 900px; height: 740px; border-radius: 28px; background: var(--bg); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 40px 80px -20px rgba(0,0,0,.5)">
+<div style="height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; flex: none; border-bottom: .5px solid var(--sep)">
+<a href="c02-RunChecklist.dc.html" style="color: var(--link); text-decoration: none">Cancel</a><span style="font-weight: 600">Fix a failed check</span><span style="width: 52px"></span></div>
+<div style="flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; padding: 28px; overflow: hidden">
+<div style="display: flex; flex-direction: column; gap: 36px">
+<div class="hero" style="flex-direction: column; align-items: stretch; gap: 14px">
+<span class="hl">Walk-in fridge · 09:14 · [CDP]</span>
+<div class="big"><b style="color: var(--heroBad)">9.2</b><i>°C</i></div>
+<span style="font-size: 14px; color: var(--herosec)">Limit is 8°C or below. 1.2°C too warm.</span>
+</div>
+<section class="grp">
+<div class="gh"><h2>What did you do?</h2><p>Pick everything that applies.</p></div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{acts}}" as="a" hint-placeholder-count="5"><button class="mini" aria-pressed="{{a.on}}" onClick="{{a.flip}}">{{a.label}}</button></sc-for>
+</div>
+<textarea class="ta" placeholder="Anything else? e.g. door was propped open during delivery" aria-label="Notes"></textarea>
+</section>
+</div>
+<div style="display: flex; flex-direction: column; gap: 36px">
+<section class="grp">
+<div class="gh"><h2>Food</h2></div>
+<div class="sub">
+<div class="fr"><span class="tx"><span>Did any food go in the bin?</span><small>Follow your safe method for chilled food</small></span><span class="yn"><button class="y" aria-pressed="{{binN}}" onClick="{{setBinN}}">No</button><button class="n" aria-pressed="{{binY}}" onClick="{{setBinY}}">Yes</button></span></div>
+<sc-if value="{{binned}}" hint-placeholder-val="{{ false }}"><textarea class="ta" placeholder="What and how much, e.g. 2 tubs of coleslaw" aria-label="Food thrown away" style="margin-top: 8px"></textarea></sc-if>
+</div>
+</section>
+<section class="grp">
+<div class="gh"><h2>Re-check</h2><p>We'll remind the kitchen iPad when it's due.</p></div>
+<div class="sub">
+<div class="fr"><span>Check again in</span><span class="seg"><sc-for list="{{times}}" as="m" hint-placeholder-count="3"><a href="c03-FixFailed.dc.html" class="{{m.on}}" onClick="{{m.pick}}">{{m.label}}</a></sc-for></span></div>
+<div class="fr"><span style="color: var(--sec)">Due</span><span style="font-weight: 600">{{dueAt}}</span></div>
+</div>
+</section>
+<section class="grp">
+<div class="gh"><h2>Repair</h2></div>
+<div class="sub">
+<div class="fr"><span class="tx"><span>Report a fault on this fridge</span><small>Opens a repair job for Walk-in fridge · QR WF-01</small></span><button class="mini" aria-pressed="{{repair}}" onClick="{{flipRepair}}" style="flex: none">{{repairLabel}}</button></div>
+</div>
+</section>
+</div>
+</div>
+<div style="height: 88px; flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 0 28px; border-top: .5px solid var(--sep)">
+<span style="font-size: 14px; color: var(--sec); margin-right: auto">{{footNote}}</span>
+<a class="btn {{saveCls}}" href="c01-KitchenToday.dc.html">Save and set re-check</a></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "$preview": {"width": 1194, "height": 834}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { acts: { 'Moved food to another fridge': true, 'Door was left open, closed it': false, 'Turned the thermostat down': true, 'Called the manager': false }, bin: 'n', mins: 30, repair: true };
+  }
+  renderVals() {
+    const s = this.state;
+    const acts = Object.keys(s.acts).map((k) => ({ label: k, on: s.acts[k] ? 'true' : 'false', flip: () => this.setState({ acts: Object.assign({}, s.acts, { [k]: !s.acts[k] }) }) }));
+    const picked = Object.values(s.acts).filter(Boolean).length;
+    const due = new Date(2026, 9, 6, 9, 14 + s.mins);
+    const pad = (n) => String(n).padStart(2, '0');
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      acts,
+      binY: s.bin === 'y' ? 'true' : 'false', binN: s.bin === 'n' ? 'true' : 'false', binned: s.bin === 'y',
+      setBinY: () => this.setState({ bin: 'y' }), setBinN: () => this.setState({ bin: 'n' }),
+      times: [15, 30, 60].map((m) => ({ label: m + ' min', on: s.mins === m ? 'on' : '', pick: (e) => { e.preventDefault(); this.setState({ mins: m }); } })),
+      dueAt: pad(due.getHours()) + ':' + pad(due.getMinutes()) + ' today',
+      repair: s.repair ? 'true' : 'false', repairLabel: s.repair ? 'Will report' : 'Report',
+      flipRepair: () => this.setState({ repair: !s.repair }),
+      saveCls: picked ? 'b1' : 'bd',
+      footNote: picked ? 'Your manager sees this straight away.' : 'Pick at least one thing you did.'
+    };
+  }
+}
+</script>
+</body>
+</html>

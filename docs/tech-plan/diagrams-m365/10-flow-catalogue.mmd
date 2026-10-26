@@ -1,0 +1,54 @@
+flowchart LR
+  subgraph Triggers
+    direction TB
+    t1["TradingDays item<br/>Status = Submitted"]
+    t2["Every morning<br/>04:00"]
+    t3["Every 15 min"]
+    t4["ChecklistRuns item<br/>Status = Completed"]
+    t5["CorrectiveActions<br/>recheck due / failed"]
+    t6["WorkOrders item<br/>Status changes"]
+    t7["Daily 07:00"]
+    t8["Policies library<br/>major version published"]
+    t9["Nightly 02:00"]
+    t10["Monday 07:00"]
+    t11["1 January"]
+  end
+  subgraph Flows["Power Automate flows (run as service account)"]
+    direction TB
+    f1["F01 EOD calculate & report"]
+    f2["F02 Create today's checklist runs"]
+    f3["F03 Late / missed checks"]
+    f4["F04 Evaluate completed checklist"]
+    f5["F05 Re-check & escalate"]
+    f6["F06 Work order dispatch & updates"]
+    f7["F07 Compliance & certificate reminders"]
+    f8["F08 Policy sign-off requests"]
+    f9["F09 Import targets from finance Excel"]
+    f10["F10 Weekly owner digest"]
+    f12["F12 Yearly archive"]
+  end
+  subgraph Effects["Writes / sends"]
+    direction TB
+    e1["Official totals, work orders,<br/>EOD email"]
+    e2["ChecklistRuns items"]
+    e3["Missed status + manager alert"]
+    e4["Corrective actions + alert"]
+    e5["Work order on the asset"]
+    e6["Contractor email, timeline"]
+    e7["Reminder emails / Teams"]
+    e8["Acknowledgement requests"]
+    e9["Targets list"]
+    e10["Summary email"]
+    e12["Archive lists / CSV"]
+  end
+  t1 --> f1 --> e1
+  t2 --> f2 --> e2
+  t3 --> f3 --> e3
+  t4 --> f4 --> e4
+  t5 --> f5 --> e5
+  t6 --> f6 --> e6
+  t7 --> f7 --> e7
+  t8 --> f8 --> e8
+  t9 --> f9 --> e9
+  t10 --> f10 --> e10
+  t11 --> f12 --> e12

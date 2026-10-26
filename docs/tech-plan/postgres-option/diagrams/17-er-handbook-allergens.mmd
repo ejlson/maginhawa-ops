@@ -1,0 +1,14 @@
+erDiagram
+  POLICIES ||--o{ POLICY_VERSIONS : versions
+  POLICY_VERSIONS ||--o{ POLICY_MEDIA : "images / video"
+  POLICY_VERSIONS ||--o{ POLICY_ACKNOWLEDGEMENTS : "signed by"
+  USERS ||--o{ POLICY_ACKNOWLEDGEMENTS : signs
+  USERS ||--o{ STAFF_CERTIFICATES : holds
+  USERS ||--o{ FITNESS_TO_WORK_RECORDS : "restricted"
+  SITES ||--o{ TIP_ALLOCATIONS : "tipping law"
+  SITES ||--o{ HARASSMENT_REPORTS : "restricted"
+  SUPPLIERS ||--o{ INGREDIENTS : supplies
+  INGREDIENTS ||--o{ INGREDIENT_ALLERGENS : "14 UK allergens"
+  DISHES ||--o{ DISH_INGREDIENTS : uses
+  INGREDIENTS ||--o{ DISH_INGREDIENTS : "in"
+  ORGANISATIONS ||--o{ ALLERGEN_MATRIX_VERSIONS : "published snapshot"

@@ -1,0 +1,94 @@
+erDiagram
+  Sites ||--o{ Staff : "HomeSite"
+  Sites ||--o{ Devices : "Site"
+  Sites ||--o{ Targets : "Site"
+  Sites {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Text SiteCode UK "required"
+    Choice Nation "required"
+    Text Timezone
+    Number FHRSId
+    MultiChoice Sessions
+    Number VATRatePct
+    Number WageTargetPct
+    Number WageAmberPct
+    Choice NetSalesRule
+    Text DayCloseTime
+    YesNo Active "indexed"
+  }
+  Staff {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Text Email "indexed"
+    Lookup HomeSite FK "indexed"
+    Choice Department
+    Choice Position
+    Choice AppRole "required"
+    Text PinHash
+    Text PreferredLanguage
+    YesNo Active "indexed"
+  }
+  Devices {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Lookup Site FK "indexed"
+    Text DeviceAccount
+    Choice Platform
+    DateTime LastSeen
+    YesNo Revoked "indexed"
+  }
+  Targets {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, SiteCode + yyyy-mm-dd"
+    Lookup Site FK "indexed"
+    Date TargetDate "indexed"
+    Currency NetSalesTarget
+    Currency GrossSalesTarget
+    Number CoversTarget
+    Number WagePctTarget
+  }
+  ReasonCodes {
+    Number ID PK "SharePoint item id"
+    Text Title "required"
+    Choice Kind "required, indexed"
+    Choice Scope
+    Number DefaultPct
+    YesNo IsWaste
+    Choice AppliesTo
+    Text NotePrompt
+    Choice ApprovalRole
+    Number SortOrder
+    YesNo Active "indexed"
+  }
+  DeliveryPlatforms {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required"
+    Number EstimatedNetPct
+    YesNo PricesIncludeVAT
+    YesNo Active
+  }
+  RulesThresholds {
+    Number ID PK "SharePoint item id"
+    Text Title UK "required, Nation + CheckCode"
+    Choice Nation "indexed"
+    Text CheckCode
+    Number MinValue
+    Number MaxValue
+    Text Unit
+    Text LegalBasis
+    YesNo Verified
+  }
+  classDef ref fill:#ebe9fb,stroke:#5b52b8,color:#1b1640
+  classDef chk fill:#e3f4f1,stroke:#1f6f5c,color:#0f2e27
+  classDef mnt fill:#e5effa,stroke:#2d6ab0,color:#0f2440
+  classDef trd fill:#e8f5e2,stroke:#3d8b37,color:#16330f
+  classDef ppl fill:#fdf2df,stroke:#b7791f,color:#3d2a08
+  classDef rst fill:#fde8e8,stroke:#b71c1c,color:#4a0b0b
+  class Sites ref
+  class Staff ref
+  class Devices ref
+  class Targets ref
+  class ReasonCodes ref
+  class DeliveryPlatforms ref
+  class RulesThresholds ref

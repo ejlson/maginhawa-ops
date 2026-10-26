@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["app", "test", ".react-router/types/**/*", "*.ts"],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "types": ["vite/client", "node", "@testing-library/jest-dom"],
+    "rootDirs": [".", "./.react-router/types"]
+  }
+}

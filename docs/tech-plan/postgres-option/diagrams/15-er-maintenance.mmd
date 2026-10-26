@@ -1,0 +1,23 @@
+erDiagram
+  SITES ||--o{ ASSETS : contains
+  CONTRACTORS ||--o{ ASSETS : "default for"
+  ASSETS ||--o{ WORK_ORDERS : "faults on"
+  CHECKPOINT_RESPONSES ||--o{ WORK_ORDERS : "failed check source"
+  CORRECTIVE_ACTIONS }o--o| WORK_ORDERS : escalates
+  CONTRACTORS ||--o{ WORK_ORDERS : "assigned"
+  WORK_ORDERS ||--o{ WORK_ORDER_EVENTS : timeline
+  WORK_ORDERS ||--o{ INVOICES : billed
+  CONTRACTORS ||--o{ INVOICES : issues
+  STATUTORY_REQUIREMENTS ||--o{ COMPLIANCE_ITEMS : "required as"
+  SITES ||--o{ COMPLIANCE_ITEMS : "calendar"
+  ASSETS ||--o{ COMPLIANCE_ITEMS : "e.g. gas range CP42"
+  WORK_ORDERS ||--o{ VISITOR_LOG : "visit"
+  TRADING_FEEDBACK }o--o| WORK_ORDERS : "urgent maintenance"
+  WORK_ORDERS {
+    uuid id PK
+    text reference
+    wo_source source
+    wo_priority priority
+    wo_status status
+    text contractor_link_token
+  }

@@ -1,0 +1,30 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "eod-canvas",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4173",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "/Users/ethanjameslegson/Work/Maginhawa/MaginhawaApp/design/eod-canvas"
+      ],
+      "port": 4173
+    },
+    {
+      "name": "eod-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "-w",
+        "apps/eod-web"
+      ],
+      "port": 5173
+    }
+  ]
+}

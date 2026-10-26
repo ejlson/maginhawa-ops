@@ -1,0 +1,307 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-12T10:00:00Z"
+  },
+  "title": "EOD UI design",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "designSystems": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1000,
+      "title": "Design language"
+    },
+    "m06-Trends.dc.html": {
+      "x": 2820,
+      "y": 1440,
+      "w": 390,
+      "h": 1640,
+      "title": "Trends \u00b7 forecast graph",
+      "is_interactive": true
+    },
+    "m01-Start.dc.html": {
+      "x": 0,
+      "y": 1440,
+      "w": 390,
+      "h": 1400,
+      "title": "1 \u00b7 Today's close (hub)",
+      "is_interactive": true
+    },
+    "m02-Lunch.dc.html": {
+      "x": 470,
+      "y": 1440,
+      "w": 390,
+      "h": 2150,
+      "title": "2 \u00b7 Lunch (live maths)",
+      "is_interactive": true
+    },
+    "m03-CashCount.dc.html": {
+      "x": 940,
+      "y": 1440,
+      "w": 390,
+      "h": 1120,
+      "title": "Sheet \u00b7 Count the cash",
+      "is_interactive": true
+    },
+    "m04-Review.dc.html": {
+      "x": 1410,
+      "y": 1440,
+      "w": 390,
+      "h": 1720,
+      "title": "8 \u00b7 Review",
+      "is_interactive": true
+    },
+    "m05-Done.dc.html": {
+      "x": 1880,
+      "y": 1440,
+      "w": 390,
+      "h": 844,
+      "title": "Submitted",
+      "is_interactive": true
+    },
+    "t01-Tablet.dc.html": {
+      "x": 0,
+      "y": 4250,
+      "w": 1194,
+      "h": 834,
+      "title": "iPad \u00b7 Dinner, night mode",
+      "is_interactive": true
+    },
+    "l01-Login.dc.html": {
+      "x": 2350,
+      "y": 1440,
+      "w": 390,
+      "h": 844,
+      "title": "0 \u00b7 Sign in (phone, desktop)",
+      "is_interactive": true
+    },
+    "l02-Pin.dc.html": {
+      "x": 1274,
+      "y": 4250,
+      "w": 1194,
+      "h": 834,
+      "title": "iPad \u00b7 Shared tablet PIN sign-in",
+      "is_interactive": true
+    },
+    "d01-Desktop.dc.html": {
+      "x": 0,
+      "y": 5460,
+      "w": 1440,
+      "h": 1000,
+      "title": "Desktop \u00b7 Manager closing the day",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "a01-Admin.dc.html": {
+      "x": 1560,
+      "y": 5460,
+      "w": 1440,
+      "h": 1060,
+      "title": "Desktop \u00b7 Admin, all sites today",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "a03-AdminForecast.dc.html": {
+      "x": 3120,
+      "y": 6760,
+      "w": 1440,
+      "h": 1180,
+      "title": "Desktop \u00b7 Admin forecast, all sites",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "a02-AdminSettings.dc.html": {
+      "x": 3120,
+      "y": 5460,
+      "w": 1440,
+      "h": 1060,
+      "title": "Desktop \u00b7 Admin settings",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "c01-KitchenToday.dc.html": {
+      "x": 0,
+      "y": 8200,
+      "w": 1194,
+      "h": 834,
+      "title": "Checks \u00b7 iPad \u00b7 Today's checks",
+      "is_interactive": true
+    },
+    "c02-RunChecklist.dc.html": {
+      "x": 1274,
+      "y": 8200,
+      "w": 1194,
+      "h": 834,
+      "title": "Checks \u00b7 iPad \u00b7 Doing a checklist",
+      "is_interactive": true
+    },
+    "c03-FixFailed.dc.html": {
+      "x": 2548,
+      "y": 8200,
+      "w": 1194,
+      "h": 834,
+      "title": "Checks \u00b7 iPad \u00b7 Fix a failed check",
+      "is_interactive": true
+    },
+    "c04-ManagerFeed.dc.html": {
+      "x": 0,
+      "y": 9140,
+      "w": 390,
+      "h": 1300,
+      "title": "Checks \u00b7 Phone \u00b7 What needs you"
+    },
+    "c05-Repair.dc.html": {
+      "x": 470,
+      "y": 9140,
+      "w": 390,
+      "h": 1340,
+      "title": "Checks \u00b7 Phone \u00b7 Repair job"
+    },
+    "c06-Compliance.dc.html": {
+      "x": 0,
+      "y": 10600,
+      "w": 1440,
+      "h": 1060,
+      "title": "Checks \u00b7 Desktop \u00b7 All sites"
+    },
+    "c07-Grid.dc.html": {
+      "x": 1560,
+      "y": 10600,
+      "w": 1440,
+      "h": 1040,
+      "title": "Checks \u00b7 Desktop \u00b7 Grid"
+    },
+    "c08-Builder.dc.html": {
+      "x": 3120,
+      "y": 10600,
+      "w": 1440,
+      "h": 1180,
+      "title": "Checks \u00b7 Desktop \u00b7 Checklist builder",
+      "is_interactive": true
+    },
+    "c09-AnswerTypes.dc.html": {
+      "x": 3822,
+      "y": 8200,
+      "w": 1194,
+      "h": 834,
+      "title": "Checks \u00b7 iPad \u00b7 Every answer type",
+      "is_interactive": true
+    },
+    "c10-NewChecklist.dc.html": {
+      "x": 940,
+      "y": 9140,
+      "w": 390,
+      "h": 1790,
+      "title": "Checks \u00b7 Phone \u00b7 Make your own checklist"
+    },
+    "c11-AddCheck.dc.html": {
+      "x": 1410,
+      "y": 9140,
+      "w": 390,
+      "h": 920,
+      "title": "Checks \u00b7 Phone \u00b7 Add a check"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "m01-Start.dc.html",
+    "m02-Lunch.dc.html",
+    "m03-CashCount.dc.html",
+    "m04-Review.dc.html",
+    "m05-Done.dc.html",
+    "t01-Tablet.dc.html",
+    "m06-Trends.dc.html",
+    "l01-Login.dc.html",
+    "l02-Pin.dc.html",
+    "d01-Desktop.dc.html",
+    "a01-Admin.dc.html",
+    "a02-AdminSettings.dc.html",
+    "a03-AdminForecast.dc.html"
+  ],
+  "notes": {
+    "title-phone": {
+      "x": 0,
+      "y": 1170,
+      "text": "Phone \u00b7 the manager at close",
+      "kind": "title1",
+      "maxW": 3210
+    },
+    "title-tablet": {
+      "x": 0,
+      "y": 3990,
+      "text": "Tablet \u00b7 night mode and PIN sign-in",
+      "kind": "title1",
+      "maxW": 2468
+    },
+    "title-desktop": {
+      "x": 0,
+      "y": 5200,
+      "text": "Desktop \u00b7 manager and head office",
+      "kind": "title1",
+      "maxW": 4560
+    },
+    "n-login": {
+      "x": 2350,
+      "y": 2324,
+      "w": 390,
+      "size": "m",
+      "fill": "gray",
+      "text": "Managers, finance and admins all sign in with their Microsoft 365 work account. Their role decides what they see: managers get Today's close, admins and finance get Head office."
+    },
+    "n-admin": {
+      "x": 1560,
+      "y": 6560,
+      "w": 600,
+      "size": "m",
+      "fill": "gray",
+      "text": "Admin and finance view. Sites sorted by net. Tap a site to see it on the right. 'Needs attention' gathers late, red and unexplained items with one-tap actions. Finance gets the same screen without Settings."
+    },
+    "n-trends": {
+      "x": 2820,
+      "y": 3120,
+      "w": 390,
+      "size": "m",
+      "fill": "gray",
+      "text": "Forecast = same weekday over the last 6 weeks, nudged by bookings and trend. Built only from the figures managers type in, so no till integration is needed. Switch between net, covers and wage %."
+    },
+    "n-start": {
+      "x": 0,
+      "y": 2880,
+      "w": 390,
+      "size": "m",
+      "fill": "gray",
+      "text": "Name, site and date come from the sign-in. A late close (after midnight) still files under the trading day. Services switched off drop their steps."
+    },
+    "n-cash": {
+      "x": 940,
+      "y": 2600,
+      "w": 390,
+      "size": "m",
+      "fill": "gray",
+      "text": "One row per note or coin: type how many, the phone's number pad appears. Values and the drawer total update as you type. The total feeds 'Counted in drawer' on the step behind it."
+    },
+    "n-done": {
+      "x": 1880,
+      "y": 2324,
+      "w": 390,
+      "size": "m",
+      "fill": "gray",
+      "text": "Says exactly where the report went. Any change after this is a logged reopen by finance."
+    },
+    "n-review": {
+      "x": 1410,
+      "y": 3200,
+      "w": 390,
+      "size": "m",
+      "fill": "gray",
+      "text": "Read like a bank statement: the day's card, anything to check, then each section as a row you tap to edit. Red blocks submit, amber only warns."
+    }
+  }
+}

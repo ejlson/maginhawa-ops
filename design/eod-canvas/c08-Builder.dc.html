@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Desktop · Checklist builder</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="checks.css" rel="stylesheet">
+</helmet>
+<div class="ad {{theme}}" style="min-height: 1180px">
+<header class="atop">
+<span style="font-size: 17px; font-weight: 700; letter-spacing: -0.02em">Maginhawa <span style="color: var(--sec); font-weight: 500">Head office</span></span>
+<nav class="tabs" aria-label="Admin"><a class="tab" href="a01-Admin.dc.html">Today</a><a class="tab on" href="c06-Compliance.dc.html">Checks</a><a class="tab" href="c05-Repair.dc.html">Repairs</a><a class="tab" href="a03-AdminForecast.dc.html">Forecast</a><a class="tab" href="a01-Admin.dc.html">Reports</a><a class="tab" href="a01-Admin.dc.html">Ask your logs</a><a class="tab" href="a02-AdminSettings.dc.html">Settings</a></nav>
+<span style="margin-left: auto; display: flex; align-items: center; gap: 10px"><span style="font-size: 13px; color: var(--sec)">Admin</span><span class="av ink" style="width: 34px; height: 34px; font-size: 12px">AD</span></span>
+</header>
+<div style="padding: 32px 40px 0; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; color: var(--sec)">Build your own lists, with any kind of answer</span><h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.035em">Checklists</h1></div>
+<div style="display: flex; gap: 12px; align-items: center"><div class="seg"><a class="" href="c06-Compliance.dc.html">Overview</a><a class="" href="c07-Grid.dc.html">Grid</a><a class="on" href="c08-Builder.dc.html">Checklists</a></div><button class="sm pri" style="height: 36px">New checklist</button></div>
+</div>
+<div style="display: grid; grid-template-columns: 250px minmax(0, 1fr) 400px; gap: 32px; padding: 28px 40px 56px; align-items: start">
+<nav style="display: flex; flex-direction: column; gap: 2px"><div class="sl" style="padding: 0 14px 4px">Group · all sites</div><a href="c08-Builder.dc.html" style="display: flex; flex-direction: column; gap: 2px; padding: 11px 14px; border-radius: 12px; text-decoration: none; color: var(--text); "><span style="font-weight: 500">Opening checks</span><small style="font-size: 13px; color: var(--sec)">Daily · 09:30 · 12 checks</small></a><a href="c08-Builder.dc.html" style="display: flex; flex-direction: column; gap: 2px; padding: 11px 14px; border-radius: 12px; text-decoration: none; color: var(--text); "><span style="font-weight: 500">Hot holding</span><small style="font-size: 13px; color: var(--sec)">Daily · 12:00, 15:00, 18:00</small></a><a href="c08-Builder.dc.html" style="display: flex; flex-direction: column; gap: 2px; padding: 11px 14px; border-radius: 12px; text-decoration: none; color: var(--text); "><span style="font-weight: 500">Closing checks</span><small style="font-size: 13px; color: var(--sec)">Daily · 23:00 · 12 checks</small></a><a href="c08-Builder.dc.html" style="display: flex; flex-direction: column; gap: 2px; padding: 11px 14px; border-radius: 12px; text-decoration: none; color: var(--text); "><span style="font-weight: 500">End-of-day cleaning</span><small style="font-size: 13px; color: var(--sec)">Daily · 23:30 · 8 tasks</small></a><div class="sl" style="padding: 20px 14px 4px">Site lists · made by managers</div><a href="c08-Builder.dc.html" style="display: flex; flex-direction: column; gap: 2px; padding: 11px 14px; border-radius: 12px; text-decoration: none; color: var(--text); background: var(--sel)"><span style="font-weight: 600">Bar opening</span><small style="font-size: 13px; color: var(--sec)">Bunso · daily 16:30</small></a><a href="c08-Builder.dc.html" style="display: flex; flex-direction: column; gap: 2px; padding: 11px 14px; border-radius: 12px; text-decoration: none; color: var(--text); "><span style="font-weight: 500">Lechon roast log</span><small style="font-size: 13px; color: var(--sec)">Guanabana · each roast</small></a><a href="c08-Builder.dc.html" style="display: flex; flex-direction: column; gap: 2px; padding: 11px 14px; border-radius: 12px; text-decoration: none; color: var(--text); "><span style="font-weight: 500">Brunch set-up</span><small style="font-size: 13px; color: var(--sec)">Cafe Mamasons · Sat, Sun</small></a></nav>
+<section style="display: flex; flex-direction: column; gap: 32px">
+<div class="hero">
+<div style="display: flex; flex-direction: column; gap: 8px"><span class="hl">Bunso only · made by [Manager] · draft</span><span style="font-size: 36px; font-weight: 600; letter-spacing: -0.045em; line-height: 1">Bar opening</span></div>
+<div style="display: flex; gap: 22px"><span class="hs">16:30<small>Due · daily</small></span><span class="hs">Bar team<small>Who does it</small></span><span class="hs">{{checkCount}}<small>Checks</small></span></div>
+</div>
+<div class="grp" style="gap: 12px">
+<div class="hd"><h2>Checks</h2><span>Tap one to edit it</span></div>
+<div class="sub" style="gap: 4px">
+<sc-for list="{{list}}" as="c" hint-placeholder-count="8">
+<a href="c08-Builder.dc.html" onClick="{{c.pick}}" style="display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 0 12px; border-radius: 12px; color: var(--text); text-decoration: none; {{c.style}}">
+<span style="color: var(--sec); opacity: .55; display: flex"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5h.01M11 4.5h.01M7 9h.01M11 9h.01M7 13.5h.01M11 13.5h.01"></path></svg></span>
+<span class="av"><sc-if value="{{c.t.yesno}}" hint-placeholder-val="{{ false }}"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5L14.5 5"></path></svg></sc-if><sc-if value="{{c.t.temp}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 10.6V3.8a1.5 1.5 0 0 1 3 0v6.8a3 3 0 1 1-3 0zM9 12.5v-4"></path></svg></sc-if><sc-if value="{{c.t.number}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 2.5l-1.5 13M13 2.5l-1.5 13M3 6.5h12.5M2.5 11.5H15"></path></svg></sc-if><sc-if value="{{c.t.text}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h12M3 8h12M3 12h8"></path></svg></sc-if><sc-if value="{{c.t.photo}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h3l1.5-2h5L13 6h3v9H2zM9 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"></path></svg></sc-if><sc-if value="{{c.t.choice}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h.01M3 9h.01M3 13.5h.01M6.5 4.5h9M6.5 9h9M6.5 13.5h9"></path></svg></sc-if><sc-if value="{{c.t.date}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h12v10.5H3zM3 7.5h12M6 3v3M12 3v3"></path></svg></sc-if><sc-if value="{{c.t.sign}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 15.5c2-1 3-3 4.5-3s1 2 2.5 2 2-2.5 3.5-2.5M11 3l3 3-6.5 6.5H4.5v-3z"></path></svg></sc-if></span>
+<span class="tx"><span style="font-size: 15px">{{c.title}}</span><small style="font-size: 13px">{{c.sub}}</small></span>
+<span style="font-size: 13px; color: var(--sec)">{{c.req}}</span>
+</a>
+</sc-for>
+</div>
+<button onClick="{{openPicker}}" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 12px; color: var(--link); background: none; border: 0; font: inherit; font-weight: 500; cursor: pointer"><span class="av" style="background: transparent; border: 1.5px dashed var(--sep); color: var(--link)"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v12M3 9h12"></path></svg></span>Add a check</button>
+<sc-if value="{{picker}}" hint-placeholder-val="{{ false }}">
+<div class="panel" style="gap: 14px">
+<div class="hd"><h2 style="font-size: 18px">{{pickerTitle}}</h2><button class="sm" onClick="{{closePicker}}">Cancel</button></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{types}}" as="c" hint-placeholder-count="8">
+<button onClick="{{c.pick}}" style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; border: 0; background: var(--bg); box-shadow: 0 0 0 .5px var(--sep); text-align: left; font: inherit; color: var(--text); cursor: pointer">
+<span class="av"><sc-if value="{{c.t.yesno}}" hint-placeholder-val="{{ false }}"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5L14.5 5"></path></svg></sc-if><sc-if value="{{c.t.temp}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 10.6V3.8a1.5 1.5 0 0 1 3 0v6.8a3 3 0 1 1-3 0zM9 12.5v-4"></path></svg></sc-if><sc-if value="{{c.t.number}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 2.5l-1.5 13M13 2.5l-1.5 13M3 6.5h12.5M2.5 11.5H15"></path></svg></sc-if><sc-if value="{{c.t.text}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h12M3 8h12M3 12h8"></path></svg></sc-if><sc-if value="{{c.t.photo}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h3l1.5-2h5L13 6h3v9H2zM9 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"></path></svg></sc-if><sc-if value="{{c.t.choice}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h.01M3 9h.01M3 13.5h.01M6.5 4.5h9M6.5 9h9M6.5 13.5h9"></path></svg></sc-if><sc-if value="{{c.t.date}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h12v10.5H3zM3 7.5h12M6 3v3M12 3v3"></path></svg></sc-if><sc-if value="{{c.t.sign}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 15.5c2-1 3-3 4.5-3s1 2 2.5 2 2-2.5 3.5-2.5M11 3l3 3-6.5 6.5H4.5v-3z"></path></svg></sc-if></span><span class="tx"><span style="font-size: 15px; font-weight: 600">{{c.label}}</span><small style="font-size: 13px">{{c.desc}}</small></span></button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</div>
+</section>
+<aside style="display: flex; flex-direction: column; gap: 20px; position: sticky; top: 24px">
+<div class="panel" style="gap: 22px">
+<div class="hd"><h2 style="font-size: 20px">Check {{curNum}}</h2><button class="sm" style="color: var(--bad)" onClick="{{removeCur}}">Remove</button></div>
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: var(--sec)">Question staff see</span><input class="in" style="width: 100%; text-align: left" type="text" value="{{cur.title}}" onChange="{{setTitle}}" placeholder="e.g. Ice machine cleaned?"></label>
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: var(--sec)">Help text (optional)</span><input class="in" style="width: 100%; text-align: left" type="text" value="{{cur.help}}" onChange="{{setHelp}}" placeholder="e.g. Empty, wipe and refill"></label>
+<div class="sub" style="gap: 8px"><div class="sl"><span>Answer type</span></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: var(--bg)"><span class="av"><sc-if value="{{cur.t.yesno}}" hint-placeholder-val="{{ false }}"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5L14.5 5"></path></svg></sc-if><sc-if value="{{cur.t.temp}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 10.6V3.8a1.5 1.5 0 0 1 3 0v6.8a3 3 0 1 1-3 0zM9 12.5v-4"></path></svg></sc-if><sc-if value="{{cur.t.number}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 2.5l-1.5 13M13 2.5l-1.5 13M3 6.5h12.5M2.5 11.5H15"></path></svg></sc-if><sc-if value="{{cur.t.text}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h12M3 8h12M3 12h8"></path></svg></sc-if><sc-if value="{{cur.t.photo}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h3l1.5-2h5L13 6h3v9H2zM9 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"></path></svg></sc-if><sc-if value="{{cur.t.choice}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h.01M3 9h.01M3 13.5h.01M6.5 4.5h9M6.5 9h9M6.5 13.5h9"></path></svg></sc-if><sc-if value="{{cur.t.date}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h12v10.5H3zM3 7.5h12M6 3v3M12 3v3"></path></svg></sc-if><sc-if value="{{cur.t.sign}}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 15.5c2-1 3-3 4.5-3s1 2 2.5 2 2-2.5 3.5-2.5M11 3l3 3-6.5 6.5H4.5v-3z"></path></svg></sc-if></span><span class="tx"><span style="font-weight: 600; font-size: 15px">{{cur.label}}</span><small style="font-size: 13px">{{cur.desc}}</small></span><button class="sm" onClick="{{changeType}}">Change</button></div></div>
+<sc-if value="{{cur.t.yesno}}" hint-placeholder-val="{{ false }}"><div class="sub" style="gap: 8px"><div class="sl"><span>Which answer is a fail?</span></div><span class="seg" style="align-self: flex-start"><sc-for list="{{failOnOpts}}" as="o" hint-placeholder-count="3"><a href="c08-Builder.dc.html" class="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</a></sc-for></span></div></sc-if><sc-if value="{{cur.t.temp}}" hint-placeholder-val="{{ false }}"><div class="sub" style="gap: 8px"><div class="sl"><span>Pass if between</span><span>°C · example values</span></div><div style="display: flex; gap: 10px; align-items: center"><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: var(--sec)">Lowest</span><input class="in" style="width: 110px; text-align: right" type="text" value="{{cur.min}}" onChange="{{setMin}}" placeholder="e.g. 11"></label><span style="padding-top: 22px; color: var(--sec)">to</span><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: var(--sec)">Highest</span><input class="in" style="width: 110px; text-align: right" type="text" value="{{cur.max}}" onChange="{{setMax}}" placeholder="e.g. 13"></label></div></div></sc-if><sc-if value="{{cur.t.number}}" hint-placeholder-val="{{ false }}"><div class="sub" style="gap: 8px"><div class="sl"><span>Pass if between</span><span>Leave blank for no rule</span></div><div style="display: flex; gap: 10px; align-items: flex-end"><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: var(--sec)">Unit</span><input class="in" style="width: 80px; text-align: left" type="text" value="{{cur.unit}}" onChange="{{setUnit}}" placeholder="£, kg, pH"></label><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: var(--sec)">Lowest</span><input class="in" style="width: 100px; text-align: right" type="text" value="{{cur.min}}" onChange="{{setMin}}" placeholder=""></label><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600; color: var(--sec)">Highest</span><input class="in" style="width: 100px; text-align: right" type="text" value="{{cur.max}}" onChange="{{setMax}}" placeholder=""></label></div></div></sc-if><sc-if value="{{cur.t.text}}" hint-placeholder-val="{{ false }}"><div class="sub" style="gap: 8px"><div class="sl"><span>Answer length</span></div><span class="seg" style="align-self: flex-start"><sc-for list="{{lenOpts}}" as="o" hint-placeholder-count="3"><a href="c08-Builder.dc.html" class="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</a></sc-for></span></div></sc-if><sc-if value="{{cur.t.photo}}" hint-placeholder-val="{{ false }}"><div class="sub" style="gap: 8px"><div class="sl"><span>How many photos</span><span>Camera only, no uploads</span></div><span class="seg" style="align-self: flex-start"><sc-for list="{{countOpts}}" as="o" hint-placeholder-count="3"><a href="c08-Builder.dc.html" class="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</a></sc-for></span></div></sc-if><sc-if value="{{cur.t.choice}}" hint-placeholder-val="{{ false }}"><div class="sub" style="gap: 8px"><div class="sl"><span>Options</span><span>{{optCount}}</span></div><span class="seg" style="align-self: flex-start"><sc-for list="{{multiOpts}}" as="o" hint-placeholder-count="3"><a href="c08-Builder.dc.html" class="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</a></sc-for></span>
+<sc-for list="{{opts}}" as="o" hint-placeholder-count="4"><div style="display: flex; gap: 8px; align-items: center"><input class="in" style="flex: 1; width: auto; text-align: left" type="text" value="{{o.v}}" onChange="{{o.set}}" aria-label="Option"><button class="sm" onClick="{{o.del}}" aria-label="Remove option"><svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 4.5l9 9M13.5 4.5l-9 9"></path></svg></button></div></sc-for>
+<button class="sm" style="align-self: flex-start; color: var(--link)" onClick="{{addOpt}}">+ Add option</button></div></sc-if><sc-if value="{{cur.t.date}}" hint-placeholder-val="{{ false }}"><div class="sub" style="gap: 8px"><div class="sl"><span>Ask for</span></div><span class="seg" style="align-self: flex-start"><sc-for list="{{dateOpts}}" as="o" hint-placeholder-count="3"><a href="c08-Builder.dc.html" class="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</a></sc-for></span></div><div class="fr" style="min-height: 54px"><span class="tx"><span style="font-size: 15px">Fail if the date has passed</span><small>Good for use-by dates</small></span><button class="tg {{cur.failPastOn}}" onClick="{{flipFailPast}}" aria-label="Fail if the date has passed"><span></span></button></div></sc-if><sc-if value="{{cur.t.sign}}" hint-placeholder-val="{{ false }}"><div class="sub" style="gap: 8px"><div class="sl"><span>Who signs</span></div><span class="seg" style="align-self: flex-start"><sc-for list="{{whoOpts}}" as="o" hint-placeholder-count="3"><a href="c08-Builder.dc.html" class="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</a></sc-for></span></div></sc-if>
+<div class="sub">
+<div class="sl"><span>Rules</span></div>
+<div class="fr" style="min-height: 54px"><span class="tx"><span style="font-size: 15px">Must be answered</span></span><button class="tg {{cur.reqOn}}" onClick="{{flipReq}}" aria-label="Must be answered"><span></span></button></div>
+<sc-if value="{{cur.canFail}}" hint-placeholder-val="{{ true }}">
+<div class="fr" style="min-height: 54px"><span class="tx"><span style="font-size: 15px">Ask for a photo if it fails</span></span><button class="tg {{cur.photoFailOn}}" onClick="{{flipPhotoFail}}" aria-label="Ask for a photo if it fails"><span></span></button></div>
+<div class="fr" style="min-height: 54px"><span class="tx"><span style="font-size: 15px">Report a fault if it fails</span><small>Opens a repair job</small></span><button class="tg {{cur.faultOn}}" onClick="{{flipFault}}" aria-label="Report a fault if it fails"><span></span></button></div>
+</sc-if>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div class="sl" style="padding: 0 4px"><span>Staff will see this on the iPad</span></div>
+<div style="border-radius: 22px; background: var(--bg); box-shadow: 0 0 0 .5px var(--sep), 0 20px 40px -24px rgba(0,0,0,.35); padding: 8px 20px; font-size: 17px"><sc-if value="{{cur.t.yesno}}" hint-placeholder-val="{{ false }}"><div class="fr"><span class="tx"><span>{{cur.titleShown}}</span><small>{{cur.help}}</small></span><span class="yn"><button class="y">Yes</button><button class="n">No</button></span></div></sc-if><sc-if value="{{cur.t.temp}}" hint-placeholder-val="{{ false }}"><div class="fr"><span class="tx"><span>{{cur.titleShown}}</span><small>{{ruleText}}</small></span><input class="in" type="text" placeholder="°C" aria-label="Preview"></div></sc-if><sc-if value="{{cur.t.number}}" hint-placeholder-val="{{ false }}"><div class="fr"><span class="tx"><span>{{cur.titleShown}}</span><small>{{ruleText}}</small></span><input class="in" type="text" placeholder="{{cur.unit}}" aria-label="Preview"></div></sc-if><sc-if value="{{cur.t.text}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-direction: column; gap: 8px; padding: 8px 0"><span class="tx"><span>{{cur.titleShown}}</span><small>{{cur.help}}</small></span><sc-if value="{{cur.long}}" hint-placeholder-val="{{ false }}"><textarea class="ta" placeholder="Type here"></textarea></sc-if><sc-if value="{{cur.short}}" hint-placeholder-val="{{ false }}"><input class="in" style="width: 100%; text-align: left" placeholder="Type here"></sc-if></div></sc-if><sc-if value="{{cur.t.photo}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-direction: column; gap: 10px; padding: 8px 0"><span class="tx"><span>{{cur.titleShown}}</span><small>{{cur.help}}</small></span><div style="display: flex; gap: 8px"><sc-for list="{{photoSlots}}" as="p" hint-placeholder-count="1"><span style="width: 84px; height: 84px; border-radius: 14px; border: 1.5px dashed var(--sep); display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; color: var(--link); font-size: 12px; font-weight: 600"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h3l1.5-2h5L13 6h3v9H2zM9 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"></path></svg>Take photo</span></sc-for></div></div></sc-if><sc-if value="{{cur.t.choice}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-direction: column; gap: 10px; padding: 8px 0"><span class="tx"><span>{{cur.titleShown}}</span><small>{{pickHint}}</small></span><div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{opts}}" as="o" hint-placeholder-count="4"><span class="mini" style="display: inline-flex; align-items: center">{{o.v}}</span></sc-for></div></div></sc-if><sc-if value="{{cur.t.date}}" hint-placeholder-val="{{ false }}"><div class="fr"><span class="tx"><span>{{cur.titleShown}}</span><small>{{cur.help}}</small></span><input class="in" type="text" placeholder="{{datePh}}" aria-label="Preview"></div></sc-if><sc-if value="{{cur.t.sign}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-direction: column; gap: 10px; padding: 8px 0"><span class="tx"><span>{{cur.titleShown}}</span><small>{{signHint}}</small></span><span style="height: 84px; border-radius: 14px; border: 1.5px dashed var(--sep); display: flex; align-items: flex-end; padding: 12px 14px; color: var(--sec); font-size: 14px">Sign here with your finger</span></div></sc-if></div>
+</div>
+<button class="btn b1" style="height: 46px; font-size: 15px">Publish · starts tomorrow</button>
+</aside>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "$preview": {"width": 1440, "height": 1180}}'>
+const TYPES = {"yesno": {"label": "Yes / No", "desc": "A quick tick, e.g. \"Ice machine cleaned?\""}, "temp": {"label": "Temperature", "desc": "A \u00b0C reading with a pass range"}, "number": {"label": "Number", "desc": "Any amount with a unit: \u00a3, kg, pH, count"}, "text": {"label": "Text", "desc": "A short note or a longer comment"}, "photo": {"label": "Photo", "desc": "Taken live with the camera, 1 to 3 photos"}, "choice": {"label": "Pick from a list", "desc": "One or several options you write"}, "date": {"label": "Date or time", "desc": "e.g. a use-by date or a delivery time"}, "sign": {"label": "Signature", "desc": "Signed by the person or a manager"}};
+const DEFAULTS = {
+  yesno: { failOn: 'No', photoFail: true, fault: false },
+  temp: { min: '', max: '', photoFail: true, fault: true },
+  number: { unit: '', min: '', max: '', photoFail: false, fault: false },
+  text: { long: false },
+  photo: { count: 1 },
+  choice: { multi: false, options: ['Option 1', 'Option 2'], photoFail: false, fault: false },
+  date: { mode: 'Date', failPast: false },
+  sign: { who: 'Person doing it' }
+};
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 2, picker: false, replace: false, nextId: 9, checks: [
+      { id: 1, type: 'yesno', title: 'Ice machine cleaned', help: 'Empty, wipe and refill', required: true, failOn: 'No', photoFail: true, fault: false },
+      { id: 2, type: 'temp', title: 'Beer cellar temperature', help: 'Read the cellar display', required: true, min: '11', max: '13', photoFail: true, fault: true },
+      { id: 3, type: 'number', title: 'Float in the till', help: 'Count the notes and coins', required: true, unit: '£', min: '150', max: '150', photoFail: false, fault: false },
+      { id: 4, type: 'choice', title: 'Garnishes prepped', help: '', required: true, multi: true, options: ['Lemons', 'Limes', 'Mint', 'Calamansi'], photoFail: false, fault: false },
+      { id: 5, type: 'photo', title: 'Photo of the bar top', help: 'Clean and set up', required: true, count: 1 },
+      { id: 6, type: 'date', title: 'Open juice use-by date', help: 'Check the label', required: true, mode: 'Date', failPast: true },
+      { id: 7, type: 'text', title: 'Anything to report?', help: 'Breakages, low stock', required: false, long: true },
+      { id: 8, type: 'sign', title: 'Signed off by', help: '', required: true, who: 'Person doing it' }
+    ] };
+  }
+  renderVals() {
+    const s = this.state;
+    const flags = (t) => { const o = {}; Object.keys(TYPES).forEach((k) => { o[k] = k === t; }); return o; };
+    const cur = s.checks.find((c) => c.id === s.sel) || s.checks[0];
+    const upd = (patch) => this.setState({ checks: s.checks.map((c) => (c.id === cur.id ? Object.assign({}, c, patch) : c)) });
+    const range = (c, u) => {
+      const a = c.min, b = c.max; if (!a && !b) return '';
+      if (a && b) return a === b ? (u === '£' ? '£' + a : a + u) : (u === '£' ? '£' + a + '–£' + b : a + '–' + b + u);
+      return a ? (u === '£' ? '£' : '') + a + (u === '£' ? '' : u) + ' or more' : (u === '£' ? '£' : '') + b + (u === '£' ? '' : u) + ' or less';
+    };
+    const summary = (c) => {
+      let x = TYPES[c.type].label;
+      if (c.type === 'temp') { const r = range(c, '°C'); if (r) x += ' · pass ' + r; }
+      if (c.type === 'number') { const r = range(c, c.unit === '£' ? '£' : (c.unit ? ' ' + c.unit : '')); if (r) x += ' · pass ' + r; }
+      if (c.type === 'yesno' && c.failOn !== 'Neither') x += ' · fail if ' + c.failOn;
+      if (c.type === 'choice') x += ' · ' + c.options.length + ' options · ' + (c.multi ? 'pick any' : 'pick one');
+      if (c.type === 'photo') x += ' · ' + c.count + (c.count === 1 ? ' photo' : ' photos');
+      if (c.type === 'date') x += ' · ' + c.mode.toLowerCase() + (c.failPast ? ' · fail if passed' : '');
+      if (c.type === 'text') x += c.long ? ' · long' : ' · short';
+      if (c.type === 'sign') x += ' · ' + c.who.toLowerCase();
+      return x;
+    };
+    const list = s.checks.map((c) => ({ title: c.title || 'Untitled check', sub: summary(c), req: c.required ? '' : 'Optional', t: flags(c.type),
+      style: c.id === cur.id ? 'background: var(--side); box-shadow: inset 0 0 0 1.5px var(--link)' : '',
+      pick: (e) => { e.preventDefault(); this.setState({ sel: c.id, picker: false }); } }));
+    const types = Object.keys(TYPES).map((k) => ({ label: TYPES[k].label, desc: TYPES[k].desc, t: flags(k), pick: () => {
+      if (s.replace) { this.setState({ picker: false, checks: s.checks.map((c) => (c.id === cur.id ? Object.assign({ id: c.id, title: c.title, help: c.help, required: c.required, type: k }, DEFAULTS[k]) : c)) }); }
+      else { const id = s.nextId; this.setState({ picker: false, sel: id, nextId: id + 1, checks: s.checks.concat([Object.assign({ id, type: k, title: '', help: '', required: true }, JSON.parse(JSON.stringify(DEFAULTS[k])))]) }); }
+    } }));
+    const opt = (key, labels) => labels.map((l) => ({ label: l, on: cur[key] === l ? 'on' : '', pick: (e) => { e.preventDefault(); upd({ [key]: l }); } }));
+    const optB = (key, pairs) => pairs.map(([l, v]) => ({ label: l, on: cur[key] === v ? 'on' : '', pick: (e) => { e.preventDefault(); upd({ [key]: v }); } }));
+    const opts = (cur.options || []).map((v, i) => ({ v, set: (e) => { const o = cur.options.slice(); o[i] = e.target.value; upd({ options: o }); }, del: () => upd({ options: cur.options.filter((_, j) => j !== i) }) }));
+    const unit = cur.type === 'temp' ? '°C' : (cur.unit === '£' ? '£' : (cur.unit ? ' ' + cur.unit : ''));
+    const r = (cur.type === 'temp' || cur.type === 'number') ? range(cur, unit) : '';
+    const canFail = ['yesno', 'temp', 'number', 'choice'].includes(cur.type);
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      list, types, checkCount: String(s.checks.length),
+      curNum: String(s.checks.indexOf(cur) + 1),
+      cur: Object.assign({}, cur, { t: flags(cur.type), label: TYPES[cur.type].label, desc: TYPES[cur.type].desc, titleShown: cur.title || 'Your question', canFail,
+        reqOn: cur.required ? 'on' : '', photoFailOn: cur.photoFail ? 'on' : '', faultOn: cur.fault ? 'on' : '', failPastOn: cur.failPast ? 'on' : '', short: !cur.long }),
+      picker: s.picker, pickerTitle: s.replace ? 'Change the answer type' : 'What kind of answer?',
+      openPicker: () => this.setState({ picker: true, replace: false }),
+      changeType: () => this.setState({ picker: true, replace: true }),
+      closePicker: () => this.setState({ picker: false }),
+      removeCur: () => { if (s.checks.length < 2) return; const rest = s.checks.filter((c) => c.id !== cur.id); this.setState({ checks: rest, sel: rest[0].id }); },
+      setTitle: (e) => upd({ title: e.target.value }), setHelp: (e) => upd({ help: e.target.value }),
+      setMin: (e) => upd({ min: e.target.value }), setMax: (e) => upd({ max: e.target.value }), setUnit: (e) => upd({ unit: e.target.value }),
+      flipReq: () => upd({ required: !cur.required }), flipPhotoFail: () => upd({ photoFail: !cur.photoFail }), flipFault: () => upd({ fault: !cur.fault }), flipFailPast: () => upd({ failPast: !cur.failPast }),
+      failOnOpts: opt('failOn', ['No', 'Yes', 'Neither']),
+      lenOpts: optB('long', [['Short', false], ['Long', true]]),
+      countOpts: optB('count', [['1', 1], ['2', 2], ['3', 3]]),
+      multiOpts: optB('multi', [['Pick one', false], ['Pick any', true]]),
+      dateOpts: opt('mode', ['Date', 'Time', 'Both']),
+      whoOpts: opt('who', ['Person doing it', 'A manager']),
+      opts, optCount: (cur.options || []).length + ' options',
+      addOpt: () => upd({ options: (cur.options || []).concat(['Option ' + ((cur.options || []).length + 1)]) }),
+      ruleText: r ? 'Pass if ' + r : (cur.help || 'No pass rule'),
+      pickHint: cur.multi ? 'Pick any that apply' : 'Pick one',
+      photoSlots: Array.from({ length: cur.count || 1 }, (_, i) => i),
+      datePh: cur.mode === 'Time' ? '--:--' : (cur.mode === 'Both' ? 'dd/mm/yyyy --:--' : 'dd/mm/yyyy'),
+      signHint: cur.who === 'A manager' ? 'A manager signs with their PIN' : 'The person who did the check signs'
+    };
+  }
+}
+</script>
+</body>
+</html>

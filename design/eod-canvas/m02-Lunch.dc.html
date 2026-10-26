@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lunch</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0066cc}a:hover{color:#004f9e}
+html{scrollbar-width:thin;scrollbar-color:rgba(128,128,128,.45) transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(128,128,128,.45);border-radius:4px;border:2px solid transparent;background-clip:padding-box}::-webkit-scrollbar-thumb:hover{background-color:rgba(128,128,128,.7)}
+.ph{--bg:#ffffff;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.16);--link:#0066cc;--ok:#1f7a35;--okbg:rgba(52,199,89,.14);--warn:#b25000;--warnbg:rgba(255,149,0,.16);--nav:rgba(255,255,255,.82);width:390px;min-height:2150px;box-sizing:border-box;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:17px;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;display:flex;flex-direction:column}
+.ph.dark{--bg:#000000;--text:#f5f5f7;--sec:#a1a1a6;--sep:rgba(255,255,255,.1);--fill:#1c1c1e;--ink:#f5f5f7;--onink:#000000;--hero:#1c1c1e;--heroline:rgba(245,245,247,.14);--link:#2997ff;--ok:#30d158;--okbg:rgba(48,209,88,.16);--warn:#ff9f0a;--warnbg:rgba(255,159,10,.16);--nav:rgba(0,0,0,.75)}
+.nav{position:sticky;top:0;z-index:3;background:var(--nav);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px 0 10px;font-size:15px}
+.back{display:flex;align-items:center;gap:6px;font-size:17px;text-decoration:none;color:var(--link);min-height:44px;padding:0 8px}
+.saved{font-size:13px;color:var(--sec);display:flex;align-items:center;gap:6px}
+.saved i{width:6px;height:6px;border-radius:3px;background:var(--ok);display:inline-block}
+.body{padding:4px 20px 160px;display:flex;flex-direction:column;gap:44px}
+.grp{display:flex;flex-direction:column;gap:24px}
+.gh{display:flex;flex-direction:column;gap:4px}
+.gh h2{font-size:22px;font-weight:700;letter-spacing:-.028em;margin:0}
+.gh p{font-size:15px;line-height:1.4;color:var(--sec);margin:0}
+.sub{display:flex;flex-direction:column}
+.sl{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;font-weight:600;color:var(--sec);letter-spacing:-.01em;padding-bottom:2px}
+.sl span:last-child{font-weight:400}
+.fr.tot{font-weight:700}
+.fr.tot::before{height:1px!important;background:var(--text)!important;opacity:.14}
+.stat{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;position:relative}
+.hero{background:var(--hero);color:var(--onhero);border-radius:26px;padding:24px;display:flex;flex-direction:column;gap:18px;box-shadow:0 24px 48px -24px rgba(0,0,0,.4)}
+.hm{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding-top:16px;border-top:.5px solid var(--heroline)}
+.hm span{display:flex;flex-direction:column;gap:2px;font-size:17px;font-weight:600;letter-spacing:-.02em}
+.hm small{font-size:12px;font-weight:400;color:var(--herosec);letter-spacing:0}
+.hd{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:4px}
+.hd h2{font-size:20px;font-weight:700;letter-spacing:-.025em;margin:0}
+.hd span{font-size:15px;color:var(--sec)}
+.fr{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:56px;color:var(--text);text-decoration:none;position:relative;box-sizing:border-box}
+.fr + .fr::before,.li + .fr::before,.fr + .li::before,.fr + .blk::before,.li + .stat::before,.fr + .stat::before{content:'';position:absolute;top:0;left:0;right:0;height:.5px;background:var(--sep)}
+label.fr{cursor:text}
+.fr.tot{font-weight:600}
+.iv{display:flex;align-items:center;gap:2px}
+.cur{color:var(--sec)}
+.in{border:0;background:var(--fill);border-radius:10px;text-align:right;font:inherit;letter-spacing:inherit;font-variant-numeric:tabular-nums;color:var(--text);width:124px;height:40px;padding:0 12px;outline:none;box-sizing:border-box}
+.in:focus{box-shadow:0 0 0 2px var(--link)}
+.li{display:flex;align-items:center;gap:14px;min-height:66px;color:var(--text);text-decoration:none;position:relative}
+.li + .li::before{content:'';position:absolute;top:0;left:56px;right:0;height:.5px;background:var(--sep)}
+.av{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;color:var(--text);font-size:15px;font-weight:600}
+.tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.tx small{font-size:14px;color:var(--sec)}
+.amt{font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:15px;font-size:15px;font-weight:600;white-space:nowrap}
+.p-ok{background:var(--okbg);color:var(--ok)}.p-warn{background:var(--warnbg);color:var(--warn)}.p-mut{background:var(--fill);color:var(--sec)}
+.blk{display:flex;flex-direction:column;gap:10px;padding:14px 0;position:relative}
+.ta{border:0;background:var(--fill);border-radius:14px;font:inherit;color:var(--text);width:100%;box-sizing:border-box;min-height:80px;resize:none;padding:12px 14px;outline:none}
+.ta:focus{box-shadow:0 0 0 2px var(--link)}
+.mini{height:38px;border-radius:19px;border:0;padding:0 18px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;background:var(--fill);color:var(--text);align-self:flex-start}
+.note{font-size:14px;color:var(--sec);line-height:1.45;margin:8px 0 0}
+.chev{width:7px;height:12px;flex:none;color:var(--sec);opacity:.5}
+.stk{display:flex}
+.stk span{width:34px;height:34px;border-radius:17px;background:var(--fill);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;margin-left:-8px}
+.stk span:first-child{margin-left:0}
+.foot{position:sticky;bottom:0;background:var(--nav);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);padding:14px 20px 30px;margin-top:auto}
+.btn{height:54px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;text-decoration:none;background:var(--ink);color:var(--onink)}.btn:hover{color:var(--onink)}
+</style>
+</helmet>
+<div class="ph {{theme}}">
+<div class="nav"><a class="back" href="m01-Start.dc.html"><svg width="10" height="17" viewBox="0 0 11 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2L2 9l7 7"></path></svg>Today</a><span style="font-weight: 600">Lunch</span><span class="saved"><i></i>Saved</span></div>
+<div class="body">
+<div class="hero" role="status" aria-live="polite" aria-atomic="true">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 15px; color: var(--herosec)">Lunch net sales</span><span style="font-size: 13px; color: var(--herosec)">{{fcLabel}}</span></div>
+<div style="display: flex; align-items: baseline; line-height: 1"><span style="font-size: 60px; font-weight: 600; letter-spacing: -0.055em">{{netP}}</span><span style="font-size: 30px; font-weight: 500; letter-spacing: -0.03em; color: var(--herosec)">{{netD}}</span></div>
+<div class="hm"><span>{{grossShort}}<small>Gross</small></span><span>{{coversLabel}}<small>Covers</small></span><span>{{perHead}}<small>A head</small></span></div>
+</div>
+<section class="grp">
+<div class="gh"><h2>Sales</h2><p>Copy these from the end-of-service report. Net works itself out.</p></div>
+<div class="sub">
+<div class="sl"><span>From the till</span></div>
+<label class="fr"><span>Gross sales</span><span class="iv"><input class="in" type="text" inputmode="decimal" value="{{v.gross}}" onChange="{{set.gross}}" aria-label="Gross sales in pounds"></span></label>
+<label class="fr"><span>Service charge</span><span class="iv"><input class="in" type="text" inputmode="decimal" value="{{v.sc}}" onChange="{{set.sc}}" aria-label="Service charge in pounds"></span></label>
+<label class="fr"><span>VAT</span><span class="iv"><input class="in" type="text" inputmode="decimal" value="{{v.vat}}" onChange="{{set.vat}}" aria-label="VAT in pounds"></span></label>
+<label class="fr"><span>Discounts &amp; comps</span><span class="iv"><input class="in" type="text" inputmode="decimal" value="{{v.disc}}" onChange="{{set.disc}}" aria-label="Discounts and comps in pounds"></span></label>
+<div class="fr tot"><span>Net sales</span><span>{{netLabel}}</span></div>
+</div>
+<div class="sub">
+<div class="sl"><span>Food &amp; drink</span><span>{{split}}</span></div>
+<label class="fr"><span>Food</span><input class="in" type="text" inputmode="decimal" value="{{v.food}}" onChange="{{set.food}}" aria-label="Food in pounds"></label>
+<label class="fr"><span>Drink</span><input class="in" type="text" inputmode="decimal" value="{{v.drink}}" onChange="{{set.drink}}" aria-label="Drink in pounds"></label>
+<sc-if value="{{fd.match}}" hint-placeholder-val="{{ true }}">
+<div class="fr"><span style="color: var(--sec)">Adds up to net sales</span><span class="pill p-ok"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"></path></svg>Matches</span></div>
+</sc-if>
+<sc-if value="{{fd.warn}}" hint-placeholder-val="{{ false }}">
+<div class="blk"><span class="pill p-warn" style="align-self: flex-start">{{fd.text}}</span><span style="font-size: 15px; color: var(--sec); line-height: 1.45">Food and drink usually add up to net sales. Check the till report, or confirm it's right.</span><button class="mini" onClick="{{ackFd}}">It's right</button></div>
+</sc-if>
+<sc-if value="{{fd.acked}}" hint-placeholder-val="{{ false }}">
+<div class="fr"><span style="color: var(--sec)">Confirmed by you</span><span class="pill p-mut">{{fd.text}}</span></div>
+</sc-if>
+</div>
+<div class="sub">
+<div class="sl"><span>Discount &amp; comp lines</span><span>{{discListed}}</span></div>
+<a class="li" href="m02-Lunch.dc.html"><span class="av" style="background: rgba(0,113,227,.12); color: #0066cc">20%</span><span class="tx">Staff meal<small>Discount · approved by [manager]</small></span><span class="amt">£9.40</span></a>
+<a class="li" href="m02-Lunch.dc.html"><span class="av" style="background: rgba(255,149,0,.16); color: #b25000"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.5 8.5c0 3.3-2.9 6-6.5 6-1 0-2-.2-2.8-.6L2.5 15l1.1-3.1A5.7 5.7 0 0 1 2.5 8.5c0-3.3 2.9-6 6.5-6s6.5 2.7 6.5 6z"></path></svg></span><span class="tx">Complaint · table 12<small>Comp · cold mains</small></span><span class="amt">£18.00</span></a>
+<a class="li" href="m02-Lunch.dc.html" style="color: var(--link)"><span class="av" style="background: transparent; border: 1.5px dashed var(--sep); color: var(--link)"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 3v12M3 9h12"></path></svg></span><span class="tx" style="font-weight: 500">Add discount, comp or void</span></a>
+<div class="stat"><span style="color: var(--sec); font-size: 15px">Lines vs till total</span><span class="pill {{discPill}}">{{discStatus}}</span></div>
+</div>
+</section>
+<section class="grp">
+<div class="gh"><h2>Covers &amp; team</h2><p>The team is filled from the rota. Change it only if someone swapped.</p></div>
+<div class="sub">
+<div class="sl"><span>Covers</span><span>{{coversLabel}} total</span></div>
+<label class="fr"><span>Booked</span><input class="in" type="text" inputmode="numeric" value="{{v.booked}}" onChange="{{set.booked}}"></label>
+<label class="fr"><span>Walk-ins</span><input class="in" type="text" inputmode="numeric" value="{{v.walk}}" onChange="{{set.walk}}"></label>
+</div>
+<div class="sub">
+<div class="sl"><span>On shift</span><span>6 people</span></div>
+<a class="li" href="m02-Lunch.dc.html"><span class="stk"><span>AK</span><span>RT</span><span>MO</span></span><span class="tx">Kitchen<small>Head chef, CDP, KP</small></span><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></a>
+<a class="li" href="m02-Lunch.dc.html"><span class="stk"><span>LS</span><span>DP</span><span>JM</span></span><span class="tx">Front of house<small>Waiter, bartender, duty manager</small></span><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></a>
+</div>
+</section>
+<section class="grp">
+<div class="gh"><h2>Cash</h2><p>Count the drawer, then copy the cash figure from the till report. Within £1 counts as balanced.</p></div>
+<div class="sub">
+<a class="li" href="m03-CashCount.dc.html"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5h14v9H2zM9 11.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM4.5 7.5v.01M13.5 11.5v.01"></path></svg></span><span class="tx">Counted in drawer<small>{{takenLabel}} after the £150.00 float</small></span><span class="amt">{{drawerLabel}}</span><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></a>
+<label class="fr"><span>Till says</span><input class="in" type="text" inputmode="decimal" value="{{v.till}}" onChange="{{set.till}}" aria-label="Cash on till report in pounds"></label>
+<div class="fr tot" role="status" aria-live="polite" aria-atomic="true"><span>Difference</span><span class="pill {{cash.pill}}">{{cash.text}}</span></div>
+</div>
+<sc-if value="{{cash.needReason}}" hint-placeholder-val="{{ true }}">
+<div class="sub" style="gap: 12px">
+<div class="sl"><span>What happened?</span><span>Needed to submit</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{reasons}}" as="r" hint-placeholder-count="5"><button class="mini" style="{{r.style}}" onClick="{{r.pick}}" aria-pressed="{{r.pressed}}">{{r.label}}</button></sc-for></div>
+<textarea class="ta" placeholder="Add a note (optional), e.g. table 4" aria-label="Note about the cash difference"></textarea>
+</div>
+</sc-if>
+</section>
+</div>
+<div class="foot"><a class="btn" href="m01-Start.dc.html">Save lunch</a></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":2150}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { gross: '£1,200.00', sc: '£120.00', vat: '£180.00', disc: '£50.00', booked: '28', walk: '12', food: '£600.00', drink: '£250.00', till: '£240.00', drawer: 370, fdAck: false, reason: 'Refund paid in cash' };
+  }
+  renderVals() {
+    const v = this.state;
+    const n = (x) => { const r = parseFloat(String(x).replace(/[£,\s]/g, '')); return isFinite(r) ? r : 0; };
+    const gbp = (x) => (x < 0 ? '−' : '') + '£' + Math.abs(x).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const set = {};
+    ['gross', 'sc', 'vat', 'disc', 'booked', 'walk', 'food', 'drink', 'till'].forEach((k) => {
+      set[k] = (e) => this.setState({ [k]: e.target.value, fdAck: k === 'food' || k === 'drink' ? false : this.state.fdAck });
+    });
+    const net = n(v.gross) - n(v.sc) - n(v.vat) - n(v.disc);
+    const netStr = gbp(net);
+    const dot = netStr.lastIndexOf('.');
+    const covers = Math.round(n(v.booked) + n(v.walk));
+    const fdGap = Math.round((n(v.food) + n(v.drink) - net) * 100) / 100;
+    const fdMatch = Math.abs(fdGap) < 0.01;
+    const taken = v.drawer - 150;
+    const diff = Math.round((taken - n(v.till)) * 100) / 100;
+    let cash;
+    if (Math.abs(diff) <= 1) cash = { pill: 'p-ok', text: 'Balanced', needReason: false };
+    else if (diff < 0) cash = { pill: 'p-warn', text: gbp(-diff) + ' short', needReason: true };
+    else cash = { pill: 'p-warn', text: gbp(diff) + ' over', needReason: true };
+    const gap = Math.round((n(v.disc) - 27.4) * 100) / 100;
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      v,
+      set,
+      netLabel: netStr,
+      netP: netStr.slice(0, dot),
+      netD: netStr.slice(dot),
+      grossShort: '£' + Math.round(n(v.gross)).toLocaleString('en-GB'),
+      coversLabel: String(covers),
+      perHead: covers > 0 ? gbp(net / covers) : '—',
+      split: net > 0 ? Math.round(n(v.food) / net * 100) + '% food' : '',
+      fd: { match: fdMatch, warn: !fdMatch && !v.fdAck, acked: !fdMatch && v.fdAck, text: gbp(Math.abs(fdGap)) + (fdGap < 0 ? ' under net' : ' over net') },
+      ackFd: () => this.setState({ fdAck: true }),
+      drawerLabel: gbp(v.drawer),
+      takenLabel: gbp(taken),
+      fcLabel: (net >= 820 ? '+' : '−') + gbp(Math.abs(net - 820)).replace('−', '') + ' vs £820 forecast',
+      reasons: ['Refund paid in cash', 'Paid out (petty cash)', 'Float not reset', 'Miscount, recounted', 'Other'].map((r) => ({ label: r, pressed: v.reason === r ? 'true' : 'false', style: v.reason === r ? 'background: var(--ink); color: var(--onink)' : '', pick: () => this.setState({ reason: r }) })),
+      cash,
+      discListed: '£27.40 of ' + gbp(n(v.disc)),
+      discPill: Math.abs(gap) < 0.01 ? 'p-ok' : 'p-warn',
+      discStatus: Math.abs(gap) < 0.01 ? 'Matches' : gbp(Math.abs(gap)) + (gap > 0 ? ' still to list' : ' too much listed')
+    };
+  }
+}
+</script>
+</body>
+</html>

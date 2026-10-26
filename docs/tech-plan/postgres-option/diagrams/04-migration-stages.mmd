@@ -1,0 +1,20 @@
+flowchart TB
+  fix["Do now: regenerate the exposed Power Automate URL"]
+  subgraph S1["Stage 1: Replace the form"]
+    direction LR
+    a1["New close-the-day flow in the app<br/>(login, offline, server-side calcs)"] --> a2["Saves to app database"]
+    a2 --> a3["Also writes the same row via<br/>Graph or a new secured flow"]
+    a3 --> a4[("Existing Excel + Flows 2 and 3<br/>keep working unchanged")]
+  end
+  subgraph S2["Stage 2: App is the source of truth"]
+    direction LR
+    b1["Targets imported from Excel (Graph)<br/>or edited in the console"] --> b2["Finance dashboard<br/>+ Ask your logs"]
+    b2 --> b3["Excel kept as a synced copy<br/>for existing pivots"]
+  end
+  subgraph S3["Stage 3: Retire the flows"]
+    direction LR
+    c1["EPOS, rota and delivery data<br/>auto-fill the report"] --> c2["Scheduled reports replace<br/>Power Automate emails"]
+    c2 --> c3["Accounting export<br/>Xero / QuickBooks / Sage"]
+  end
+  fix -.-> S1
+  S1 ==> S2 ==> S3

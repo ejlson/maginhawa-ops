@@ -1,0 +1,7 @@
+flowchart TB
+  review["Review totals<br/>vs daily target<br/>(app preview)"] --> submit(["Submit<br/>(signed-in user)"])
+  submit --> q["Saved on device,<br/>uploaded via Graph<br/>when online"]
+  q --> calc["Flow F01 recalculates,<br/>checks and writes<br/>official totals"]
+  calc --> out1["EOD email<br/>to managers + finance"]
+  calc --> out2["Excel finance view<br/>refreshes from lists"]
+  calc --> out3["Power BI<br/>dashboards"]

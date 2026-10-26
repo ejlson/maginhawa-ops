@@ -1,0 +1,2067 @@
+{
+  "site": "Maginhawa Ops",
+  "version": "0.1",
+  "lists": [
+    {
+      "group": "Reference",
+      "name": "Sites",
+      "purpose": "One row per restaurant; drives rules, targets and settings",
+      "written_by": "Admin (console)",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Restaurant name, e.g. Bunso",
+          "flags": "R"
+        },
+        {
+          "name": "SiteCode",
+          "type": "Text",
+          "notes": "Short code used in keys, e.g. BUN",
+          "flags": "IUR"
+        },
+        {
+          "name": "Nation",
+          "type": "Choice",
+          "notes": "England / Wales / Scotland / Northern Ireland (selects rules pack)",
+          "flags": "R"
+        },
+        {
+          "name": "Timezone",
+          "type": "Text",
+          "notes": "Europe/London",
+          "flags": ""
+        },
+        {
+          "name": "FHRSId",
+          "type": "Number",
+          "notes": "FSA establishment id for rating sync",
+          "flags": ""
+        },
+        {
+          "name": "Sessions",
+          "type": "Choice (multi)",
+          "notes": "Lunch, Dinner, All day",
+          "flags": ""
+        },
+        {
+          "name": "VATRatePct",
+          "type": "Number",
+          "notes": "Default 20",
+          "flags": ""
+        },
+        {
+          "name": "WageTargetPct",
+          "type": "Number",
+          "notes": "Red above (default 35)",
+          "flags": ""
+        },
+        {
+          "name": "WageAmberPct",
+          "type": "Number",
+          "notes": "Amber above (default 30)",
+          "flags": ""
+        },
+        {
+          "name": "NetSalesRule",
+          "type": "Choice",
+          "notes": "GrossMinusSCTaxDiscounts (default) / GrossMinusSCTax — confirm with finance",
+          "flags": ""
+        },
+        {
+          "name": "DayCloseTime",
+          "type": "Text",
+          "notes": "e.g. 23:30 — when EOD/missed-check jobs run",
+          "flags": ""
+        },
+        {
+          "name": "Active",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": "I"
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "name": "Staff",
+      "purpose": "Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts",
+      "written_by": "Admin / Manager",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Full name",
+          "flags": "R"
+        },
+        {
+          "name": "Email",
+          "type": "Text",
+          "notes": "Microsoft account (blank for kiosk-only staff)",
+          "flags": "I"
+        },
+        {
+          "name": "HomeSite",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Department",
+          "type": "Choice",
+          "notes": "Kitchen / FOH / Management / Finance / Admin",
+          "flags": ""
+        },
+        {
+          "name": "Position",
+          "type": "Choice",
+          "notes": "Head chef, Sous chef, CDP, Commis, KP, Floor manager, Senior waiter, Waiter, Runner, Host, Bartender, RM, GM, AM, Duty manager, Supervisor",
+          "flags": ""
+        },
+        {
+          "name": "AppRole",
+          "type": "Choice",
+          "notes": "Staff / Manager / Admin / Finance / Owner",
+          "flags": "R"
+        },
+        {
+          "name": "PinHash",
+          "type": "Text",
+          "notes": "argon2 hash of 4-digit kiosk PIN (never the PIN)",
+          "flags": ""
+        },
+        {
+          "name": "PreferredLanguage",
+          "type": "Text",
+          "notes": "en-GB default",
+          "flags": ""
+        },
+        {
+          "name": "Active",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": "I"
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "name": "Devices",
+      "purpose": "Registered kiosk tablets and phones",
+      "written_by": "Admin",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Label, e.g. Bunso kitchen tablet",
+          "flags": "R"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "DeviceAccount",
+          "type": "Text",
+          "notes": "Site device Microsoft account (UPN)",
+          "flags": ""
+        },
+        {
+          "name": "Platform",
+          "type": "Choice",
+          "notes": "iPadOS / Android / iOS / Web",
+          "flags": ""
+        },
+        {
+          "name": "LastSeen",
+          "type": "Date/Time",
+          "notes": "Updated by app",
+          "flags": ""
+        },
+        {
+          "name": "Revoked",
+          "type": "Yes/No",
+          "notes": "Revoked devices are refused by the app",
+          "flags": "I"
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "name": "Targets",
+      "purpose": "Daily targets per site (imported from finance Excel or edited in console)",
+      "written_by": "Flow F09 / Finance",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = SiteCode|yyyy-mm-dd",
+          "flags": "IUR"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "TargetDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "NetSalesTarget",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "GrossSalesTarget",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "CoversTarget",
+          "type": "Number",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "WagePctTarget",
+          "type": "Number",
+          "notes": "Overrides site default",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "name": "ReasonCodes",
+      "purpose": "Discount / comp / void reasons (23 discount/comp + 15 void codes from the current form)",
+      "written_by": "Finance / Admin",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Label, e.g. Employee Dining up to 4 Food Only",
+          "flags": "R"
+        },
+        {
+          "name": "Kind",
+          "type": "Choice",
+          "notes": "Discount / Comp / Void",
+          "flags": "IR"
+        },
+        {
+          "name": "Scope",
+          "type": "Choice",
+          "notes": "Check / Item",
+          "flags": ""
+        },
+        {
+          "name": "DefaultPct",
+          "type": "Number",
+          "notes": "20 / 50 / 100; blank = chosen amount",
+          "flags": ""
+        },
+        {
+          "name": "IsWaste",
+          "type": "Yes/No",
+          "notes": "Voids: W (waste) vs NW",
+          "flags": ""
+        },
+        {
+          "name": "AppliesTo",
+          "type": "Choice",
+          "notes": "Food / Drinks / Food & drink",
+          "flags": ""
+        },
+        {
+          "name": "NotePrompt",
+          "type": "Text",
+          "notes": "What the note must contain",
+          "flags": ""
+        },
+        {
+          "name": "ApprovalRole",
+          "type": "Choice",
+          "notes": "Manager / Owner",
+          "flags": ""
+        },
+        {
+          "name": "SortOrder",
+          "type": "Number",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Active",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": "I"
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "name": "DeliveryPlatforms",
+      "purpose": "Deliveroo, Uber Eats, Just Eat…",
+      "written_by": "Finance",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Platform name",
+          "flags": "UR"
+        },
+        {
+          "name": "EstimatedNetPct",
+          "type": "Number",
+          "notes": "Replaces hard-coded 55% (net ≈ gross ÷ (1+VAT) × pct)",
+          "flags": ""
+        },
+        {
+          "name": "PricesIncludeVAT",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Active",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "name": "RulesThresholds",
+      "purpose": "Food-safety limits per nation (data, not code); consultant-verified",
+      "written_by": "Admin (consultant sign-off)",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = Nation|CheckCode",
+          "flags": "IUR"
+        },
+        {
+          "name": "Nation",
+          "type": "Choice",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "CheckCode",
+          "type": "Text",
+          "notes": "cold_hold, hot_hold, reheat, cook_core, freezer, cooling_stage1 …",
+          "flags": ""
+        },
+        {
+          "name": "MinValue",
+          "type": "Number",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "MaxValue",
+          "type": "Number",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Unit",
+          "type": "Text",
+          "notes": "C",
+          "flags": ""
+        },
+        {
+          "name": "LegalBasis",
+          "type": "Text",
+          "notes": "Citation shown to EHO",
+          "flags": ""
+        },
+        {
+          "name": "Verified",
+          "type": "Yes/No",
+          "notes": "False until checked against primary source",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Checklists",
+      "name": "ChecklistTemplates",
+      "purpose": "Checklist definitions (opening, closing, cleaning, food safety, custom)",
+      "written_by": "Admin / Manager (console builder)",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Name",
+          "flags": "R"
+        },
+        {
+          "name": "Kind",
+          "type": "Choice",
+          "notes": "Opening / Closing / Cleaning / Food safety / Delivery / Handover / Custom",
+          "flags": "I"
+        },
+        {
+          "name": "CurrentVersion",
+          "type": "Number",
+          "notes": "Bumped on publish; runs store the version used",
+          "flags": ""
+        },
+        {
+          "name": "Status",
+          "type": "Choice",
+          "notes": "Draft / Published / Archived",
+          "flags": "I"
+        },
+        {
+          "name": "Sites",
+          "type": "Lookup (multi) → Sites",
+          "notes": "Where it applies",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Checklists",
+      "name": "Checkpoints",
+      "purpose": "Questions inside a template version — the customisable checkpoints with media",
+      "written_by": "Admin / Manager (builder)",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Prompt, e.g. Walk-in chiller temperature",
+          "flags": "R"
+        },
+        {
+          "name": "Template",
+          "type": "Lookup → ChecklistTemplates",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "TemplateVersion",
+          "type": "Number",
+          "notes": "Published versions are never edited",
+          "flags": "I"
+        },
+        {
+          "name": "Position",
+          "type": "Number",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Section",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Guidance",
+          "type": "Multi-line text",
+          "notes": "'How to do it right' description",
+          "flags": ""
+        },
+        {
+          "name": "MediaLinks",
+          "type": "Multi-line text",
+          "notes": "Links to images/videos in HowToMedia library",
+          "flags": ""
+        },
+        {
+          "name": "ResponseType",
+          "type": "Choice",
+          "notes": "Yes/No, Number, Temperature, Text, Select, Multi-select, Photo, Signature, Date, Time",
+          "flags": "R"
+        },
+        {
+          "name": "Options",
+          "type": "Multi-line text",
+          "notes": "JSON for select options",
+          "flags": ""
+        },
+        {
+          "name": "CheckCode",
+          "type": "Text",
+          "notes": "Links to RulesThresholds for pass/fail",
+          "flags": ""
+        },
+        {
+          "name": "Asset",
+          "type": "Lookup → Assets",
+          "notes": "Optional: checkpoint about a specific unit",
+          "flags": ""
+        },
+        {
+          "name": "Required",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "PhotoRequired",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "CorrectiveActionOnFail",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Checklists",
+      "name": "Schedules",
+      "purpose": "When each checklist is due at each site",
+      "written_by": "Admin / Manager",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Description",
+          "flags": ""
+        },
+        {
+          "name": "Template",
+          "type": "Lookup → ChecklistTemplates",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "DueTime",
+          "type": "Text",
+          "notes": "e.g. 08:00",
+          "flags": "R"
+        },
+        {
+          "name": "Days",
+          "type": "Choice (multi)",
+          "notes": "Mon–Sun",
+          "flags": ""
+        },
+        {
+          "name": "WindowMinutes",
+          "type": "Number",
+          "notes": "Late after this",
+          "flags": ""
+        },
+        {
+          "name": "AutoClose",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "AssignedRole",
+          "type": "Choice",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "PausedFrom",
+          "type": "Date",
+          "notes": "Closures / refurb",
+          "flags": ""
+        },
+        {
+          "name": "PausedUntil",
+          "type": "Date",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Checklists",
+      "name": "ChecklistRuns",
+      "purpose": "One instance of a checklist on a day (created each morning by flow F02)",
+      "written_by": "Flow F02 creates; app completes",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = SiteCode|yyyy-mm-dd|ScheduleId",
+          "flags": "IUR"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "BusinessDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Template",
+          "type": "Lookup → ChecklistTemplates",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "TemplateVersion",
+          "type": "Number",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "DueAt",
+          "type": "Date/Time",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Status",
+          "type": "Choice",
+          "notes": "Scheduled / In progress / Completed / Missed / Auto-closed / Cancelled",
+          "flags": "I"
+        },
+        {
+          "name": "CompletedBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "CompletedAt",
+          "type": "Date/Time",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "DurationSeconds",
+          "type": "Number",
+          "notes": "Pencil-whip signal",
+          "flags": ""
+        },
+        {
+          "name": "FailedCount",
+          "type": "Number",
+          "notes": "Set by flow F04",
+          "flags": "F"
+        }
+      ]
+    },
+    {
+      "group": "Checklists",
+      "name": "Responses",
+      "purpose": "Every answer — the compliance record (largest list)",
+      "written_by": "App (append-only by convention + Purview record label)",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "ClientId — UUID from the device; makes offline retries idempotent",
+          "flags": "IUR"
+        },
+        {
+          "name": "Run",
+          "type": "Lookup → ChecklistRuns",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "BusinessDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "CheckpointId",
+          "type": "Number",
+          "notes": "Checkpoint item id",
+          "flags": ""
+        },
+        {
+          "name": "ValueNumber",
+          "type": "Number",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "ValueText",
+          "type": "Multi-line text",
+          "notes": "Text / select / signature JSON",
+          "flags": ""
+        },
+        {
+          "name": "Passed",
+          "type": "Yes/No",
+          "notes": "App preview; confirmed by flow F04",
+          "flags": "I"
+        },
+        {
+          "name": "ThresholdSnapshot",
+          "type": "Text",
+          "notes": "Min/max/legal basis used, frozen",
+          "flags": ""
+        },
+        {
+          "name": "Source",
+          "type": "Choice",
+          "notes": "Manual / Bluetooth probe / Camera OCR",
+          "flags": ""
+        },
+        {
+          "name": "PhotoUrl",
+          "type": "Hyperlink",
+          "notes": "Photos library",
+          "flags": ""
+        },
+        {
+          "name": "PhotoSha256",
+          "type": "Text",
+          "notes": "Detects reused photos",
+          "flags": ""
+        },
+        {
+          "name": "CapturedLive",
+          "type": "Yes/No",
+          "notes": "In-app camera, not gallery",
+          "flags": ""
+        },
+        {
+          "name": "RecordedBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Device",
+          "type": "Lookup → Devices",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "ClientRecordedAt",
+          "type": "Date/Time",
+          "notes": "Device clock (Created = server time)",
+          "flags": ""
+        },
+        {
+          "name": "Supersedes",
+          "type": "Number",
+          "notes": "Id of the response this corrects (never edit in place)",
+          "flags": ""
+        },
+        {
+          "name": "CorrectionReason",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Checklists",
+      "name": "CorrectiveActions",
+      "purpose": "What was done about a failed check",
+      "written_by": "App + flows F04/F05",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Short description",
+          "flags": "R"
+        },
+        {
+          "name": "Response",
+          "type": "Lookup → Responses",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "ActionTaken",
+          "type": "Multi-line text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "FoodDisposed",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Status",
+          "type": "Choice",
+          "notes": "Open / Action taken / Verified / Escalated",
+          "flags": "I"
+        },
+        {
+          "name": "RecheckDue",
+          "type": "Date/Time",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "WorkOrder",
+          "type": "Lookup → WorkOrders",
+          "notes": "Set when escalated",
+          "flags": ""
+        },
+        {
+          "name": "VerifiedBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Checklists",
+      "name": "DayClosures",
+      "purpose": "Ops end-of-day sign-off per site",
+      "written_by": "App + flow F01",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = SiteCode|yyyy-mm-dd",
+          "flags": "IUR"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "BusinessDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "ClosedBy",
+          "type": "Lookup → Staff",
+          "notes": "Blank = auto-closed",
+          "flags": ""
+        },
+        {
+          "name": "Stats",
+          "type": "Multi-line text",
+          "notes": "JSON: completion %, failures, open CAs, faults",
+          "flags": "F"
+        },
+        {
+          "name": "ReportLink",
+          "type": "Hyperlink",
+          "notes": "PDF in Reports library",
+          "flags": "F"
+        }
+      ]
+    },
+    {
+      "group": "Checklists",
+      "name": "HandoverNotes",
+      "purpose": "Shift handover log",
+      "written_by": "App",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Summary",
+          "flags": ""
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "BusinessDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Body",
+          "type": "Multi-line text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Author",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Maintenance",
+      "name": "Assets",
+      "purpose": "Equipment register with QR sticker per unit",
+      "written_by": "Manager / Admin",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "e.g. Walk-in chiller",
+          "flags": "R"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Category",
+          "type": "Choice",
+          "notes": "Refrigeration, Cooking, Extraction, Gas, Electrical, Dishwash, Ice, Coffee, Lift, Other",
+          "flags": "I"
+        },
+        {
+          "name": "Make",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Model",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "SerialNumber",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "QRCode",
+          "type": "Text",
+          "notes": "Value on the sticker",
+          "flags": "IU"
+        },
+        {
+          "name": "InstallDate",
+          "type": "Date",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "WarrantyExpires",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "DefaultContractor",
+          "type": "Lookup → Contractors",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "PhotoUrl",
+          "type": "Hyperlink",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Retired",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Maintenance",
+      "name": "Contractors",
+      "purpose": "Refrigeration, gas, electrical, extraction, pest…",
+      "written_by": "Manager / Admin",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Company",
+          "flags": "R"
+        },
+        {
+          "name": "Trade",
+          "type": "Choice",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "ContactName",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Phone",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Email",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "GasSafeNumber",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Accreditation",
+          "type": "Text",
+          "notes": "e.g. BESA TR19",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Maintenance",
+      "name": "WorkOrders",
+      "purpose": "Repairs: from fault report, failed check, statutory due or EOD note",
+      "written_by": "App + flows F05/F06",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Reference WO-2026-00123",
+          "flags": "IUR"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Asset",
+          "type": "Lookup → Assets",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Summary",
+          "type": "Text",
+          "notes": "",
+          "flags": "R"
+        },
+        {
+          "name": "Description",
+          "type": "Multi-line text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Source",
+          "type": "Choice",
+          "notes": "Fault report / Failed check / Statutory / Planned / EOD note / AI warning",
+          "flags": ""
+        },
+        {
+          "name": "SourceResponse",
+          "type": "Number",
+          "notes": "Response id when source = failed check",
+          "flags": ""
+        },
+        {
+          "name": "Priority",
+          "type": "Choice",
+          "notes": "Low / Normal / High / Urgent",
+          "flags": "I"
+        },
+        {
+          "name": "Status",
+          "type": "Choice",
+          "notes": "Reported / Triaged / Dispatched / Scheduled / In progress / Awaiting parts / Resolved / Closed / Cancelled",
+          "flags": "I"
+        },
+        {
+          "name": "Contractor",
+          "type": "Lookup → Contractors",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "ReportedBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "DispatchedAt",
+          "type": "Date/Time",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "AttendedAt",
+          "type": "Date/Time",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "ResolvedAt",
+          "type": "Date/Time",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "PhotoUrls",
+          "type": "Multi-line text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "History",
+          "type": "Multi-line text (append)",
+          "notes": "Timeline notes (append changes on)",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Maintenance",
+      "name": "ComplianceItems",
+      "purpose": "Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest",
+      "written_by": "Admin / flow F07",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Requirement name",
+          "flags": "R"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Asset",
+          "type": "Lookup → Assets",
+          "notes": "Optional",
+          "flags": ""
+        },
+        {
+          "name": "RequirementCode",
+          "type": "Choice",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "IntervalMonths",
+          "type": "Number",
+          "notes": "[verify] per requirement",
+          "flags": ""
+        },
+        {
+          "name": "LastDone",
+          "type": "Date",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "NextDue",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Contractor",
+          "type": "Lookup → Contractors",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "CertificateLink",
+          "type": "Hyperlink",
+          "notes": "Certificates library",
+          "flags": ""
+        },
+        {
+          "name": "Verified",
+          "type": "Yes/No",
+          "notes": "Interval checked by consultant",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Maintenance",
+      "name": "Invoices",
+      "purpose": "Contractor invoices for the Finance role",
+      "written_by": "Finance",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Invoice number",
+          "flags": "R"
+        },
+        {
+          "name": "Contractor",
+          "type": "Lookup → Contractors",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "WorkOrder",
+          "type": "Lookup → WorkOrders",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Asset",
+          "type": "Lookup → Assets",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "InvoiceDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Net",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "VAT",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Gross",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "DocumentLink",
+          "type": "Hyperlink",
+          "notes": "Invoices library",
+          "flags": ""
+        },
+        {
+          "name": "ApprovedBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "ExportedAt",
+          "type": "Date/Time",
+          "notes": "To Xero / QuickBooks / Sage (phase 2)",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Maintenance",
+      "name": "VisitorLog",
+      "purpose": "Contractor and visitor sign-in",
+      "written_by": "App",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Visitor name",
+          "flags": "R"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Company",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Purpose",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "WorkOrder",
+          "type": "Lookup → WorkOrders",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "SignedIn",
+          "type": "Date/Time",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "SignedOut",
+          "type": "Date/Time",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "HealthDeclaration",
+          "type": "Yes/No",
+          "notes": "Food-handler fitness questions answered",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Trading (EOD)",
+      "name": "TradingDays",
+      "purpose": "One per site per service date — replaces the Netlify form's Excel row",
+      "written_by": "App creates; flow F01 writes official totals",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = SiteCode|yyyy-mm-dd (blocks duplicates)",
+          "flags": "IUR"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "BusinessDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Status",
+          "type": "Choice",
+          "notes": "Draft / Submitted / Checked / Approved / Reopened",
+          "flags": "I"
+        },
+        {
+          "name": "WageCost",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "NextShiftNotes",
+          "type": "Multi-line text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "SubmittedBy",
+          "type": "Lookup → Staff",
+          "notes": "Signed-in user, not typed",
+          "flags": ""
+        },
+        {
+          "name": "SubmittedAt",
+          "type": "Date/Time",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "ApprovedBy",
+          "type": "Lookup → Staff",
+          "notes": "Finance sign-off",
+          "flags": ""
+        },
+        {
+          "name": "TotalGross",
+          "type": "Currency",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "TotalNet",
+          "type": "Currency",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "DineInNet",
+          "type": "Currency",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "Covers",
+          "type": "Number",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "ASPHNet",
+          "type": "Currency",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "FoodPct",
+          "type": "Number",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "DrinkPct",
+          "type": "Number",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "WagePct",
+          "type": "Number",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "WageRAG",
+          "type": "Choice",
+          "notes": "Green / Amber / Red",
+          "flags": "F"
+        },
+        {
+          "name": "NetVsTarget",
+          "type": "Currency",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "CheckIssues",
+          "type": "Multi-line text",
+          "notes": "Problems found by flow (e.g. discount lines ≠ EPOS total)",
+          "flags": "F"
+        },
+        {
+          "name": "CalcVersion",
+          "type": "Text",
+          "notes": "Formula version used",
+          "flags": "F"
+        }
+      ]
+    },
+    {
+      "group": "Trading (EOD)",
+      "name": "TradingSessions",
+      "purpose": "Lunch / dinner figures and cash",
+      "written_by": "App; flow F01 adds net & variance",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = SiteCode|yyyy-mm-dd|Session",
+          "flags": "IUR"
+        },
+        {
+          "name": "TradingDay",
+          "type": "Lookup → TradingDays",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "BusinessDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Session",
+          "type": "Choice",
+          "notes": "Lunch / Dinner / All day",
+          "flags": ""
+        },
+        {
+          "name": "Gross",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "ServiceCharge",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Tax",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "DiscountsComps",
+          "type": "Currency",
+          "notes": "EPOS total; reconciled to Adjustments",
+          "flags": ""
+        },
+        {
+          "name": "FoodSales",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "DrinkSales",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "BookedCovers",
+          "type": "Number",
+          "notes": "'Starting covers' in old form",
+          "flags": ""
+        },
+        {
+          "name": "Walkins",
+          "type": "Number",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "CashInEpos",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "CashCollected",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "CashExplanation",
+          "type": "Multi-line text",
+          "notes": "Required by app if variance > 1p",
+          "flags": ""
+        },
+        {
+          "name": "Net",
+          "type": "Currency",
+          "notes": "Gross − SC − tax − discounts",
+          "flags": "F"
+        },
+        {
+          "name": "Covers",
+          "type": "Number",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "CashVariance",
+          "type": "Currency",
+          "notes": "Collected − EPOS",
+          "flags": "F"
+        }
+      ]
+    },
+    {
+      "group": "Trading (EOD)",
+      "name": "Adjustments",
+      "purpose": "Discounts, comps and voids as rows (were text blobs)",
+      "written_by": "App",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "ClientId (UUID)",
+          "flags": "IUR"
+        },
+        {
+          "name": "TradingSession",
+          "type": "Lookup → TradingSessions",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "BusinessDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Kind",
+          "type": "Choice",
+          "notes": "Discount / Comp / Void",
+          "flags": "I"
+        },
+        {
+          "name": "ReasonCode",
+          "type": "Lookup → ReasonCodes",
+          "notes": "",
+          "flags": "R"
+        },
+        {
+          "name": "GuestOrStaffName",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Items",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "SaleAmount",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Amount",
+          "type": "Currency",
+          "notes": "",
+          "flags": "R"
+        },
+        {
+          "name": "Time",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "PerformedBy",
+          "type": "Lookup → Staff",
+          "notes": "'Voided by'",
+          "flags": ""
+        },
+        {
+          "name": "ApprovedBy",
+          "type": "Lookup → Staff",
+          "notes": "Real user",
+          "flags": ""
+        },
+        {
+          "name": "Notes",
+          "type": "Multi-line text",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Trading (EOD)",
+      "name": "DeliverySales",
+      "purpose": "Per platform per day",
+      "written_by": "App; flow F01 adds estimated net",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = SiteCode|yyyy-mm-dd|Platform",
+          "flags": "IUR"
+        },
+        {
+          "name": "TradingDay",
+          "type": "Lookup → TradingDays",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Platform",
+          "type": "Lookup → DeliveryPlatforms",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Gross",
+          "type": "Currency",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "EstimatedNet",
+          "type": "Currency",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "ActualPayout",
+          "type": "Currency",
+          "notes": "From platform statement (later)",
+          "flags": ""
+        },
+        {
+          "name": "CurrentPromotion",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Trading (EOD)",
+      "name": "DeliveryRefunds",
+      "purpose": "Refund requests from delivery platforms",
+      "written_by": "App",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Summary",
+          "flags": ""
+        },
+        {
+          "name": "TradingDay",
+          "type": "Lookup → TradingDays",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Platform",
+          "type": "Lookup → DeliveryPlatforms",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Amount",
+          "type": "Currency",
+          "notes": "",
+          "flags": "R"
+        },
+        {
+          "name": "Details",
+          "type": "Multi-line text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Issued",
+          "type": "Choice",
+          "notes": "Yes / No / Pending",
+          "flags": "I"
+        }
+      ]
+    },
+    {
+      "group": "Trading (EOD)",
+      "name": "ShiftStaff",
+      "purpose": "Who worked each session (fixes lunch managers being dropped)",
+      "written_by": "App (rota later)",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Name",
+          "flags": "R"
+        },
+        {
+          "name": "TradingSession",
+          "type": "Lookup → TradingSessions",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Staff",
+          "type": "Lookup → Staff",
+          "notes": "Blank if no account",
+          "flags": ""
+        },
+        {
+          "name": "Department",
+          "type": "Choice",
+          "notes": "Kitchen / FOH / Management",
+          "flags": ""
+        },
+        {
+          "name": "Position",
+          "type": "Choice",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Hours",
+          "type": "Number",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Trading (EOD)",
+      "name": "Feedback",
+      "purpose": "Service, kitchen, staff, complaints, maintenance notes",
+      "written_by": "App; flow F01 links work orders",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Category",
+          "flags": ""
+        },
+        {
+          "name": "TradingDay",
+          "type": "Lookup → TradingDays",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Category",
+          "type": "Choice",
+          "notes": "Service / Kitchen / Staff / Complaints / Maintenance",
+          "flags": "I"
+        },
+        {
+          "name": "Body",
+          "type": "Multi-line text",
+          "notes": "",
+          "flags": "R"
+        },
+        {
+          "name": "WorkOrder",
+          "type": "Lookup → WorkOrders",
+          "notes": "Created by F01 for urgent maintenance",
+          "flags": "F"
+        }
+      ]
+    },
+    {
+      "group": "People & handbook",
+      "name": "PolicyAcknowledgements",
+      "purpose": "E-signed policy sign-offs",
+      "written_by": "App",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = PolicyFileId|Version|StaffId",
+          "flags": "IUR"
+        },
+        {
+          "name": "PolicyFileId",
+          "type": "Number",
+          "notes": "Item id in Policies library",
+          "flags": "I"
+        },
+        {
+          "name": "PolicyVersion",
+          "type": "Text",
+          "notes": "Library version label at signing",
+          "flags": ""
+        },
+        {
+          "name": "Staff",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "AcknowledgedAt",
+          "type": "Date/Time",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Device",
+          "type": "Lookup → Devices",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "SignatureJson",
+          "type": "Multi-line text",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "People & handbook",
+      "name": "StaffCertificates",
+      "purpose": "Level 2/3 food hygiene, personal licence, first aid…",
+      "written_by": "Manager",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Certificate type",
+          "flags": "R"
+        },
+        {
+          "name": "Staff",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Issuer",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "IssuedOn",
+          "type": "Date",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "ExpiresOn",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "DocumentLink",
+          "type": "Hyperlink",
+          "notes": "Certificates library",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "People & handbook",
+      "name": "FitnessToWork",
+      "purpose": "Illness exclusion / return to work — restricted to Owner/Admin",
+      "written_by": "Manager (restricted list)",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Staff name",
+          "flags": "R"
+        },
+        {
+          "name": "Staff",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "ReportedOn",
+          "type": "Date",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "SymptomsCategory",
+          "type": "Choice",
+          "notes": "Minimal data — no free-text diagnosis",
+          "flags": ""
+        },
+        {
+          "name": "ExcludedUntil",
+          "type": "Date",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "ClearedBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "ClearedOn",
+          "type": "Date",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    }
+  ],
+  "libraries": [
+    {
+      "name": "Photos",
+      "purpose": "Check, fault and work-order photos",
+      "notes": "Folders Site/yyyy/mm; images compressed on device (~300 KB)"
+    },
+    {
+      "name": "HowToMedia",
+      "purpose": "Images and short videos attached to checkpoints",
+      "notes": "Read-only for staff"
+    },
+    {
+      "name": "Policies",
+      "purpose": "Handbook and policies (Word/PDF) with metadata: Category, RequiresAck, AppliesToRoles",
+      "notes": "Major versions only; publishing a major version triggers flow F08"
+    },
+    {
+      "name": "Certificates",
+      "purpose": "Staff and contractor certificates (gas CP42, TR19, EICR…)",
+      "notes": "Linked from StaffCertificates / ComplianceItems"
+    },
+    {
+      "name": "Invoices",
+      "purpose": "Contractor invoice PDFs",
+      "notes": "Finance + Admin only"
+    },
+    {
+      "name": "Reports",
+      "purpose": "Generated EOD, day-closure and EHO pack PDFs",
+      "notes": "Written by flows"
+    },
+    {
+      "name": "Archive",
+      "purpose": "Yearly CSV/list exports for archived years",
+      "notes": "Created by flow F12"
+    }
+  ]
+}
