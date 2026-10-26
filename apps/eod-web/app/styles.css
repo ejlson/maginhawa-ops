@@ -37,7 +37,7 @@ button { font: inherit; color: inherit; }
 .saved { font-size: 13px; color: var(--sec); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .dot { display: inline-block; width: 6px; height: 6px; border-radius: 3px; background: var(--ok); }
 .dot.warn { background: var(--warn); }
-.body { padding: 4px max(20px, env(safe-area-inset-right)) 180px max(20px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 44px; }
+.body { padding: 4px max(20px, env(safe-area-inset-right)) 180px max(20px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 40px; }
 .foot { position: sticky; bottom: 0; margin-top: auto; background: var(--nav); backdrop-filter: saturate(180%) blur(24px); -webkit-backdrop-filter: saturate(180%) blur(24px);
   padding: 14px max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 4px; }
 .foot .note { text-align: center; margin: 4px 0 0; }
@@ -48,15 +48,18 @@ button { font: inherit; color: inherit; }
 h1 { margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -.035em; line-height: 1.08; }
 .lead { font-size: 15px; color: var(--sec); margin: 4px 0 0; line-height: 1.4; }
 .top { display: flex; flex-direction: column; gap: 20px; }
-.grp { display: flex; flex-direction: column; gap: 24px; }
-.gh { display: flex; flex-direction: column; gap: 4px; }
+/* Main groups (Sales, Covers, Cash…): a hairline and space above each, so it's clear where a section starts. */
+.grp { display: flex; flex-direction: column; gap: 32px; }
+.grp + .grp:not(.quiet) { padding-top: 36px; border-top: .5px solid var(--sep); }
+.gh { display: flex; flex-direction: column; gap: 6px; }
 .gh h2, .hd h2 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.028em; }
 .gh p { margin: 0; font-size: 15px; line-height: 1.4; color: var(--sec); }
 .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .hd span { font-size: 15px; color: var(--sec); }
 .sub { display: flex; flex-direction: column; }
-.sl { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; font-weight: 600; color: var(--sec); letter-spacing: -.01em; padding-bottom: 2px; }
-.sl span:last-child { font-weight: 400; }
+/* Sub-headings inside a group (From the till, Food & drink…): small caps, so they never read as an input row. */
+.sl { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; font-weight: 600; color: var(--sec); letter-spacing: .06em; text-transform: uppercase; padding-bottom: 6px; }
+.sl span + span { font-weight: 500; letter-spacing: .02em; text-transform: none; font-size: 13px; }
 .quiet { padding-top: 28px; border-top: .5px solid var(--sep); }
 .note { font-size: 14px; color: var(--sec); line-height: 1.45; margin: 8px 0 0; }
 
@@ -98,10 +101,12 @@ div.li { cursor: default; }
 .muted { color: var(--sec) !important; }
 
 /* ---- form rows ---- */
-.fr { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 56px; position: relative; }
+.fr { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 54px; position: relative; }
 .fr + .fr::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: .5px; background: var(--sep); }
-.fr.tot { font-weight: 700; }
-.fr.tot::before { height: 1px !important; background: var(--text) !important; opacity: .14; }
+/* Totals: the result of the rows above. */
+.fr.tot { font-weight: 700; min-height: 58px; margin-top: 2px; }
+.fr.tot::before { height: 1.5px !important; background: var(--text) !important; opacity: .22; }
+.fr.tot > span:last-child:not(.pill) { font-size: 19px; letter-spacing: -.02em; }
 .in { border: 0; background: var(--fill); border-radius: 10px; text-align: right; font: inherit; letter-spacing: inherit; font-variant-numeric: tabular-nums; color: var(--text); width: 132px; height: 42px; padding: 0 12px; outline: none; }
 .in:focus { box-shadow: 0 0 0 2px var(--link); }
 .in.bad { box-shadow: 0 0 0 2px var(--bad); }

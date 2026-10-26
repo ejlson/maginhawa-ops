@@ -9,6 +9,9 @@ export default [
     route('close/done', 'routes/done.tsx'),
     route('close/:section', 'routes/section.tsx'),
     route('close/:session/cash', 'routes/cash.tsx'),
+    route('checklists', 'routes/checklists.tsx'),
+    route('checklists/:key', 'routes/checklist-run.tsx'),
+    route('checklists/:key/fix/:checkpoint', 'routes/checklist-fix.tsx'),
     route('head-office', 'routes/head-office.tsx'),
   ]),
 ] satisfies RouteConfig;

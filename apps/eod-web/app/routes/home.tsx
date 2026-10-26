@@ -4,6 +4,7 @@ import { useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
 import { deviceStore } from '../lib/store';
 import { now } from '../lib/clock';
+import { isUrgent, runPath, statusPill, useChecklists } from '../lib/checklists';
 import { BigMoney, Foot, Icon, ICONS, RowLink, Segments } from '../components/ui';
 
 function greeting(d: Date) {
@@ -14,14 +15,24 @@ function greeting(d: Date) {
 export default function Home() {
   const { user, signOut } = useAuth();
   const { draft, result, issues, progress, status, settings, savedAt } = useDraft();
+  const { tasks } = useChecklists();
   const statuses = SECTION_KEYS.map((k) => sectionStatus(draft, k)).filter((s) => s !== 'skipped');
   const submitted = status !== 'draft' && status !== 'sent-back';
   // Real problems only. Unfinished sections already show as progress on the hub.
-  const needs = issues.filter((i) => i.level !== 'ok' && i.code !== 'section-incomplete').slice(0, 3);
+  const needs = submitted ? [] : issues.filter((i) => i.level !== 'ok' && i.code !== 'section-incomplete').slice(0, 3);
+
+  // Checklists run all day, independent of the end-of-day report.
+  const scheduled = tasks.filter((t) => t.status !== 'anytime');
+  const checksDone = scheduled.filter((t) => t.status === 'done' || t.status === 'failed').length;
+  const urgent = tasks.filter((t) => isUrgent(t.status));
+  const lateChecks = tasks.filter((t) => t.status === 'late' || t.status === 'missed').slice(0, 3);
+  const nextCheck = urgent[0] ?? tasks.find((t) => t.status === 'upcoming');
 
   const yesterday = new Date(`${draft.businessDate}T12:00:00Z`);
   yesterday.setUTCDate(yesterday.getUTCDate() - 1);
   const lastNight = deviceStore().peek(settings.siteCode, yesterday.toISOString().slice(0, 10));
+
+  const eodLabel = submitted ? 'See today\'s report' : progress.done === 0 ? 'Start today\'s close' : 'Continue today\'s close';
 
   return (
     <main className="page">
@@ -49,10 +60,14 @@ export default function Home() {
           </Link>
         </div>
 
-        {!submitted && needs.length > 0 && (
+        {(needs.length > 0 || lateChecks.length > 0) && (
           <section className="grp">
-            <div className="hd"><h2>Needs you</h2><span>{needs.length}</span></div>
+            <div className="hd"><h2>Needs you</h2><span>{needs.length + lateChecks.length}</span></div>
             <div className="sub">
+              {lateChecks.map((t) => (
+                <RowLink key={t.key} to={runPath(t.key)} lead={<span className="av bad"><Icon d={ICONS.bang} size={15} /></span>}
+                  title={t.title} sub={`Checklist · ${statusPill(t).text.toLowerCase()}`} />
+              ))}
               {needs.map((i) => (
                 <RowLink key={i.code + i.section} to={`/close/${i.section}`}
                   lead={<span className={`av ${i.level === 'block' ? 'bad' : 'warn'}`}><Icon d={ICONS.bang} size={15} /></span>}
@@ -65,21 +80,27 @@ export default function Home() {
         <section className="grp">
           <div className="hd"><h2>Today</h2></div>
           <div className="sub">
-            <RowLink to="/close" lead={<span className="av"><Icon d={ICONS.list} /></span>} title="Sections"
-              sub={submitted ? 'Day closed' : `${progress.left} to go · do them in any order`} />
+            <RowLink to="/checklists" lead={<span className="av"><Icon d={ICONS.check} /></span>} title="Checklists"
+              sub={`${checksDone} of ${scheduled.length} done · ${nextCheck ? `next: ${nextCheck.title}` : 'all done today'}`}
+              right={nextCheck && isUrgent(nextCheck.status) ? <span className={`pill ${statusPill(nextCheck).cls}`}>{statusPill(nextCheck).text}</span> : undefined} />
+            <RowLink to="/close" lead={<span className="av"><Icon d={ICONS.list} /></span>} title="End-of-day report"
+              sub={submitted ? 'Sent to head office' : progress.done === 0 ? `${progress.active} sections · do them in any order` : `${progress.left} sections to go`} />
             {lastNight && lastNight.draft.handover.length > 0 && (
               <RowLink lead={<span className="av"><Icon d={ICONS.arrow} /></span>} title="Handover from last night"
                 sub={lastNight.draft.handover.map((h) => h.body).join(' · ')} />
             )}
-            <div className="li" aria-disabled="true">
-              <span className="av"><Icon d={ICONS.check} /></span>
-              <span className="tx"><span className="muted">Checks</span><small>Kitchen checks and repairs · coming next</small></span>
-            </div>
           </div>
         </section>
       </div>
       <Foot>
-        <Link className="btn b1" to={submitted ? '/close/done' : '/close'}>{submitted ? 'See today\'s report' : progress.done === 0 ? 'Start today\'s close' : 'Continue today\'s close'}</Link>
+        {urgent[0] ? (
+          <>
+            <Link className="btn b1" to={runPath(urgent[0].key)}>{urgent[0].status === 'late' ? 'Do now: ' : 'Start '}{urgent[0].title}</Link>
+            <Link className="btn b2" to={submitted ? '/close/done' : '/close'}>{eodLabel}</Link>
+          </>
+        ) : (
+          <Link className="btn b1" to={submitted ? '/close/done' : '/close'}>{eodLabel}</Link>
+        )}
       </Foot>
     </main>
   );

@@ -12,6 +12,9 @@ import Done from '../app/routes/done';
 import Section from '../app/routes/section';
 import CashCount from '../app/routes/cash';
 import HeadOffice from '../app/routes/head-office';
+import Checklists from '../app/routes/checklists';
+import ChecklistRun from '../app/routes/checklist-run';
+import ChecklistFix from '../app/routes/checklist-fix';
 import { deviceStore } from '../app/lib/store';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
 
@@ -32,6 +35,9 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="close/done" element={<Done />} />
             <Route path="close/:section" element={<Section />} />
             <Route path="close/:session/cash" element={<CashCount />} />
+            <Route path="checklists" element={<Checklists />} />
+            <Route path="checklists/:key" element={<ChecklistRun />} />
+            <Route path="checklists/:key/fix/:checkpoint" element={<ChecklistFix />} />
             <Route path="head-office" element={<HeadOffice />} />
           </Route>
         </Routes>
