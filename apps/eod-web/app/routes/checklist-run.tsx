@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Link, Navigate, useParams } from 'react-router';
 import { clockTime, evaluate, summariseRun } from '@maginhawa/core';
 import { can, useAuth } from '../lib/auth';
 import { runPath, useChecklists } from '../lib/checklists';
@@ -11,25 +11,14 @@ import { TempSheet } from '../components/TempSheet';
 import { useTouch, useTwoColumns } from '../lib/wide';
 
 export default function ChecklistRun() {
-  const navigate = useNavigate();
   const { key: raw = '' } = useParams();
   const key = decodeURIComponent(raw);
   const { user } = useAuth();
-  const { templateFor, runFor, answer, finish, businessDate, tasks, sync, setWhere } = useChecklists();
-  const [finishing, setFinishing] = useState(false);
-  const [beaten, setBeaten] = useState<string | null>(null);
+  const { templateFor, runFor, answer, businessDate, tasks, sync, setWhere } = useChecklists();
   const two = useTwoColumns();
   const touch = useTouch();
   // The big temperature entry, open for one check at a time.
   const [big, setBig] = useState<string | null>(null);
-  // ⌘↵ finishes on desktop.
-  const finishRef = useRef<(() => void) | null>(null);
-  useEffect(() => {
-    if (!two) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); finishRef.current?.(); } };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [two]);
   const template = templateFor(key);
   const title = template?.title ?? null;
   // Other devices see "Jo is in Closing checks".
@@ -43,19 +32,8 @@ export default function ChecklistRun() {
 
   const sections = [...new Set(template.checkpoints.map((c) => c.section ?? ''))];
   const here = sync.others.filter((p) => p.where === template.title);
-  const onFinish = async () => {
-    setFinishing(true);
-    const out = await finish(key, user?.name);
-    setFinishing(false);
-    // Someone else finished it first: nothing changed, so stay and say who.
-    if (out.already) setBeaten(out.message);
-    else {
-      // Beside the list, finishing opens the next one still to do.
-      const after = two ? nextAfter(tasks, key) : undefined;
-      navigate(after ? runPath(after.key) : '/checklists');
-    }
-  };
-  finishRef.current = !done && s.canFinish && !finishing ? () => void onFinish() : null;
+  // Answers save as you go. Lists are locked together by the Submit under the checklists.
+  const after = nextAfter(tasks, key);
   const bigCheck = big ? template.checkpoints.find((c) => c.id === big) : undefined;
   const nextTemp = (id: string) => {
     const at = template.checkpoints.findIndex((c) => c.id === id);
@@ -74,9 +52,8 @@ export default function ChecklistRun() {
             <span>{template.who}<small>Who does it</small></span>
           </div>
         </div>
-        {beaten && <div className="sync-card" role="alert"><span className="tx"><b>Already finished</b><small>{beaten}. Your Finish didn't change anything.</small></span></div>}
         {here.length > 0 && <PresenceLine others={here} />}
-        {done && <div className="banner"><Icon d={ICONS.lock} size={16} /><span>Finished at {new Date(run!.completedAt!).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} by {run!.completedBy}. Locked: {canCorrect ? 'a correction keeps the old answer and needs a reason.' : "answers can't be changed."}</span></div>}
+        {done && <div className="banner"><Icon d={ICONS.lock} size={16} /><span>Submitted at {new Date(run!.completedAt!).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} by {run!.completedBy}. Locked: {canCorrect ? 'a correction keeps the old answer and needs a reason.' : "answers can't be changed."}</span></div>}
 
         {sections.map((sec) => (
           <section className="grp" key={sec || 'all'}>
@@ -101,7 +78,7 @@ export default function ChecklistRun() {
                         <div className="banner" style={{ marginBottom: 8 }}><Icon d={ICONS.check} size={16} /><span>Dealt with: {fixed.actions.join(', ').toLowerCase()}. Re-check in {fixed.recheckInMinutes} min{fixed.reportFault ? ' · fault reported' : ''}.</span></div>
                       ) : (
                         <div style={{ display: 'flex', gap: 14, alignItems: 'center', padding: 14, borderRadius: 16, background: 'var(--badbg)', marginBottom: 8 }}>
-                          <span className="tx"><span style={{ fontWeight: 600 }}>{e.reason}</span><small style={{ color: 'var(--text)', opacity: .75 }}>Say what you did about it before you finish.</small></span>
+                          <span className="tx"><span style={{ fontWeight: 600 }}>{e.reason}</span><small style={{ color: 'var(--text)', opacity: .75 }}>Say what you did about it before it's submitted.</small></span>
                           {!done && <Link className="chip" style={{ background: 'var(--bad)', color: '#fff', display: 'flex', alignItems: 'center', textDecoration: 'none' }} to={`${runPath(key)}/fix/${c.id}`}>Fix this</Link>}
                         </div>
                       )
@@ -115,10 +92,10 @@ export default function ChecklistRun() {
       </div>
       {!done && (
         <Foot>
-          <button type="button" className="btn b1" disabled={!s.canFinish || finishing} onClick={onFinish}>
-            {s.unfixed ? `Fix ${s.unfixed} failed ${s.unfixed === 1 ? 'check' : 'checks'} first` : s.requiredLeft ? `${s.requiredLeft} left to answer` : 'Finish'}
-          </button>
-          {two && s.canFinish && <p className="note"><span className="kbd">⌘↵</span> finishes{nextAfter(tasks, key) ? ` and opens ${nextAfter(tasks, key)!.title}` : ''}</p>}
+          {s.canFinish
+            ? <Link className="btn b1" to={after ? runPath(after.key) : '/checklists'}>{after ? `Next: ${after.title}` : 'Back to checklists'}</Link>
+            : <button type="button" className="btn b1" disabled>{s.unfixed ? `Fix ${s.unfixed} failed ${s.unfixed === 1 ? 'check' : 'checks'} first` : `${s.requiredLeft} left to answer`}</button>}
+          <p className="note">{s.canFinish ? 'Saved. Submit it with the others under the checklists.' : 'Answers save as you go.'}</p>
         </Foot>
       )}
       {bigCheck && (

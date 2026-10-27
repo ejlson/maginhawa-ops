@@ -396,6 +396,8 @@ a.linkbtn { text-decoration: none; }
 /* ---- head office frame: sidebar on desktop and iPad, tab bar on phones ---- */
 .ho-shell { display: flex; min-height: 100dvh; }
 .ho-side { flex: none; width: 260px; box-sizing: border-box; position: sticky; top: 0; height: 100dvh; overflow-y: auto; background: var(--side, var(--fill)); display: flex; flex-direction: column; gap: 24px; padding: 28px 14px; }
+/* When the EOD sections make the sidebar taller than the screen, it scrolls rather than squashing the search bar. */
+.ho-side > * { flex-shrink: 0; }
 .ho-brand { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; }
 .ho-brand span { font-size: 14px; color: var(--sec); }
 .ho-brand b { font-size: 26px; font-weight: 700; letter-spacing: -.035em; }
@@ -602,9 +604,11 @@ a.linkbtn { text-decoration: none; }
 .page.split-page { max-width: none; margin: 0; display: grid; grid-template-columns: minmax(320px, 380px) minmax(0, 1fr); align-items: start; }
 .split-list { position: sticky; top: 0; height: 100dvh; overflow-y: auto; box-sizing: border-box; padding: 18px 20px 40px 28px; border-right: .5px solid var(--sep); display: flex; flex-direction: column; gap: 18px; scrollbar-width: thin; }
 .split-hd { display: flex; justify-content: space-between; align-items: center; min-height: 20px; }
-.split-list .sub > div > .li { margin: 0 -10px; padding: 0 10px; border-radius: 12px; width: calc(100% + 20px); }
-.split-list .sub > div > .li:hover { background: var(--sel); }
-.split-list .sel > .li { background: var(--sel); }
+.split-list .sub > div > .li { margin: 0 -10px; padding: 0 10px; border-radius: 14px; width: calc(100% + 20px); border-block: 2px solid transparent; background-clip: padding-box; transition: background-color .12s ease; }
+/* Hover is a lighter tint than the open list, and a 4px gap keeps neighbouring rows from merging into one block. */
+.split-list .sub > div > .li:hover { background-color: color-mix(in srgb, var(--sel) 55%, transparent); }
+.split-list .sel > .li, .split-list .sel > .li:hover { background-color: var(--sel); }
+.split-list .sub > div:hover > .li::before, .split-list .sub > div:hover + div > .li::before { display: none; }
 .split-list .sub > div:not(.sl) + div > .li::before { content: ''; position: absolute; top: 0; left: 66px; right: 10px; height: .5px; background: var(--sep); }
 .split-list .sel > .li::before, .split-list .sel + div > .li::before { display: none; }
 .split-main { min-width: 0; min-height: 100dvh; display: flex; flex-direction: column; }
@@ -634,3 +638,23 @@ a.linkbtn { text-decoration: none; }
 .tsheet .btn.b1 { height: 60px; font-size: 18px; }
 .tread { white-space: nowrap; }
 @media (max-width: 500px) { .tread { font-size: 68px; } .tread small { font-size: 26px; } .tstep { width: 68px; height: 68px; font-size: 32px; } .tsheet { padding: 20px 18px 14px; gap: 18px; } }
+
+/* The one Submit under all the checklists. */
+.submit-lists { display: flex; flex-direction: column; gap: 4px; padding: 20px 0 8px; }
+.submit-lists .btn { width: 100%; }
+.submit-lists .note { text-align: center; }
+.split-list .submit-lists { padding: 20px 16px 24px; }
+.submit-lists { align-items: stretch; }
+.submit-lists .linkbtn { align-self: center; min-height: 44px; }
+.confirm-back { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 16px; animation: confirm-fade .16s ease-out; }
+.confirm { width: min(340px, 100%); box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; padding: 24px 20px 20px; border-radius: 22px; background: var(--side); box-shadow: inset 0 0 0 1px var(--sep), 0 40px 80px -20px rgba(0,0,0,.6); text-align: center; animation: confirm-pop .2s cubic-bezier(.2,.9,.3,1.2); }
+.confirm h2 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -.02em; }
+.confirm p { margin: 0; font-size: 15px; line-height: 1.45; color: var(--sec); }
+.confirm-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.confirm-btn { height: 48px; border: 0; border-radius: 999px; background: var(--fill); color: var(--text); font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; }
+.confirm-btn.pri { background: var(--ink); color: var(--onink); }
+.confirm-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--link); }
+.confirm-btn:disabled { opacity: .5; cursor: default; }
+@keyframes confirm-fade { from { opacity: 0; } }
+@keyframes confirm-pop { from { opacity: 0; transform: scale(.96); } }
+@media (prefers-reduced-motion: reduce) { .confirm-back, .confirm { animation: none; } }

@@ -74,10 +74,25 @@ describe('doing a checklist', () => {
     await user.click(screen.getByRole('button', { name: 'Save and set re-check' }));
 
     expect(await screen.findByText(/Dealt with: moved food to another fridge/)).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Finish' }));
+    // Answers save as you go; nothing is locked from inside the list.
+    expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument();
+    expect(screen.getByText('Saved. Submit it with the others under the checklists.')).toBeInTheDocument();
+    await user.click(screen.getAllByRole('link', { name: 'Checklists' })[0]!);
 
-    expect(await screen.findByRole('heading', { name: 'Checklists' })).toBeInTheDocument();
-    expect(screen.getByText('Completed · fixed')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Ready to submit' })).toBeInTheDocument();
+    expect(screen.getByText('Ready to submit', { selector: '.pill' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Submit all' }));
+    // It asks first, because submitting locks the records.
+    const ask = screen.getByRole('alertdialog', { name: 'Submit this checklist?' });
+    expect(ask).toHaveTextContent("Once submitted, it can't be edited.");
+    // Escape backs out without locking anything.
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Submit all' }));
+    expect(screen.queryByText('Completed · fixed')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('Completed · fixed')).toBeInTheDocument();
+    expect(screen.getByText('1 checklist submitted and locked.')).toBeInTheDocument();
     expect(screen.getByText('Re-check walk-in fridge')).toBeInTheDocument();
   });
 

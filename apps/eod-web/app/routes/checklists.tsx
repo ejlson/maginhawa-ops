@@ -3,7 +3,7 @@ import { PHASE_LABELS, PHASES, type Phase } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
 import { runPath, useChecklists } from '../lib/checklists';
 import { Foot, Nav } from '../components/ui';
-import { groupTasks, SplitFrame, TaskRow } from '../components/ChecklistSplit';
+import { groupTasks, SplitFrame, SubmitLists, TaskRow } from '../components/ChecklistSplit';
 import { useTwoColumns } from '../lib/wide';
 import { TabBar } from '../components/TabBar';
 import { can, useAuth } from '../lib/auth';
@@ -15,7 +15,7 @@ export default function Checklists() {
   const phase = (PHASES as readonly string[]).includes(params.get('phase') ?? '') ? (params.get('phase') as Phase) : null;
   const tasks = phase ? all.filter((t) => t.template.phase === phase) : all;
   const title = phase ? `${PHASE_LABELS[phase]} checklists` : 'Checklists';
-  const { now, missed, later, anytime, done, next } = groupTasks(tasks);
+  const { now, missed, later, anytime, ready, done, next } = groupTasks(tasks);
   const scheduled = tasks.filter((t) => t.status !== 'anytime');
   const two = useTwoColumns();
 
@@ -73,14 +73,23 @@ export default function Checklists() {
           {!now.length && !missed.length && !later.length && <p className="note" style={{ margin: 0 }}>Nothing left today. Good work.</p>}
         </section>
 
+        {ready.length > 0 && (
+          <section className="grp">
+            <div className="hd"><h2>Ready to submit</h2><span>{ready.length}</span></div>
+            <div className="sub">{ready.map((t) => <TaskRow key={t.key} t={t} />)}</div>
+          </section>
+        )}
+
         {done.length > 0 && (
           <section className="grp">
             <div className="hd"><h2>Done</h2><span>{done.length}</span></div>
             <div className="sub">{done.map((t) => <TaskRow key={t.key} t={t} />)}</div>
           </section>
         )}
+
+        <SubmitLists />
       </div>
-      {next && (
+      {next && !ready.length && (
         <Foot>
           <Link className="btn b1" to={runPath(next.key)}>{next.status === 'late' ? 'Do now: ' : 'Start '}{next.title}</Link>
         </Foot>

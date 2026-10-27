@@ -36,7 +36,7 @@ export interface ChecklistSyncState {
 export interface FinishOutcome {
   /** Someone else finished it first; this Finish did nothing. */
   already: boolean;
-  /** "Finished by Jo at 21:02" */
+  /** "Submitted by Jo at 21:02" */
   message: string;
   /** No signal: it is queued on this device. */
   queued: boolean;
