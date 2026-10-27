@@ -85,6 +85,18 @@ export const devicePresence = () => (sharedPresence ??= new DevicePresence());
 export const resetDeviceStore = () => { shared = null; sharedChecklists = null; sharedPresence = null; };
 
 /**
+ * Demo mode only: wipes one site's EOD for one day, sent or not, so it can be done again.
+ * Other days, other sites and the checklists are left alone. Reload afterwards so the open screens re-read it.
+ */
+export function resetDemoEod(siteCode: string, businessDate: string) {
+  const rows = storage.get<Record<string, StoredReport>>(KEY, {});
+  delete rows[reportKey(siteCode, businessDate)];
+  storage.set(KEY, rows);
+  // This device's copy and its unsent queue, or the old figures would come straight back.
+  storage.remove(`mgh.sync.eod.v1.${siteCode}|${businessDate}`);
+}
+
+/**
  * Demo mode only: wipes one site's checklists for one day so they can be done again.
  * Other days, other sites and the EOD are left alone. Reload afterwards so the open screens re-read it.
  */
