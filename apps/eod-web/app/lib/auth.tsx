@@ -21,6 +21,7 @@ export const can = {
   doEod: (r: Role) => r === 'supervisor' || r === 'manager',
   editChecklists: (r: Role) => r === 'manager' || r === 'headoffice',
   seeAllSites: (r: Role) => r === 'headoffice',
+  fixRepairs: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
 };
 
 /** Where each role lands after signing in. */
@@ -41,6 +42,15 @@ export interface User {
 }
 
 const KEY = 'mgh.user';
+const peopleKey = (siteCode: string) => `mgh.people.v1.${siteCode}`;
+
+/** People who have used this device at a site, most recent first: the shared kitchen iPad's quick switch. */
+export const recentPeople = (siteCode: string): User[] => storage.get<User[]>(peopleKey(siteCode), []);
+
+export function remember(u: User) {
+  const others = recentPeople(u.siteCode).filter((p) => p.name.toLowerCase() !== u.name.toLowerCase());
+  storage.set(peopleKey(u.siteCode), [u, ...others].slice(0, 8));
+}
 
 interface AuthValue {
   user: User | null;
@@ -52,7 +62,7 @@ const AuthContext = createContext<AuthValue | null>(null);
 
 export function AuthProvider({ children, initialUser }: { children: ReactNode; initialUser?: User | null }) {
   const [user, setUser] = useState<User | null>(() => (initialUser !== undefined ? initialUser : normalise(storage.get<User | null>(KEY, null))));
-  const signIn = useCallback((u: User) => { storage.set(KEY, u); setUser(u); }, []);
+  const signIn = useCallback((u: User) => { storage.set(KEY, u); remember(u); setUser(u); }, []);
   const signOut = useCallback(() => { storage.remove(KEY); setUser(null); }, []);
   const value = useMemo(() => ({ user, signIn, signOut }), [user, signIn, signOut]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

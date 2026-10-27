@@ -6,7 +6,7 @@
 import type { AnswerValue, ChecklistRun, CorrectiveAction } from './checklists';
 import {
   answerKey, buildRuns, finishedByMessage,
-  type AnswerRecord, type ChecklistBackend, type ChecklistOp, type OpOutcome, type RunRecord, type RunStart,
+  type AnswerRecord, type ChecklistBackend, type ChecklistChanges, type ChecklistOp, type OpOutcome, type RunRecord, type RunStart,
 } from './checklist-sync';
 import type { KeyValue, Presence, PresenceRemote } from './live';
 
@@ -17,6 +17,8 @@ export interface ChecklistClientOptions {
   user: string;
   deviceId: string;
   storage?: KeyValue;
+  /** What is stored, if it can be read straight away (demo mode), so the first screen isn't blank. */
+  initial?: ChecklistChanges;
   presence?: PresenceRemote;
   now?: () => Date;
   /** Wait this long to batch answers into one call. 0 = send straight away (demo and tests). */
@@ -66,6 +68,10 @@ export class ChecklistSyncClient {
     this.confirmed = { runs: saved?.runs ?? {}, answers: saved?.answers ?? {} };
     this.cursor = saved?.cursor ?? 0;
     this.queue = saved?.queue ?? [];
+    if (o.initial) {
+      this.take(o.initial.runs, o.initial.answers);
+      this.cursor = Math.max(this.cursor, o.initial.cursor);
+    }
     this.snapshot = this.makeSnapshot();
   }
 

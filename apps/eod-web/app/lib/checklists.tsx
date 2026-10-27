@@ -3,9 +3,9 @@
  * end-of-day report. Several people can work on the same list at once: each answer is
  * its own record, shared live between devices (ChecklistSyncClient in @maginhawa/core).
  */
-import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
 import {
-  activeTemplates, ChecklistSyncClient, PHASE_LABELS, PHASES, runKey, summariseRun, tasksForDay, taskStatus, tradingDate,
+  activeTemplates, addDays, buildRuns, ChecklistSyncClient, PHASE_LABELS, PHASES, runKey, summariseRun, tasksForDay, taskStatus, tradingDate,
   type AnswerValue, type ChecklistRun, type ChecklistSyncState, type FinishOutcome, type Phase, type ChecklistTemplate, type CorrectiveAction, type RunStart, type Task, type TaskStatus,
 } from '@maginhawa/core';
 import { storage } from './storage';
@@ -14,6 +14,8 @@ import { now } from './clock';
 import { useTemplates } from './templates';
 import { useAuth } from './auth';
 import { batchDelayMs, checklistBackend, deviceId, presenceRemote, useLive } from './sync';
+import { isConnected } from './config';
+import { deviceChecklistStore } from './store';
 
 export interface TaskView extends Task {
   status: TaskStatus;
@@ -35,6 +37,8 @@ interface ChecklistsValue {
   /** Saving, offline, who else is here. */
   sync: ChecklistSyncState;
   setWhere: (where: string | null) => void;
+  /** Lists from the last trading day that were never done. */
+  missedYesterday: Task[];
 }
 
 const Ctx = createContext<ChecklistsValue | null>(null);
@@ -50,6 +54,8 @@ export function ChecklistsProvider({ siteCode, children }: { siteCode: string; c
   const client = useMemo(() => new ChecklistSyncClient({
     backend: checklistBackend(), siteCode, businessDate, user: who, deviceId: deviceId(),
     storage, presence: presenceRemote(), now, batchDelayMs: batchDelayMs(),
+    // Demo mode: the "server" is on this device, so today's answers can show straight away.
+    initial: isConnected() ? undefined : deviceChecklistStore().changesNow(siteCode, businessDate, 0),
   }), [siteCode, businessDate, who]);
   useLive(client, `checklists:${siteCode}|${businessDate}`);
   const sync = useSyncExternalStore(client.subscribe, client.getState, client.getState);
@@ -97,9 +103,34 @@ export function ChecklistsProvider({ siteCode, children }: { siteCode: string; c
   const finish = useCallback((key: string) => client.finish(startOf(key)), [client, startOf]);
   const setWhere = useCallback((where: string | null) => client.setWhere(where), [client]);
 
+  // Yesterday's runs: read straight away in demo mode, fetched once in connected mode.
+  const yesterday = addDays(businessDate, -1);
+  const [oldRuns, setOldRuns] = useState<ChecklistRun[]>(() => {
+    if (isConnected()) return [];
+    const c = deviceChecklistStore().changesNow(siteCode, yesterday, 0);
+    return Object.values(buildRuns(c.runs, c.answers));
+  });
+  useEffect(() => {
+    if (!isConnected()) return;
+    let live = true;
+    checklistBackend().changes(siteCode, yesterday, 0)
+      .then((c) => { if (live) setOldRuns(Object.values(buildRuns(c.runs, c.answers))); })
+      .catch(() => undefined);
+    return () => { live = false; };
+  }, [siteCode, yesterday]);
+
+  const missedYesterday = useMemo(() => {
+    const used = activeTemplates(records, siteCode, yesterday);
+    // Nothing saved at all means nobody used the app that day, not that every list was missed.
+    if (!oldRuns.length) return [];
+    const at = now();
+    return tasksForDay(used, oldRuns, yesterday, settings)
+      .filter((t) => !t.recheckOf && taskStatus(t, oldRuns.find((r) => r.key === t.key), at, used.find((x) => x.id === t.templateId), yesterday) === 'missed');
+  }, [records, siteCode, yesterday, settings, oldRuns]);
+
   const value = useMemo<ChecklistsValue>(() => ({
-    businessDate, tasks, runFor: (k) => runs[k], templateFor, answer, fix, finish, sync, setWhere,
-  }), [businessDate, tasks, runs, templateFor, answer, fix, finish, sync, setWhere]);
+    businessDate, tasks, runFor: (k) => runs[k], templateFor, answer, fix, finish, sync, setWhere, missedYesterday,
+  }), [businessDate, tasks, runs, templateFor, answer, fix, finish, sync, setWhere, missedYesterday]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

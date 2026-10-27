@@ -127,6 +127,11 @@ export class MemoryChecklistStore implements ChecklistBackend {
   }
 
   async changes(siteCode: string, businessDate: string, since: number): Promise<ChecklistChanges> {
+    return this.changesNow(siteCode, businessDate, since);
+  }
+
+  /** The same, synchronously: demo mode reads it on the first render. */
+  changesNow(siteCode: string, businessDate: string, since: number): ChecklistChanges {
     this.load();
     const mine = <T extends { siteCode: string; seq: number }>(x: T) => x.siteCode === siteCode && x.seq > since;
     const runs = Object.values(this.data.runs).filter((r) => mine(r) && r.businessDate === businessDate);
