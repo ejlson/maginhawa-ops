@@ -52,7 +52,10 @@ describe('answers', () => {
   it('rule text in plain English', () => {
     expect(ruleText(cp({ type: 'temp', max: 8 }))).toBe('8°C or below');
     expect(ruleText(cp({ type: 'temp', min: 11, max: 13 }))).toBe('11°C to 13°C');
-    expect(ruleText(cp({ type: 'number', min: 150, max: 150, unit: '£' }))).toBe('Should be 150 £');
+    expect(ruleText(cp({ type: 'number', min: 150, max: 150, unit: '£' }))).toBe('Should be £150');
+    expect(ruleText(cp({ type: 'number', min: 2.5, unit: '£' }))).toBe('£2.50 or above');
+    expect(ruleText(cp({ type: 'number', min: -5, max: 5, unit: '£' }))).toBe('−£5 to £5');
+    expect(ruleText(cp({ type: 'number', max: 2.5, unit: 'kg' }))).toBe('2.5 kg or below');
     expect(ruleText(cp({ type: 'temp', max: -18 }))).toBe('−18°C or below');
   });
 });

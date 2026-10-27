@@ -89,14 +89,22 @@ export interface Evaluation {
   reason: string;
 }
 
-const fmt = (n: number, unit = '') => `${String(n).replace('-', '−')}${unit}`;
+const CURRENCY = new Set(['£', '$', '€']);
+
+/** A figure with its unit, the way people write it: 8°C, £150, −£5.50, 2.5 kg. */
+function fmt(n: number, c: Pick<Checkpoint, 'type' | 'unit'>): string {
+  const sign = n < 0 ? '−' : '';
+  const abs = Math.abs(n);
+  if (c.type === 'temp') return `${sign}${abs}°C`;
+  if (c.unit && CURRENCY.has(c.unit)) return `${sign}${c.unit}${Number.isInteger(abs) ? abs : abs.toFixed(2)}`;
+  return `${sign}${abs}${c.unit ? ` ${c.unit}` : ''}`;
+}
 
 export function ruleText(c: Checkpoint): string {
-  const u = c.type === 'temp' ? '°C' : c.unit ? ` ${c.unit}` : '';
   if (c.type === 'temp' || c.type === 'number') {
-    if (c.min !== undefined && c.max !== undefined) return c.min === c.max ? `Should be ${fmt(c.min, u)}` : `${fmt(c.min, u)} to ${fmt(c.max, u)}`;
-    if (c.max !== undefined) return `${fmt(c.max, u)} or below`;
-    if (c.min !== undefined) return `${fmt(c.min, u)} or above`;
+    if (c.min !== undefined && c.max !== undefined) return c.min === c.max ? `Should be ${fmt(c.min, c)}` : `${fmt(c.min, c)} to ${fmt(c.max, c)}`;
+    if (c.max !== undefined) return `${fmt(c.max, c)} or below`;
+    if (c.min !== undefined) return `${fmt(c.min, c)} or above`;
     return '';
   }
   if (c.type === 'yesno' && c.failOn) return `Fails if ${c.failOn === 'yes' ? 'Yes' : 'No'}`;
@@ -119,9 +127,8 @@ export function evaluate(c: Checkpoint, v: AnswerValue | undefined, today: strin
     case 'number': {
       const n = Number(v);
       if (!Number.isFinite(n)) return { answered: false, passed: null, reason: '' };
-      const u = c.type === 'temp' ? '°C' : c.unit ? ` ${c.unit}` : '';
-      if (c.max !== undefined && n > c.max) return { answered: true, passed: false, reason: c.type === 'temp' ? `Too warm: ${fmt(n, u)}` : `Too high: ${fmt(n, u)}` };
-      if (c.min !== undefined && n < c.min) return { answered: true, passed: false, reason: c.type === 'temp' ? `Too cold: ${fmt(n, u)}` : `Too low: ${fmt(n, u)}` };
+      if (c.max !== undefined && n > c.max) return { answered: true, passed: false, reason: c.type === 'temp' ? `Too warm: ${fmt(n, c)}` : `Too high: ${fmt(n, c)}` };
+      if (c.min !== undefined && n < c.min) return { answered: true, passed: false, reason: c.type === 'temp' ? `Too cold: ${fmt(n, c)}` : `Too low: ${fmt(n, c)}` };
       return { answered: true, passed: c.min !== undefined || c.max !== undefined ? true : null, reason: '' };
     }
     case 'date': {

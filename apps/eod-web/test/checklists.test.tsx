@@ -85,7 +85,7 @@ describe('doing a checklist', () => {
     at('2026-10-05T15:20:00Z'); // 16:20 BST
     const { user } = renderApp(bar);
     await user.type(screen.getByLabelText('Float in the till'), '140');
-    expect(screen.getByText('Too low: 140 £')).toBeInTheDocument();
+    expect(screen.getByText('Too low: £140')).toBeInTheDocument();
     const garnish = screen.getByRole('group', { name: 'Garnishes prepped' });
     await user.click(within(garnish).getByRole('button', { name: 'Limes' }));
     await user.click(within(garnish).getByRole('button', { name: 'Calamansi' }));
