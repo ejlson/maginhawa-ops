@@ -933,6 +933,734 @@
       ]
     },
     {
+      "group": "Food safety",
+      "name": "Dishes",
+      "purpose": "Every dish on a menu, for the allergen matrix",
+      "written_by": "Manager / Head office",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Dish name",
+          "flags": "R"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "Blank = on every site's menu",
+          "flags": "I"
+        },
+        {
+          "name": "Course",
+          "type": "Text",
+          "notes": "Starters, Mains, Desserts…",
+          "flags": ""
+        },
+        {
+          "name": "CurrentVersion",
+          "type": "Number",
+          "notes": "Latest AllergenVersions.Version",
+          "flags": ""
+        },
+        {
+          "name": "Active",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": "I"
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "AllergenVersions",
+      "purpose": "Each version of a dish's 14-allergen list; never edited or deleted",
+      "written_by": "Manager / Head office (append-only)",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "DishId|Version",
+          "flags": "IUR"
+        },
+        {
+          "name": "Dish",
+          "type": "Lookup → Dishes",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Version",
+          "type": "Number",
+          "notes": "1, 2, 3…",
+          "flags": "R"
+        },
+        {
+          "name": "Allergens",
+          "type": "Choice (multi)",
+          "notes": "The 14: Celery, Cereals with gluten, Crustaceans, Eggs, Fish, Lupin, Milk, Molluscs, Mustard, Tree nuts, Peanuts, Sesame, Soya, Sulphites",
+          "flags": ""
+        },
+        {
+          "name": "ChangeNote",
+          "type": "Text",
+          "notes": "Why it changed, e.g. new supplier",
+          "flags": ""
+        },
+        {
+          "name": "ChangedBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "AllergenReads",
+      "purpose": "Who has confirmed reading which version of a dish",
+      "written_by": "App",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "DishId|StaffId",
+          "flags": "IUR"
+        },
+        {
+          "name": "Dish",
+          "type": "Lookup → Dishes",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Staff",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "VersionRead",
+          "type": "Number",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "CookingLogs",
+      "purpose": "Core temperatures on cooking and reheating, and the cooling timer",
+      "written_by": "App",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "ClientId",
+          "flags": "IUR"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "BusinessDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Dish",
+          "type": "Text",
+          "notes": "Dish or batch",
+          "flags": "R"
+        },
+        {
+          "name": "Kind",
+          "type": "Choice",
+          "notes": "Cook / Reheat",
+          "flags": ""
+        },
+        {
+          "name": "CoreTempC",
+          "type": "Number",
+          "notes": "75°C or above (guidance)",
+          "flags": "R"
+        },
+        {
+          "name": "Probe",
+          "type": "Lookup → Probes",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "CoolingStartedAt",
+          "type": "Date/Time",
+          "notes": "Blank if served or hot-held",
+          "flags": ""
+        },
+        {
+          "name": "CoolingReadings",
+          "type": "Multi-line text",
+          "notes": "JSON [{at, tempC}]",
+          "flags": ""
+        },
+        {
+          "name": "InFridgeAt",
+          "type": "Date/Time",
+          "notes": "Due within 90 minutes of CoolingStartedAt",
+          "flags": ""
+        },
+        {
+          "name": "RecordedBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "Probes",
+      "purpose": "Temperature probes per site",
+      "written_by": "Manager",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "e.g. Probe 2 · kitchen",
+          "flags": "R"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Asset",
+          "type": "Lookup → Assets",
+          "notes": "Optional",
+          "flags": ""
+        },
+        {
+          "name": "Retired",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "ProbeCalibrations",
+      "purpose": "Weekly iced-water (−1 to 1°C) and boiling-water (99 to 101°C) readings",
+      "written_by": "App",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "ClientId",
+          "flags": "IUR"
+        },
+        {
+          "name": "Probe",
+          "type": "Lookup → Probes",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "CheckedOn",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "IceC",
+          "type": "Number",
+          "notes": "",
+          "flags": "R"
+        },
+        {
+          "name": "BoilC",
+          "type": "Number",
+          "notes": "",
+          "flags": "R"
+        },
+        {
+          "name": "Passed",
+          "type": "Yes/No",
+          "notes": "Set by the app from the ranges in packages/core",
+          "flags": ""
+        },
+        {
+          "name": "CheckedBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "Suppliers",
+      "purpose": "Approved suppliers",
+      "written_by": "Head office",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Supplier name",
+          "flags": "IUR"
+        },
+        {
+          "name": "Approved",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Notes",
+          "type": "Multi-line text",
+          "notes": "Certificates, audits",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "Deliveries",
+      "purpose": "Goods received, with chilled temperature and packaging",
+      "written_by": "App",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "ClientId",
+          "flags": "IUR"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Supplier",
+          "type": "Lookup → Suppliers",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "ReceivedAt",
+          "type": "Date/Time",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "ChilledC",
+          "type": "Number",
+          "notes": "8°C or below",
+          "flags": ""
+        },
+        {
+          "name": "PackagingOk",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Rejected",
+          "type": "Multi-line text",
+          "notes": "Items sent back",
+          "flags": ""
+        },
+        {
+          "name": "ReceivedBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "DeliveryItems",
+      "purpose": "Each item's batch code and use-by date, for tracing and recalls",
+      "written_by": "App",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Item name",
+          "flags": "R"
+        },
+        {
+          "name": "Delivery",
+          "type": "Lookup → Deliveries",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "BatchCode",
+          "type": "Text",
+          "notes": "Matched against FoodAlerts",
+          "flags": "I"
+        },
+        {
+          "name": "UseBy",
+          "type": "Date",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "FoodAlerts",
+      "purpose": "FSA food alerts and recalls (entered by head office)",
+      "written_by": "Head office",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Alert title",
+          "flags": "R"
+        },
+        {
+          "name": "Reason",
+          "type": "Text",
+          "notes": "e.g. undeclared milk",
+          "flags": ""
+        },
+        {
+          "name": "IssuedOn",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Batches",
+          "type": "Multi-line text",
+          "notes": "One per line: exact code or a range 'CM-4460 to CM-4479'",
+          "flags": ""
+        },
+        {
+          "name": "SourceUrl",
+          "type": "Hyperlink",
+          "notes": "food.gov.uk alert page",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "AlertActions",
+      "purpose": "What each site did about an alert that matched its deliveries",
+      "written_by": "App",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "AlertId|SiteCode",
+          "flags": "IUR"
+        },
+        {
+          "name": "Alert",
+          "type": "Lookup → FoodAlerts",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Action",
+          "type": "Choice",
+          "notes": "Set aside / Sent back / Not in stock",
+          "flags": "R"
+        },
+        {
+          "name": "ActionBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "Complaints",
+      "purpose": "Customer complaints about food (Food Safety Act s.14)",
+      "written_by": "Supervisor / Manager",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "ClientId",
+          "flags": "IUR"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "ReceivedAt",
+          "type": "Date/Time",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Kind",
+          "type": "Choice",
+          "notes": "Foreign body / Felt ill / Allergic reaction / Not what I ordered / Undercooked / Other",
+          "flags": "R"
+        },
+        {
+          "name": "Dish",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Batch",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Details",
+          "type": "Multi-line text",
+          "notes": "",
+          "flags": "R"
+        },
+        {
+          "name": "Photos",
+          "type": "Multi-line text",
+          "notes": "Photo library links",
+          "flags": ""
+        },
+        {
+          "name": "ItemKept",
+          "type": "Yes/No",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Actions",
+          "type": "Choice (multi)",
+          "notes": "Replaced / Refunded / Checked the batch / Took the dish off / Told the head chef",
+          "flags": ""
+        },
+        {
+          "name": "CustomerContact",
+          "type": "Text",
+          "notes": "Only with consent; never in inspector packs; cleared after the keep period",
+          "flags": ""
+        },
+        {
+          "name": "RecordedBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "Inspections",
+      "purpose": "Inspector visits and hygiene ratings",
+      "written_by": "Manager / Head office",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Who visited",
+          "flags": "R"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "VisitedOn",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Rating",
+          "type": "Number",
+          "notes": "0–5, blank if not rated",
+          "flags": ""
+        },
+        {
+          "name": "Outcome",
+          "type": "Multi-line text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "ReportLink",
+          "type": "Hyperlink",
+          "notes": "Reports library",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "Notices",
+      "purpose": "Improvement / prohibition notices and warnings, with deadlines",
+      "written_by": "Manager / Head office",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "What it's about",
+          "flags": "R"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Inspection",
+          "type": "Lookup → Inspections",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Kind",
+          "type": "Choice",
+          "notes": "Improvement notice / Prohibition notice / Written warning",
+          "flags": "R"
+        },
+        {
+          "name": "ServedOn",
+          "type": "Date",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "FixBy",
+          "type": "Date",
+          "notes": "Reminder 7 days before",
+          "flags": "I"
+        },
+        {
+          "name": "AppealBy",
+          "type": "Date",
+          "notes": "Reminder 7 days before",
+          "flags": ""
+        },
+        {
+          "name": "ClosedOn",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "WorkOrder",
+          "type": "Lookup → WorkOrders",
+          "notes": "Optional repair job",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "SafetyReviews",
+      "purpose": "4-weekly food-safety review per site",
+      "written_by": "Manager",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "SiteCode|yyyy-mm-dd",
+          "flags": "IUR"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "ReviewedOn",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "RepeatFaults",
+          "type": "Multi-line text",
+          "notes": "JSON snapshot of the repeat faults shown",
+          "flags": ""
+        },
+        {
+          "name": "Answers",
+          "type": "Multi-line text",
+          "notes": "JSON {dishes, staff, equipment}",
+          "flags": ""
+        },
+        {
+          "name": "ReviewedBy",
+          "type": "Lookup → Staff",
+          "notes": "",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Food safety",
+      "name": "KeepPeriods",
+      "purpose": "How long each kind of record is kept; nothing is cleared without head office approval",
+      "written_by": "Head office",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Record type: checks, faults, allergens, complaints, training, fitness, inspections",
+          "flags": "IUR"
+        },
+        {
+          "name": "Months",
+          "type": "Number",
+          "notes": "Suggested defaults in packages/core DEFAULT_KEEP",
+          "flags": "R"
+        },
+        {
+          "name": "FromLeaving",
+          "type": "Yes/No",
+          "notes": "Counted from when the person leaves",
+          "flags": ""
+        }
+      ]
+    },
+    {
       "group": "Maintenance",
       "name": "Assets",
       "purpose": "Equipment register with QR sticker per unit",

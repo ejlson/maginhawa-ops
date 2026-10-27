@@ -12,6 +12,7 @@ import { useTradingHistory } from '../../lib/history';
 import { Foot, Icon, ICONS, RowLink } from '../ui';
 import { TabBar } from '../TabBar';
 import { EodHero, EodRow, firstName, greeting, HomeHeader, isDaytime, NextChecklistHero, PhaseRows, TimelineRow, useEod, useToday } from './shared';
+import { FoodSafetyRow } from '../FoodSafetyRow';
 
 interface LastNight {
   net: Pence;
@@ -153,12 +154,13 @@ export function ManagerHome() {
 
         {morning && <LastSevenDays />}
 
-        <section className="grp">
+        <section className="grp side">
           <div className="hd"><h2>Today</h2>{user && can.editChecklists(user.role) && <Link className="linkbtn" to="/checklists/edit">Edit lists</Link>}</div>
           <div className="sub">
             <div className="sl"><span>Checklists</span></div>
             <PhaseRows />
             <TimelineRow />
+            <FoodSafetyRow />
           </div>
           <div className="sub">
             <div className="sl"><span>End of day</span></div>

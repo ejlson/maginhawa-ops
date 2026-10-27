@@ -138,6 +138,11 @@ div.li { cursor: default; }
 .in:focus { box-shadow: 0 0 0 2px var(--link); }
 .in.bad { box-shadow: 0 0 0 2px var(--bad); }
 .in.wide { width: 100%; text-align: left; }
+.tempin { display: inline-flex; align-items: center; gap: 6px; }
+.pm { width: 42px; height: 42px; border: 0; border-radius: 10px; background: var(--fill); color: var(--text); font: inherit; font-size: 18px; font-weight: 600; cursor: pointer; }
+.pm[aria-pressed="true"] { background: var(--ink); color: var(--onink); }
+.pm:disabled { opacity: .5; cursor: default; }
+.pm-gap { width: 42px; flex: none; }
 .in.short { width: 76px; text-align: center; font-weight: 600; }
 .ta { border: 0; background: var(--fill); border-radius: 14px; font: inherit; color: var(--text); width: 100%; min-height: 84px; resize: vertical; padding: 12px 14px; outline: none; }
 .ta:focus { box-shadow: 0 0 0 2px var(--link); }
@@ -456,15 +461,35 @@ a.linkbtn { text-decoration: none; }
 /* With the sidebar showing, the name menu lives there, not in the top bar too. */
 .ho-shell .ho-main .nav .whomenu { display: none; }
 
-/* ---- Home, Checklists and the EOD overview on wide screens: two columns under a full-width top ---- */
+/* ---- Site screens on wide screens: one frame, two columns that each stack on their own ---- */
 @media (min-width: 1100px) {
-  .site-shell .page.tabs { max-width: 1120px; }
-  .site-shell .page.tabs > .body { display: block; columns: 2; column-gap: 48px; }
-  .site-shell .page.tabs > .body > * { break-inside: avoid; margin-bottom: 32px; }
-  .site-shell .page.tabs > .body > .top { column-span: all; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 48px; align-items: start; }
-  .site-shell .page.tabs > .body > .top > :only-child { grid-column: 1 / -1; }
-  .site-shell .page.tabs .foot { display: flex; flex-direction: row-reverse; justify-content: flex-start; gap: 12px; }
-  .site-shell .page.tabs .foot .btn { width: auto; min-width: 280px; }
+  .site-shell .page:not(.wide, .eod-page, .day-page, .pack) { max-width: 1120px; }
+
+  /* Home, Checklists and the EOD overview: the title and the main lists on the left; the dark card, then
+     the section marked .side and everything after it, on the right. Floats let each column stack on its
+     own, so neither leaves a gap beside the other. */
+  .site-shell .page.tabs > .body { display: flow-root; }
+  .site-shell .page.tabs > .body > .top { display: contents; }
+  .site-shell .page.tabs > .body > :not(.top),
+  .site-shell .page.tabs > .body > .top > * { float: left; clear: left; width: calc(50% - 24px); margin: 0 0 32px; }
+  .site-shell .page.tabs > .body > .top > .titleblock { margin-bottom: 40px; }
+  .site-shell .page.tabs > .body > .top > .hero,
+  .site-shell .page.tabs > .body > .side,
+  .site-shell .page.tabs > .body > .side ~ * { float: right; clear: right; }
+
+  /* Every other site screen: the content on the left, the dark card at the top right, like the EOD sections. */
+  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack) > .body { position: relative; padding-right: calc(50% + 24px); }
+  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack) > .body > .hero:not(.hero ~ .hero),
+  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack) > .body > .top > .hero:not(.hero ~ .hero) { position: absolute; top: 8px; right: max(20px, env(safe-area-inset-right)); width: calc(50% - 44px); box-sizing: border-box; }
+
+  /* Actions stack at the foot of the right column, as on a phone; the left column is never covered. */
+  .site-shell .page:not(.wide, .eod-page, .day-page, .pack) .foot { padding-left: calc(50% + 24px); background: none; backdrop-filter: none; -webkit-backdrop-filter: none; pointer-events: none; }
+  .site-shell .page:not(.wide, .eod-page, .day-page, .pack) .foot::before { content: ''; position: absolute; z-index: -1; top: -24px; right: 0; bottom: 0; left: calc(50% + 4px); background: linear-gradient(to bottom, transparent, var(--bg) 24px); }
+  .site-shell .page:not(.wide, .eod-page, .day-page, .pack) .foot > * { pointer-events: auto; }
+  .site-shell .page.tabs .body { padding-bottom: 180px; }
+
+  /* The sidebar already names the site. */
+  .site-shell .homenav .title { visibility: hidden; }
 }
 
 /* ---- the day hour by hour ---- */
@@ -500,3 +525,50 @@ a.linkbtn { text-decoration: none; }
 .seg button { border: 0; background: transparent; color: var(--sec); font: inherit; font-size: 14.5px; font-weight: 600; height: 36px; padding: 0 16px; border-radius: 9px; cursor: pointer; }
 .seg button[aria-selected="true"] { background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 .seg button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--link); }
+
+/* ---- Food safety (HANDOFF.md §8a) ---- */
+.how { display: inline-flex; align-items: center; font-size: 14px; font-weight: 500; color: var(--link); text-decoration: none; margin: -2px 0 10px; }
+.allergen-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px; }
+.allergen-grid .fr { min-height: 46px; font-size: 15px; }
+.wide-in { width: 190px; text-align: left; }
+.item-card { padding: 4px 0; border-bottom: .5px solid var(--sep); }
+.warnbox { background: var(--warnbg); }
+.cool .fr { gap: 10px; flex-wrap: wrap; padding-bottom: 10px; }
+.li[aria-pressed="true"] { background: var(--sel, rgba(0,0,0,.05)); border-radius: 12px; }
+.pack-head { display: flex; flex-direction: column; gap: 8px; }
+.pack-head h1 { margin: 0; font-size: 34px; letter-spacing: -.035em; }
+.pack-head .btn { align-self: flex-start; margin-top: 8px; }
+.pack-sec { display: flex; flex-direction: column; gap: 10px; break-inside: auto; }
+.pack-sec h2 { margin: 0; font-size: 20px; letter-spacing: -.025em; }
+.pack-sec h3 { margin: 8px 0 0; font-size: 15px; }
+.pack-t { width: 100%; border-collapse: collapse; font-size: 13.5px; line-height: 1.4; }
+.pack-t th { text-align: left; font-weight: 600; color: var(--sec); padding: 6px 8px 6px 0; border-bottom: .5px solid var(--sep); }
+.pack-t td { vertical-align: top; padding: 8px 8px 8px 0; border-bottom: .5px solid var(--sep); }
+.pack-t tr { break-inside: avoid; }
+.pack-corr { color: var(--warn); font-size: 12.5px; }
+.pack .body { overflow-x: auto; }
+@media (max-width: 599px) { .allergen-grid { grid-template-columns: 1fr; } .wide-in { width: 150px; } }
+@media print {
+  .no-print, .tabbar, .ho-side, .foot { display: none !important; }
+  .page, .body, .ho-main { padding: 0 !important; margin: 0 !important; max-width: none !important; }
+  body { background: #fff !important; color: #000 !important; }
+  .pack-t { font-size: 10pt; }
+  .pack-corr { color: #8a3b00; }
+}
+
+/* ---- skeleton loading (components/Skeleton.tsx): grey shapes where content will land, with a slow shimmer ---- */
+.sk { display: block; flex: none; max-width: 100%; background: var(--fill); position: relative; overflow: hidden; }
+.sk.on-hero { background: var(--heroline); }
+.sk-li { cursor: default; }
+.sk-li .tx { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
+.hm .sk + .sk { margin-top: 4px; }
+@media (prefers-reduced-motion: no-preference) {
+  .sk::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); animation: sk-shimmer 1.4s ease-in-out infinite; }
+  .sk.on-hero::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent); }
+  @media (prefers-color-scheme: dark) { .sk::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent); } }
+  /* Fade in so a skeleton that only just shows doesn't blink. */
+  [aria-busy="true"], .sub[role="status"] { animation: sk-in .2s ease-out; }
+}
+@keyframes sk-shimmer { to { transform: translateX(100%); } }
+@keyframes sk-in { from { opacity: 0; } }

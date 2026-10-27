@@ -28,6 +28,23 @@ import Repairs from '../app/routes/repairs';
 import Handover from '../app/routes/handover';
 import Switch from '../app/routes/switch';
 import Account from '../app/routes/account';
+import ChecklistCorrect from '../app/routes/checklist-correct';
+import FoodSafety from '../app/routes/food-safety';
+import FsRecords from '../app/routes/fs-records';
+import FsPack from '../app/routes/fs-pack';
+import FsKeep from '../app/routes/fs-keep';
+import FsAllergens from '../app/routes/fs-allergens';
+import FsDish from '../app/routes/fs-dish';
+import FsCooking from '../app/routes/fs-cooking';
+import FsProbes from '../app/routes/fs-probes';
+import FsDeliveries from '../app/routes/fs-deliveries';
+import FsDeliveryNew from '../app/routes/fs-delivery-new';
+import FsComplaints from '../app/routes/fs-complaints';
+import FsComplaintNew from '../app/routes/fs-complaint-new';
+import FsPeople from '../app/routes/fs-people';
+import FsFit from '../app/routes/fs-fit';
+import FsInspections from '../app/routes/fs-inspections';
+import FsReview from '../app/routes/fs-review';
 import { deviceStore } from '../app/lib/store';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
 
@@ -56,6 +73,23 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="checklists/edit/:id/check/:check" element={<ChecklistCheck />} />
             <Route path="checklists/:key" element={<ChecklistRun />} />
             <Route path="checklists/:key/fix/:checkpoint" element={<ChecklistFix />} />
+            <Route path="checklists/:key/correct/:checkpoint" element={<ChecklistCorrect />} />
+            <Route path="food-safety" element={<FoodSafety />} />
+            <Route path="food-safety/records" element={<FsRecords />} />
+            <Route path="food-safety/records/pack" element={<FsPack />} />
+            <Route path="food-safety/keep" element={<FsKeep />} />
+            <Route path="food-safety/allergens" element={<FsAllergens />} />
+            <Route path="food-safety/allergens/:dish" element={<FsDish />} />
+            <Route path="food-safety/cooking" element={<FsCooking />} />
+            <Route path="food-safety/probes" element={<FsProbes />} />
+            <Route path="food-safety/deliveries" element={<FsDeliveries />} />
+            <Route path="food-safety/deliveries/new" element={<FsDeliveryNew />} />
+            <Route path="food-safety/complaints" element={<FsComplaints />} />
+            <Route path="food-safety/complaints/new" element={<FsComplaintNew />} />
+            <Route path="food-safety/people" element={<FsPeople />} />
+            <Route path="food-safety/fit-to-work" element={<FsFit />} />
+            <Route path="food-safety/inspections" element={<FsInspections />} />
+            <Route path="food-safety/review" element={<FsReview />} />
             <Route path="head-office" element={<HeadOffice />} />
             <Route path="report" element={<Report />} />
             <Route path="repairs" element={<Repairs />} />

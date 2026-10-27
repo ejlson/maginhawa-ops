@@ -77,7 +77,7 @@ export function useEod() {
 export function HomeHeader({ right }: { right?: ReactNode }) {
   const { settings, savedAt } = useDraft();
   return (
-    <header className="nav" style={{ paddingLeft: 20 }}>
+    <header className="nav homenav" style={{ paddingLeft: 20 }}>
       <span className="title">{settings.siteName}</span>
       {right ?? <>
         <span className="saved"><span className="dot" />{savedAt ? `Saved ${timeHM(savedAt)}` : 'On this device'}</span>

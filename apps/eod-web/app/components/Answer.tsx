@@ -1,7 +1,7 @@
 /** One checklist question and its answer control: used when doing a list and in the builder's preview. */
 import { useEffect, useRef, useState } from 'react';
 import { evaluate, ruleText, type AnswerValue, type Checkpoint } from '@maginhawa/core';
-import { Icon } from './ui';
+import { Icon, TempInput, nextOnEnter } from './ui';
 
 /** Downscales a photo to keep it small enough to store on the device. */
 async function shrinkPhoto(file: File): Promise<string> {
@@ -31,14 +31,20 @@ function NumberAnswer({ c, value, onChange, invalid, disabled }: { c: Checkpoint
     const v = typeof value === 'number' ? value : null;
     if (!editing && parseNumber(text) !== v) setText(v === null ? '' : String(v));
   }, [value, editing]); // eslint-disable-line react-hooks/exhaustive-deps
+  const change = (t: string) => { setText(t); onChange(parseNumber(t)); };
+  if (c.type === 'temp') {
+    // A reading can only go below zero if the check allows it (no ± on hot holding at 63°C or above).
+    return (
+      <span onFocus={() => setEditing(true)} onBlur={() => setEditing(false)}>
+        <TempInput label={c.title} value={text} onChange={change} invalid={invalid} disabled={disabled} negative={c.min === undefined || c.min < 0} style={{ width: 104 }} />
+      </span>
+    );
+  }
   return (
-    <input className={`in${invalid ? ' bad' : ''}`} style={{ width: 104 }} type="text" inputMode="decimal" disabled={disabled}
-      aria-label={c.title} placeholder={c.type === 'temp' ? '°C' : c.unit ?? ''} value={text}
-      onFocus={() => setEditing(true)} onBlur={() => setEditing(false)}
-      onChange={(e) => {
-        setText(e.target.value);
-        onChange(parseNumber(e.target.value));
-      }} />
+    <input className={`in${invalid ? ' bad' : ''}`} style={{ width: 104 }} type="text" inputMode="decimal" enterKeyHint="next" disabled={disabled}
+      aria-label={c.title} placeholder={c.unit ?? ''} value={text}
+      onFocus={() => setEditing(true)} onBlur={() => setEditing(false)} onKeyDown={nextOnEnter}
+      onChange={(e) => change(e.target.value)} />
   );
 }
 

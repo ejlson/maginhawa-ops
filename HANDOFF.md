@@ -1,6 +1,6 @@
 # Maginhawa Ops: project handoff
 
-*Last updated 26 October 2026 (back end changed from Power Automate to our own Netlify Functions; see §3 and §4). This file is the single source of truth for picking the project up in a new Claude account or by a new person. Read it top to bottom before doing anything.*
+*Last updated 27 October 2026 (food-safety module scope added, §8a; on 26 Oct the back end changed from Power Automate to our own Netlify Functions, §3 and §4). This file is the single source of truth for picking the project up in a new Claude account or by a new person. Read it top to bottom before doing anything.*
 
 ---
 
@@ -84,7 +84,7 @@ The finance team's current EOD form is a **single static page on Netlify**. It p
 | Back end | **Netlify Functions** (TypeScript) replace Power Automate. `submit-eod` runs on submit: re-checks with `packages/core`, writes the official totals (*set by server* columns) and sends the summary email. **Netlify Scheduled Functions** run the 07:00 digest, late-report reminders and the nightly targets import |
 | Server sign-in | `@azure/msal-node`, app-only (client credentials). Secret or certificate kept in Netlify environment variables, never in the repo |
 | Identity | Microsoft Entra ID. Users sign in with MSAL (delegated access to the one site). The server uses app-only **`Sites.Selected`** granted on the "Maginhawa Ops" site, plus **`Mail.Send`** restricted to one shared mailbox (e.g. `ops@…`) |
-| Data | **SharePoint site "Maginhawa Ops"**: 31 lists and 7 document libraries, accessed only through the **Microsoft Graph API**. Use `$batch` (up to 20 requests per call) and honour `Retry-After` |
+| Data | **SharePoint site "Maginhawa Ops"**: 49 lists (16 of them food safety, §8a) and 7 document libraries, accessed only through the **Microsoft Graph API**. Use `$batch` (up to 20 requests per call) and honour `Retry-After` |
 | Email | Graph `sendMail` from a shared mailbox (no licence needed). Resend is the fallback |
 | Reporting | Head-office views and CSV export in our app; finance can also use Excel Power Query on the SharePoint lists. Power BI later, if wanted |
 | Quality | Vitest (unit), Playwright (end-to-end), ESLint + Prettier, pnpm workspaces. Sentry optional for error alerts |
@@ -299,6 +299,30 @@ Full detail with sources: `research/2026-10-research-findings.md`.
 
 ---
 
+## 8a. Food-safety module scope (agreed 27 Oct 2026)
+
+**Why:** under the Food Safety Act 1990, a business's main defence is **"due diligence"** (s.21): proving it "took all reasonable precautions". Inspectors can visit unannounced and inspect and copy records (s.32). The app's logs are that proof, so they must be trustworthy and quick to produce. Source: the FSA's guide to the Act at gov.uk "Key regulations" (2009 edition, read 27 Oct 2026). Rules marked *(beyond the guide)* come from other law or FSA guidance (Food Hygiene Regulations 2013, Food Information Regulations 2014 / Natasha's Law, General Food Law Arts 18–19, Safer Food Better Business). **Confirm them with an environmental health officer before launch.**
+
+**Designs:** "Food safety screens" canvas, https://claude.ai/artifact/WG6Dirxd5TEV2ay6J2TcJU (11 phone screens plus an overview). All names and figures on it are examples.
+
+| # | Feature | What it does | Who | Priority |
+|---|---|---|---|---|
+| 1 | **Records you can trust** | A finished checklist is locked (already built). A **correction** by a supervisor, manager or head office needs a reason and adds a new version; the old answer stays visible to head office and inspectors. Times come from the server | Supervisor and above | Before launch |
+| 2 | **Records for an inspector** | Pick a site and dates, choose what's included, then get one printable PDF (temperatures and checks with corrections, faults and fixes, allergens, deliveries, training, complaints, cleaning). Health answers and customer details are always left out | Supervisor and manager (own site); head office (any site) | Before launch |
+| 3 | **How long we keep records** | Keep period per log type, set by head office. Nothing is cleared without head office saying yes. Suggested: checks and fixes 2 years, allergen versions and complaints 3 years, training until leaving + 2 years, fit-to-work answers 6 months (UK GDPR: health data kept short), inspections and notices 6 years. **No fixed legal period; these are suggestions** | Head office | Later |
+| 4 | **Allergens** | The 14 allergens per dish with every version kept, a change log, staff confirming they've read a change, and an allergen incident report. Full ingredient labels (Natasha's Law) only if a site sells food it pre-packs itself *(beyond the guide)* | Managers edit; everyone reads | Next |
+| 5 | **Cooking and cooling** | Core temperature on cooking and reheating: **75°C or above** (FSA guidance). Cooling: a 90-minute timer to get food into the fridge, with checks. Fridges: **warn above 5°C, fail above 8°C** (legal limit) *(beyond the guide)* | Kitchen | Next |
+| 6 | **Probe calibration** | Weekly readings per probe: iced water **−1 to 1°C**, boiling water **99 to 101°C**. A failed probe can't be picked for temperature checks until it passes | Kitchen | Next |
+| 7 | **Tracing food and recalls** | Deliveries record each item's batch code and use-by date, from approved suppliers only. FSA food alerts are matched against the batches received, and someone records what was done (set aside, sent back, not in stock) (General Food Law Arts 18–19) | Whoever receives deliveries; managers | Later |
+| 8 | **Customer complaints** | Foreign body, illness, allergic reaction, wrong dish, undercooked: photos, item kept, batch, what was done; sent to head office. The customer's contact is saved only with their OK (s.14) | Supervisor and above | Later |
+| 9 | **Training and fitness to work** | Food hygiene certificates with expiry dates (warn 30 days before). A fit-to-work question at the start of a shift, with the **48-hour exclusion** after vomiting or diarrhoea *(beyond the guide)*. Only managers see health answers | Managers | Later |
+| 10 | **Inspections and notices** | Per site: council registration, hygiene rating, inspector visits, and improvement notices with fix-by and appeal-by dates (appeals usually within 1 month). Head office is reminded 7 days before each deadline | Managers; head office | Later |
+| 11 | **4-weekly review** | Repeat faults (the same check failing 3 or more times in 7 days) with suggested fixes, "anything changed?" questions (new dishes or suppliers, new staff, new equipment) and a signed review | Managers | Later |
+
+**Code:** rules in `packages/core/src/food-safety.ts` (unit-tested); screens under `/food-safety` in `apps/eod-web`; who can do what is in `can` in `apps/eod-web/app/lib/auth.tsx`. Demo mode keeps the data on the device, like repairs. Connected mode will use the SharePoint lists in `docs/tech-plan/sharepoint/sharepoint-lists.json`.
+
+---
+
 ## 9. Plan and timeline
 
 | When | Phase | Done when |
@@ -309,7 +333,7 @@ Full detail with sources: `research/2026-10-research-findings.md`.
 | 22 Dec – 2 Jan | **Freeze** | No rollout during peak trading |
 | Jan 2027 | **Roll out to all 9** | Training per site; retire the Netlify form after 2 clean weeks; add tips, iPad PIN, approve/send back, 07:00 digest |
 | Feb 2027 | **Forecasts and insights** | Trends, Forecast tab, wage warnings, anomaly rules |
-| Mar–Apr 2027 | **Next modules** | Checklists, food-safety logs, repairs log |
+| Mar–Apr 2027 | **Next modules** | Checklists, food-safety logs (scope in §8a; first version built Oct 2026), repairs log |
 | May 2027 → | **AI and extras** | Ask your logs, AI summary, handbook, delivery reconciliation; native app only if needed |
 
 Assumes 1–2 developers.
@@ -331,7 +355,7 @@ Assumes 1–2 developers.
 4. Each site's capacity (Martyn's Law tier).
 5. Who owns tips/tronc, and is there an independent troncmaster?
 6. Who builds it, and how many developers?
-7. Food-safety module scope and probe hardware, when the time comes.
+7. Probe hardware (Bluetooth probes?). The food-safety scope is now agreed (§8a); an EHO should confirm the *(beyond the guide)* rules and the keep periods.
 8. Which reservations system does each site use (SevenRooms, OpenTable, ResDiary…)? The nightly bookings snapshot needs read access to it.
 
 ---

@@ -9,7 +9,9 @@
  * SharePoint: runs → ChecklistRuns, answers → Responses (Title = runKey|checkpointId).
  */
 import type { AnswerValue, ChecklistRun, CorrectiveAction } from './checklists';
+import type { Correction } from './food-safety';
 import { clockTime } from './sync';
+import { correctionProblem } from './food-safety';
 
 /** What a device needs to create a run if nobody has started it yet. */
 export interface RunStart {
@@ -34,13 +36,17 @@ export interface AnswerRecord {
   answeredBy: string;
   answeredAt: string;
   fix: CorrectiveAction | null;
+  /** Changes made after the run was finished, oldest first. */
+  corrections?: Correction[];
   seq: number;
 }
 
 export type ChecklistOp =
   | { kind: 'answer'; run: RunStart; checkpointId: string; value: AnswerValue; by: string; at: string }
   | { kind: 'fix'; run: RunStart; checkpointId: string; fix: CorrectiveAction; by: string; recheck: RunStart }
-  | { kind: 'finish'; run: RunStart; by: string; at: string };
+  | { kind: 'finish'; run: RunStart; by: string; at: string }
+  /** Supervisors and above only. Works on finished runs; the old answer is kept. */
+  | { kind: 'correct'; run: RunStart; checkpointId: string; value: AnswerValue; reason: string; by: string; at: string };
 
 export type OpOutcome =
   | {
@@ -48,7 +54,7 @@ export type OpOutcome =
     /** Fix only: the re-check run it set up. */ recheck?: RunRecord;
     /** Finish only: someone had already finished it. */ already?: boolean;
   }
-  | { ok: false; reason: 'finished' | 'no-answer'; run: RunRecord };
+  | { ok: false; reason: 'finished' | 'no-answer' | 'not-finished' | 'not-allowed' | 'invalid'; run: RunRecord };
 
 export interface ChecklistChanges {
   runs: RunRecord[];
@@ -78,6 +84,7 @@ export interface ChecklistData {
 /** The server's rules, in memory. Each apply runs without awaiting, so it is atomic. */
 export class MemoryChecklistStore implements ChecklistBackend {
   protected data: ChecklistData = { seq: 0, runs: {}, answers: {} };
+  constructor(protected clock: () => Date = () => new Date()) {}
 
   protected load() { /* the device store re-reads shared storage here */ }
   protected persist() { /* and writes it back here */ }
@@ -97,9 +104,21 @@ export class MemoryChecklistStore implements ChecklistBackend {
       run.seq = ++this.data.seq;
       return { ok: true, run: strip(run) };
     }
-    if (run.completedAt) return { ok: false, reason: 'finished', run: strip(run) };
     const k = `${siteCode}|${answerKey(run.key, op.checkpointId)}`;
     const existing = this.data.answers[k];
+    if (op.kind === 'correct') {
+      if (!run.completedAt) return { ok: false, reason: 'not-finished', run: strip(run) };
+      if (!existing) return { ok: false, reason: 'no-answer', run: strip(run) };
+      if (correctionProblem({ previous: existing.value, value: op.value, reason: op.reason })) return { ok: false, reason: 'invalid', run: strip(run) };
+      // The time is the server's own, so a device clock can't back-date a correction.
+      const at = this.clock().toISOString();
+      existing.corrections = [...(existing.corrections ?? []), { previous: structuredClone(existing.value), value: structuredClone(op.value), reason: op.reason.trim(), by: op.by, at }];
+      existing.value = structuredClone(op.value);
+      existing.seq = ++this.data.seq;
+      run.seq = ++this.data.seq;
+      return { ok: true, run: strip(run), answer: strip(existing) };
+    }
+    if (run.completedAt) return { ok: false, reason: 'finished', run: strip(run) };
     if (op.kind === 'answer') {
       // Last write wins by when it was answered, so a late upload from a phone that was offline can't overwrite a newer answer.
       if (existing && existing.answeredAt > op.at) return { ok: true, run: strip(run), answer: strip(existing) };
@@ -158,6 +177,7 @@ export function buildRuns(runs: RunRecord[], answers: AnswerRecord[]): Record<st
     run.answers[a.checkpointId] = a.value;
     run.answeredBy![a.checkpointId] = { by: a.answeredBy, at: a.answeredAt };
     if (a.fix) run.fixes[a.checkpointId] = a.fix;
+    if (a.corrections?.length) (run.corrections ??= {})[a.checkpointId] = a.corrections;
   }
   return out;
 }

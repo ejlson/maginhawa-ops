@@ -77,6 +77,8 @@ export interface ChecklistRun {
   completedBy: string | null;
   /** Who gave each answer, and when (shared checklists). */
   answeredBy?: Record<string, { by: string; at: string }>;
+  /** Answers changed after finishing, oldest first. The original answers stay on record. */
+  corrections?: Record<string, import('./food-safety').Correction[]>;
   /** Set for a re-check run: which run and checkpoint it re-checks. */
   recheckOf?: { runKey: string; checkpointId: string; dueAt: string };
 }

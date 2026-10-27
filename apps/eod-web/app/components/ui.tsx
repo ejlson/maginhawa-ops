@@ -167,6 +167,40 @@ export function plainPounds(p: Pence): string {
 }
 
 /** A pounds field. Keeps what the manager typed while editing; stores whole pence. */
+const NUMBER_FIELDS = 'input[inputmode="decimal"]:not(:disabled), input[inputmode="numeric"]:not(:disabled)';
+
+/** Enter on a number field moves to the next one, so a run of readings can be typed without tapping each field. */
+export function nextOnEnter(e: React.KeyboardEvent<HTMLInputElement>) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const fields = [...document.querySelectorAll<HTMLInputElement>(NUMBER_FIELDS)];
+  const next = fields[fields.indexOf(e.currentTarget) + 1];
+  if (next) next.focus(); else e.currentTarget.blur();
+}
+
+/** Turns "5" into "-5" and back. The iPhone decimal keypad has no minus key, so freezer readings need this. */
+export const flipSign = (t: string) => (/^\s*[-−]/.test(t) ? t.replace(/^\s*[-−]/, '') : `-${t.trim()}`);
+
+/** A temperature field. `negative` adds a ± button for readings that can go below zero (freezers, fridges, iced water).
+ *  `alignWithSign` leaves the button's space empty, to line up with a ± field in the row above. */
+export function TempInput({ value, onChange, label, invalid, disabled, negative = true, alignWithSign = false, placeholder = '°C', style }: {
+  value: string; onChange: (t: string) => void; label: string; invalid?: boolean; disabled?: boolean; negative?: boolean; alignWithSign?: boolean; placeholder?: string; style?: React.CSSProperties;
+}) {
+  return (
+    <span className="tempin">
+      {/* The input comes first so a wrapping <label> focuses it, not the ± button. */}
+      <input className={`in${invalid ? ' bad' : ''}`} style={style} type="text" inputMode="decimal" enterKeyHint="next" disabled={disabled}
+        aria-label={label} placeholder={placeholder} value={value} onKeyDown={nextOnEnter} onChange={(e) => onChange(e.target.value)} />
+      {!negative && alignWithSign && <span className="pm-gap" aria-hidden="true" />}
+      {negative && (
+        <button type="button" className="pm" disabled={disabled} aria-label={`Below zero: ${label}`} aria-pressed={/^\s*[-−]/.test(value)}
+          // Keep the keyboard up: don't take focus from the field.
+          onPointerDown={(e) => e.preventDefault()} onClick={() => onChange(flipSign(value))}>±</button>
+      )}
+    </span>
+  );
+}
+
 export function MoneyInput({ value, onChange, label, invalid }: { value: Pence | null; onChange: (p: Pence | null) => void; label: string; invalid?: boolean }) {
   const [text, setText] = useState(value === null ? '' : formatPounds(value));
   const [editing, setEditing] = useState(false);
@@ -183,6 +217,8 @@ export function MoneyInput({ value, onChange, label, invalid }: { value: Pence |
       className={`in${invalid ? ' bad' : ''}`}
       type="text"
       inputMode="decimal"
+      enterKeyHint="next"
+      onKeyDown={nextOnEnter}
       aria-label={label}
       placeholder="£0.00"
       value={text}
@@ -202,6 +238,8 @@ export function CountInput({ value, onChange, label, className = 'in' }: { value
       className={className}
       type="text"
       inputMode="numeric"
+      enterKeyHint="next"
+      onKeyDown={nextOnEnter}
       aria-label={label}
       placeholder="0"
       value={value ?? ''}

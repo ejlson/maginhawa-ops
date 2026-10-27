@@ -11,6 +11,7 @@ import { TrendChart } from '../components/TrendChart';
 import { WhoMenu } from '../components/home/WhoMenu';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 import { useTradingHistory } from '../lib/history';
+import { PageSkeleton, useDelayed } from '../components/Skeleton';
 
 type SortKey = 'site' | 'net' | 'covers' | 'wages' | 'cash';
 const SORT_COLS: { key: SortKey; label: string }[] = [
@@ -30,7 +31,7 @@ export default function HeadOffice() {
   const { user } = useAuth();
   const { draft } = useDraft();
   const date = draft.businessDate;
-  const [reports, setReports] = useState<StoredReport[]>([]);
+  const [reports, setReports] = useState<StoredReport[] | null>(null);
   // Demo mode fills the other sites with example closes. Approving those only changes this screen.
   const demo = showExampleData();
   const [demoApproved, setDemoApproved] = useState<Set<string>>(new Set());
@@ -44,13 +45,6 @@ export default function HeadOffice() {
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'site', dir: 1 });
   const [siteFilter, setSiteFilter] = useState<SiteFilter>('all');
 
-  const bySite = new Map(reports.map((r) => [r.draft.siteCode, r]));
-  const sent = reports.filter((r) => r.status === 'submitted' || r.status === 'approved');
-  const net = sent.reduce((s, r) => s + (r.official?.totalNet ?? 0), 0);
-  const covers = sent.reduce((s, r) => s + (r.official?.covers ?? 0), 0);
-  const clean = reports.filter((r) => r.status === 'submitted' && !r.issues.some((i) => i.level === 'warn'));
-  const [p, d] = splitPounds(net);
-
   // Tonight against forecast v1: the whole group, and the sites already in against their own forecasts.
   const tonight = useMemo(() => {
     if (!history.rows.length) return null;
@@ -58,6 +52,16 @@ export default function HeadOffice() {
     const bySiteForecast = new Map<string, ReturnType<typeof forecastNet>[number] | undefined>(SITES.map((s) => [s.code, forecastNet(dailyNet(history.rows.filter((r) => r.siteCode === s.code)))[0]]));
     return { group, bySiteForecast };
   }, [history.rows]);
+  const loading = useDelayed(reports === null);
+  // Keep the sidebar while tonight's reports are read; the skeleton only shows if that takes a moment.
+  if (reports === null) return <HeadOfficeShell>{loading && <PageSkeleton wide />}</HeadOfficeShell>;
+  const bySite = new Map(reports.map((r) => [r.draft.siteCode, r]));
+  const sent = reports.filter((r) => r.status === 'submitted' || r.status === 'approved');
+  const net = sent.reduce((s, r) => s + (r.official?.totalNet ?? 0), 0);
+  const covers = sent.reduce((s, r) => s + (r.official?.covers ?? 0), 0);
+  const clean = reports.filter((r) => r.status === 'submitted' && !r.issues.some((i) => i.level === 'warn'));
+  const [p, d] = splitPounds(net);
+
   const sentForecast = tonight ? sent.reduce((s, r) => s + (tonight.bySiteForecast.get(r.draft.siteCode)?.p50 ?? 0), 0) : 0;
   const pace = sentForecast ? net / sentForecast - 1 : null;
 
@@ -212,6 +216,8 @@ export default function HeadOffice() {
           <div className="hd"><h2>Set-up</h2></div>
           <div className="sub" style={{ maxWidth: 560 }}>
             <RowLink to="/checklists/edit" lead={<span className="av"><Icon d={ICONS.check} /></span>} title="Checklists" sub="Change the group lists and see every site's own lists" />
+            <RowLink to="/food-safety/records" lead={<span className="av"><Icon d={ICONS.list} /></span>} title="Records for an inspector" sub="One PDF for any site and dates" />
+            <RowLink to="/food-safety/keep" lead={<span className="av"><Icon d={ICONS.lock} /></span>} title="How long we keep records" sub="Food-safety keep periods" />
           </div>
         </section>
       </div>

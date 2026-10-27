@@ -17,6 +17,7 @@ const LINKS = [
   { to: '/head-office#sites', label: 'Sites', icon: SITES_ICON },
   { to: '/head-office/reports', label: 'Reports', icon: SEARCH },
   { to: '/head-office#trends', label: 'Trends', icon: ICONS.chart },
+  { to: '/food-safety', label: 'Food safety', icon: ICONS.thermo },
 ] as const;
 
 /** Fixed presets for now. Each person's own saved searches need storing in SharePoint first. */

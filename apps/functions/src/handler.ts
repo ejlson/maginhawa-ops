@@ -9,6 +9,8 @@ export interface Caller {
   name: string;
   /** Sites this person may submit for. */
   siteCodes: string[];
+  /** From their Entra ID group. Staff can't correct a finished checklist. */
+  role?: 'staff' | 'supervisor' | 'manager' | 'headoffice';
 }
 
 export interface SubmitDeps {

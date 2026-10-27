@@ -65,7 +65,7 @@ export default function Checklists() {
         </section>
 
         {done.length > 0 && (
-          <section className="grp">
+          <section className="grp side">
             <div className="hd"><h2>Done</h2><span>{done.length}</span></div>
             <div className="sub">{done.map((t) => <TaskRow key={t.key} t={t} />)}</div>
           </section>
