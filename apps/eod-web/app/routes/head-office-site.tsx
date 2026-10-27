@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react';
-import { Navigate, useParams } from 'react-router';
+import { Navigate, useParams, useSearchParams } from 'react-router';
 import { formatPounds, periodRange, periodStats, breakdown, PERIOD_NAMES, SITES, type Period, type PeriodStats } from '@maginhawa/core';
 import { useTradingHistory } from '../lib/history';
 import { settingsFor } from '../lib/draft';
 import { Icon, ICONS, Nav, RowLink, SECTION_ICONS } from '../components/ui';
 import { TrendChart } from '../components/TrendChart';
+import { DayTimeline } from '../components/DayTimeline';
+import { HeadOfficeShell } from '../components/HeadOfficeShell';
+import { useSiteDay } from '../lib/site-timeline';
+import { formatDay } from '../lib/draft';
 
 type Tone = 'good' | 'bad' | 'flat';
 
@@ -32,6 +36,8 @@ export default function HeadOfficeSite() {
   const site = SITES.find((s) => s.code === code.toUpperCase());
   const { rows: all, example, lastDate } = useTradingHistory();
   const [period, setPeriod] = useState<Period>('1W');
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') === 'timeline' ? 'timeline' : 'trends';
   const rows = useMemo(() => all.filter((r) => r.siteCode === site?.code), [all, site]);
 
   if (!site) return <Navigate to="/head-office" replace />;
@@ -51,11 +57,18 @@ export default function HeadOfficeSite() {
   const share = (v: number) => (total ? Math.round((v / total) * 100) : 0);
 
   return (
+    <HeadOfficeShell>
     <main className="page wide">
       <Nav back="/head-office" backLabel="All sites" title={site.name} right={example ? <span className="muted" style={{ fontSize: 13 }}>Example data</span> : undefined} />
       <div className="body" style={{ paddingTop: 16 }}>
         <div className="titleblock"><span className="eyebrow">Restaurant</span><h1>{site.name}</h1></div>
 
+        <div className="seg" role="tablist" aria-label="View">
+          <button type="button" role="tab" aria-selected={tab === 'trends'} onClick={() => setParams({}, { replace: true })}>Trends</button>
+          <button type="button" role="tab" aria-selected={tab === 'timeline'} onClick={() => setParams({ tab: 'timeline' }, { replace: true })}>Today's timeline</button>
+        </div>
+
+        {tab === 'timeline' ? <SiteTimeline code={site.code} /> : <>
         <TrendChart rows={rows} scope={site.name} period={period} onPeriod={setPeriod} />
 
         <section className="grp">
@@ -90,7 +103,20 @@ export default function HeadOfficeSite() {
             ))}
           </div>
         </section>
+        </>}
       </div>
     </main>
+    </HeadOfficeShell>
+  );
+}
+
+/** What happened at the site today, hour by hour. */
+function SiteTimeline({ code }: { code: string }) {
+  const { events, bounds, businessDate, settings } = useSiteDay(code);
+  return (
+    <section className="grp day-page" style={{ gap: 20, maxWidth: 860 }}>
+      <div className="hd"><h2>{formatDay(businessDate)}</h2><span>Checklists, fixes, repairs and the EOD</span></div>
+      <DayTimeline events={events} bounds={bounds} timezone={settings.timezone} dayCloseTime={settings.dayCloseTime} linkEvents={false} />
+    </section>
   );
 }

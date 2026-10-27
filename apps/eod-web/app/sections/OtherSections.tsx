@@ -1,24 +1,15 @@
 import { useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router';
 import { formatPounds, SECTION_LABELS, type NoteItem, type SectionKey } from '@maginhawa/core';
 import { useDraft } from '../lib/draft';
-import { BigMoney, Foot, Icon, ICONS, MoneyRow, Nav, Toggle } from '../components/ui';
+import { BigMoney, Icon, ICONS, MoneyRow, Toggle } from '../components/ui';
+import { EodPage } from '../components/EodPage';
 
 function Shell({ section, hero, children }: { section: SectionKey; hero: ReactNode; children: ReactNode }) {
-  const navigate = useNavigate();
-  const { update } = useDraft();
-  const label = SECTION_LABELS[section];
   return (
-    <main className="page">
-      <Nav back="/close" title={label} right={<span className="saved"><span className="dot" />Saved</span>} />
-      <div className="body form">
-        <div className="hero" role="status" aria-live="polite">{hero}</div>
-        {children}
-      </div>
-      <Foot>
-        <button type="button" className="btn b1" onClick={() => { update((d) => { d.completed[section] = true; }); navigate('/close'); }}>Save {label.toLowerCase()}</button>
-      </Foot>
-    </main>
+    <EodPage section={section}>
+      <div className="hero" role="status" aria-live="polite">{hero}</div>
+      {children}
+    </EodPage>
   );
 }
 
