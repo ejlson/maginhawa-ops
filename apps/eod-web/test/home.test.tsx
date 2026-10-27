@@ -127,10 +127,12 @@ describe('staff PIN', () => {
 
   it('a manager resets a forgotten PIN', async () => {
     await aliceHasPin();
-    const { user } = renderApp('/account', manager);
+    const { user } = renderApp('/people', manager);
+    // Alice joined the People list by signing in on the iPad.
+    await user.click(screen.getByRole('button', { name: /Alice.*PIN on the iPad/ }));
     await user.click(screen.getByRole('button', { name: 'Reset PIN' }));
-    await user.click(screen.getByRole('button', { name: 'Tap again' }));
-    expect(screen.queryByRole('heading', { name: 'Staff PINs' })).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent("Alice's PIN is cleared. They choose a new one next time.");
+    expect(screen.getAllByText('No PIN yet').length).toBeGreaterThan(0);
   });
 
   it('PINs are never stored as typed', async () => {
@@ -242,11 +244,11 @@ describe('the name menu, for every role', () => {
     await user.click(screen.getByRole('button', { name: /Signed in as Jo/ }));
     expect(screen.getByRole('menu', { name: 'Your account' })).toBeInTheDocument();
     expect(screen.getByRole('menuitemradio', { name: 'Supervisor' })).toHaveAttribute('aria-checked', 'true');
-    // Only managers and head office look after staff PINs.
-    expect(screen.queryByRole('menuitem', { name: 'Staff PINs' })).not.toBeInTheDocument();
+    // Only managers and head office look after people.
+    expect(screen.queryByRole('menuitem', { name: 'People' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('menuitemradio', { name: 'Manager' }));
     await user.click(screen.getByRole('button', { name: /Signed in as Jo/ }));
-    expect(screen.getByRole('menuitem', { name: 'Staff PINs' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'People' })).toBeInTheDocument();
   });
 
   it('signs out from the menu', async () => {

@@ -5,10 +5,14 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { SITES } from '@maginhawa/core';
+import { hasLeft, SITES, tradingDate } from '@maginhawa/core';
 import { homeFor, recentPeople, ROLE_LABELS, useAuth, type Role } from '../../lib/auth';
 import { isConnected } from '../../lib/config';
 import { pins } from '../../lib/pins';
+import { resetDemoChecklists } from '../../lib/store';
+import { people } from '../../lib/people';
+import { settingsFor } from '../../lib/draft';
+import { now } from '../../lib/clock';
 import { Icon, ICONS } from '../ui';
 
 export function WhoMenu() {
@@ -30,10 +34,16 @@ export function WhoMenu() {
 
   if (!user) return null;
   const shared = user.role === 'staff';
-  const others = shared ? recentPeople(user.siteCode).filter((p) => p.name !== user.name && p.role === 'staff').slice(0, 5) : [];
+  const others = shared ? recentPeople(user.siteCode).filter((p) => p.name !== user.name && p.role === 'staff' && !hasLeft(people.at(user.siteCode), user.siteCode, p.name)).slice(0, 5) : [];
   const site = SITES.find((s) => s.code === user.siteCode)?.name ?? user.siteCode;
   const go = (to: string) => { setOpen(false); navigate(to); };
   const asRole = (r: Role) => { setOpen(false); if (r !== user.role) { signIn({ ...user, role: r }); navigate(homeFor(r)); } };
+  // Demo mode: start today's checklists again, to try them from scratch.
+  const resetChecklists = () => {
+    setOpen(false);
+    resetDemoChecklists(user.siteCode, tradingDate(now(), settingsFor(user.siteCode)));
+    window.location.reload();
+  };
 
   return (
     <div className="whomenu" ref={box}>
@@ -72,11 +82,17 @@ export function WhoMenu() {
                 {label}{user.role === r && <Icon d={ICONS.check} size={18} />}
               </button>
             ))}
+            {user.role !== 'headoffice' && <>
+              <div className="menusep" role="separator" />
+              <button type="button" role="menuitem" className="menuitem small" onClick={resetChecklists}>
+                <span className="tx"><span>Reset today's checklists</span><small>Demo only. Clears {site}'s answers for today</small></span>
+              </button>
+            </>}
           </>}
 
           <div className="menusep" role="separator" />
           {(user.role === 'manager' || user.role === 'headoffice') && (
-            <button type="button" role="menuitem" className="menuitem small" onClick={() => go('/account')}>Staff PINs</button>
+            <button type="button" role="menuitem" className="menuitem small" onClick={() => go('/people')}>People</button>
           )}
           <button type="button" role="menuitem" className="menuitem small" style={{ color: 'var(--bad)' }} onClick={() => { setOpen(false); signOut(); navigate('/sign-in'); }}>Sign out</button>
         </div>

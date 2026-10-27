@@ -19,6 +19,7 @@ export * from './checklist-sync';
 export * from './checklist-client';
 export * from './site-day';
 export * from './pin';
+export * from './people';
 export * from './reports';
 export * from './day-timeline';
 export * from './food-safety';

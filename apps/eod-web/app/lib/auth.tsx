@@ -4,6 +4,7 @@
  */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { storage } from './storage';
+import { people } from './people';
 
 /** Staff, supervisors and managers see their own site; head office sees every site. */
 export type Role = 'staff' | 'supervisor' | 'manager' | 'headoffice';
@@ -34,6 +35,8 @@ export const can = {
   logInspections: (r: Role) => r === 'manager' || r === 'headoffice',
   doReview: (r: Role) => r === 'manager' || r === 'headoffice',
   setKeepPeriods: (r: Role) => r === 'headoffice',
+  /** Add people, change roles, reset PINs, mark leavers: own site, or any site for head office. */
+  managePeople: (r: Role) => r === 'manager' || r === 'headoffice',
 };
 
 /** Where each role lands after signing in. */
@@ -74,7 +77,12 @@ const AuthContext = createContext<AuthValue | null>(null);
 
 export function AuthProvider({ children, initialUser }: { children: ReactNode; initialUser?: User | null }) {
   const [user, setUser] = useState<User | null>(() => (initialUser !== undefined ? initialUser : normalise(storage.get<User | null>(KEY, null))));
-  const signIn = useCallback((u: User) => { storage.set(KEY, u); remember(u); setUser(u); }, []);
+  const signIn = useCallback((u: User) => {
+    storage.set(KEY, u);
+    remember(u);
+    if (u.role !== 'headoffice') people.ensure(u.siteCode, u.name, u.role, '');
+    setUser(u);
+  }, []);
   const signOut = useCallback(() => { storage.remove(KEY); setUser(null); }, []);
   const value = useMemo(() => ({ user, signIn, signOut }), [user, signIn, signOut]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

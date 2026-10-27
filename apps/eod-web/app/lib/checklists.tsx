@@ -23,6 +23,8 @@ export interface TaskView extends Task {
   run: ChecklistRun | undefined;
   done: number;
   total: number;
+  /** Everything answered and every failure dealt with, but not submitted yet. */
+  ready: boolean;
 }
 
 interface ChecklistsValue {
@@ -34,6 +36,8 @@ interface ChecklistsValue {
   fix: (key: string, checkpointId: string, action: Omit<CorrectiveAction, 'at'>) => void;
   /** A second Finish (someone got there first) is a no-op; the outcome says who finished. */
   finish: (key: string, by?: string) => Promise<FinishOutcome>;
+  /** The one Submit under the lists: locks every list that's ready. Returns how many it locked. */
+  submitReady: () => Promise<number>;
   /** Change an answer on a finished list. Supervisors and above; the old answer is kept. */
   correct: (key: string, checkpointId: string, value: AnswerValue, reason: string) => void;
   /** Saving, offline, who else is here. */
@@ -80,7 +84,7 @@ export function ChecklistsProvider({ siteCode, children }: { siteCode: string; c
       const template = templateFor(task.key)!;
       const run = runs[task.key];
       const s = run ? summariseRun(template, run, businessDate) : null;
-      return { ...task, template, run, status: taskStatus(task, run, at, template, businessDate), done: s?.answered ?? 0, total: template.checkpoints.length };
+      return { ...task, template, run, status: taskStatus(task, run, at, template, businessDate), done: s?.answered ?? 0, total: template.checkpoints.length, ready: Boolean(run && !run.completedAt && s?.canFinish) };
     });
   }, [baseTasks, runs, templateFor, businessDate]);
 
@@ -103,6 +107,12 @@ export function ChecklistsProvider({ siteCode, children }: { siteCode: string; c
   }, [client, startOf, businessDate]);
 
   const finish = useCallback((key: string) => client.finish(startOf(key)), [client, startOf]);
+  const submitReady = useCallback(async () => {
+    const ready = tasks.filter((t) => t.ready);
+    // One at a time, so each list is locked by its own conditional update.
+    for (const t of ready) await client.finish(startOf(t.key));
+    return ready.length;
+  }, [client, startOf, tasks]);
   const correct = useCallback((key: string, checkpointId: string, value: AnswerValue, reason: string) => {
     void client.correct(startOf(key), checkpointId, value, reason);
   }, [client, startOf]);
@@ -134,8 +144,8 @@ export function ChecklistsProvider({ siteCode, children }: { siteCode: string; c
   }, [records, siteCode, yesterday, settings, oldRuns]);
 
   const value = useMemo<ChecklistsValue>(() => ({
-    businessDate, tasks, runFor: (k) => runs[k], templateFor, answer, fix, finish, correct, sync, setWhere, missedYesterday,
-  }), [businessDate, tasks, runs, templateFor, answer, fix, finish, correct, sync, setWhere, missedYesterday]);
+    businessDate, tasks, runFor: (k) => runs[k], templateFor, answer, fix, finish, submitReady, correct, sync, setWhere, missedYesterday,
+  }), [businessDate, tasks, runs, templateFor, answer, fix, finish, submitReady, correct, sync, setWhere, missedYesterday]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
@@ -147,7 +157,8 @@ export function useChecklists(): ChecklistsValue {
 
 export const runPath = (key: string) => `/checklists/${encodeURIComponent(key)}`;
 
-export function statusPill(t: Pick<TaskView, 'status' | 'dueAt' | 'done' | 'total'>, at = now()): { cls: string; text: string } {
+export function statusPill(t: Pick<TaskView, 'status' | 'dueAt' | 'done' | 'total'> & { ready?: boolean }, at = now()): { cls: string; text: string } {
+  if (t.ready) return { cls: 'p-mut', text: 'Ready to submit' };
   const mins = t.dueAt ? Math.round((t.dueAt.getTime() - at.getTime()) / 60_000) : 0;
   switch (t.status) {
     case 'done': return { cls: 'p-ok', text: 'Completed' };

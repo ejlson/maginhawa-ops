@@ -96,7 +96,7 @@ describe('checklists on two devices', () => {
     expect(screen.getByLabelText('Freezer')).toHaveValue('-19');
   });
 
-  it('a second Finish does nothing and says who finished first', async () => {
+  it('submitting a list someone else already submitted leaves their name on it', async () => {
     setNow(new Date('2026-10-05T08:15:00Z'));
     const { user } = renderApp(opening);
     await user.type(screen.getByLabelText('Walk-in fridge'), '3');
@@ -105,14 +105,10 @@ describe('checklists on two devices', () => {
     for (const name of ['Door seals clean, no gaps', 'Food covered and labelled', 'Hand-wash basins stocked', 'Probe thermometer cleaned and working']) {
       await user.click(within(screen.getByRole('radiogroup', { name })).getByRole('button', { name: 'Yes' }));
     }
-    // Sam presses Finish on a phone a moment before Jo does.
+    // Sam submits on a phone; Jo's screen locks without Jo pressing anything.
     const sam = otherDevice('Sam');
     await act(async () => { expect((await sam.checklists.finish(run)).already).toBe(false); });
-
-    await user.click(screen.getByRole('button', { name: 'Finish' }));
-    const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent('Already finished');
-    expect(alert).toHaveTextContent('Finished by Sam at 09:15');
-    expect(screen.getByText(/Finished at 09:15 by Sam/)).toBeInTheDocument();
+    await poke();
+    expect(await screen.findByText(/Submitted at 09:15 by Sam/)).toBeInTheDocument();
   });
 });
