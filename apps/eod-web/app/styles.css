@@ -640,6 +640,25 @@ a.linkbtn { text-decoration: none; }
 .tread { white-space: nowrap; }
 @media (max-width: 500px) { .tread { font-size: 68px; } .tread small { font-size: 26px; } .tstep { width: 68px; height: 68px; font-size: 32px; } .tsheet { padding: 20px 18px 14px; gap: 18px; } }
 
+/* ---- EOD sections ---- */
+.wband { position: relative; display: flex; gap: 3px; height: 8px; margin-top: 2px; }
+.wband span { height: 8px; border-radius: 4px; opacity: .9; }
+.wband .g { background: var(--heroOk); } .wband .a { background: var(--heroWarn); } .wband .r { background: var(--heroBad); }
+.wband i { position: absolute; top: -6px; width: 4px; height: 20px; margin-left: -2px; border-radius: 2px; background: var(--onhero); box-shadow: 0 0 0 3px var(--hero); }
+.wticks { position: relative; height: 14px; font-size: 12px; color: var(--herosec); margin-top: -8px; }
+.wticks span { position: absolute; transform: translateX(-50%); }
+.lawnote { display: flex; gap: 14px; align-items: flex-start; padding: 16px; border-radius: 18px; background: var(--fill); }
+.lawnote p { margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--sec); }
+.lawnote b { color: var(--text); font-weight: 600; }
+.lawnote .av { width: 36px; height: 36px; }
+.btn.addnote { height: 48px; background: var(--fill); color: var(--link); }
+.btn.addnote:disabled { color: var(--sec); }
+.sub.plat.off .tx > span { color: var(--sec); }
+.note-li { align-items: flex-start; padding: 14px 0; min-height: 0; }
+.note-li .tx > span { line-height: 1.4; }
+.note-li .tx small { display: flex; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+.note-li .pill { height: 22px; font-size: 12.5px; padding: 0 9px; }
+
 /* The one Submit under all the checklists. */
 .submit-lists { display: flex; flex-direction: column; gap: 4px; padding: 20px 0 8px; }
 .submit-lists .btn { width: 100%; }

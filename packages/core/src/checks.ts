@@ -42,7 +42,7 @@ function hasInput(d: EodDraft, key: SectionKey): boolean {
         || Object.keys(s.cash.counted).length > 0 || s.adjustments.length > 0;
     }
     case 'delivery': return d.delivery.some((e) => e.gross !== null || !e.traded);
-    case 'promotions': return d.promotions.notes.trim() !== '';
+    case 'promotions': return d.promotions.notes.trim() !== '' || (d.promotions.tags?.length ?? 0) > 0;
     case 'wages': return d.wages.wageCost !== null;
     case 'tips': return d.tips.card !== null || d.tips.cash !== null;
     case 'feedback': return d.feedback.length > 0;

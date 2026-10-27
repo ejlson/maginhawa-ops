@@ -103,6 +103,22 @@ describe('section status', () => {
     d.ran.lunch = false;
     expect(sectionStatus(d, 'lunch')).toBe('skipped');
   });
+  it('a promotion tag on its own starts the section; a blank one still completes', () => {
+    const d = blank();
+    expect(d.promotions.tags).toEqual([]);
+    expect(sectionStatus(d, 'promotions')).toBe('todo');
+    d.promotions.tags = ['Big party'];
+    expect(sectionStatus(d, 'promotions')).toBe('started');
+    d.promotions.tags = [];
+    d.completed.promotions = true;
+    expect(sectionStatus(d, 'promotions')).toBe('done');
+  });
+  it('a draft saved before promotion tags existed still works', () => {
+    const d = blank();
+    delete d.promotions.tags;
+    expect(sectionStatus(d, 'promotions')).toBe('todo');
+    expect(sectionProgress(d).active).toBeGreaterThan(0);
+  });
   it('progress leaves skipped sections out', () => {
     const d = blank();
     d.ran.delivery = false;

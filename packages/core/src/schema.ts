@@ -71,7 +71,8 @@ export const EodDraft = z.object({
   ran: z.object({ lunch: z.boolean(), dinner: z.boolean(), delivery: z.boolean() }),
   sessions: z.object({ lunch: Session, dinner: Session }),
   delivery: z.array(DeliveryEntry).default([]),
-  promotions: z.object({ notes: z.string().default('') }).default({ notes: '' }),
+  // Tags came later: drafts saved before them have none, so every reader treats a missing list as empty.
+  promotions: z.object({ notes: z.string().default(''), tags: z.array(z.string()).optional() }).default({ notes: '' }),
   wages: z.object({ wageCost: pence }).default({ wageCost: null }),
   tips: z.object({ card: pence, cash: pence, toTronc: z.boolean().default(true) }).default({ card: null, cash: null, toTronc: true }),
   feedback: z.array(NoteItem).default([]),
@@ -100,7 +101,7 @@ export function newDraft(opts: { clientId: string; siteCode: string; businessDat
     ran: { lunch: true, dinner: true, delivery: true },
     sessions: { lunch: emptySession(), dinner: emptySession() },
     delivery: opts.platformIds.map((platformId) => ({ platformId, traded: true, gross: null, refundPending: false, note: '' })),
-    promotions: { notes: '' },
+    promotions: { notes: '', tags: [] },
     wages: { wageCost: null },
     tips: { card: null, cash: null, toTronc: true },
     feedback: [],
