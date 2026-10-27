@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { CASH_REASONS, formatPounds, SECTION_LABELS, type AdjustmentLine, type SessionKey } from '@maginhawa/core';
 import { useDraft } from '../lib/draft';
-import { BigMoney, Chevron, CountInput, Foot, Icon, ICONS, MoneyInput, MoneyRow, Nav } from '../components/ui';
+import { BigMoney, Chevron, CountInput, Icon, ICONS, MoneyInput, MoneyRow } from '../components/ui';
+import { EodPage } from '../components/EodPage';
 
 const ADJ_REASONS: Record<AdjustmentLine['kind'], string[]> = {
   discount: ['Staff meal 20%', 'Regulars 10%', 'Manager discount', 'Promotion'],
@@ -13,7 +14,6 @@ const ADJ_REASONS: Record<AdjustmentLine['kind'], string[]> = {
 const newId = () => Math.random().toString(36).slice(2, 10);
 
 export function SessionSection({ session }: { session: SessionKey }) {
-  const navigate = useNavigate();
   const { draft, result, update, settings } = useDraft();
   const s = draft.sessions[session];
   const r = result.sessions[session];
@@ -29,9 +29,7 @@ export function SessionSection({ session }: { session: SessionKey }) {
   const gap = r.adjustments.gap;
 
   return (
-    <main className="page">
-      <Nav back="/close" title={label} right={<span className="saved"><span className="dot" />Saved</span>} />
-      <div className="body form">
+    <EodPage section={session}>
         <div className="hero" role="status" aria-live="polite">
           <div className="hero-row"><span className="hl">{label} net sales</span></div>
           <BigMoney value={r.net} />
@@ -148,10 +146,6 @@ export function SessionSection({ session }: { session: SessionKey }) {
             </div>
           )}
         </section>
-      </div>
-      <Foot>
-        <button type="button" className="btn b1" onClick={() => { update((d) => { d.completed[session] = true; }); navigate('/close'); }}>Save {label.toLowerCase()}</button>
-      </Foot>
-    </main>
+    </EodPage>
   );
 }

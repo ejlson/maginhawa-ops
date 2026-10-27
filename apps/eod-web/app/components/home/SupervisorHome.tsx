@@ -7,7 +7,7 @@ import { runPath, statusPill, useChecklists } from '../../lib/checklists';
 import { useSite } from '../../lib/site';
 import { Foot, Icon, ICONS, RowLink } from '../ui';
 import { TabBar } from '../TabBar';
-import { EodRow, firstName, greeting, HomeHeader, isDone, useEod, useToday } from './shared';
+import { EodRow, TimelineRow, firstName, greeting, HomeHeader, isDone, useEod, useToday } from './shared';
 
 export function SupervisorHome() {
   const { user } = useAuth();
@@ -89,6 +89,7 @@ export function SupervisorHome() {
           <div className="hd"><h2>Tonight</h2></div>
           <div className="sub">
             <EodRow />
+            <TimelineRow />
             {handover.length > 0 && <RowLink to="/handover" lead={<span className="av"><Icon d={ICONS.chat} /></span>} title="Handover from last night" sub={handover.map((h) => h.body).join(' · ')} />}
           </div>
         </section>

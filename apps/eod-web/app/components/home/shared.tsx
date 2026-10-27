@@ -205,3 +205,12 @@ export function EodRow() {
       sub={eod.rowSub} right={eod.result.totalNet ? <span className="amt">{formatPounds(eod.result.totalNet)}</span> : undefined} />
   );
 }
+
+/** Opens the day hour by hour: what's been done, by whom, and what was missed. */
+export function TimelineRow() {
+  const { done, tasks } = useToday();
+  return (
+    <RowLink to="/day" lead={<span className="av"><Icon d={ICONS.clock} /></span>} title="Today's timeline"
+      sub={`${done.length} of ${tasks.length} checklists done · hour by hour`} />
+  );
+}

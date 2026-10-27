@@ -19,8 +19,10 @@ export default [
     route('report', 'routes/report.tsx'),
     route('repairs', 'routes/repairs.tsx'),
     route('handover', 'routes/handover.tsx'),
+    route('day', 'routes/day.tsx'),
     route('switch', 'routes/switch.tsx'),
     route('account', 'routes/account.tsx'),
+    route('head-office/reports', 'routes/reports.tsx'),
     route('head-office/:site', 'routes/head-office-site.tsx'),
   ]),
 ] satisfies RouteConfig;

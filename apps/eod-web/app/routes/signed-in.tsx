@@ -6,6 +6,7 @@ import { ChecklistsProvider } from '../lib/checklists';
 import { TemplatesProvider } from '../lib/templates';
 import { SiteProvider } from '../lib/site';
 import { tradingDate } from '@maginhawa/core';
+import { SiteShell } from '../components/SiteShell';
 
 /** Every screen after sign-in works on today's report and checklists for the manager's site. */
 export default function SignedIn() {
@@ -23,7 +24,8 @@ export default function SignedIn() {
       <TemplatesProvider>
         <ChecklistsProvider siteCode={user.siteCode}>
           <SiteProvider siteCode={user.siteCode} businessDate={tradingDate(now(), settingsFor(user.siteCode))}>
-            <Outlet />
+            {/* Head office has its own frame; everyone else gets the site sidebar on desktop. */}
+            {user.role === 'headoffice' || pathname.startsWith('/head-office') ? <Outlet /> : <SiteShell><Outlet /></SiteShell>}
           </SiteProvider>
         </ChecklistsProvider>
       </TemplatesProvider>

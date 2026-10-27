@@ -9,7 +9,21 @@ import { demoReports } from '../lib/demo';
 import { Icon, ICONS, RowLink } from '../components/ui';
 import { TrendChart } from '../components/TrendChart';
 import { WhoMenu } from '../components/home/WhoMenu';
+import { HeadOfficeShell } from '../components/HeadOfficeShell';
 import { useTradingHistory } from '../lib/history';
+
+type SortKey = 'site' | 'net' | 'covers' | 'wages' | 'cash';
+const SORT_COLS: { key: SortKey; label: string }[] = [
+  { key: 'site', label: 'Site' }, { key: 'net', label: 'Net' }, { key: 'covers', label: 'Covers' }, { key: 'wages', label: 'Wages' }, { key: 'cash', label: 'Cash' },
+];
+interface SiteRow { s: (typeof SITES)[number]; r: StoredReport | undefined; o: StoredReport['official'] | undefined; warn: number; statusText: string; cashDiff: number | null }
+type SiteFilter = 'all' | 'check' | 'waiting' | 'approved';
+const SITE_FILTERS: { id: SiteFilter; label: string; test: (x: SiteRow) => boolean }[] = [
+  { id: 'all', label: 'All', test: () => true },
+  { id: 'check', label: 'To check', test: (x) => x.warn > 0 || Boolean(x.cashDiff) || x.o?.wageRag === 'red' },
+  { id: 'waiting', label: 'Not in yet', test: (x) => !x.r || x.r.status === 'draft' },
+  { id: 'approved', label: 'Approved', test: (x) => x.r?.status === 'approved' },
+];
 
 /** Head office · all sites for the trading day. Approve the clean ones in one go. */
 export default function HeadOffice() {
@@ -27,6 +41,8 @@ export default function HeadOffice() {
   useEffect(load, [date, demoApproved]);
   const isExample = (r: StoredReport) => r.draft.clientId.startsWith('demo-');
   const history = useTradingHistory();
+  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'site', dir: 1 });
+  const [siteFilter, setSiteFilter] = useState<SiteFilter>('all');
 
   const bySite = new Map(reports.map((r) => [r.draft.siteCode, r]));
   const sent = reports.filter((r) => r.status === 'submitted' || r.status === 'approved');
@@ -65,7 +81,34 @@ export default function HeadOffice() {
     else load();
   };
 
+  // The sites table: one row per site, filtered by status and sorted by any column. Empty figures sort last.
+  const siteRows: SiteRow[] = SITES.map((s) => {
+    const r = bySite.get(s.code);
+    const o = r?.official;
+    const warn = r?.issues.filter((i) => i.level === 'warn').length ?? 0;
+    const statusText = !r ? 'Not started' : r.status === 'draft' ? 'In progress' : r.status === 'approved' ? 'Approved' : warn ? `Submitted · ${warn} to check` : 'Submitted';
+    const cashDiff = o ? (o.sessions.lunch.cash.difference ?? 0) + (o.sessions.dinner.cash.difference ?? 0) : null;
+    return { s, r, o, warn, statusText, cashDiff };
+  });
+  const sortValue = (x: SiteRow): number | string | null => {
+    switch (sort.key) {
+      case 'site': return x.s.name;
+      case 'net': return x.o?.totalNet ?? null;
+      case 'covers': return x.o?.covers ?? null;
+      case 'wages': return x.o?.wagePct ?? null;
+      // Cash sorts by how far out it is, either way.
+      case 'cash': return x.cashDiff === null ? null : Math.abs(x.cashDiff);
+    }
+  };
+  const activeFilter = SITE_FILTERS.find((f) => f.id === siteFilter)!;
+  const shownRows = siteRows.filter((x) => activeFilter.test(x)).sort((a, b) => {
+    const va = sortValue(a), vb = sortValue(b);
+    if (va === null || vb === null) return va === vb ? 0 : va === null ? 1 : -1;
+    return (typeof va === 'string' ? va.localeCompare(vb as string) : va - (vb as number)) * sort.dir;
+  });
+
   return (
+    <HeadOfficeShell inToday={`${sent.length} of ${SITES.length} in`}>
     <main className="page wide">
       <header className="nav" style={{ paddingLeft: 24 }}>
         <span className="title">Maginhawa <span className="muted" style={{ fontWeight: 500 }}>Head office</span></span>
@@ -119,23 +162,32 @@ export default function HeadOffice() {
             ) : <span className="hs-small">Nothing to look at. Every close is in and clean.</span>}
           </div>
         </div>
-        <TrendChart rows={history.rows} scope="all sites" />
-        <section className="grp" style={{ gap: 12 }}>
+        <div id="trends" className="anchor"><TrendChart rows={history.rows} scope="all sites" /></div>
+        <section id="sites" className="grp anchor" style={{ gap: 12 }}>
           <div className="hd">
             <h2>Sites</h2>
             <button type="button" className="chip" style={{ background: clean.length ? 'var(--ink)' : 'var(--fill)', color: clean.length ? 'var(--onink)' : 'var(--sec)' }} disabled={!clean.length} onClick={approveClean}>
               {clean.length ? `Approve ${clean.length} clean ${clean.length === 1 ? 'close' : 'closes'}` : 'Nothing to approve'}
             </button>
           </div>
+          <div className="chips" role="group" aria-label="Show">
+            {SITE_FILTERS.map((f) => {
+              const n = siteRows.filter((x) => f.test(x)).length;
+              return <button key={f.id} type="button" className="chip" aria-pressed={siteFilter === f.id} onClick={() => setSiteFilter(f.id)}>{f.label} <span className="muted" style={{ fontWeight: 500 }}>{n}</span></button>;
+            })}
+          </div>
           <div className="table" role="table" aria-label="Sites">
-            <div className="th" role="row"><span>Site</span><span>Net</span><span>Covers</span><span>Wages</span><span>Cash</span></div>
-            {SITES.map((s) => {
-              const r = bySite.get(s.code);
-              const o = r?.official;
-              const warn = r?.issues.filter((i) => i.level === 'warn').length ?? 0;
-              const statusText = !r ? 'Not started' : r.status === 'draft' ? 'In progress' : r.status === 'approved' ? 'Approved' : warn ? `Submitted · ${warn} to check` : 'Submitted';
-              const cashDiff = o ? (o.sessions.lunch.cash.difference ?? 0) + (o.sessions.dinner.cash.difference ?? 0) : null;
-              return (
+            <div className="th" role="row">
+              {SORT_COLS.map((c) => (
+                <span key={c.key} role="columnheader" aria-sort={sort.key === c.key ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none'}>
+                  <button type="button" className={`sortbtn ${sort.key === c.key ? 'on' : ''}`} onClick={() => setSort(sort.key === c.key ? { key: c.key, dir: sort.dir === 1 ? -1 : 1 } : { key: c.key, dir: c.key === 'site' ? 1 : -1 })}>
+                    {c.label}
+                    <svg width="8" height="10" viewBox="0 0 8 10" aria-hidden="true" style={{ transform: sort.key === c.key && sort.dir === 1 ? 'rotate(180deg)' : undefined }}><path d="M1 3.5L4 7l3-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </button>
+                </span>
+              ))}
+            </div>
+            {shownRows.map(({ s, r, o, warn, statusText, cashDiff }) => (
                 <Link className="sr link" role="row" key={s.code} to={`/head-office/${s.code.toLowerCase()}`} aria-label={`${s.name}: see trends`}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                     <span className={`av ${warn ? 'warn' : ''}`}>{s.code.slice(0, 2)}</span>
@@ -146,8 +198,8 @@ export default function HeadOffice() {
                   <span className={o?.wageRag === 'red' ? 'bad' : o?.wageRag === 'amber' ? 'warn' : ''}>{o?.wagePct != null ? `${o.wagePct}%` : '—'}</span>
                   <span className={cashDiff ? 'warn' : ''}>{cashDiff === null ? '—' : cashDiff === 0 ? 'Balanced' : `${formatPounds(Math.abs(cashDiff))} ${cashDiff < 0 ? 'short' : 'over'}`}</span>
                 </Link>
-              );
-            })}
+            ))}
+            {!shownRows.length && <div className="sr" role="row"><span className="muted" style={{ paddingLeft: 54 }}>No sites here right now.</span></div>}
           </div>
           {demo && (
             <div className="banner" role="note"><Icon d={ICONS.bang} size={16} /><span>Example data. Every site except yours shows made-up figures so you can see a busy night. Real closes replace it once the app is connected.</span></div>
@@ -164,5 +216,6 @@ export default function HeadOffice() {
         </section>
       </div>
     </main>
+    </HeadOfficeShell>
   );
 }
