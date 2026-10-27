@@ -39,6 +39,8 @@ export default [
     route('day', 'routes/day.tsx'),
     route('switch', 'routes/switch.tsx'),
     route('account', 'routes/account.tsx'),
+    route('people', 'routes/people.tsx'),
+    route('people/new', 'routes/people-new.tsx'),
     route('head-office/reports', 'routes/reports.tsx'),
     route('head-office/:site', 'routes/head-office-site.tsx'),
   ]),

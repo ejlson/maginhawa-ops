@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { checkPin, lockedFor, makePinRecord, PIN_LENGTH, pinIssues } from '@maginhawa/core';
+import { checkPin, findPerson, hasLeft, isActive, lockedFor, makePinRecord, PIN_LENGTH, pinIssues, usesPin } from '@maginhawa/core';
 import { initialsOf, recentPeople, remember, useAuth } from '../lib/auth';
 import { pins } from '../lib/pins';
+import { people, usePeople } from '../lib/people';
 import { now } from '../lib/clock';
 import { Foot, Nav, RowLink } from '../components/ui';
 import { RolePicker } from '../components/RolePicker';
@@ -48,16 +49,24 @@ export default function Switch() {
     return pins.has(user.siteCode, asked) ? { kind: 'enter', name: asked } : { kind: 'create', name: asked, first: null };
   });
   const [msg, setMsg] = useState<{ text: string; bad: boolean } | null>(null);
+  const team = usePeople(user?.siteCode ?? '');
   if (!user) return null;
   const site = user.siteCode;
-  const people = recentPeople(site).filter((p) => p.name !== user.name && p.role === 'staff');
+  // Everyone on the site's People list who uses a PIN, most recently used first.
+  const recent = recentPeople(site).map((p) => p.name.toLowerCase());
+  const rank = (name: string) => { const i = recent.indexOf(name.toLowerCase()); return i < 0 ? recent.length : i; };
+  const others = team.filter((p) => isActive(p) && usesPin(p.role) && p.name !== user.name).sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name));
 
   const become = (n: string) => {
     remember(user);
-    signIn({ name: n, initials: initialsOf(n), role: 'staff', siteCode: site });
+    // Not on the list yet: they join as staff, and a manager can change that in People.
+    people.ensure(site, n, 'staff', `${n}, on the iPad`);
+    const role = findPerson(people.at(site), site, n)?.role ?? 'staff';
+    signIn({ name: n, initials: initialsOf(n), role: usesPin(role) ? role : 'staff', siteCode: site });
     navigate('/');
   };
   const start = (n: string) => {
+    if (hasLeft(team, site, n)) return setMsg({ text: `${n} is marked as left, so can't sign in here. Ask a manager.`, bad: true });
     setMsg(null);
     setStep(pins.has(site, n) ? { kind: 'enter', name: n } : { kind: 'create', name: n, first: null });
   };
@@ -117,10 +126,11 @@ export default function Switch() {
         <section className="grp">
           <div className="sub">
             <RowLink onClick={() => navigate('/')} lead={<span className="av ink">{user.initials}</span>} title={user.name} sub="Using it now" />
-            {people.map((p) => <RowLink key={p.name} onClick={() => start(p.name)} lead={<span className="av">{p.initials}</span>} title={p.name} sub={pins.has(site, p.name) ? undefined : 'No PIN yet'} />)}
+            {others.map((p) => <RowLink key={p.id} onClick={() => start(p.name)} lead={<span className="av">{initialsOf(p.name)}</span>} title={p.name} sub={pins.has(site, p.name) ? undefined : 'No PIN yet'} />)}
           </div>
         </section>
         <section className="grp">
+          {msg?.bad && step.kind === 'pick' && <p className="pinmsg bad" role="alert" style={{ margin: 0 }}>{msg.text}</p>}
           <label className="field"><span>Someone else</span>
             <input className="in" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) start(name.trim()); }} />
           </label>

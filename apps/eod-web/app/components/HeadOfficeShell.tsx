@@ -58,6 +58,9 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
               {l.label === 'Today' && inToday && <small>{inToday}</small>}
             </Link>
           ))}
+          <Link to="/people" className={`si${pathname.startsWith('/people') ? ' on' : ''}`} aria-current={pathname.startsWith('/people') ? 'page' : undefined}>
+            <Icon d={ICONS.people} size={20} />People
+          </Link>
         </div>
         <div className="ho-saved">
           <span>Saved searches</span>
