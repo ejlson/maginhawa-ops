@@ -298,3 +298,17 @@ select.in { appearance: none; -webkit-appearance: none; text-align: left; cursor
 .ho-list a:hover { color: var(--herosec); }
 .ho-list .dot { width: 8px; height: 8px; border-radius: 4px; background: var(--herosec); flex: none; }
 .ho-list .dot.bad { background: var(--heroBad); } .ho-list .dot.warn { background: var(--heroWarn); }
+
+/* ---- role home screens ---- */
+.who { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px 0 5px; border-radius: 20px; background: var(--fill); color: var(--text); font-size: 15px; font-weight: 600; text-decoration: none; }
+.notecard { display: flex; gap: 14px; padding: 16px; border-radius: 18px; background: var(--side); box-shadow: inset 0 0 0 .5px var(--sep); font-size: 16px; }
+.av.link { background: rgba(0,102,204,.12); color: var(--link); }
+.p-new { background: rgba(0,102,204,.12); color: var(--link); }
+@media (prefers-color-scheme: dark) { .av.link, .p-new { background: rgba(74,163,255,.16); } }
+.bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end; height: 96px; }
+.bar { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--sec); }
+.bar i { display: block; width: 100%; border-radius: 6px; background: var(--fill); }
+.bar.now { color: var(--text); }
+.bar.now i { background: var(--ink); }
+.btn.b2 svg { flex: none; }
+a.linkbtn { text-decoration: none; }

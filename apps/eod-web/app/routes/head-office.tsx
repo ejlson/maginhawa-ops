@@ -12,7 +12,7 @@ import { useTradingHistory } from '../lib/history';
 
 /** Head office · all sites for the trading day. Approve the clean ones in one go. */
 export default function HeadOffice() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { draft } = useDraft();
   const date = draft.businessDate;
   const [reports, setReports] = useState<StoredReport[]>([]);
@@ -68,7 +68,7 @@ export default function HeadOffice() {
     <main className="page wide">
       <header className="nav" style={{ paddingLeft: 24 }}>
         <span className="title">Maginhawa <span className="muted" style={{ fontWeight: 500 }}>Head office</span></span>
-        <button className="av ink" style={{ width: 32, height: 32, fontSize: 12, border: 0, cursor: 'pointer' }} onClick={signOut} aria-label={`Signed in as ${user?.name}. Sign out`}>{user?.initials}</button>
+        <Link className="av ink" style={{ width: 32, height: 32, fontSize: 12, textDecoration: 'none' }} to="/account" aria-label={`Signed in as ${user?.name}. Account`}>{user?.initials}</Link>
       </header>
       <div className="body" style={{ paddingTop: 24 }}>
         <div className="titleblock"><span className="eyebrow">{formatDay(date)}</span><h1>All sites</h1></div>

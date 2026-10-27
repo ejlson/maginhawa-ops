@@ -4,7 +4,7 @@
  */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import {
-  activeTemplates, PHASE_LABELS, PHASES, runKey, summariseRun, tasksForDay, taskStatus, tradingDate,
+  activeTemplates, addDays, PHASE_LABELS, PHASES, runKey, summariseRun, tasksForDay, taskStatus, tradingDate,
   type AnswerValue, type ChecklistRun, type Phase, type ChecklistTemplate, type CorrectiveAction, type Task, type TaskStatus,
 } from '@maginhawa/core';
 import { storage } from './storage';
@@ -30,6 +30,8 @@ interface ChecklistsValue {
   answer: (key: string, checkpointId: string, value: AnswerValue) => void;
   fix: (key: string, checkpointId: string, action: Omit<CorrectiveAction, 'at'>) => void;
   finish: (key: string, by: string) => void;
+  /** Lists from the last trading day that were never done. */
+  missedYesterday: Task[];
 }
 
 const Ctx = createContext<ChecklistsValue | null>(null);
@@ -112,9 +114,20 @@ export function ChecklistsProvider({ siteCode, children }: { siteCode: string; c
     });
   }, [save, baseTasks, businessDate]);
 
+  const missedYesterday = useMemo(() => {
+    const day = addDays(businessDate, -1);
+    const used = activeTemplates(records, siteCode, day);
+    const old = Object.values(storage.get<Record<string, ChecklistRun>>(keyFor(siteCode, day), {}));
+    // Nothing saved at all means this device wasn't in use that day, not that every list was missed.
+    if (!old.length) return [];
+    const at = now();
+    return tasksForDay(used, old, day, settings)
+      .filter((t) => !t.recheckOf && taskStatus(t, old.find((r) => r.key === t.key), at, used.find((x) => x.id === t.templateId), day) === 'missed');
+  }, [records, siteCode, businessDate, settings]);
+
   const value = useMemo<ChecklistsValue>(() => ({
-    businessDate, tasks, runFor: (k) => runs[k], templateFor, answer, fix, finish,
-  }), [businessDate, tasks, runs, templateFor, answer, fix, finish]);
+    businessDate, tasks, runFor: (k) => runs[k], templateFor, answer, fix, finish, missedYesterday,
+  }), [businessDate, tasks, runs, templateFor, answer, fix, finish, missedYesterday]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

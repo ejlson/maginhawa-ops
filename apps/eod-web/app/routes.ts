@@ -16,6 +16,11 @@ export default [
     route('checklists/:key', 'routes/checklist-run.tsx'),
     route('checklists/:key/fix/:checkpoint', 'routes/checklist-fix.tsx'),
     route('head-office', 'routes/head-office.tsx'),
+    route('report', 'routes/report.tsx'),
+    route('repairs', 'routes/repairs.tsx'),
+    route('handover', 'routes/handover.tsx'),
+    route('switch', 'routes/switch.tsx'),
+    route('account', 'routes/account.tsx'),
     route('head-office/:site', 'routes/head-office-site.tsx'),
   ]),
 ] satisfies RouteConfig;

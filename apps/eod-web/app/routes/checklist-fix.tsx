@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import { evaluate, FIX_ACTIONS, ruleText, validFix } from '@maginhawa/core';
 import { runPath, useChecklists } from '../lib/checklists';
+import { useAuth } from '../lib/auth';
+import { useSite } from '../lib/site';
 import { now } from '../lib/clock';
 import { Foot, Nav, Toggle } from '../components/ui';
 
@@ -11,6 +13,8 @@ export default function ChecklistFix() {
   const { key: raw = '', checkpoint = '' } = useParams();
   const key = decodeURIComponent(raw);
   const { templateFor, runFor, fix, businessDate } = useChecklists();
+  const { user } = useAuth();
+  const { report } = useSite();
   const c = templateFor(key)?.checkpoints.find((x) => x.id === checkpoint);
   const value = runFor(key)?.answers[checkpoint];
   const [actions, setActions] = useState<string[]>([]);
@@ -66,7 +70,12 @@ export default function ChecklistFix() {
         )}
       </div>
       <Foot>
-        <button type="button" className="btn b1" disabled={!ok} onClick={() => { fix(key, c.id, { actions, foodDisposed: food, note, recheckInMinutes: mins, reportFault: fault }); navigate(runPath(key)); }}>Save and set re-check</button>
+        <button type="button" className="btn b1" disabled={!ok} onClick={() => {
+          fix(key, c.id, { actions, foodDisposed: food, note, recheckInMinutes: mins, reportFault: fault });
+          // A fault becomes a repair job the manager sees on their home screen.
+          if (fault) report({ title: `${c.title}: ${e.reason.toLowerCase()}`, place: 'Kitchen', note: [actions.join(', '), note].filter(Boolean).join('. '), urgent: false, reportedBy: user?.name ?? 'Staff', from: { runKey: key, checkpointId: c.id } });
+          navigate(runPath(key));
+        }}>Save and set re-check</button>
         <p className="note">{ok ? 'Your manager sees this straight away.' : 'Pick at least one thing you did.'}</p>
       </Foot>
     </main>

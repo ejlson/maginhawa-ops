@@ -19,12 +19,18 @@ import ChecklistFix from '../app/routes/checklist-fix';
 import ChecklistLists from '../app/routes/checklist-lists';
 import ChecklistBuilder from '../app/routes/checklist-builder';
 import ChecklistCheck from '../app/routes/checklist-check';
+import Report from '../app/routes/report';
+import Repairs from '../app/routes/repairs';
+import Handover from '../app/routes/handover';
+import Switch from '../app/routes/switch';
+import Account from '../app/routes/account';
 import { deviceStore } from '../app/lib/store';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
 
 export const manager: User = { name: 'Jo', initials: 'J', role: 'manager', siteCode: 'BUN' };
 export const admin: User = { name: 'Ana', initials: 'A', role: 'headoffice', siteCode: 'BUN' };
 export const staff: User = { name: 'Sam', initials: 'S', role: 'staff', siteCode: 'BUN' };
+export const supervisor: User = { name: 'Jo', initials: 'JO', role: 'supervisor', siteCode: 'BUN' };
 
 export function renderApp(path: string, user: User | null = manager) {
   const u = userEvent.setup();
@@ -47,6 +53,11 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="checklists/:key" element={<ChecklistRun />} />
             <Route path="checklists/:key/fix/:checkpoint" element={<ChecklistFix />} />
             <Route path="head-office" element={<HeadOffice />} />
+            <Route path="report" element={<Report />} />
+            <Route path="repairs" element={<Repairs />} />
+            <Route path="handover" element={<Handover />} />
+            <Route path="switch" element={<Switch />} />
+            <Route path="account" element={<Account />} />
             <Route path="head-office/:site" element={<HeadOfficeSite />} />
           </Route>
         </Routes>
