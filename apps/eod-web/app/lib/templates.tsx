@@ -5,7 +5,7 @@
  */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import {
-  addOnFor, archive, canEditList, editableTemplate, recordStatus, tradingDate, EXAMPLE_TEMPLATES, newAddOn, newRecord, publish, seedRecords, uniqueId,
+  addOnFor, archive, canEditList, editableTemplate, moveRecord, recordStatus, tradingDate, EXAMPLE_TEMPLATES, newAddOn, newRecord, publish, seedRecords, uniqueId,
   type ChecklistTemplate, type TemplateRecord,
 } from '@maginhawa/core';
 import { storage } from './storage';
@@ -28,6 +28,8 @@ interface TemplatesValue {
   /** Throws away unpublished changes. A list that was never published is removed. */
   discard: (id: string) => void;
   stop: (id: string, today: string) => void;
+  /** Moves a list up or down among the lists it's shown with. Takes effect straight away. */
+  move: (id: string, by: -1 | 1, sameGroup: (r: TemplateRecord) => boolean) => void;
 }
 
 const Ctx = createContext<TemplatesValue | null>(null);
@@ -76,6 +78,7 @@ export function TemplatesProvider({ children, initial }: { children: ReactNode; 
     publish: (id, today, by) => update(id, (r) => publish(r, { today, by, at: now().toISOString() })),
     discard: (id) => update(id, (r) => (r.versions.length ? { ...r, draft: null } : null)),
     stop: (id, today) => update(id, (r) => archive(r, today)),
+    move: (id, by, sameGroup) => save((all) => moveRecord(all, id, by, sameGroup)),
   }), [records, save, update]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

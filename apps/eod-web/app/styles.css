@@ -714,3 +714,8 @@ a.linkbtn { text-decoration: none; }
 .toast button { border: 0; background: transparent; color: inherit; font: inherit; font-weight: 700; cursor: pointer; min-height: 36px; padding: 0 12px; border-radius: 999px; }
 @media (max-width: 1099px) { .people-cols { display: block; } }
 .linkbtn:disabled { opacity: .45; cursor: default; }
+
+/* Edit checklists: putting a section's lists in order. */
+.order-row { cursor: default; }
+.order-row .rt { gap: 8px; }
+.hd .linkbtn, .sl .linkbtn { font-size: 15px; text-transform: none; letter-spacing: -.01em; min-height: 32px; }

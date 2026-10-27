@@ -178,6 +178,21 @@ export function moveCheckpoint(t: ChecklistTemplate, id: string, by: -1 | 1): Ch
   return { ...t, checkpoints: list };
 }
 
+/**
+ * Moves a list one place up or down among the lists it's shown with (`sameGroup`), such as one
+ * site's own lists. The order is the order on the Checklists screen when lists are due at the same
+ * time, and for "When needed" lists. Other lists keep their places.
+ */
+export function moveRecord(records: TemplateRecord[], id: string, by: -1 | 1, sameGroup: (r: TemplateRecord) => boolean): TemplateRecord[] {
+  const peers = records.map((r, i) => ({ r, i })).filter((x) => sameGroup(x.r));
+  const at = peers.findIndex((x) => x.r.id === id);
+  const to = peers[at + by];
+  if (at < 0 || !to) return records;
+  const next = [...records];
+  [next[peers[at]!.i], next[to.i]] = [next[to.i]!, next[peers[at]!.i]!];
+  return next;
+}
+
 /** A short id from a name, unique among `taken`. */
 export function uniqueId(name: string, taken: Iterable<string>): string {
   const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24) || 'list';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  activeTemplates, addOnFor, addOnId, archive, canAddChecks, canCreateList, canEditList, changeType, cleanTemplate, editableTemplate, moveCheckpoint, newCheckpoint,
+  activeTemplates, addOnFor, addOnId, archive, canAddChecks, canCreateList, canEditList, changeType, cleanTemplate, editableTemplate, moveCheckpoint, moveRecord, newCheckpoint,
   newAddOn, newRecord, nextDay, publish, recordIssues, recordStatus, scheduleText, seedRecords, templateIssues, uniqueId, versionOn, type TemplateRecord,
 } from '../src/builder';
 import { EXAMPLE_TEMPLATES, type ChecklistTemplate } from '../src/checklists';
@@ -199,5 +199,30 @@ describe("a site's own checks on a group list", () => {
     expect(recordStatus(again, today)).toBe('draft');
     expect(ids([opening(), again], 'BUN', tomorrow)).not.toContain('site-c9');
     expect(ids([opening(), publish(again, { today, ...by })], 'BUN', tomorrow)).toContain('site-c9');
+  });
+});
+
+describe('ordering lists', () => {
+  const site = (id: string, siteCode = 'BUN') =>
+    publish({ ...newRecord({ id, scope: 'site', siteCode, by: 'Jo' }), draft: ready({ id, title: id, siteCode, times: [], windowMinutes: undefined }) }, { today, ...by });
+  const all = () => [...records(), site('brunch'), site('other', 'BEL'), site('cellar')];
+  const bunso = (r: TemplateRecord) => r.scope === 'site' && r.siteCode === 'BUN';
+
+  it("moves a site's list past the next one of its own, leaving other lists where they are", () => {
+    const before = all();
+    const after = moveRecord(before, 'cellar', -1, bunso);
+    expect(after.map((r) => r.id)).toEqual(before.map((r) => r.id).map((id) => (id === 'brunch' ? 'cellar' : id === 'cellar' ? 'brunch' : id)));
+    expect(after.indexOf(after.find((r) => r.id === 'other')!)).toBe(before.findIndex((r) => r.id === 'other'));
+  });
+  it("doesn't move past either end", () => {
+    const before = all();
+    const firstOfMine = before.filter(bunso)[0]!.id;
+    expect(moveRecord(before, firstOfMine, -1, bunso)).toBe(before);
+    expect(moveRecord(before, 'cellar', 1, bunso)).toBe(before);
+  });
+  it('sets the order lists run in at the site', () => {
+    const after = moveRecord(all(), 'cellar', -1, bunso);
+    const order = activeTemplates(after, 'BUN', tomorrow).map((t) => t.id);
+    expect(order.indexOf('cellar')).toBeLessThan(order.indexOf('brunch'));
   });
 });

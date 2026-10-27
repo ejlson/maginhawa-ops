@@ -215,3 +215,26 @@ describe('building a checklist', () => {
     expect(screen.getByText('Stopped. Staff no longer see it')).toBeInTheDocument();
   });
 });
+
+describe('putting lists in order', () => {
+  const names = () => screen.getAllByRole('button', { name: /^Move .* up$/ }).map((b) => b.getAttribute('aria-label')!.replace(/^Move | up$/g, ''));
+
+  it('head office moves a group list up, and Done goes back to links', async () => {
+    const { user } = renderApp('/checklists/edit', admin);
+    await user.click(screen.getByRole('button', { name: 'Reorder' }));
+    expect(names()).toEqual(['Opening checks', 'Hot holding', 'Closing checks', 'Delivery check']);
+    expect(screen.getByRole('button', { name: 'Move Opening checks up' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Move Closing checks up' }));
+    expect(names()).toEqual(['Opening checks', 'Closing checks', 'Hot holding', 'Delivery check']);
+    await user.click(screen.getByRole('button', { name: 'Done' }));
+    expect(screen.queryByRole('button', { name: /^Move / })).not.toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem('mgh.templates.v1')!).filter((r: { scope: string }) => r.scope === 'group').map((r: { id: string }) => r.id).slice(0, 3))
+      .toEqual(['opening', 'closing', 'hothold']);
+  });
+
+  it("managers can't reorder head office's group lists", () => {
+    renderApp('/checklists/edit');
+    // Bunso has one list of its own, and the group lists belong to head office.
+    expect(screen.queryByRole('button', { name: 'Reorder' })).not.toBeInTheDocument();
+  });
+});
