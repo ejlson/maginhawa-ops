@@ -177,7 +177,7 @@ describe('wages, delivery, notes', () => {
 
   it('adds a handover note for the opener', async () => {
     const { user } = renderApp('/close/handover');
-    await user.click(screen.getByRole('button', { name: 'Stock' }));
+    await user.click(screen.getByRole('radio', { name: 'Stock' }));
     await user.type(screen.getByLabelText('Note'), 'Low on limes');
     await user.click(screen.getByRole('button', { name: 'Add note' }));
     expect(screen.getByText('Low on limes')).toBeInTheDocument();
