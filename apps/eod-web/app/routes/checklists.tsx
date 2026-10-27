@@ -1,19 +1,12 @@
 import { Link, useSearchParams } from 'react-router';
 import { PHASE_LABELS, PHASES, type Phase } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
-import { isUrgent, runPath, statusPill, useChecklists, type TaskView } from '../lib/checklists';
-import { checklistIcon, Foot, Nav, RowLink, StatusIcon } from '../components/ui';
+import { runPath, useChecklists } from '../lib/checklists';
+import { Foot, Nav } from '../components/ui';
+import { groupTasks, SplitFrame, TaskRow } from '../components/ChecklistSplit';
+import { useTwoColumns } from '../lib/wide';
 import { TabBar } from '../components/TabBar';
 import { can, useAuth } from '../lib/auth';
-
-function TaskRow({ t }: { t: TaskView }) {
-  const pill = statusPill(t);
-  const pie = t.status === 'done' ? 'done' : t.status === 'failed' ? 'fail' : t.done > 0 ? 'started' : 'todo';
-  const sub = t.status === 'done' || t.status === 'failed'
-    ? `${t.run?.completedAt ? new Date(t.run.completedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''} · ${t.run?.completedBy ?? ''}${t.status === 'failed' ? ' · problem fixed' : ''}`
-    : `${t.total} ${t.total === 1 ? 'check' : 'checks'} · ${t.template.who}`;
-  return <RowLink to={runPath(t.key)} lead={<StatusIcon d={checklistIcon(t.template.id, t.template.phase)} status={pie} />} title={t.title} sub={sub} right={<span className={`pill ${pill.cls}`}>{pill.text}</span>} />;
-}
 
 export default function Checklists() {
   const { tasks: all, businessDate } = useChecklists();
@@ -22,13 +15,40 @@ export default function Checklists() {
   const phase = (PHASES as readonly string[]).includes(params.get('phase') ?? '') ? (params.get('phase') as Phase) : null;
   const tasks = phase ? all.filter((t) => t.template.phase === phase) : all;
   const title = phase ? `${PHASE_LABELS[phase]} checklists` : 'Checklists';
-  const now = tasks.filter((t) => isUrgent(t.status));
-  const missed = tasks.filter((t) => t.status === 'missed');
-  const later = tasks.filter((t) => t.status === 'upcoming');
-  const anytime = tasks.filter((t) => t.status === 'anytime');
-  const done = tasks.filter((t) => t.status === 'done' || t.status === 'failed');
+  const { now, missed, later, anytime, done, next } = groupTasks(tasks);
   const scheduled = tasks.filter((t) => t.status !== 'anytime');
-  const next = now[0] ?? later[0];
+  const two = useTwoColumns();
+
+  const hero = (
+    <div className="hero" role="status">
+      <span className="hl">Done today</span>
+      <div className="big"><b>{done.length}</b><i>&nbsp;of {scheduled.length}</i></div>
+      <div className="segs" aria-hidden="true">
+        {scheduled.map((t) => <span key={t.key} className={t.status === 'done' || t.status === 'failed' ? 'd' : ''} style={t.status === 'missed' ? { background: 'var(--heroBad)' } : undefined} />)}
+      </div>
+      <div className="hm">
+        <span className={now.some((t) => t.status === 'late') || missed.length ? 'h-bad' : ''}>{now.filter((t) => t.status === 'late').length + missed.length}<small>Late or missed</small></span>
+        <span>{done.filter((t) => t.status === 'failed').length}<small>Problems fixed</small></span>
+        <span>{next?.dueTime ?? (next ? 'Now' : '—')}<small>Next due</small></span>
+      </div>
+    </div>
+  );
+
+  // Wide screens: the lists on the left, today's summary and the next list on the right until one is opened.
+  if (two) {
+    return (
+      <SplitFrame selected={null}>
+        <Nav right={<span className="saved">Pick a list, or press <span className="kbd">J</span></span>} />
+        <div className="body split-body">
+          {hero}
+          {next
+            ? <Link className="btn b1" to={runPath(next.key)}>{next.status === 'late' ? 'Do now: ' : 'Start '}{next.title}</Link>
+            : <p className="note" style={{ margin: 0 }}>Nothing left today. Good work.</p>}
+          <p className="lead" style={{ margin: 0 }}>Do them any time of day. They're separate from the end-of-day report.</p>
+        </div>
+      </SplitFrame>
+    );
+  }
 
   return (
     <main className="page tabs">
@@ -41,18 +61,7 @@ export default function Checklists() {
             <h1>{title}</h1>
             <p className="lead">Do them any time of day. They're separate from the end-of-day report.</p>
           </div>
-          <div className="hero" role="status">
-            <span className="hl">Done today</span>
-            <div className="big"><b>{done.length}</b><i>&nbsp;of {scheduled.length}</i></div>
-            <div className="segs" aria-hidden="true">
-              {scheduled.map((t) => <span key={t.key} className={t.status === 'done' || t.status === 'failed' ? 'd' : ''} style={t.status === 'missed' ? { background: 'var(--heroBad)' } : undefined} />)}
-            </div>
-            <div className="hm">
-              <span className={now.some((t) => t.status === 'late') || missed.length ? 'h-bad' : ''}>{now.filter((t) => t.status === 'late').length + missed.length}<small>Late or missed</small></span>
-              <span>{done.filter((t) => t.status === 'failed').length}<small>Problems fixed</small></span>
-              <span>{next?.dueTime ?? (next ? 'Now' : '—')}<small>Next due</small></span>
-            </div>
-          </div>
+          {hero}
         </div>
 
         <section className="grp">
@@ -65,7 +74,7 @@ export default function Checklists() {
         </section>
 
         {done.length > 0 && (
-          <section className="grp side">
+          <section className="grp">
             <div className="hd"><h2>Done</h2><span>{done.length}</span></div>
             <div className="sub">{done.map((t) => <TaskRow key={t.key} t={t} />)}</div>
           </section>

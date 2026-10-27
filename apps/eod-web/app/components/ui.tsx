@@ -1,6 +1,7 @@
 /** Shared building blocks: the hero figure, circles, rows, inputs, toggles. */
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { useWide } from '../lib/wide';
 import { formatPounds, parseCount, parsePounds, splitPounds, type Pence, type Phase, type SectionKey, type SectionStatus } from '@maginhawa/core';
 
 export function Chevron() {
@@ -133,6 +134,21 @@ export function Segments({ statuses }: { statuses: SectionStatus[] }) {
 }
 
 export function Nav({ back, backLabel = 'Today', title, right }: { back?: string; backLabel?: string; title?: string; right?: ReactNode }) {
+  const wide = useWide();
+  // Beside the sidebar the bar is a path ("Checklists › Hot holding"), never a second copy of the page's title.
+  if (wide) {
+    return (
+      <header className="nav path">
+        {back ? (
+          <span className="crumbs">
+            <Link to={back}>{backLabel}</Link>
+            {title && <><span aria-hidden="true">›</span><span>{title}</span></>}
+          </span>
+        ) : <span />}
+        <span>{right}</span>
+      </header>
+    );
+  }
   return (
     <header className="nav">
       {back ? (
