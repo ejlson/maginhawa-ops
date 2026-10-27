@@ -1,6 +1,6 @@
 # Maginhawa Ops: project handoff
 
-*Last updated 27 October 2026 (food-safety module built and merged, §8a; Check65 review findings, §8; EHO brief, §10 and §13; on 26 Oct the back end changed from Power Automate to our own Netlify Functions, §3 and §4). This file is the single source of truth for picking the project up in a new Claude account or by a new person. Read it top to bottom before doing anything.*
+*Last updated 27 October 2026 (desktop redesign built, §6; food-safety module built and merged, §8a; Check65 review findings, §8; EHO brief, §10 and §13; on 26 Oct the back end changed from Power Automate to our own Netlify Functions, §3 and §4). This file is the single source of truth for picking the project up in a new Claude account or by a new person. Read it top to bottom before doing anything.*
 
 ---
 
@@ -201,6 +201,8 @@ An earlier low-fidelity version is at https://claude.ai/artifact/KxTcCMxEYiNPcvh
 
 All figures in the designs are **made-up examples**.
 
+**Desktop, as built (27 Oct 2026, [ejlson/maginhawa-ops#4](https://github.com/ejlson/maginhawa-ops/pull/4) and [#5](https://github.com/ejlson/maginhawa-ops/pull/5)):** every site screen uses one 1120px frame, with the content on the left and the dark card at the top right. A `Columns` component lays out Home and Today's EOD. The sidebar has live counts (red for late or urgent, orange for things that need a look) and a **⌘K / Ctrl+K** menu to search and jump from any site screen. Checklists show the list on the left and the open checklist on the right (J/K to move; ⌘↵ finishes and opens the next list). On touch screens, a thermometer button opens a big temperature entry with −/+, quick values, a live pass/fail and *Save and next*. Screens show loading skeletons. Managers can add their own checks to group lists. Phones are unchanged. **Still to do:** try the big temperature entry on a real iPad.
+
 ---
 
 ## 7. Design language (follow exactly)
@@ -285,7 +287,7 @@ Full detail with sources: `research/2026-10-research-findings.md`.
 - Right-to-work expiry tracker.
 - Martyn's Law (sites holding 200–799 people; enforcement about 2027).
 - Food-safety checklists with Bluetooth probes.
-- Cmd+K for head office.
+- Cmd+K for head office (site screens have ⌘K since 27 Oct, §6).
 - Translations, with "Free items" as an alias for "comps".
 
 **Check65 (looked at again 27 Oct 2026):**
