@@ -74,7 +74,7 @@ export default function Close() {
           <div className="sub"><div className="sl"><span>Team &amp; notes</span><span>{count(TEAM)}</span></div>{TEAM.map(row)}</div>
         </section>
 
-        <section className="grp quiet">
+        <section className="grp quiet side">
           <div className="sub">
             <div className="sl"><span>What ran today</span></div>
             {(['lunch', 'dinner', 'delivery'] as const).map((k) => (

@@ -45,7 +45,7 @@ export function StaffHome() {
         )}
 
         {handover.length > 0 && (
-          <section className="grp">
+          <section className="grp side">
             <div className="hd"><h2>From last night</h2>{handoverBy && <span>{handoverBy}</span>}</div>
             <div className="notecard">
               <span className="av"><Icon d={ICONS.chat} /></span>

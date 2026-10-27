@@ -72,7 +72,7 @@ export function SupervisorHome() {
           </section>
         )}
 
-        <section className="grp">
+        <section className="grp side">
           <div className="hd"><h2>On shift</h2><span>Who did what</span></div>
           <div className="sub">
             {people.map((p) => (
