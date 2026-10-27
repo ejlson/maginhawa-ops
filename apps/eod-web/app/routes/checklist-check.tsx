@@ -3,7 +3,7 @@ import { Navigate, useNavigate, useParams } from 'react-router';
 import { ANSWER_LABELS, ANSWER_TYPES, canFail, changeType, checkpointIssues, type AnswerValue, type Checkpoint } from '@maginhawa/core';
 import { editPath, useListEditor } from '../lib/templates';
 import { Answer } from '../components/Answer';
-import { Foot, Icon, ICONS, Nav, Toggle } from '../components/ui';
+import { Foot, Icon, ICONS, Nav, TempInput, Toggle } from '../components/ui';
 
 /** Common limits to start from. Example values: each site checks its own. */
 const TEMP_PRESETS: { label: string; min?: number; max?: number }[] = [
@@ -24,8 +24,7 @@ function LimitInput({ label, value, onChange, unit }: { label: string; value: nu
   if (value !== last) { setLast(value); if (parseNum(text) !== value) setText(value === undefined ? '' : String(value)); }
   return (
     <label className="fr"><span className="tx"><span>{label}</span><small>Leave blank for no limit</small></span>
-      <input className="in" type="text" inputMode="decimal" aria-label={label} placeholder={unit || 'None'} value={text}
-        onChange={(e) => { setText(e.target.value); onChange(parseNum(e.target.value)); }} />
+      <TempInput label={label} placeholder={unit || 'None'} value={text} onChange={(t) => { setText(t); onChange(parseNum(t)); }} />
     </label>
   );
 }

@@ -138,6 +138,11 @@ div.li { cursor: default; }
 .in:focus { box-shadow: 0 0 0 2px var(--link); }
 .in.bad { box-shadow: 0 0 0 2px var(--bad); }
 .in.wide { width: 100%; text-align: left; }
+.tempin { display: inline-flex; align-items: center; gap: 6px; }
+.pm { width: 42px; height: 42px; border: 0; border-radius: 10px; background: var(--fill); color: var(--text); font: inherit; font-size: 18px; font-weight: 600; cursor: pointer; }
+.pm[aria-pressed="true"] { background: var(--ink); color: var(--onink); }
+.pm:disabled { opacity: .5; cursor: default; }
+.pm-gap { width: 42px; flex: none; }
 .in.short { width: 76px; text-align: center; font-weight: 600; }
 .ta { border: 0; background: var(--fill); border-radius: 14px; font: inherit; color: var(--text); width: 100%; min-height: 84px; resize: vertical; padding: 12px 14px; outline: none; }
 .ta:focus { box-shadow: 0 0 0 2px var(--link); }
