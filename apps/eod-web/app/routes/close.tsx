@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
+import { EodSyncNotice } from '../components/Sync';
 import { BigMoney, Foot, Icon, ICONS, Nav, RowLink, SectionIcon, SECTION_ICONS, Segments, Toggle } from '../components/ui';
 import { TabBar } from '../components/TabBar';
 
@@ -92,6 +93,7 @@ export default function Close() {
           </div>
         </section>
       </div>
+      <EodSyncNotice />
       <Foot>
         {locked ? <Link className="btn b1" to="/close/done">See today's report</Link> : next
           ? <Link className="btn b1" to={`/close/${next}`}>{progress.done === 0 ? 'Start with' : 'Continue with'} {SECTION_LABELS[next]}</Link>

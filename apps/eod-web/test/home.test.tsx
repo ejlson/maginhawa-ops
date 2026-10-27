@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import { admin, manager, renderApp, staff, supervisor } from './harness';
 import { setNow } from '../app/lib/clock';
-import { deviceStore } from '../app/lib/store';
+import { deviceChecklistStore, deviceStore } from '../app/lib/store';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
 
 const at = (iso: string) => setNow(new Date(iso));
@@ -17,13 +17,11 @@ async function seedHandover(body = 'Walk-in door sticks, push it shut.') {
   await deviceStore().saveDraft(d);
 }
 
-/** A checklist finished earlier today by someone. */
+/** A checklist finished earlier today by someone (the store writes synchronously). */
 function seedRun(key: string, by: string, completedAt: string, date = '2026-10-05') {
-  const storeKey = `mgh.runs.v1.BUN|${date}`;
-  const runs = JSON.parse(localStorage.getItem(storeKey) ?? '{}');
   const [, templateId, dueTime] = key.split('|');
-  runs[key] = { key, templateId, businessDate: date, dueTime: dueTime === 'any' ? null : dueTime, answers: {}, fixes: {}, completedAt, completedBy: by };
-  localStorage.setItem(storeKey, JSON.stringify(runs));
+  const run = { key, templateId: templateId!, businessDate: date, dueTime: dueTime === 'any' ? null : dueTime! };
+  void deviceChecklistStore().apply('BUN', [{ kind: 'finish', run, by, at: completedAt }]);
 }
 
 describe('staff home (the shared kitchen iPad)', () => {

@@ -1,21 +1,25 @@
 /**
- * Today's report for the signed-in manager's site. Every change saves on the device
- * straight away, so nothing is lost without signal. All figures come from @maginhawa/core.
+ * Today's report for the signed-in person's site. Several people can work on it at once
+ * from different devices: every change shows at once, saves with a version check, and
+ * merges with the others' changes section by section (EodSyncClient in @maginhawa/core).
+ * All figures come from @maginhawa/core.
  */
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from 'react';
 import {
-  computeDay, DEFAULT_SETTINGS, newDraft, reviewIssues, sectionProgress, SITES, submitReport, tradingDate,
-  type DayResult, type EodDraft, type Issue, type SiteSettings, type StoredReport,
+  computeDay, DEFAULT_SETTINGS, EodSyncClient, newDraft, reviewIssues, sectionProgress, SITES, tradingDate,
+  type DayResult, type EodDraft, type EodSyncState, type Issue, type SectionKey, type SiteSettings, type StoredReport, type SubmitErrorCode,
 } from '@maginhawa/core';
 import { deviceStore } from './store';
-import { config, isConnected } from './config';
+import { isConnected } from './config';
+import { useAuth } from './auth';
+import { now as clockNow } from './clock';
+import { storage } from './storage';
+import { deviceId, eodRemote, presenceRemote, useLive, uuid } from './sync';
 
 export function settingsFor(siteCode: string): SiteSettings {
   const site = SITES.find((s) => s.code === siteCode);
   return { ...DEFAULT_SETTINGS, siteCode, siteName: site?.name ?? siteCode };
 }
-
-const uuid = () => (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12));
 
 interface DraftValue {
   draft: EodDraft;
@@ -26,63 +30,67 @@ interface DraftValue {
   status: StoredReport['status'];
   report: StoredReport | null;
   savedAt: Date | null;
+  /** Saving, offline, clashes, who else is here. */
+  sync: EodSyncState;
   update: (change: (d: EodDraft) => void) => void;
-  submit: (submittedBy: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  submit: (submittedBy?: string) => Promise<{ ok: true } | { ok: false; error: string; code: SubmitErrorCode }>;
+  /** Settles a clash: keep what this person typed, or take the other person's. */
+  resolve: (section: SectionKey, keep: 'mine' | 'theirs') => void;
+  dismissNotice: () => void;
+  /** What this person has open, for "Jo is in Dinner" on the other devices. */
+  setWhere: (where: string | null) => void;
 }
 
 const DraftContext = createContext<DraftValue | null>(null);
 
 export function DraftProvider({ siteCode, now, children }: { siteCode: string; now?: Date; children: ReactNode }) {
+  const { user } = useAuth();
+  const who = user?.name ?? 'Manager';
   const settings = useMemo(() => settingsFor(siteCode), [siteCode]);
   const businessDate = useMemo(() => tradingDate(now ?? new Date(), settings), [now, settings]);
-  const store = deviceStore();
 
-  const [report, setReport] = useState<StoredReport | null>(() => store.peek(siteCode, businessDate));
-  const [draft, setDraft] = useState<EodDraft>(() =>
-    report?.draft ?? newDraft({ clientId: uuid(), siteCode, businessDate, platformIds: settings.platforms.filter((p) => p.active).map((p) => p.id) }));
-  const [savedAt, setSavedAt] = useState<Date | null>(report ? new Date(report.draft.updatedAt) : null);
+  const client = useMemo(() => new EodSyncClient({
+    remote: eodRemote(settingsFor),
+    siteCode, businessDate, user: who, deviceId: deviceId(),
+    blank: () => newDraft({ clientId: uuid(), siteCode, businessDate, platformIds: settings.platforms.filter((p) => p.active).map((p) => p.id) }),
+    // Demo mode: the "server" is on this device, so the saved report can show straight away.
+    initial: isConnected() ? null : deviceStore().peek(siteCode, businessDate),
+    storage, presence: presenceRemote(), newId: uuid, now: clockNow,
+  }), [siteCode, businessDate, who, settings]);
+  useLive(client, `eod:${siteCode}|${businessDate}`);
+  const sync = useSyncExternalStore(client.subscribe, client.getState, client.getState);
 
+  const { draft, report } = sync;
   const status = report?.status ?? 'draft';
 
-  const update = useCallback((change: (d: EodDraft) => void) => {
-    setDraft((prev) => {
-      if (status === 'submitted' || status === 'approved') return prev;
-      const next = structuredClone(prev);
-      change(next);
-      next.updatedAt = new Date().toISOString();
-      void store.saveDraft(next).then(() => setSavedAt(new Date())).catch(() => undefined);
-      return next;
-    });
-  }, [status, store]);
+  const update = useCallback((change: (d: EodDraft) => void) => { void client.edit(change); }, [client]);
+  const submit = useCallback(async () => {
+    const res = await client.submit();
+    return res.ok ? { ok: true as const } : { ok: false as const, error: res.error, code: res.code };
+  }, [client]);
+  const resolve = useCallback((section: SectionKey, keep: 'mine' | 'theirs') => { void client.resolve(section, keep); }, [client]);
+  const dismissNotice = useCallback(() => client.dismissNotice(), [client]);
+  const setWhere = useCallback((where: string | null) => client.setWhere(where), [client]);
 
   const result = useMemo(() => computeDay(draft, settings), [draft, settings]);
   const issues = useMemo(() => reviewIssues(draft, result, settings), [draft, result, settings]);
   const progress = useMemo(() => sectionProgress(draft), [draft]);
-
-  const submit = useCallback(async (submittedBy: string) => {
-    if (isConnected()) {
-      // Connected mode: the server re-checks and saves to SharePoint (apps/functions/submit-eod).
-      try {
-        const res = await fetch(`${config.apiBase}/submit-eod`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(draft) });
-        const body = await res.json();
-        if (!res.ok) return { ok: false as const, error: body.error ?? 'Could not send. It is saved on this phone; try again.' };
-        setReport(body.report);
-        return { ok: true as const };
-      } catch {
-        return { ok: false as const, error: 'No connection. It is saved on this phone; try again when you have signal.' };
-      }
-    }
-    const res = await submitReport(draft, { store, settings, submittedBy });
-    if (!res.ok) return { ok: false as const, error: res.error };
-    setReport(res.report);
-    return { ok: true as const };
-  }, [draft, settings, store]);
+  const savedAt = useMemo(() => (sync.savedAt ? new Date(sync.savedAt) : null), [sync.savedAt]);
 
   const value = useMemo<DraftValue>(
-    () => ({ draft, settings, result, issues, progress, status, report, savedAt, update, submit }),
-    [draft, settings, result, issues, progress, status, report, savedAt, update, submit],
+    () => ({ draft, settings, result, issues, progress, status, report, savedAt, sync, update, submit, resolve, dismissNotice, setWhere }),
+    [draft, settings, result, issues, progress, status, report, savedAt, sync, update, submit, resolve, dismissNotice, setWhere],
   );
   return <DraftContext.Provider value={value}>{children}</DraftContext.Provider>;
+}
+
+/** Marks what this screen has open (e.g. "Dinner") while it is mounted. */
+export function useWhere(where: string | null) {
+  const { setWhere } = useDraft();
+  useEffect(() => {
+    setWhere(where);
+    return () => setWhere(null);
+  }, [where, setWhere]);
 }
 
 export function useDraft(): DraftValue {

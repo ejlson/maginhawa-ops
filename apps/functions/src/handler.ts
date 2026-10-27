@@ -21,7 +21,7 @@ export interface SubmitDeps {
   now?: () => Date;
 }
 
-const json = (status: number, body: unknown) =>
+export const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 
 export function createSubmitHandler(deps: SubmitDeps) {
@@ -37,6 +37,10 @@ export function createSubmitHandler(deps: SubmitDeps) {
     } catch {
       return json(400, { error: 'The report could not be read.' });
     }
+    // Either the draft itself, or { draft, baseVersion, submitId } from a device that syncs.
+    const envelope = typeof body === 'object' && body && 'draft' in body ? (body as { draft: unknown; baseVersion?: string | null; submitId?: string }) : null;
+    const condition = envelope ? { baseVersion: envelope.baseVersion ?? null, submitId: envelope.submitId } : {};
+    if (envelope) body = envelope.draft;
     const siteCode = typeof body === 'object' && body && 'siteCode' in body ? String((body as { siteCode: unknown }).siteCode) : '';
     if (!caller.siteCodes.includes(siteCode)) return json(403, { error: 'You can only submit for your own site.' });
 
@@ -45,8 +49,10 @@ export function createSubmitHandler(deps: SubmitDeps) {
     const businessDate = (body as { businessDate?: string }).businessDate ?? '';
     const targetNet = deps.targetNetFor ? await deps.targetNetFor(siteCode, businessDate) : null;
 
-    const res = await submitReport(body, { store: deps.store, settings, submittedBy: caller.name, now: deps.now?.(), targetNet });
-    if (!res.ok) return json(422, { error: res.error, issues: res.issues ?? [] });
+    const res = await submitReport(body, { store: deps.store, settings, submittedBy: caller.name, now: deps.now?.(), targetNet, ...condition });
+    // 409: someone else sent it first, or changed it since this person last looked. `current` is what is stored.
+    if (!res.ok && (res.code === 'already-submitted' || res.code === 'conflict')) return json(409, { error: res.error, code: res.code, current: res.current });
+    if (!res.ok) return json(422, { error: res.error, code: res.code, issues: res.issues ?? [] });
 
     // The report is safely stored; an email failure must not make the manager resubmit.
     let emailed = true;

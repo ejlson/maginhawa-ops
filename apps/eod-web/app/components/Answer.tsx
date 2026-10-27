@@ -18,15 +18,26 @@ async function shrinkPhoto(file: File): Promise<string> {
   }
 }
 
+const parseNumber = (t: string) => {
+  const n = parseFloat(t.replace('−', '-').replace(/[^0-9.\-]/g, ''));
+  return Number.isFinite(n) ? n : null;
+};
+
 function NumberAnswer({ c, value, onChange, invalid, disabled }: { c: Checkpoint; value: AnswerValue | undefined; onChange: (v: AnswerValue) => void; invalid: boolean; disabled: boolean }) {
   const [text, setText] = useState(typeof value === 'number' ? String(value) : '');
+  const [editing, setEditing] = useState(false);
+  // Someone else answered on another device: show it, unless this person is typing here.
+  useEffect(() => {
+    const v = typeof value === 'number' ? value : null;
+    if (!editing && parseNumber(text) !== v) setText(v === null ? '' : String(v));
+  }, [value, editing]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <input className={`in${invalid ? ' bad' : ''}`} style={{ width: 104 }} type="text" inputMode="decimal" disabled={disabled}
       aria-label={c.title} placeholder={c.type === 'temp' ? '°C' : c.unit ?? ''} value={text}
+      onFocus={() => setEditing(true)} onBlur={() => setEditing(false)}
       onChange={(e) => {
         setText(e.target.value);
-        const n = parseFloat(e.target.value.replace('−', '-').replace(/[^0-9.\-]/g, ''));
-        onChange(Number.isFinite(n) ? n : null);
+        onChange(parseNumber(e.target.value));
       }} />
   );
 }

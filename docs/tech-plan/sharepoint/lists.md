@@ -197,8 +197,9 @@
 | `ClientRecordedAt` | Date/Time | Device clock (Created = server time) |
 | `Supersedes` | Number | Id of the response this corrects (never edit in place) |
 | `CorrectionReason` | Text |  |
+| `AnswerKey` *(indexed)* | Text | runKey\|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who) |
 
-*Indexed (5):* Title, Run, Site, BusinessDate, Passed
+*Indexed (6):* Title, Run, Site, BusinessDate, Passed, AnswerKey
 
 **CorrectiveActions**: What was done about a failed check. *Written by:* App + flows F04/F05.
 
@@ -376,6 +377,9 @@
 | `NetVsTarget` *(set by flow)* | Currency |  |
 | `CheckIssues` *(set by flow)* | Multi-line text | Problems found by flow (e.g. discount lines ≠ EPOS total) |
 | `CalcVersion` *(set by flow)* | Text | Formula version used |
+| `DraftJson` | Multi-line text | The whole report between saves. Every save is PATCH with If-Match: <item ETag>, so a stale save gets 412 and is merged by section |
+| `SectionStamps` | Multi-line text | JSON: who last changed each section, and when (e.g. Jo changed Dinner at 21:14) |
+| `SubmitId` | Text | The submit press that won; a retry of the same press is a no-op |
 
 *Indexed (4):* Title, Site, BusinessDate, Status
 

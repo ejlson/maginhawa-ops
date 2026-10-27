@@ -1,5 +1,9 @@
 /** Renders the real screens with the same route tree as app/routes.ts. */
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
+import { ChecklistSyncClient, EodSyncClient, newDraft, tradingDate } from '@maginhawa/core';
+import { settingsFor } from '../app/lib/draft';
+import { now } from '../app/lib/clock';
+import { checklistBackend, eodRemote, presenceRemote, testTransport } from '../app/lib/sync';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { AuthProvider, type User } from '../app/lib/auth';
@@ -74,4 +78,29 @@ export async function seedVerifiedDraft(change?: (d: ReturnType<typeof verifiedD
   change?.(d);
   await deviceStore().saveDraft(d);
   return d;
+}
+
+/**
+ * A second device at the same site (e.g. Sam's phone while Jo is on the iPad).
+ * It shares the demo "server" with the screens, exactly as two tabs would.
+ */
+export function otherDevice(name: string) {
+  const settings = settingsFor('BUN');
+  const businessDate = tradingDate(now(), settings);
+  const eod = new EodSyncClient({
+    remote: eodRemote(settingsFor), siteCode: 'BUN', businessDate, user: name, deviceId: `${name}-phone`,
+    blank: () => newDraft({ clientId: crypto.randomUUID(), siteCode: 'BUN', businessDate, platformIds: ['deliveroo', 'ubereats'] }),
+    presence: presenceRemote(), now,
+  });
+  const checklists = new ChecklistSyncClient({ backend: checklistBackend(), siteCode: 'BUN', businessDate, user: name, deviceId: `${name}-phone`, presence: presenceRemote(), now });
+  return { eod, checklists };
+}
+
+/** Tells the open screens "something may have changed", like a poll tick or a push message. */
+export async function poke() {
+  await act(async () => {
+    testTransport.poke(`eod:BUN|${tradingDate(now(), settingsFor('BUN'))}`);
+    testTransport.poke(`checklists:BUN|${tradingDate(now(), settingsFor('BUN'))}`);
+    await new Promise((r) => setTimeout(r, 0));
+  });
 }

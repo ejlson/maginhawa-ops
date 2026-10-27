@@ -75,6 +75,8 @@ export interface ChecklistRun {
   fixes: Record<string, CorrectiveAction>;
   completedAt: string | null;
   completedBy: string | null;
+  /** Who gave each answer, and when (shared checklists). */
+  answeredBy?: Record<string, { by: string; at: string }>;
   /** Set for a re-check run: which run and checkpoint it re-checks. */
   recheckOf?: { runKey: string; checkpointId: string; dueAt: string };
 }

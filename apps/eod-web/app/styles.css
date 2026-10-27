@@ -299,6 +299,19 @@ select.in { appearance: none; -webkit-appearance: none; text-align: left; cursor
 .ho-list .dot { width: 8px; height: 8px; border-radius: 4px; background: var(--herosec); flex: none; }
 .ho-list .dot.bad { background: var(--heroBad); } .ho-list .dot.warn { background: var(--heroWarn); }
 
+/* ---- several people on one report or checklist (components/Sync.tsx) ---- */
+.sync { position: fixed; top: calc(56px + env(safe-area-inset-top, 0px)); left: 0; right: 0; max-width: 560px; margin: 0 auto; z-index: 6; display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); pointer-events: none; }
+.sync > * { pointer-events: auto; }
+.sync-card { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 16px; background: var(--bg); box-shadow: 0 0 0 .5px var(--sep), 0 8px 24px rgba(0,0,0,.08); font-size: 15px; line-height: 1.4; }
+.sync-card.quiet { background: var(--fill); box-shadow: none; color: var(--sec); font-size: 14px; align-items: center; }
+.sync-card .tx { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.sync-card small { color: var(--sec); font-size: 13px; }
+.sync-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.sync-x { border: 0; background: none; color: var(--sec); cursor: pointer; min-width: 32px; min-height: 32px; display: grid; place-items: center; }
+.presence { font-size: 13px; color: var(--sec); display: inline-flex; align-items: center; gap: 6px; align-self: flex-end; background: var(--nav); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 4px 10px; border-radius: 999px; box-shadow: 0 0 0 .5px var(--sep); }
+.chip.on { background: var(--ink); color: var(--onink); }
+.ans-by { display: block; font-size: 12px; color: var(--sec); margin: -2px 0 8px; }
+
 /* ---- role home screens ---- */
 .who { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px 0 5px; border-radius: 20px; background: var(--fill); color: var(--text); font-size: 15px; font-weight: 600; text-decoration: none; }
 .notecard { display: flex; gap: 14px; padding: 16px; border-radius: 18px; background: var(--side); box-shadow: inset 0 0 0 .5px var(--sep); font-size: 16px; }
