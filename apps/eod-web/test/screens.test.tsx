@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { screen, within } from '@testing-library/react';
-import { renderApp, seedVerifiedDraft, admin } from './harness';
+import { renderApp, seedVerifiedDraft, admin, staff } from './harness';
 import { deviceStore } from '../app/lib/store';
 
 describe('sign-in', () => {
@@ -40,7 +40,29 @@ describe('home', () => {
   it('shows today\'s EOD and the trading day', () => {
     renderApp('/');
     expect(screen.getByText('Monday 5 October')).toBeInTheDocument();
-    expect(screen.getByText('0 of 8 sections done')).toBeInTheDocument();
+    expect(screen.getByText('8 sections to go')).toBeInTheDocument();
+    expect(screen.getByText('Start lunch')).toBeInTheDocument();
+  });
+});
+
+describe('roles', () => {
+  it('staff do checklists but not the EOD', () => {
+    renderApp('/', staff);
+    const nav = screen.getByRole('navigation', { name: 'Main' });
+    expect(within(nav).queryByRole('link', { name: 'EOD' })).not.toBeInTheDocument();
+    expect(screen.queryByText("Today's EOD")).not.toBeInTheDocument();
+    expect(screen.queryByText('End-of-day report')).not.toBeInTheDocument();
+  });
+
+  it('staff are sent home from the EOD screens', () => {
+    renderApp('/close/lunch', staff);
+    expect(screen.queryByLabelText('Gross sales')).not.toBeInTheDocument();
+    expect(screen.getByText('Monday 5 October')).toBeInTheDocument();
+  });
+
+  it('only head office sees all sites', () => {
+    renderApp('/head-office');
+    expect(screen.queryByRole('table', { name: 'Sites' })).not.toBeInTheDocument();
   });
 });
 

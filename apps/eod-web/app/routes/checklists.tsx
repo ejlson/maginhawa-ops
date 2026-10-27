@@ -2,8 +2,9 @@ import { Link, useSearchParams } from 'react-router';
 import { PHASE_LABELS, PHASES, type Phase } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
 import { isUrgent, runPath, statusPill, useChecklists, type TaskView } from '../lib/checklists';
-import { Foot, Nav, Pie, RowLink } from '../components/ui';
+import { checklistIcon, Foot, Nav, RowLink, StatusIcon } from '../components/ui';
 import { TabBar } from '../components/TabBar';
+import { can, useAuth } from '../lib/auth';
 
 function TaskRow({ t }: { t: TaskView }) {
   const pill = statusPill(t);
@@ -11,11 +12,12 @@ function TaskRow({ t }: { t: TaskView }) {
   const sub = t.status === 'done' || t.status === 'failed'
     ? `${t.run?.completedAt ? new Date(t.run.completedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''} · ${t.run?.completedBy ?? ''}${t.status === 'failed' ? ' · problem fixed' : ''}`
     : `${t.total} ${t.total === 1 ? 'check' : 'checks'} · ${t.template.who}`;
-  return <RowLink to={runPath(t.key)} lead={<Pie status={pie} />} title={t.title} sub={sub} right={<span className={`pill ${pill.cls}`}>{pill.text}</span>} />;
+  return <RowLink to={runPath(t.key)} lead={<StatusIcon d={checklistIcon(t.template.id, t.template.phase)} status={pie} />} title={t.title} sub={sub} right={<span className={`pill ${pill.cls}`}>{pill.text}</span>} />;
 }
 
 export default function Checklists() {
   const { tasks: all, businessDate } = useChecklists();
+  const { user } = useAuth();
   const [params] = useSearchParams();
   const phase = (PHASES as readonly string[]).includes(params.get('phase') ?? '') ? (params.get('phase') as Phase) : null;
   const tasks = phase ? all.filter((t) => t.template.phase === phase) : all;
@@ -30,7 +32,8 @@ export default function Checklists() {
 
   return (
     <main className="page tabs">
-      <Nav back={phase ? '/checklists' : undefined} backLabel="All" title={title} />
+      <Nav back={phase ? '/checklists' : undefined} backLabel="All" title={title}
+        right={user && can.editChecklists(user.role) ? <Link className="back" to="/checklists/edit" style={{ padding: 0 }}>Edit lists</Link> : undefined} />
       <div className="body">
         <div className="top">
           <div className="titleblock">

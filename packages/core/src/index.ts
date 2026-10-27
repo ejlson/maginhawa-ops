@@ -7,3 +7,4 @@ export * from './store';
 export * from './submit';
 export * from './email';
 export * from './checklists';
+export * from './builder';

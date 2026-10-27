@@ -49,6 +49,8 @@ export interface ChecklistTemplate {
   windowMinutes: number;
   who: string;
   scope: 'group' | 'site';
+  /** The one site a site list belongs to. */
+  siteCode?: string;
   checkpoints: Checkpoint[];
 }
 
@@ -169,6 +171,14 @@ export function dueDate(businessDate: string, hhmm: string, dayCloseTime: string
   return zonedTime(ymd, h ?? 0, m ?? 0, timezone);
 }
 
+/** When the trading day closes: the day-close time on the next calendar day. */
+export function dayCloseAt(businessDate: string, dayCloseTime: string, timezone: string): Date {
+  const [h, m] = dayCloseTime.split(':').map(Number);
+  const day = new Date(`${businessDate}T00:00:00Z`);
+  day.setUTCDate(day.getUTCDate() + 1);
+  return zonedTime(day.toISOString().slice(0, 10), h ?? 4, m ?? 0, timezone);
+}
+
 /** The UTC instant for a wall-clock time in a timezone (handles BST/GMT). */
 function zonedTime(ymd: string, h: number, m: number, timezone: string): Date {
   const guess = new Date(`${ymd}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00Z`);
@@ -250,7 +260,7 @@ export const EXAMPLE_TEMPLATES: ChecklistTemplate[] = [
     ],
   },
   {
-    id: 'bar', title: 'Bar opening', phase: 'mid-shift', times: ['16:30'], windowMinutes: 30, who: 'Bar team', scope: 'site',
+    id: 'bar', title: 'Bar opening', phase: 'mid-shift', times: ['16:30'], windowMinutes: 30, who: 'Bar team', scope: 'site', siteCode: 'BUN',
     checkpoints: [
       { id: 'ice', title: 'Ice machine cleaned', help: 'Empty, wipe and refill', type: 'yesno', required: true, failOn: 'no' },
       { id: 'cellar', title: 'Beer cellar temperature', type: 'temp', required: true, min: 11, max: 13, faultOnFail: true },

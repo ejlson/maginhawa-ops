@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  dueDate, evaluate, EXAMPLE_TEMPLATES, ruleText, runKey, summariseRun, tasksForDay, taskStatus, validFix,
+  dayCloseAt, dueDate, evaluate, EXAMPLE_TEMPLATES, ruleText, runKey, summariseRun, tasksForDay, taskStatus, validFix,
   type ChecklistRun, type Checkpoint,
 } from '../src/checklists';
 
@@ -93,6 +93,9 @@ describe('the day\'s schedule', () => {
   });
   it('times after midnight belong to the trading day', () => {
     expect(dueDate(today, '01:00', '04:00', 'Europe/London').toISOString()).toBe('2026-10-06T00:00:00.000Z');
+  });
+  it('the trading day closes at the day-close time the next morning', () => {
+    expect(dayCloseAt(today, '04:00', 'Europe/London').toISOString()).toBe('2026-10-06T03:00:00.000Z');
   });
   it('one task per due time, in time order, with anytime lists last', () => {
     const tasks = tasksForDay(EXAMPLE_TEMPLATES, [], today, opts);

@@ -3,7 +3,9 @@ import { formatPounds, SITES, splitPounds, type StoredReport } from '@maginhawa/
 import { useAuth } from '../lib/auth';
 import { formatDay, useDraft } from '../lib/draft';
 import { deviceStore } from '../lib/store';
-import { Icon, ICONS } from '../components/ui';
+import { showExampleData } from '../lib/config';
+import { demoReports } from '../lib/demo';
+import { Icon, ICONS, RowLink } from '../components/ui';
 
 /** Head office · all sites for the trading day. Approve the clean ones in one go. */
 export default function HeadOffice() {
@@ -11,8 +13,15 @@ export default function HeadOffice() {
   const { draft } = useDraft();
   const date = draft.businessDate;
   const [reports, setReports] = useState<StoredReport[]>([]);
-  const load = () => void deviceStore().listByDate(date).then(setReports);
-  useEffect(load, [date]);
+  // Demo mode fills the other sites with example closes. Approving those only changes this screen.
+  const demo = showExampleData();
+  const [demoApproved, setDemoApproved] = useState<Set<string>>(new Set());
+  const load = () => void deviceStore().listByDate(date).then((real) => {
+    const examples = demo ? demoReports(date, new Set(real.map((r) => r.draft.siteCode))) : [];
+    setReports([...real, ...examples.map((r) => (demoApproved.has(r.draft.siteCode) ? { ...r, status: 'approved' as const } : r))]);
+  });
+  useEffect(load, [date, demoApproved]);
+  const isExample = (r: StoredReport) => r.draft.clientId.startsWith('demo-');
 
   const bySite = new Map(reports.map((r) => [r.draft.siteCode, r]));
   const sent = reports.filter((r) => r.status === 'submitted' || r.status === 'approved');
@@ -22,8 +31,10 @@ export default function HeadOffice() {
   const [p, d] = splitPounds(net);
 
   const approveClean = async () => {
-    for (const r of clean) await deviceStore().setStatus(r.draft.siteCode, r.draft.businessDate, 'approved');
-    load();
+    for (const r of clean.filter((r) => !isExample(r))) await deviceStore().setStatus(r.draft.siteCode, r.draft.businessDate, 'approved');
+    const examples = clean.filter(isExample).map((r) => r.draft.siteCode);
+    if (examples.length) setDemoApproved((s) => new Set([...s, ...examples]));
+    else load();
   };
 
   return (
@@ -69,14 +80,23 @@ export default function HeadOffice() {
                   <span style={{ fontWeight: 600 }}>{o ? formatPounds(o.totalNet) : '—'}</span>
                   <span>{o ? o.covers : '—'}</span>
                   <span className={o?.wageRag === 'red' ? 'bad' : o?.wageRag === 'amber' ? 'warn' : ''}>{o?.wagePct != null ? `${o.wagePct}%` : '—'}</span>
-                  <span className={cashDiff ? 'warn' : ''}>{cashDiff === null ? '—' : cashDiff === 0 ? 'Balanced' : formatPounds(cashDiff)}</span>
+                  <span className={cashDiff ? 'warn' : ''}>{cashDiff === null ? '—' : cashDiff === 0 ? 'Balanced' : `${formatPounds(Math.abs(cashDiff))} ${cashDiff < 0 ? 'short' : 'over'}`}</span>
                 </div>
               );
             })}
           </div>
-          {!sent.length && (
+          {demo && (
+            <div className="banner" role="note"><Icon d={ICONS.bang} size={16} /><span>Example data. Every site except yours shows made-up figures so you can see a busy night. Real closes replace it once the app is connected.</span></div>
+          )}
+          {!sent.length && !demo && (
             <div className="banner"><Icon d={ICONS.bang} size={16} /><span>No closes yet for this day. In demo mode, this shows reports submitted on this device.</span></div>
           )}
+        </section>
+        <section className="grp">
+          <div className="hd"><h2>Set-up</h2></div>
+          <div className="sub" style={{ maxWidth: 560 }}>
+            <RowLink to="/checklists/edit" lead={<span className="av"><Icon d={ICONS.check} /></span>} title="Checklists" sub="Change the group lists and see every site's own lists" />
+          </div>
         </section>
       </div>
     </main>

@@ -72,7 +72,7 @@ h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -.03em; line-
 .hd span { font-size: 14px; color: var(--sec); }
 .sub { display: flex; flex-direction: column; }
 /* Sub-headings inside a group (From the till, Food & drink…): small caps, so they never read as an input row. */
-.sl { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; font-weight: 600; color: var(--sec); letter-spacing: .06em; text-transform: uppercase; padding-bottom: 6px; }
+.sl { display: flex; flex-wrap: wrap; gap: 2px 12px; justify-content: space-between; align-items: baseline; font-size: 12.5px; font-weight: 600; color: var(--sec); letter-spacing: .06em; text-transform: uppercase; padding-bottom: 6px; }
 .sl span + span { font-weight: 500; letter-spacing: .02em; text-transform: none; font-size: 13px; }
 .quiet { padding-top: 24px; border-top: .5px solid var(--sep); }
 .note { font-size: 14px; color: var(--sec); line-height: 1.45; margin: 8px 0 0; }
@@ -94,7 +94,13 @@ h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -.03em; line-
 .segs { display: flex; gap: 4px; }
 .segs span { height: 4px; border-radius: 2px; flex: 1; background: var(--heroline); }
 .segs .d { background: var(--onhero); }
-.segs .p { background: var(--herosec); }
+.segs span { overflow: hidden; }
+.segs .p::before { content: ''; display: block; width: 50%; height: 100%; background: var(--onhero); }
+.hero-foot { align-items: center; border-top: 1px solid var(--heroline); padding-top: 14px; }
+.hero-next { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--onhero); }
+.hero-next .chev { color: var(--onhero); opacity: .6; }
+a.hero { transition: transform .15s ease-out; }
+a.hero:active { transform: scale(.98); }
 .h-ok { color: var(--heroOk); } .h-warn { color: var(--heroWarn); } .h-bad { color: var(--heroBad); }
 
 /* ---- list rows ---- */
@@ -107,6 +113,10 @@ div.li { cursor: default; }
 .av.ok { background: var(--okbg); color: var(--ok); } .av.warn { background: var(--warnbg); color: var(--warn); } .av.bad { background: var(--badbg); color: var(--bad); }
 .av.dash { background: transparent; border: 1.5px dashed var(--sep); color: var(--link); }
 .pie { width: 40px; display: flex; justify-content: center; flex: none; }
+.av.sec { position: relative; }
+.av.sec.off { color: var(--sec); }
+.sec-badge { position: absolute; right: -3px; bottom: -3px; width: 19px; height: 19px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; }
+.sec-badge .pie { width: auto; }
 .tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 .tx > span:first-child { font-size: 16px; font-weight: 500; letter-spacing: -.01em; }
 .tx small { font-size: 13.5px; color: var(--sec); line-height: 1.35; }
@@ -190,3 +200,44 @@ div.li { cursor: default; }
 /* Pages with the tab bar: the action button sits just above it. */
 .page.tabs .body { padding-bottom: 230px; }
 .page.tabs .foot { bottom: calc(58px + env(safe-area-inset-bottom, 0px)); padding-bottom: 12px; }
+
+/* ---- checklist builder ---- */
+.in.txt { width: min(62%, 300px); text-align: left; }
+select.in { appearance: none; -webkit-appearance: none; text-align: left; cursor: pointer; padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%238e8e93' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; }
+.in:disabled, .ta:disabled { opacity: .6; }
+.mini { width: 44px; height: 44px; border-radius: 22px; border: 0; background: var(--fill); color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
+.mini:disabled { opacity: .3; cursor: default; }
+.chip.tm { display: inline-flex; align-items: center; gap: 6px; padding-right: 8px; }
+.chip.tm svg { opacity: .55; }
+.addrow { display: flex; gap: 10px; align-items: center; }
+.addrow .in { width: 132px; text-align: center; }
+.optrow { display: flex; gap: 10px; align-items: center; }
+.optrow .in { flex: 1; width: auto; text-align: left; }
+.typedesc { font-size: 14px; color: var(--sec); margin: 0; line-height: 1.4; }
+.issues { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 14.5px; line-height: 1.4; }
+.issues li { display: flex; gap: 10px; align-items: flex-start; }
+.issues li svg { color: var(--warn); flex: none; margin-top: 1px; }
+
+/* Labels above inputs, so nothing wraps on a phone. */
+.field { display: flex; flex-direction: column; gap: 8px; }
+.field > span { font-size: 15px; font-weight: 600; }
+.field > span small { font-weight: 400; color: var(--sec); font-size: 14px; }
+.field > .in { width: 100%; text-align: left; }
+.field .addrow .in { width: 116px; height: 38px; border-radius: 19px; }
+.chip.add { display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--link); box-shadow: inset 0 0 0 1.5px var(--sep); }
+/* The list's name, edited in place on the hero card. */
+.title-edit { display: flex; align-items: center; gap: 10px; color: var(--herosec); cursor: text; }
+.title-in { flex: 1; min-width: 0; background: transparent; border: 0; padding: 0; outline: none; color: var(--onhero);
+  font: inherit; font-size: 28px; font-weight: 650; letter-spacing: -.03em; line-height: 1.15; }
+.title-in::placeholder { color: var(--herosec); }
+.title-in:disabled { opacity: 1; }
+.title-edit:focus-within { box-shadow: 0 1.5px 0 var(--heroline); }
+.hero-next.h-ok { color: var(--heroOk); } .hero-next.h-warn { color: var(--heroWarn); }
+/* The staff preview on the hero card: the same controls, recoloured for the dark card. */
+.hero.preview { gap: 6px; padding-bottom: 14px;
+  --text: var(--onhero); --sec: var(--herosec); --sep: var(--heroline); --bg: transparent;
+  --fill: rgba(255,255,255,.12); --ink: var(--onhero); --onink: var(--hero); --link: #6cb6ff; }
+.hero.preview .qrow { padding: 0; }
+.hero.preview .in::placeholder { color: var(--herosec); }

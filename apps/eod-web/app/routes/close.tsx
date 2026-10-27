@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
-import { BigMoney, Foot, Icon, ICONS, Nav, Pie, RowLink, Segments, Toggle } from '../components/ui';
+import { BigMoney, Foot, Icon, ICONS, Nav, RowLink, SectionIcon, SECTION_ICONS, Segments, Toggle } from '../components/ui';
 import { TabBar } from '../components/TabBar';
 
 const SALES: SectionKey[] = ['lunch', 'dinner', 'delivery', 'promotions'];
@@ -18,7 +18,7 @@ export default function Close() {
     if (st === 'skipped') return "Didn't run today";
     if (k === 'lunch' || k === 'dinner') {
       const s = result.sessions[k];
-      return st === 'done' ? `Done · ${s.covers} covers` : st === 'started' ? 'In progress' : 'From the till report';
+      return st === 'done' ? `Completed · ${s.covers} covers` : st === 'started' ? 'In progress' : 'From the till report';
     }
     if (k === 'delivery') return settings.platforms.filter((p) => p.active).map((p) => p.name).join(', ');
     if (k === 'promotions') return 'Offers, events, anything unusual';
@@ -36,7 +36,7 @@ export default function Close() {
   const row = (k: SectionKey) => {
     const st = sectionStatus(draft, k);
     return (
-      <RowLink key={k} to={`/close/${k}`} lead={<Pie status={st} />}
+      <RowLink key={k} to={`/close/${k}`} lead={<SectionIcon section={k} status={st} />}
         title={<span className={st === 'skipped' ? 'muted' : ''}>{SECTION_LABELS[k]}</span>} sub={sub(k)} right={right(k)} />
     );
   };
@@ -78,7 +78,7 @@ export default function Close() {
             <div className="sl"><span>What ran today</span></div>
             {(['lunch', 'dinner', 'delivery'] as const).map((k) => (
               <div className="li" key={k}>
-                <span className="av"><Icon d={k === 'lunch' ? ICONS.sun : k === 'dinner' ? ICONS.moon : ICONS.bag} /></span>
+                <span className="av"><Icon d={SECTION_ICONS[k]} /></span>
                 <span className="tx">{SECTION_LABELS[k]}</span>
                 <Toggle label={`${SECTION_LABELS[k]} ran today`} checked={draft.ran[k]} onChange={(v) => !locked && update((d) => { d.ran[k] = v; })} />
               </div>

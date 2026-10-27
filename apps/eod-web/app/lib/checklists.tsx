@@ -4,12 +4,13 @@
  */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import {
-  EXAMPLE_TEMPLATES, PHASE_LABELS, PHASES, runKey, summariseRun, tasksForDay, taskStatus, tradingDate,
+  activeTemplates, PHASE_LABELS, PHASES, runKey, summariseRun, tasksForDay, taskStatus, tradingDate,
   type AnswerValue, type ChecklistRun, type Phase, type ChecklistTemplate, type CorrectiveAction, type Task, type TaskStatus,
 } from '@maginhawa/core';
 import { storage } from './storage';
 import { settingsFor } from './draft';
 import { now } from './clock';
+import { useTemplates } from './templates';
 
 const keyFor = (siteCode: string, date: string) => `mgh.runs.v1.${siteCode}|${date}`;
 
@@ -33,9 +34,12 @@ interface ChecklistsValue {
 
 const Ctx = createContext<ChecklistsValue | null>(null);
 
-export function ChecklistsProvider({ siteCode, children, templates = EXAMPLE_TEMPLATES }: { siteCode: string; children: ReactNode; templates?: ChecklistTemplate[] }) {
+/** Runs today's published lists for the site. Changes made in the builder start the next trading day. */
+export function ChecklistsProvider({ siteCode, children }: { siteCode: string; children: ReactNode }) {
   const settings = useMemo(() => settingsFor(siteCode), [siteCode]);
   const businessDate = tradingDate(now(), settings);
+  const { records } = useTemplates();
+  const templates = useMemo(() => activeTemplates(records, siteCode, businessDate), [records, siteCode, businessDate]);
   const storeKey = keyFor(siteCode, businessDate);
   const [runs, setRuns] = useState<Record<string, ChecklistRun>>(() => storage.get(storeKey, {}));
 
@@ -125,8 +129,8 @@ export const runPath = (key: string) => `/checklists/${encodeURIComponent(key)}`
 export function statusPill(t: Pick<TaskView, 'status' | 'dueAt' | 'done' | 'total'>, at = now()): { cls: string; text: string } {
   const mins = t.dueAt ? Math.round((t.dueAt.getTime() - at.getTime()) / 60_000) : 0;
   switch (t.status) {
-    case 'done': return { cls: 'p-ok', text: 'Done' };
-    case 'failed': return { cls: 'p-warn', text: 'Done · fixed' };
+    case 'done': return { cls: 'p-ok', text: 'Completed' };
+    case 'failed': return { cls: 'p-warn', text: 'Completed · fixed' };
     case 'late': return { cls: 'p-bad', text: `${-mins} min late` };
     case 'missed': return { cls: 'p-bad', text: 'Missed' };
     case 'due': return { cls: 'p-warn', text: mins <= 0 ? 'Due now' : `Due in ${mins} min` };

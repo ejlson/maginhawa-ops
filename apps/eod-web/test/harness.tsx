@@ -15,11 +15,15 @@ import HeadOffice from '../app/routes/head-office';
 import Checklists from '../app/routes/checklists';
 import ChecklistRun from '../app/routes/checklist-run';
 import ChecklistFix from '../app/routes/checklist-fix';
+import ChecklistLists from '../app/routes/checklist-lists';
+import ChecklistBuilder from '../app/routes/checklist-builder';
+import ChecklistCheck from '../app/routes/checklist-check';
 import { deviceStore } from '../app/lib/store';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
 
 export const manager: User = { name: 'Jo', initials: 'J', role: 'manager', siteCode: 'BUN' };
-export const admin: User = { name: 'Ana', initials: 'A', role: 'admin', siteCode: 'BUN' };
+export const admin: User = { name: 'Ana', initials: 'A', role: 'headoffice', siteCode: 'BUN' };
+export const staff: User = { name: 'Sam', initials: 'S', role: 'staff', siteCode: 'BUN' };
 
 export function renderApp(path: string, user: User | null = manager) {
   const u = userEvent.setup();
@@ -36,6 +40,9 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="close/:section" element={<Section />} />
             <Route path="close/:session/cash" element={<CashCount />} />
             <Route path="checklists" element={<Checklists />} />
+            <Route path="checklists/edit" element={<ChecklistLists />} />
+            <Route path="checklists/edit/:id" element={<ChecklistBuilder />} />
+            <Route path="checklists/edit/:id/check/:check" element={<ChecklistCheck />} />
             <Route path="checklists/:key" element={<ChecklistRun />} />
             <Route path="checklists/:key/fix/:checkpoint" element={<ChecklistFix />} />
             <Route path="head-office" element={<HeadOffice />} />

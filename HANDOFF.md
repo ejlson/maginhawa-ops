@@ -14,12 +14,14 @@ It started as a "Check65-like" product idea (Food Alert's Check65 app; the compa
 
 **Roles:**
 
-| Role | What they do |
-|---|---|
-| Manager | Fills in the EOD for their site; sees their site's trends |
-| Staff | Later: checklists and food-safety logs on the shared kitchen iPad |
-| Admin | Head office: all-sites view, thresholds, targets, people |
-| Accounting / Finance | Same head-office view as Admin, minus Settings; receives the reports |
+| Role | Sees | Can do |
+|---|---|---|
+| Staff | Their site | Checklists |
+| Supervisor | Their site | Checklists and the EOD |
+| Manager (incl. assistant managers) | Their site | Checklists and the EOD; edit their site's checklists |
+| Head office (finance, admin, operations managers) | All sites | Thresholds, targets, people; edit checklists; receives the reports |
+
+Permissions live in one place: `can` in `apps/eod-web/app/lib/auth.tsx`.
 
 ---
 

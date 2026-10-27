@@ -1,5 +1,6 @@
 /** The bottom tab bar on the three main screens, so you always know where you are. */
 import { NavLink } from 'react-router';
+import { can, useAuth } from '../lib/auth';
 import { Icon, ICONS } from './ui';
 
 const TABS = [
@@ -9,9 +10,11 @@ const TABS = [
 ] as const;
 
 export function TabBar() {
+  const { user } = useAuth();
+  const tabs = TABS.filter((t) => t.to !== '/close' || (user && can.doEod(user.role)));
   return (
     <nav className="tabbar" aria-label="Main">
-      {TABS.map((t) => (
+      {tabs.map((t) => (
         <NavLink key={t.to} to={t.to} end={t.end} className={({ isActive }) => `tab${isActive ? ' on' : ''}`}>
           <Icon d={t.icon} size={22} />
           <span>{t.label}</span>

@@ -77,7 +77,7 @@ describe('doing a checklist', () => {
     await user.click(screen.getByRole('button', { name: 'Finish' }));
 
     expect(await screen.findByRole('heading', { name: 'Checklists' })).toBeInTheDocument();
-    expect(screen.getByText('Done · fixed')).toBeInTheDocument();
+    expect(screen.getByText('Completed · fixed')).toBeInTheDocument();
     expect(screen.getByText('Re-check walk-in fridge')).toBeInTheDocument();
   });
 

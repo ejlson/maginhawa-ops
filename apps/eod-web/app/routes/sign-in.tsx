@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import { SITES } from '@maginhawa/core';
-import { initialsOf, useAuth, type Role } from '../lib/auth';
+import { homeFor, initialsOf, ROLE_LABELS, useAuth, type Role } from '../lib/auth';
 import { isConnected } from '../lib/config';
 import { Icon, ICONS } from '../components/ui';
 
@@ -12,13 +12,13 @@ export default function SignIn() {
   const [siteCode, setSiteCode] = useState('BUN');
   const [role, setRole] = useState<Role>('manager');
 
-  if (user) return <Navigate to={user.role === 'manager' ? '/' : '/head-office'} replace />;
+  if (user) return <Navigate to={homeFor(user.role)} replace />;
 
   const go = (e: React.FormEvent) => {
     e.preventDefault();
     const n = name.trim() || 'Manager';
     signIn({ name: n, initials: initialsOf(n), role, siteCode });
-    navigate(role === 'manager' ? '/' : '/head-office');
+    navigate(homeFor(role));
   };
 
   return (
@@ -55,7 +55,7 @@ export default function SignIn() {
             </label>
           </div>
           <div className="chips" role="radiogroup" aria-label="Role">
-            {([['manager', 'Restaurant manager'], ['admin', 'Head office']] as const).map(([r, label]) => (
+            {(Object.entries(ROLE_LABELS) as [Role, string][]).map(([r, label]) => (
               <button key={r} type="button" role="radio" aria-checked={role === r} aria-pressed={role === r} className="chip" onClick={() => setRole(r)}>{label}</button>
             ))}
           </div>

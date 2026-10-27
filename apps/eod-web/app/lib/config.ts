@@ -9,3 +9,6 @@ export const config = {
 };
 
 export const isConnected = () => Boolean(config.entraClientId && config.entraTenantId);
+
+/** Example closes for the other sites on the head-office view: demo mode only, and never in tests. */
+export const showExampleData = () => !isConnected() && import.meta.env.MODE !== 'test';
