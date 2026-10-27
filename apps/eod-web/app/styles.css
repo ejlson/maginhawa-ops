@@ -465,6 +465,20 @@ a.linkbtn { text-decoration: none; }
   .site-shell .page.tabs > .body > .top > :only-child { grid-column: 1 / -1; }
   .site-shell .page.tabs .foot { display: flex; flex-direction: row-reverse; justify-content: flex-start; gap: 12px; }
   .site-shell .page.tabs .foot .btn { width: auto; min-width: 280px; }
+
+  /* Every other site screen uses the same frame: the content on the left, the dark card at the top
+     right and the action at the bottom right, like the EOD sections. */
+  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack) { max-width: 1120px; }
+  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack) > .body { position: relative; padding-right: calc(50% + 24px); }
+  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack) > .body > .hero:not(.hero ~ .hero),
+  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack) > .body > .top > .hero:not(.hero ~ .hero) { position: absolute; top: 8px; right: max(20px, env(safe-area-inset-right)); width: calc(50% - 44px); box-sizing: border-box; }
+  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack) .foot { padding-left: calc(50% + 24px); }
+
+  /* The action floats on its own: no frosted band across the page, so nothing on the left is covered. */
+  .site-shell .page .foot { background: none; backdrop-filter: none; -webkit-backdrop-filter: none; pointer-events: none; }
+  .site-shell .page .foot > * { pointer-events: auto; }
+  .site-shell .page.tabs .foot { padding-left: calc(50% + 24px); }
+  .site-shell .page.tabs .foot .btn { flex: 1; min-width: 0; }
 }
 
 /* ---- the day hour by hour ---- */
