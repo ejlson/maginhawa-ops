@@ -500,23 +500,35 @@ a.linkbtn { text-decoration: none; }
 .day-strip .future { opacity: .4; }
 .day-strip .now::after { content: ''; position: absolute; left: 50%; top: -6px; bottom: -6px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--onhero); }
 .day-axis { display: flex; justify-content: space-between; font-size: 12px; color: var(--herosec); margin-top: -8px; font-variant-numeric: tabular-nums; }
-.day-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.day-list > li { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 12px; position: relative; }
-.day-list > li + li { border-top: .5px solid var(--sep); }
-.day-h { white-space: nowrap; font-size: 14px; font-weight: 600; color: var(--sec); font-variant-numeric: tabular-nums; padding-top: 22px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
-.day-now { font-size: 11px; font-weight: 700; color: var(--onink); background: var(--ink); border-radius: 8px; padding: 1px 7px; letter-spacing: .02em; }
-.day-quiet { align-items: center; min-height: 44px; font-size: 14px; color: var(--sec); }
-.day-quiet .day-h { padding-top: 0; font-weight: 500; }
-.day-list .future { opacity: .55; }
-.day-empty { display: flex; align-items: center; min-height: 64px; font-size: 14px; color: var(--sec); }
-.day-list .li .rt { font-variant-numeric: tabular-nums; }
+/* Day view, laid out like Apple Calendar: hour labels on the lines, events placed by time, a red now line. */
+.cal { height: clamp(420px, 66dvh, 860px); overflow-y: auto; overscroll-behavior: contain; margin: 0 -4px; padding: 0 4px; scrollbar-width: none; }
+.cal::-webkit-scrollbar { display: none; }
+.cal:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 12px; }
+.cal-grid { position: relative; margin-top: 10px; --gut: 58px; }
+.cal-hour { position: absolute; left: 0; right: 0; height: 0; }
+.cal-hour::after { content: ''; position: absolute; left: var(--gut); right: 0; top: 0; border-top: .5px solid var(--sep); }
+.cal-hour span { position: absolute; left: 0; width: calc(var(--gut) - 10px); top: -8px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--sec); text-align: right; font-variant-numeric: tabular-nums; }
+.cal-hour span.hide { visibility: hidden; }
+.cal-past { position: absolute; left: var(--gut); right: 0; top: 0; pointer-events: none; }
+.cal-events { list-style: none; margin: 0; padding: 0; position: absolute; top: 0; bottom: 0; left: calc(var(--gut) + 4px); right: 0; }
+.cal-events > li { position: absolute; }
+.cal-ev { display: flex; flex-direction: column; justify-content: center; gap: 1px; height: 100%; padding: 0 10px 0 11px; border-radius: 6px; overflow: hidden; position: relative; text-decoration: none; color: var(--text); background: var(--fill); }
+.cal-ev::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--sec); }
+.cal-ev .ct { display: flex; align-items: center; gap: 5px; font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-ev .ct svg { flex: none; }
+.cal-ev small { font-size: 12px; color: var(--sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-ev.t-ok { background: var(--okbg); } .cal-ev.t-ok::before { background: var(--ok); } .cal-ev.t-ok .ct { color: var(--ok); }
+.cal-ev.t-warn { background: var(--warnbg); } .cal-ev.t-warn::before { background: var(--warn); } .cal-ev.t-warn .ct { color: var(--warn); }
+.cal-ev.t-bad { background: var(--badbg); } .cal-ev.t-bad::before { background: var(--bad); } .cal-ev.t-bad .ct { color: var(--bad); }
+.cal-ev.t-mut .ct { color: var(--text); } .cal-ev.t-mut { opacity: .8; }
+a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.985); }
+@media (prefers-color-scheme: dark) { a.cal-ev:hover { filter: brightness(1.15); } }
+.cal-now { position: absolute; left: var(--gut); right: 0; height: 0; z-index: 2; pointer-events: none; }
+.cal-now::before { content: ''; position: absolute; left: 0; right: 0; top: -1px; border-top: 2px solid var(--bad); }
+.cal-now::after { content: ''; position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; border-radius: 5px; background: var(--bad); }
+.cal-now b { position: absolute; right: calc(100% + 8px); top: -9px; font-size: 12px; line-height: 18px; font-weight: 700; color: #fff; background: var(--bad); border-radius: 9px; padding: 0 6px; font-variant-numeric: tabular-nums; }
 @media (min-width: 900px) { .page.day-page { max-width: 860px; } }
-@media (max-width: 599px) {
-  .day-list > li { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .day-h { padding-top: 14px; flex-direction: row; align-items: center; gap: 8px; }
-  .day-list > .day-quiet { display: flex; gap: 12px; }
-  .day-quiet .day-h { padding: 0; }
-}
+@media (max-width: 599px) { .cal-grid { --gut: 50px; } }
 
 /* Segmented switch: Trends | Today's timeline */
 .seg { display: inline-flex; align-self: flex-start; padding: 3px; border-radius: 12px; background: var(--fill); gap: 2px; }
