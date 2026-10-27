@@ -50,16 +50,83 @@ describe('staff home (the shared kitchen iPad)', () => {
     expect(screen.getByText('Walk-in door sticks, push it shut.')).toBeInTheDocument();
   });
 
-  it('switching person on the shared iPad saves their work under their own name', async () => {
+  it('switching person on the shared iPad: a new person chooses a PIN, then it is them', async () => {
     at('2026-10-05T10:50:00Z');
     const { user } = renderApp('/', staff);
     await user.click(screen.getByRole('link', { name: /Switch person/ }));
     await user.type(screen.getByLabelText('Someone else'), 'Alex');
     await user.click(screen.getByRole('button', { name: "I'm Alex" }));
-    expect(screen.getByRole('heading', { name: 'Hi Alex' })).toBeInTheDocument();
-    // Sam is one tap away next time.
+    expect(screen.getByRole('heading', { name: 'Choose a PIN' })).toBeInTheDocument();
+    await user.type(screen.getByLabelText('New PIN'), '1234');
+    expect(screen.getByRole('alert')).toHaveTextContent('Too easy to guess. Pick another');
+    await user.type(screen.getByLabelText('New PIN'), '4817');
+    await user.type(await screen.findByLabelText('New PIN again'), '4817');
+    expect(await screen.findByRole('heading', { name: 'Hi Alex' })).toBeInTheDocument();
+    // Sam is one tap away next time, and chooses a PIN the first time too.
     await user.click(screen.getByRole('link', { name: /Switch person/ }));
-    expect(screen.getByRole('button', { name: /Sam$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Sam\s*No PIN yet/ })).toBeInTheDocument();
+  });
+});
+
+describe('staff PIN', () => {
+  async function aliceHasPin() {
+    const { pins } = await import('../app/lib/pins');
+    const { makePinRecord } = await import('@maginhawa/core');
+    pins.set('BUN', 'Alice', await makePinRecord('4817', 'salt'));
+    localStorage.setItem('mgh.people.v1.BUN', JSON.stringify([{ name: 'Alice', initials: 'A', role: 'staff', siteCode: 'BUN' }]));
+  }
+
+  it('the right PIN switches, a wrong one says how many tries are left', async () => {
+    await aliceHasPin();
+    const { user } = renderApp('/switch', staff);
+    await user.click(screen.getByRole('button', { name: /Alice/ }));
+    expect(screen.getByRole('heading', { name: 'Hi Alice' })).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Your PIN'), '1111');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Wrong PIN. 4 tries left.');
+    await user.type(screen.getByLabelText('Your PIN'), '4817');
+    expect(await screen.findByRole('link', { name: /Alice is using this device/ })).toBeInTheDocument();
+  });
+
+  it('locks after five wrong tries', async () => {
+    await aliceHasPin();
+    const { user } = renderApp('/switch', staff);
+    await user.click(screen.getByRole('button', { name: /Alice/ }));
+    for (let i = 4; i >= 1; i--) {
+      await user.type(screen.getByLabelText('Your PIN'), '1111');
+      expect(await screen.findByText(`Wrong PIN. ${i} ${i === 1 ? 'try' : 'tries'} left.`)).toBeInTheDocument();
+    }
+    await user.type(screen.getByLabelText('Your PIN'), '1111');
+    expect(await screen.findByText('Too many wrong tries. Try again in 5 min, or ask your manager.')).toBeInTheDocument();
+    // The field goes away until the lock is over.
+    expect(screen.queryByLabelText('Your PIN')).not.toBeInTheDocument();
+  });
+
+  it('a PIN typed twice must match', async () => {
+    const { user } = renderApp('/switch', staff);
+    await user.type(screen.getByLabelText('Someone else'), 'Bo');
+    await user.click(screen.getByRole('button', { name: "I'm Bo" }));
+    await user.type(screen.getByLabelText('New PIN'), '4817');
+    await user.type(await screen.findByLabelText('New PIN again'), '4818');
+    expect(await screen.findByRole('alert')).toHaveTextContent("Those didn't match. Choose your PIN again.");
+    expect(screen.getByRole('heading', { name: 'Choose a PIN' })).toBeInTheDocument();
+  });
+
+  it('a manager resets a forgotten PIN', async () => {
+    await aliceHasPin();
+    const { user } = renderApp('/account', manager);
+    await user.click(screen.getByRole('button', { name: 'Reset PIN' }));
+    await user.click(screen.getByRole('button', { name: 'Tap again' }));
+    expect(screen.queryByRole('heading', { name: 'Staff PINs' })).not.toBeInTheDocument();
+  });
+
+  it('PINs are never stored as typed', async () => {
+    const { user } = renderApp('/switch', staff);
+    await user.type(screen.getByLabelText('Someone else'), 'Bo');
+    await user.click(screen.getByRole('button', { name: "I'm Bo" }));
+    await user.type(screen.getByLabelText('New PIN'), '4817');
+    await user.type(await screen.findByLabelText('New PIN again'), '4817');
+    await screen.findByRole('heading', { name: 'Hi Bo' });
+    expect(Object.values({ ...localStorage }).join('')).not.toContain('4817');
   });
 });
 

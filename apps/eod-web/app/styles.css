@@ -312,3 +312,17 @@ select.in { appearance: none; -webkit-appearance: none; text-align: left; cursor
 .bar.now i { background: var(--ink); }
 .btn.b2 svg { flex: none; }
 a.linkbtn { text-decoration: none; }
+
+/* ---- staff PIN on the shared iPad ---- */
+.pinfield { position: relative; display: flex; flex-direction: column; align-items: center; gap: 18px; cursor: text; }
+.pinlabel { font-size: 14px; color: var(--sec); }
+.pindots { display: flex; gap: 18px; }
+.pindots i { width: 18px; height: 18px; border-radius: 9px; box-shadow: inset 0 0 0 2px var(--sec); transition: background .12s; }
+.pindots i.on { background: var(--text); box-shadow: none; }
+.pindots.bad i { box-shadow: inset 0 0 0 2px var(--bad); }
+/* The real field sits over the dots, invisible, so a tap anywhere opens the number pad. */
+.pinin { position: absolute; inset: 0; opacity: 0; font-size: 16px; border: 0; width: 100%; }
+.pinmsg { min-height: 20px; font-size: 14.5px; color: var(--sec); }
+.pinmsg.bad { color: var(--bad); }
+@media (prefers-reduced-motion: no-preference) { .pindots.bad { animation: pinshake .3s; } }
+@keyframes pinshake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }

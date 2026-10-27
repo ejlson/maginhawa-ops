@@ -13,3 +13,4 @@ export * from './forecast';
 export * from './bookings';
 export * from './trends';
 export * from './site-day';
+export * from './pin';
