@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { clockTime, evaluate, summariseRun } from '@maginhawa/core';
-import { useAuth } from '../lib/auth';
+import { can, useAuth } from '../lib/auth';
 import { runPath, useChecklists } from '../lib/checklists';
 import { Foot, Icon, ICONS, Nav } from '../components/ui';
 import { Answer } from '../components/Answer';
@@ -24,6 +24,7 @@ export default function ChecklistRun() {
   const task = tasks.find((t) => t.key === key);
   const s = summariseRun(template, run ?? { answers: {}, fixes: {} }, businessDate);
   const done = Boolean(run?.completedAt);
+  const canCorrect = done && Boolean(user && can.correctRecords(user.role));
 
   const sections = [...new Set(template.checkpoints.map((c) => c.section ?? ''))];
   const here = sync.others.filter((p) => p.where === template.title);
@@ -50,7 +51,7 @@ export default function ChecklistRun() {
         </div>
         {beaten && <div className="sync-card" role="alert"><span className="tx"><b>Already finished</b><small>{beaten}. Your Finish didn't change anything.</small></span></div>}
         {here.length > 0 && <PresenceLine others={here} />}
-        {done && <div className="banner"><Icon d={ICONS.check} size={16} /><span>Finished at {new Date(run!.completedAt!).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} by {run!.completedBy}. Answers can't be changed.</span></div>}
+        {done && <div className="banner"><Icon d={ICONS.lock} size={16} /><span>Finished at {new Date(run!.completedAt!).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} by {run!.completedBy}. Locked: {canCorrect ? 'a correction keeps the old answer and needs a reason.' : "answers can't be changed."}</span></div>}
 
         {sections.map((sec) => (
           <section className="grp" key={sec || 'all'}>
@@ -65,6 +66,10 @@ export default function ChecklistRun() {
                   <div key={c.id} className="qrow">
                     <Answer c={c} value={v} set={(x) => answer(key, c.id, x)} today={businessDate} disabled={done} />
                     {by && by.by !== user?.name && <small className="ans-by">{by.by} · {clockTime(by.at)}</small>}
+                    {run?.corrections?.[c.id]?.map((x, i) => (
+                      <small key={i} className="ans-by">Corrected from {String(x.previous).replace('-', '−')}{c.type === 'temp' ? '°C' : ''} by {x.by} · {clockTime(x.at)} · “{x.reason}”</small>
+                    ))}
+                    {canCorrect && v !== undefined && v !== null && <Link className="how" to={`${runPath(key)}/correct/${c.id}`} aria-label={`Correct ${c.title}`}>Correct</Link>}
                     {e.passed === false && (
                       fixed ? (
                         <div className="banner" style={{ marginBottom: 8 }}><Icon d={ICONS.check} size={16} /><span>Dealt with: {fixed.actions.join(', ').toLowerCase()}. Re-check in {fixed.recheckInMinutes} min{fixed.reportFault ? ' · fault reported' : ''}.</span></div>

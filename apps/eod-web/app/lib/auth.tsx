@@ -22,6 +22,18 @@ export const can = {
   editChecklists: (r: Role) => r === 'manager' || r === 'headoffice',
   seeAllSites: (r: Role) => r === 'headoffice',
   fixRepairs: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
+  // Food safety (HANDOFF.md §8a).
+  /** Change an answer on a finished checklist; the old answer is kept. */
+  correctRecords: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
+  /** Make the records pack for an inspector: own site, or any site for head office. */
+  compileRecords: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
+  logComplaints: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
+  editAllergens: (r: Role) => r === 'manager' || r === 'headoffice',
+  /** Certificates and fit-to-work answers (health data: managers only). */
+  seeStaffHealth: (r: Role) => r === 'manager' || r === 'headoffice',
+  logInspections: (r: Role) => r === 'manager' || r === 'headoffice',
+  doReview: (r: Role) => r === 'manager' || r === 'headoffice',
+  setKeepPeriods: (r: Role) => r === 'headoffice',
 };
 
 /** Where each role lands after signing in. */

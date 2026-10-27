@@ -29,6 +29,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     ...(can.doEod(user.role) ? [{ to: '/close', label: "Today's EOD", icon: ICONS.list, on: pathname.startsWith('/close'), meta: `${progress.done} of ${progress.active}` }] : []),
     ...(can.fixRepairs(user.role) ? [{ to: '/repairs', label: 'Repairs', icon: ICONS.wrench, on: pathname.startsWith('/repairs') }] : []),
     { to: '/handover', label: 'Handover', icon: ICONS.handover, on: pathname.startsWith('/handover') },
+    { to: '/food-safety', label: 'Food safety', icon: ICONS.thermo, on: pathname.startsWith('/food-safety') },
   ];
   const inEod = pathname.startsWith('/close') && can.doEod(user.role);
 

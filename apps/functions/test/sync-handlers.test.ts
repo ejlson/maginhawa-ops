@@ -6,7 +6,7 @@ import eodDraftFunction from '../netlify/functions/eod-draft';
 import checklistFunction from '../netlify/functions/checklist-sync';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
 
-const people: Record<string, Caller> = { jo: { name: 'Jo', siteCodes: ['BUN'] }, sam: { name: 'Sam', siteCodes: ['BUN'] } };
+const people: Record<string, Caller> = { jo: { name: 'Jo', siteCodes: ['BUN'], role: 'manager' }, sam: { name: 'Sam', siteCodes: ['BUN'], role: 'staff' } };
 const authenticate = async (req: Request) => people[(req.headers.get('Authorization') ?? '').replace('Bearer ', '')] ?? null;
 const req = (method: string, path: string, who: string, body?: unknown, headers: Record<string, string> = {}) =>
   new Request(`https://ops.example/.netlify/functions/${path}`, {
@@ -99,6 +99,16 @@ describe('checklist-sync', () => {
     await finish('jo', '2026-10-05T20:02:00Z');
     const second = await finish('sam', '2026-10-05T20:02:01Z');
     expect(second.outcomes[0]).toMatchObject({ ok: true, already: true, run: { completedBy: 'Jo' } });
+  });
+
+  it('only supervisors and above can correct a finished checklist, and the old answer is kept', async () => {
+    const handler = createChecklistSyncHandler({ authenticate, store: new MemoryChecklistStore() });
+    const post = (who: string, ops: unknown[]) => handler(req('POST', 'checklist-sync', who, { siteCode: 'BUN', ops }));
+    await post('sam', [{ kind: 'answer', run, checkpointId: 'fridge', value: 9, by: 'Sam', at: '2026-10-05T20:00:00Z' }, { kind: 'finish', run, by: 'Sam', at: '2026-10-05T20:01:00Z' }]);
+    const correct = { kind: 'correct', run, checkpointId: 'fridge', value: 4, reason: 'Read the wrong fridge', by: 'Anyone', at: '2026-10-05T20:05:00Z' };
+    expect((await post('sam', [correct])).status).toBe(403);
+    const ok = await (await post('jo', [correct])).json();
+    expect(ok.outcomes[0].answer).toMatchObject({ value: 4, answeredBy: 'Sam', corrections: [{ previous: 9, value: 4, by: 'Jo', reason: 'Read the wrong fridge' }] });
   });
 });
 

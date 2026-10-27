@@ -94,9 +94,17 @@ export class ChecklistSyncClient {
         if (!run.completedAt) { run.completedAt = op.at; run.completedBy = op.by; }
         continue;
       }
-      if (run.completedAt) continue;
       const k = answerKey(run.key, op.checkpointId);
       const a = answers[k];
+      if (op.kind === 'correct') {
+        // Shown straight away; the server stamps the real time when it arrives.
+        if (run.completedAt && a) {
+          a.corrections = [...(a.corrections ?? []), { previous: a.value, value: op.value, reason: op.reason, by: op.by, at: op.at }];
+          a.value = op.value;
+        }
+        continue;
+      }
+      if (run.completedAt) continue;
       if (op.kind === 'answer') {
         if (a && a.answeredAt > op.at) continue;
         const same = a && JSON.stringify(a.value) === JSON.stringify(op.value);
@@ -150,6 +158,11 @@ export class ChecklistSyncClient {
   fix(run: RunStart, checkpointId: string, action: Omit<CorrectiveAction, 'at'>, recheck: (at: Date) => RunStart) {
     const at = this.now();
     return this.enqueue({ kind: 'fix', run, checkpointId, fix: { ...action, at: at.toISOString() }, by: this.o.user, recheck: recheck(at) });
+  }
+
+  /** Changes an answer on a finished run. The old answer and the reason are kept. */
+  correct(run: RunStart, checkpointId: string, value: AnswerValue, reason: string) {
+    return this.enqueue({ kind: 'correct', run, checkpointId, value, reason, by: this.o.user, at: this.now().toISOString() });
   }
 
   /** Finishing is conditional: if someone else already finished, this is a no-op that says who. */

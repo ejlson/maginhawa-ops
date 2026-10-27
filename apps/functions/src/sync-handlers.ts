@@ -79,6 +79,8 @@ export function createChecklistSyncHandler(deps: { authenticate: Authenticate; s
       const ops = Array.isArray(body?.ops) ? (body!.ops as ChecklistOp[]) : null;
       if (!ops) return json(400, { error: 'The changes could not be read.' });
       if (!caller.siteCodes.includes(site)) return json(403, { error: 'You can only change your own site.' });
+      // Only supervisors and above may correct a finished checklist (HANDOFF.md §8a, item 1).
+      if (ops.some((op) => op.kind === 'correct') && (!caller.role || caller.role === 'staff')) return json(403, { error: 'Only supervisors, managers and head office can correct a finished checklist.' });
       const signed = ops.map((op) => ({ ...op, by: caller.name }));
       return json(200, { outcomes: await deps.store.apply(site, signed) });
     }

@@ -8,6 +8,7 @@ import { useSite } from '../../lib/site';
 import { Foot, Icon, ICONS, RowLink } from '../ui';
 import { TabBar } from '../TabBar';
 import { EodRow, TimelineRow, firstName, greeting, HomeHeader, isDone, useEod, useToday } from './shared';
+import { FoodSafetyRow } from '../FoodSafetyRow';
 
 export function SupervisorHome() {
   const { user } = useAuth();
@@ -90,6 +91,7 @@ export function SupervisorHome() {
           <div className="sub">
             <EodRow />
             <TimelineRow />
+            <FoodSafetyRow />
             {handover.length > 0 && <RowLink to="/handover" lead={<span className="av"><Icon d={ICONS.chat} /></span>} title="Handover from last night" sub={handover.map((h) => h.body).join(' · ')} />}
           </div>
         </section>

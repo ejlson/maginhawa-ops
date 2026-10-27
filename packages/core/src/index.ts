@@ -21,3 +21,4 @@ export * from './site-day';
 export * from './pin';
 export * from './reports';
 export * from './day-timeline';
+export * from './food-safety';

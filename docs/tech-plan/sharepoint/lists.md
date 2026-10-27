@@ -242,6 +242,220 @@
 
 *Indexed (2):* Site, BusinessDate
 
+#### Food safety
+
+**Dishes**: Every dish on a menu, for the allergen matrix. *Written by:* Manager / Head office.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(required)* | Text | Dish name |
+| `Site` *(indexed)* | Lookup → Sites | Blank = on every site's menu |
+| `Course` | Text | Starters, Mains, Desserts… |
+| `CurrentVersion` | Number | Latest AllergenVersions.Version |
+| `Active` *(indexed)* | Yes/No |  |
+
+*Indexed (2):* Site, Active
+
+**AllergenVersions**: Each version of a dish's 14-allergen list; never edited or deleted. *Written by:* Manager / Head office (append-only).
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | DishId\|Version |
+| `Dish` *(indexed)* | Lookup → Dishes |  |
+| `Version` *(required)* | Number | 1, 2, 3… |
+| `Allergens` | Choice (multi) | The 14: Celery, Cereals with gluten, Crustaceans, Eggs, Fish, Lupin, Milk, Molluscs, Mustard, Tree nuts, Peanuts, Sesame, Soya, Sulphites |
+| `ChangeNote` | Text | Why it changed, e.g. new supplier |
+| `ChangedBy` | Lookup → Staff |  |
+
+*Indexed (2):* Title, Dish
+
+**AllergenReads**: Who has confirmed reading which version of a dish. *Written by:* App.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | DishId\|StaffId |
+| `Dish` *(indexed)* | Lookup → Dishes |  |
+| `Staff` *(indexed)* | Lookup → Staff |  |
+| `VersionRead` | Number |  |
+
+*Indexed (3):* Title, Dish, Staff
+
+**CookingLogs**: Core temperatures on cooking and reheating, and the cooling timer. *Written by:* App.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | ClientId |
+| `Site` *(indexed)* | Lookup → Sites |  |
+| `BusinessDate` *(indexed)* | Date |  |
+| `Dish` *(required)* | Text | Dish or batch |
+| `Kind` | Choice | Cook / Reheat |
+| `CoreTempC` *(required)* | Number | 75°C or above (guidance) |
+| `Probe` | Lookup → Probes |  |
+| `CoolingStartedAt` | Date/Time | Blank if served or hot-held |
+| `CoolingReadings` | Multi-line text | JSON [{at, tempC}] |
+| `InFridgeAt` | Date/Time | Due within 90 minutes of CoolingStartedAt |
+| `RecordedBy` | Lookup → Staff |  |
+
+*Indexed (3):* Title, Site, BusinessDate
+
+**Probes**: Temperature probes per site. *Written by:* Manager.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(required)* | Text | e.g. Probe 2 · kitchen |
+| `Site` *(indexed)* | Lookup → Sites |  |
+| `Asset` | Lookup → Assets | Optional |
+| `Retired` | Yes/No |  |
+
+*Indexed (1):* Site
+
+**ProbeCalibrations**: Weekly iced-water (−1 to 1°C) and boiling-water (99 to 101°C) readings. *Written by:* App.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | ClientId |
+| `Probe` *(indexed)* | Lookup → Probes |  |
+| `Site` *(indexed)* | Lookup → Sites |  |
+| `CheckedOn` *(indexed)* | Date |  |
+| `IceC` *(required)* | Number |  |
+| `BoilC` *(required)* | Number |  |
+| `Passed` | Yes/No | Set by the app from the ranges in packages/core |
+| `CheckedBy` | Lookup → Staff |  |
+
+*Indexed (4):* Title, Probe, Site, CheckedOn
+
+**Suppliers**: Approved suppliers. *Written by:* Head office.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | Supplier name |
+| `Approved` *(indexed)* | Yes/No |  |
+| `Notes` | Multi-line text | Certificates, audits |
+
+*Indexed (2):* Title, Approved
+
+**Deliveries**: Goods received, with chilled temperature and packaging. *Written by:* App.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | ClientId |
+| `Site` *(indexed)* | Lookup → Sites |  |
+| `Supplier` *(indexed)* | Lookup → Suppliers |  |
+| `ReceivedAt` *(indexed)* | Date/Time |  |
+| `ChilledC` | Number | 8°C or below |
+| `PackagingOk` | Yes/No |  |
+| `Rejected` | Multi-line text | Items sent back |
+| `ReceivedBy` | Lookup → Staff |  |
+
+*Indexed (4):* Title, Site, Supplier, ReceivedAt
+
+**DeliveryItems**: Each item's batch code and use-by date, for tracing and recalls. *Written by:* App.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(required)* | Text | Item name |
+| `Delivery` *(indexed)* | Lookup → Deliveries |  |
+| `Site` *(indexed)* | Lookup → Sites |  |
+| `BatchCode` *(indexed)* | Text | Matched against FoodAlerts |
+| `UseBy` | Date |  |
+
+*Indexed (3):* Delivery, Site, BatchCode
+
+**FoodAlerts**: FSA food alerts and recalls (entered by head office). *Written by:* Head office.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(required)* | Text | Alert title |
+| `Reason` | Text | e.g. undeclared milk |
+| `IssuedOn` *(indexed)* | Date |  |
+| `Batches` | Multi-line text | One per line: exact code or a range 'CM-4460 to CM-4479' |
+| `SourceUrl` | Hyperlink | food.gov.uk alert page |
+
+*Indexed (1):* IssuedOn
+
+**AlertActions**: What each site did about an alert that matched its deliveries. *Written by:* App.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | AlertId\|SiteCode |
+| `Alert` *(indexed)* | Lookup → FoodAlerts |  |
+| `Site` *(indexed)* | Lookup → Sites |  |
+| `Action` *(required)* | Choice | Set aside / Sent back / Not in stock |
+| `ActionBy` | Lookup → Staff |  |
+
+*Indexed (3):* Title, Alert, Site
+
+**Complaints**: Customer complaints about food (Food Safety Act s.14). *Written by:* Supervisor / Manager.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | ClientId |
+| `Site` *(indexed)* | Lookup → Sites |  |
+| `ReceivedAt` *(indexed)* | Date/Time |  |
+| `Kind` *(required)* | Choice | Foreign body / Felt ill / Allergic reaction / Not what I ordered / Undercooked / Other |
+| `Dish` | Text |  |
+| `Batch` | Text |  |
+| `Details` *(required)* | Multi-line text |  |
+| `Photos` | Multi-line text | Photo library links |
+| `ItemKept` | Yes/No |  |
+| `Actions` | Choice (multi) | Replaced / Refunded / Checked the batch / Took the dish off / Told the head chef |
+| `CustomerContact` | Text | Only with consent; never in inspector packs; cleared after the keep period |
+| `RecordedBy` | Lookup → Staff |  |
+
+*Indexed (3):* Title, Site, ReceivedAt
+
+**Inspections**: Inspector visits and hygiene ratings. *Written by:* Manager / Head office.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(required)* | Text | Who visited |
+| `Site` *(indexed)* | Lookup → Sites |  |
+| `VisitedOn` *(indexed)* | Date |  |
+| `Rating` | Number | 0–5, blank if not rated |
+| `Outcome` | Multi-line text |  |
+| `ReportLink` | Hyperlink | Reports library |
+
+*Indexed (2):* Site, VisitedOn
+
+**Notices**: Improvement / prohibition notices and warnings, with deadlines. *Written by:* Manager / Head office.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(required)* | Text | What it's about |
+| `Site` *(indexed)* | Lookup → Sites |  |
+| `Inspection` | Lookup → Inspections |  |
+| `Kind` *(required)* | Choice | Improvement notice / Prohibition notice / Written warning |
+| `ServedOn` | Date |  |
+| `FixBy` *(indexed)* | Date | Reminder 7 days before |
+| `AppealBy` | Date | Reminder 7 days before |
+| `ClosedOn` *(indexed)* | Date |  |
+| `WorkOrder` | Lookup → WorkOrders | Optional repair job |
+
+*Indexed (3):* Site, FixBy, ClosedOn
+
+**SafetyReviews**: 4-weekly food-safety review per site. *Written by:* Manager.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | SiteCode\|yyyy-mm-dd |
+| `Site` *(indexed)* | Lookup → Sites |  |
+| `ReviewedOn` *(indexed)* | Date |  |
+| `RepeatFaults` | Multi-line text | JSON snapshot of the repeat faults shown |
+| `Answers` | Multi-line text | JSON {dishes, staff, equipment} |
+| `ReviewedBy` | Lookup → Staff |  |
+
+*Indexed (3):* Title, Site, ReviewedOn
+
+**KeepPeriods**: How long each kind of record is kept; nothing is cleared without head office approval. *Written by:* Head office.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | Record type: checks, faults, allergens, complaints, training, fitness, inspections |
+| `Months` *(required)* | Number | Suggested defaults in packages/core DEFAULT_KEEP |
+| `FromLeaving` | Yes/No | Counted from when the person leaves |
+
+*Indexed (1):* Title
+
 #### Maintenance
 
 **Assets**: Equipment register with QR sticker per unit. *Written by:* Manager / Admin.

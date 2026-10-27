@@ -178,6 +178,142 @@ lst("Checklists", "HandoverNotes", "Shift handover log", "App", [
  ("Author", "Lookup → Staff", "", ""),
 ])
 
+# ---------------- Food safety (HANDOFF.md §8a) ----------------
+# Corrections to checklist answers are new Responses rows (Supersedes + CorrectionReason; Created = server time).
+# Staff certificates and fit-to-work answers are in StaffCertificates and FitnessToWork (People & handbook).
+lst("Food safety", "Dishes", "Every dish on a menu, for the allergen matrix", "Manager / Head office", [
+ ("Title", "Text", "Dish name", "R"),
+ ("Site", "Lookup → Sites", "Blank = on every site's menu", "I"),
+ ("Course", "Text", "Starters, Mains, Desserts…", ""),
+ ("CurrentVersion", "Number", "Latest AllergenVersions.Version", ""),
+ ("Active", "Yes/No", "", "I"),
+])
+lst("Food safety", "AllergenVersions", "Each version of a dish's 14-allergen list; never edited or deleted", "Manager / Head office (append-only)", [
+ ("Title", "Text", "DishId|Version", "IUR"),
+ ("Dish", "Lookup → Dishes", "", "I"),
+ ("Version", "Number", "1, 2, 3…", "R"),
+ ("Allergens", "Choice (multi)", "The 14: Celery, Cereals with gluten, Crustaceans, Eggs, Fish, Lupin, Milk, Molluscs, Mustard, Tree nuts, Peanuts, Sesame, Soya, Sulphites", ""),
+ ("ChangeNote", "Text", "Why it changed, e.g. new supplier", ""),
+ ("ChangedBy", "Lookup → Staff", "", ""),
+])
+lst("Food safety", "AllergenReads", "Who has confirmed reading which version of a dish", "App", [
+ ("Title", "Text", "DishId|StaffId", "IUR"),
+ ("Dish", "Lookup → Dishes", "", "I"),
+ ("Staff", "Lookup → Staff", "", "I"),
+ ("VersionRead", "Number", "", ""),
+])
+lst("Food safety", "CookingLogs", "Core temperatures on cooking and reheating, and the cooling timer", "App", [
+ ("Title", "Text", "ClientId", "IUR"),
+ ("Site", "Lookup → Sites", "", "I"),
+ ("BusinessDate", "Date", "", "I"),
+ ("Dish", "Text", "Dish or batch", "R"),
+ ("Kind", "Choice", "Cook / Reheat", ""),
+ ("CoreTempC", "Number", "75°C or above (guidance)", "R"),
+ ("Probe", "Lookup → Probes", "", ""),
+ ("CoolingStartedAt", "Date/Time", "Blank if served or hot-held", ""),
+ ("CoolingReadings", "Multi-line text", "JSON [{at, tempC}]", ""),
+ ("InFridgeAt", "Date/Time", "Due within 90 minutes of CoolingStartedAt", ""),
+ ("RecordedBy", "Lookup → Staff", "", ""),
+])
+lst("Food safety", "Probes", "Temperature probes per site", "Manager", [
+ ("Title", "Text", "e.g. Probe 2 · kitchen", "R"),
+ ("Site", "Lookup → Sites", "", "I"),
+ ("Asset", "Lookup → Assets", "Optional", ""),
+ ("Retired", "Yes/No", "", ""),
+])
+lst("Food safety", "ProbeCalibrations", "Weekly iced-water (−1 to 1°C) and boiling-water (99 to 101°C) readings", "App", [
+ ("Title", "Text", "ClientId", "IUR"),
+ ("Probe", "Lookup → Probes", "", "I"),
+ ("Site", "Lookup → Sites", "", "I"),
+ ("CheckedOn", "Date", "", "I"),
+ ("IceC", "Number", "", "R"),
+ ("BoilC", "Number", "", "R"),
+ ("Passed", "Yes/No", "Set by the app from the ranges in packages/core", ""),
+ ("CheckedBy", "Lookup → Staff", "", ""),
+])
+lst("Food safety", "Suppliers", "Approved suppliers", "Head office", [
+ ("Title", "Text", "Supplier name", "IUR"),
+ ("Approved", "Yes/No", "", "I"),
+ ("Notes", "Multi-line text", "Certificates, audits", ""),
+])
+lst("Food safety", "Deliveries", "Goods received, with chilled temperature and packaging", "App", [
+ ("Title", "Text", "ClientId", "IUR"),
+ ("Site", "Lookup → Sites", "", "I"),
+ ("Supplier", "Lookup → Suppliers", "", "I"),
+ ("ReceivedAt", "Date/Time", "", "I"),
+ ("ChilledC", "Number", "8°C or below", ""),
+ ("PackagingOk", "Yes/No", "", ""),
+ ("Rejected", "Multi-line text", "Items sent back", ""),
+ ("ReceivedBy", "Lookup → Staff", "", ""),
+])
+lst("Food safety", "DeliveryItems", "Each item's batch code and use-by date, for tracing and recalls", "App", [
+ ("Title", "Text", "Item name", "R"),
+ ("Delivery", "Lookup → Deliveries", "", "I"),
+ ("Site", "Lookup → Sites", "", "I"),
+ ("BatchCode", "Text", "Matched against FoodAlerts", "I"),
+ ("UseBy", "Date", "", ""),
+])
+lst("Food safety", "FoodAlerts", "FSA food alerts and recalls (entered by head office)", "Head office", [
+ ("Title", "Text", "Alert title", "R"),
+ ("Reason", "Text", "e.g. undeclared milk", ""),
+ ("IssuedOn", "Date", "", "I"),
+ ("Batches", "Multi-line text", "One per line: exact code or a range 'CM-4460 to CM-4479'", ""),
+ ("SourceUrl", "Hyperlink", "food.gov.uk alert page", ""),
+])
+lst("Food safety", "AlertActions", "What each site did about an alert that matched its deliveries", "App", [
+ ("Title", "Text", "AlertId|SiteCode", "IUR"),
+ ("Alert", "Lookup → FoodAlerts", "", "I"),
+ ("Site", "Lookup → Sites", "", "I"),
+ ("Action", "Choice", "Set aside / Sent back / Not in stock", "R"),
+ ("ActionBy", "Lookup → Staff", "", ""),
+])
+lst("Food safety", "Complaints", "Customer complaints about food (Food Safety Act s.14)", "Supervisor / Manager", [
+ ("Title", "Text", "ClientId", "IUR"),
+ ("Site", "Lookup → Sites", "", "I"),
+ ("ReceivedAt", "Date/Time", "", "I"),
+ ("Kind", "Choice", "Foreign body / Felt ill / Allergic reaction / Not what I ordered / Undercooked / Other", "R"),
+ ("Dish", "Text", "", ""),
+ ("Batch", "Text", "", ""),
+ ("Details", "Multi-line text", "", "R"),
+ ("Photos", "Multi-line text", "Photo library links", ""),
+ ("ItemKept", "Yes/No", "", ""),
+ ("Actions", "Choice (multi)", "Replaced / Refunded / Checked the batch / Took the dish off / Told the head chef", ""),
+ ("CustomerContact", "Text", "Only with consent; never in inspector packs; cleared after the keep period", ""),
+ ("RecordedBy", "Lookup → Staff", "", ""),
+])
+lst("Food safety", "Inspections", "Inspector visits and hygiene ratings", "Manager / Head office", [
+ ("Title", "Text", "Who visited", "R"),
+ ("Site", "Lookup → Sites", "", "I"),
+ ("VisitedOn", "Date", "", "I"),
+ ("Rating", "Number", "0–5, blank if not rated", ""),
+ ("Outcome", "Multi-line text", "", ""),
+ ("ReportLink", "Hyperlink", "Reports library", ""),
+])
+lst("Food safety", "Notices", "Improvement / prohibition notices and warnings, with deadlines", "Manager / Head office", [
+ ("Title", "Text", "What it's about", "R"),
+ ("Site", "Lookup → Sites", "", "I"),
+ ("Inspection", "Lookup → Inspections", "", ""),
+ ("Kind", "Choice", "Improvement notice / Prohibition notice / Written warning", "R"),
+ ("ServedOn", "Date", "", ""),
+ ("FixBy", "Date", "Reminder 7 days before", "I"),
+ ("AppealBy", "Date", "Reminder 7 days before", ""),
+ ("ClosedOn", "Date", "", "I"),
+ ("WorkOrder", "Lookup → WorkOrders", "Optional repair job", ""),
+])
+lst("Food safety", "SafetyReviews", "4-weekly food-safety review per site", "Manager", [
+ ("Title", "Text", "SiteCode|yyyy-mm-dd", "IUR"),
+ ("Site", "Lookup → Sites", "", "I"),
+ ("ReviewedOn", "Date", "", "I"),
+ ("RepeatFaults", "Multi-line text", "JSON snapshot of the repeat faults shown", ""),
+ ("Answers", "Multi-line text", "JSON {dishes, staff, equipment}", ""),
+ ("ReviewedBy", "Lookup → Staff", "", ""),
+])
+lst("Food safety", "KeepPeriods", "How long each kind of record is kept; nothing is cleared without head office approval", "Head office", [
+ ("Title", "Text", "Record type: checks, faults, allergens, complaints, training, fitness, inspections", "IUR"),
+ ("Months", "Number", "Suggested defaults in packages/core DEFAULT_KEEP", "R"),
+ ("FromLeaving", "Yes/No", "Counted from when the person leaves", ""),
+])
+
 # ---------------- Maintenance ----------------
 lst("Maintenance", "Assets", "Equipment register with QR sticker per unit", "Manager / Admin", [
  ("Title", "Text", "e.g. Walk-in chiller", "R"),

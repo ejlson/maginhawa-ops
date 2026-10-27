@@ -34,6 +34,8 @@ interface ChecklistsValue {
   fix: (key: string, checkpointId: string, action: Omit<CorrectiveAction, 'at'>) => void;
   /** A second Finish (someone got there first) is a no-op; the outcome says who finished. */
   finish: (key: string, by?: string) => Promise<FinishOutcome>;
+  /** Change an answer on a finished list. Supervisors and above; the old answer is kept. */
+  correct: (key: string, checkpointId: string, value: AnswerValue, reason: string) => void;
   /** Saving, offline, who else is here. */
   sync: ChecklistSyncState;
   setWhere: (where: string | null) => void;
@@ -101,6 +103,9 @@ export function ChecklistsProvider({ siteCode, children }: { siteCode: string; c
   }, [client, startOf, businessDate]);
 
   const finish = useCallback((key: string) => client.finish(startOf(key)), [client, startOf]);
+  const correct = useCallback((key: string, checkpointId: string, value: AnswerValue, reason: string) => {
+    void client.correct(startOf(key), checkpointId, value, reason);
+  }, [client, startOf]);
   const setWhere = useCallback((where: string | null) => client.setWhere(where), [client]);
 
   // Yesterday's runs: read straight away in demo mode, fetched once in connected mode.
@@ -129,8 +134,8 @@ export function ChecklistsProvider({ siteCode, children }: { siteCode: string; c
   }, [records, siteCode, yesterday, settings, oldRuns]);
 
   const value = useMemo<ChecklistsValue>(() => ({
-    businessDate, tasks, runFor: (k) => runs[k], templateFor, answer, fix, finish, sync, setWhere, missedYesterday,
-  }), [businessDate, tasks, runs, templateFor, answer, fix, finish, sync, setWhere, missedYesterday]);
+    businessDate, tasks, runFor: (k) => runs[k], templateFor, answer, fix, finish, correct, sync, setWhere, missedYesterday,
+  }), [businessDate, tasks, runs, templateFor, answer, fix, finish, correct, sync, setWhere, missedYesterday]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

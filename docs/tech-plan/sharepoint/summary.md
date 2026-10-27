@@ -15,6 +15,22 @@
 | Checklists | **CorrectiveActions** | What was done about a failed check | App + flows F04/F05 | – |
 | Checklists | **DayClosures** | Ops end-of-day sign-off per site | App + flow F01 | SiteCode\|yyyy-mm-dd |
 | Checklists | **HandoverNotes** | Shift handover log | App | – |
+| Food safety | **Dishes** | Every dish on a menu, for the allergen matrix | Manager / Head office | – |
+| Food safety | **AllergenVersions** | Each version of a dish's 14-allergen list; never edited or deleted | Manager / Head office (append-only) | DishId\|Version |
+| Food safety | **AllergenReads** | Who has confirmed reading which version of a dish | App | DishId\|StaffId |
+| Food safety | **CookingLogs** | Core temperatures on cooking and reheating, and the cooling timer | App | ClientId |
+| Food safety | **Probes** | Temperature probes per site | Manager | – |
+| Food safety | **ProbeCalibrations** | Weekly iced-water (−1 to 1°C) and boiling-water (99 to 101°C) readings | App | ClientId |
+| Food safety | **Suppliers** | Approved suppliers | Head office | Supplier name |
+| Food safety | **Deliveries** | Goods received, with chilled temperature and packaging | App | ClientId |
+| Food safety | **DeliveryItems** | Each item's batch code and use-by date, for tracing and recalls | App | – |
+| Food safety | **FoodAlerts** | FSA food alerts and recalls (entered by head office) | Head office | – |
+| Food safety | **AlertActions** | What each site did about an alert that matched its deliveries | App | AlertId\|SiteCode |
+| Food safety | **Complaints** | Customer complaints about food (Food Safety Act s.14) | Supervisor / Manager | ClientId |
+| Food safety | **Inspections** | Inspector visits and hygiene ratings | Manager / Head office | – |
+| Food safety | **Notices** | Improvement / prohibition notices and warnings, with deadlines | Manager / Head office | – |
+| Food safety | **SafetyReviews** | 4-weekly food-safety review per site | Manager | SiteCode\|yyyy-mm-dd |
+| Food safety | **KeepPeriods** | How long each kind of record is kept; nothing is cleared without head office approval | Head office | Record type: checks, faults, allergens, complaints, training, fitness, inspections |
 | Maintenance | **Assets** | Equipment register with QR sticker per unit | Manager / Admin | QRCode |
 | Maintenance | **Contractors** | Refrigeration, gas, electrical, extraction, pest… | Manager / Admin | – |
 | Maintenance | **WorkOrders** | Repairs: from fault report, failed check, statutory due or EOD note | App + flows F05/F06 | Reference WO-2026-00123 |

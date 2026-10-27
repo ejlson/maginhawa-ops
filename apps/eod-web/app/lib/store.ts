@@ -5,6 +5,7 @@
  */
 import { MemoryChecklistStore, MemoryPresence, MemoryStore, reportKey, type ChecklistData, type Presence, type StoredReport } from '@maginhawa/core';
 import { storage } from './storage';
+import { now } from './clock';
 
 const KEY = 'mgh.reports.v1';
 
@@ -77,7 +78,7 @@ export class DevicePresence extends MemoryPresence {
 let shared: DeviceStore | null = null;
 export const deviceStore = () => (shared ??= new DeviceStore());
 let sharedChecklists: DeviceChecklistStore | null = null;
-export const deviceChecklistStore = () => (sharedChecklists ??= new DeviceChecklistStore());
+export const deviceChecklistStore = () => (sharedChecklists ??= new DeviceChecklistStore(now));
 let sharedPresence: DevicePresence | null = null;
 export const devicePresence = () => (sharedPresence ??= new DevicePresence());
 /** Tests start each case with a clean store. */

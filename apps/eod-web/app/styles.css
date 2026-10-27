@@ -519,3 +519,33 @@ a.linkbtn { text-decoration: none; }
 .seg button { border: 0; background: transparent; color: var(--sec); font: inherit; font-size: 14.5px; font-weight: 600; height: 36px; padding: 0 16px; border-radius: 9px; cursor: pointer; }
 .seg button[aria-selected="true"] { background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 .seg button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--link); }
+
+/* ---- Food safety (HANDOFF.md §8a) ---- */
+.how { display: inline-flex; align-items: center; font-size: 14px; font-weight: 500; color: var(--link); text-decoration: none; margin: -2px 0 10px; }
+.allergen-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px; }
+.allergen-grid .fr { min-height: 46px; font-size: 15px; }
+.wide-in { width: 190px; text-align: left; }
+.item-card { padding: 4px 0; border-bottom: .5px solid var(--sep); }
+.warnbox { background: var(--warnbg); }
+.cool .fr { gap: 10px; flex-wrap: wrap; padding-bottom: 10px; }
+.li[aria-pressed="true"] { background: var(--sel, rgba(0,0,0,.05)); border-radius: 12px; }
+.pack-head { display: flex; flex-direction: column; gap: 8px; }
+.pack-head h1 { margin: 0; font-size: 34px; letter-spacing: -.035em; }
+.pack-head .btn { align-self: flex-start; margin-top: 8px; }
+.pack-sec { display: flex; flex-direction: column; gap: 10px; break-inside: auto; }
+.pack-sec h2 { margin: 0; font-size: 20px; letter-spacing: -.025em; }
+.pack-sec h3 { margin: 8px 0 0; font-size: 15px; }
+.pack-t { width: 100%; border-collapse: collapse; font-size: 13.5px; line-height: 1.4; }
+.pack-t th { text-align: left; font-weight: 600; color: var(--sec); padding: 6px 8px 6px 0; border-bottom: .5px solid var(--sep); }
+.pack-t td { vertical-align: top; padding: 8px 8px 8px 0; border-bottom: .5px solid var(--sep); }
+.pack-t tr { break-inside: avoid; }
+.pack-corr { color: var(--warn); font-size: 12.5px; }
+.pack .body { overflow-x: auto; }
+@media (max-width: 599px) { .allergen-grid { grid-template-columns: 1fr; } .wide-in { width: 150px; } }
+@media print {
+  .no-print, .tabbar, .ho-side, .foot { display: none !important; }
+  .page, .body, .ho-main { padding: 0 !important; margin: 0 !important; max-width: none !important; }
+  body { background: #fff !important; color: #000 !important; }
+  .pack-t { font-size: 10pt; }
+  .pack-corr { color: #8a3b00; }
+}

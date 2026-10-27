@@ -212,6 +212,8 @@ export default function HeadOffice() {
           <div className="hd"><h2>Set-up</h2></div>
           <div className="sub" style={{ maxWidth: 560 }}>
             <RowLink to="/checklists/edit" lead={<span className="av"><Icon d={ICONS.check} /></span>} title="Checklists" sub="Change the group lists and see every site's own lists" />
+            <RowLink to="/food-safety/records" lead={<span className="av"><Icon d={ICONS.list} /></span>} title="Records for an inspector" sub="One PDF for any site and dates" />
+            <RowLink to="/food-safety/keep" lead={<span className="av"><Icon d={ICONS.lock} /></span>} title="How long we keep records" sub="Food-safety keep periods" />
           </div>
         </section>
       </div>

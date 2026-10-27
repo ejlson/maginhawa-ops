@@ -7,6 +7,7 @@ import { useSite } from '../../lib/site';
 import { Foot, Icon, ICONS } from '../ui';
 import { TabBar } from '../TabBar';
 import { AllDoneHero, firstName, HomeHeader, isDone, NextChecklistHero, TaskRow, TimelineRow, useToday } from './shared';
+import { FoodSafetyRow } from '../FoodSafetyRow';
 
 export function StaffHome() {
   const { user } = useAuth();
@@ -38,6 +39,7 @@ export function StaffHome() {
               {left.map((t) => <TaskRow key={t.key} t={t} />)}
               {done.map((t) => <TaskRow key={t.key} t={t} me={user?.name} />)}
               <TimelineRow />
+              <FoodSafetyRow />
             </div>
           </section>
         )}
