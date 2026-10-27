@@ -1,6 +1,6 @@
 # Maginhawa Ops: project handoff
 
-*Last updated 27 October 2026 (food-safety module scope added, §8a; on 26 Oct the back end changed from Power Automate to our own Netlify Functions, §3 and §4). This file is the single source of truth for picking the project up in a new Claude account or by a new person. Read it top to bottom before doing anything.*
+*Last updated 27 October 2026 (desktop redesign built, §6; food-safety module built and merged, §8a; Check65 review findings, §8; EHO brief, §10 and §13; on 26 Oct the back end changed from Power Automate to our own Netlify Functions, §3 and §4). This file is the single source of truth for picking the project up in a new Claude account or by a new person. Read it top to bottom before doing anything.*
 
 ---
 
@@ -201,6 +201,8 @@ An earlier low-fidelity version is at https://claude.ai/artifact/KxTcCMxEYiNPcvh
 
 All figures in the designs are **made-up examples**.
 
+**Desktop, as built (27 Oct 2026, [ejlson/maginhawa-ops#4](https://github.com/ejlson/maginhawa-ops/pull/4) and [#5](https://github.com/ejlson/maginhawa-ops/pull/5)):** every site screen uses one 1120px frame, with the content on the left and the dark card at the top right. A `Columns` component lays out Home and Today's EOD. The sidebar has live counts (red for late or urgent, orange for things that need a look) and a **⌘K / Ctrl+K** menu to search and jump from any site screen. Checklists show the list on the left and the open checklist on the right (J/K to move; ⌘↵ finishes and opens the next list). On touch screens, a thermometer button opens a big temperature entry with −/+, quick values, a live pass/fail and *Save and next*. Screens show loading skeletons. Managers can add their own checks to group lists. Phones are unchanged. **Still to do:** try the big temperature entry on a real iPad.
+
 ---
 
 ## 7. Design language (follow exactly)
@@ -285,8 +287,13 @@ Full detail with sources: `research/2026-10-research-findings.md`.
 - Right-to-work expiry tracker.
 - Martyn's Law (sites holding 200–799 people; enforcement about 2027).
 - Food-safety checklists with Bluetooth probes.
-- Cmd+K for head office.
+- Cmd+K for head office (site screens have ⌘K since 27 Oct, §6).
 - Translations, with "Free items" as an alias for "comps".
+
+**Check65 (looked at again 27 Oct 2026):**
+- The UK App Store listing has **87 ratings averaging 2.6★**. This replaces the "2 US ratings at 4.0" in `docs/reports/`, which used it to argue the app gets few downloads.
+- The detailed reviews complain that **entering temperatures is slow** (a scroll wheel instead of the keyboard, one form per reading, no jump to the next item). We type temperatures on the keypad, Enter moves to the next field, and fields that can go below zero have a **±** button (the iPhone decimal keypad has no minus key).
+- **What Check65 has that we don't:** Bluetooth probes; push reminders for due or missed checks; offline mode with background sync; HACCP plans and a risk-assessment library; health-and-safety and fire checks; a visitor log; Food Alert's advice line and consultancy. Push reminders and offline mode matter most for 9 sites, and both are already planned. HACCP and risk assessments are content, best bought or written with an EHO, not built.
 
 **Where we beat competitors** (Tenzo, Nory, Restaurant365, Toast, 7shifts, Trail, Jolt, Check65 and others):
 - Numbers and notes in one place.
@@ -318,6 +325,8 @@ Full detail with sources: `research/2026-10-research-findings.md`.
 | 9 | **Training and fitness to work** | Food hygiene certificates with expiry dates (warn 30 days before). A fit-to-work question at the start of a shift, with the **48-hour exclusion** after vomiting or diarrhoea *(beyond the guide)*. Only managers see health answers | Managers | Later |
 | 10 | **Inspections and notices** | Per site: council registration, hygiene rating, inspector visits, and improvement notices with fix-by and appeal-by dates (appeals usually within 1 month). Head office is reminded 7 days before each deadline | Managers; head office | Later |
 | 11 | **4-weekly review** | Repeat faults (the same check failing 3 or more times in 7 days) with suggested fixes, "anything changed?" questions (new dishes or suppliers, new staff, new equipment) and a signed review | Managers | Later |
+
+**Status (27 Oct 2026):** all 11 features are built in demo mode and merged to `main` ([ejlson/maginhawa-ops#4](https://github.com/ejlson/maginhawa-ops/pull/4), with the desktop layout and loading skeletons). Tests: core 221, web app 101, functions 23, all passing on a clean checkout. **Not done:** connected mode (SharePoint), push reminders, offline sync, Bluetooth probes, and an EHO's sign-off on the rules (brief ready, see §10).
 
 **Code:** rules in `packages/core/src/food-safety.ts` (unit-tested); screens under `/food-safety` in `apps/eod-web`; who can do what is in `can` in `apps/eod-web/app/lib/auth.tsx`. Demo mode keeps the data on the device, like repairs. Connected mode will use the SharePoint lists in `docs/tech-plan/sharepoint/sharepoint-lists.json`.
 
@@ -355,8 +364,10 @@ Assumes 1–2 developers.
 4. Each site's capacity (Martyn's Law tier).
 5. Who owns tips/tronc, and is there an independent troncmaster?
 6. Who builds it, and how many developers?
-7. Probe hardware (Bluetooth probes?). The food-safety scope is now agreed (§8a); an EHO should confirm the *(beyond the guide)* rules and the keep periods.
+7. Probe hardware (Bluetooth probes?). The food-safety scope is now agreed and built (§8a); an EHO should confirm the *(beyond the guide)* rules and the keep periods. **The brief for that meeting is ready: `docs/eho/EHO brief.pdf`** (two pages with tick boxes; fill in the contact line before sending).
 8. Which reservations system does each site use (SevenRooms, OpenTable, ResDiary…)? The nightly bookings snapshot needs read access to it.
+9. Does each site have a written HACCP-based food safety management system (usually an SFBB pack)? The app records the checks but doesn't hold the plan.
+10. Should we set up a **Primary Authority** partnership with one council? The 9 sites fall under more than one London council, and Primary Authority gives one consistent answer.
 
 ---
 
@@ -380,6 +391,7 @@ design/
   design-language.md          tokens, components, do/don't
   eod-canvas/                 every screen's source (.dc.html) + canvas.json
 docs/
+  eho/                        brief for an environmental health officer (HTML + PDF)
   reports/                    product plans (UK plan is current; US-first plan is older)
   research_notes/             earlier market, competitor and regulation notes
   tech-plan/                  tech stack & architecture plan, system diagrams, data model,
@@ -392,3 +404,5 @@ docs/
 2. Update `docs/tech-plan/Tech stack and architecture plan` to match §3–§4: React Router v7 SPA instead of Next.js, and Netlify Functions instead of Power Automate flows F01–F12.
 3. Scaffold the monorepo (`apps/eod-web`, `apps/functions`, `packages/core`), write the §5 calculations with Vitest tests using the verified example, then build the routes for each section.
 4. Write the SharePoint provisioning script from `sharepoint-lists.json`.
+5. Book an EHO (or a former EHO working as a consultant) using `docs/eho/EHO brief.pdf`, then update the rule values in `packages/core/src/food-safety.ts` and the keep periods from their answers.
+6. Food safety next: push reminders and offline sync (the main gaps against Check65, §8), then connected mode on the SharePoint lists.
