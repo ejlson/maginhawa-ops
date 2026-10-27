@@ -239,4 +239,21 @@ describe('head office', () => {
     await user.click(screen.getByRole('button', { name: 'Approve 1 clean close' }));
     expect(await within(bunso).findByText('Approved')).toBeInTheDocument();
   });
+
+  it('opens a restaurant\'s page from the sites table, and back', async () => {
+    const { user } = renderApp('/head-office', admin);
+    const table = await screen.findByRole('table', { name: 'Sites' });
+    await user.click(within(table).getByRole('row', { name: 'Ramo: see trends' }));
+    expect(await screen.findByRole('heading', { name: 'Ramo' })).toBeInTheDocument();
+    // Tests run without example data, so there's no history to chart yet.
+    expect(screen.getByText('Not enough history yet. Trends appear after a few days of closes.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Week' })).toBeInTheDocument();
+    await user.click(screen.getByRole('link', { name: /All sites/ }));
+    expect(await screen.findByRole('heading', { name: 'All sites' })).toBeInTheDocument();
+  });
+
+  it('managers can\'t open a restaurant page', () => {
+    renderApp('/head-office/ram');
+    expect(screen.queryByRole('heading', { name: 'Ramo' })).not.toBeInTheDocument();
+  });
 });

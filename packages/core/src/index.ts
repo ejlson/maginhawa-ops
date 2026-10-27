@@ -8,3 +8,7 @@ export * from './submit';
 export * from './email';
 export * from './checklists';
 export * from './builder';
+export * from './data-quality';
+export * from './forecast';
+export * from './bookings';
+export * from './trends';

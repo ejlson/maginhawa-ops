@@ -478,6 +478,45 @@
 
 *Indexed (2):* TradingDay, Category
 
+#### Forecasting
+
+**BookingSnapshots**: Covers on the books for the next 14 days, saved every night. Can't be rebuilt later, so it starts before forecasting does. *Written by:* Nightly function (nightly-snapshot).
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | Key = SiteCode\|TakenOn\|ForDate\|Session |
+| `Site` *(indexed)* | Lookup → Sites |  |
+| `TakenOn` *(indexed)* | Date | Trading day the snapshot was taken (after close) |
+| `ForDate` *(indexed)* | Date | Trading day the bookings are for |
+| `LeadDays` | Number | ForDate − TakenOn, 1–14 |
+| `Session` | Choice | Lunch / Dinner |
+| `Covers` | Number | Covers booked |
+| `Bookings` | Number | Number of bookings (parties) |
+| `Source` | Text | Reservations system the figures came from |
+
+*Indexed (4):* Title, Site, TakenOn, ForDate
+
+**ForecastLog**: Every forecast shown, kept so accuracy can be measured honestly. *Written by:* Nightly function (nightly-forecast).
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | Key = SiteCode\|MadeOn\|ForDate\|Service\|Metric\|Method |
+| `Site` *(indexed)* | Lookup → Sites |  |
+| `MadeOn` *(indexed)* | Date | Trading day the forecast was made (after close) |
+| `ForDate` *(indexed)* | Date |  |
+| `Horizon` | Number | Days ahead, 1–14 |
+| `Service` | Choice | Lunch / Dinner / Delivery |
+| `Metric` | Choice | Net / Covers |
+| `Method` *(indexed)* | Choice | v1 (published) / Holt-Winters (hidden challenger) / Same weekday last week (baseline) |
+| `Version` | Text | Code version, e.g. forecast-v1.0 |
+| `P50` | Number | Central forecast (pence for Net) |
+| `P10` | Number | Low end of the 80% likely range |
+| `P90` | Number | High end of the 80% likely range |
+| `Confidence` | Choice | Normal / Low (little history) |
+| `Reasons` | Text | Why, e.g. 'Median of 6 Fridays · trend +4% · bank holiday' |
+
+*Indexed (5):* Title, Site, MadeOn, ForDate, Method
+
 #### People & handbook
 
 **PolicyAcknowledgements**: E-signed policy sign-offs. *Written by:* App.

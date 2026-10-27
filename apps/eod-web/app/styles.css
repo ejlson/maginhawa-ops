@@ -166,6 +166,7 @@ div.li { cursor: default; }
 .panel .chip { background: var(--bg); box-shadow: 0 0 0 .5px var(--sep); }
 .panel .in, .panel .ta { background: var(--bg); }
 .linkbtn { border: 0; background: none; color: var(--link); font-size: 15px; font-weight: 500; cursor: pointer; padding: 0; }
+.banner svg { flex: none; margin-top: 2px; }
 .banner { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--fill); font-size: 14px; color: var(--sec); line-height: 1.45; }
 
 /* ---- cash count ---- */
@@ -175,11 +176,14 @@ div.li { cursor: default; }
 .dr .lt { width: 88px; text-align: right; font-weight: 600; }
 
 /* ---- head office table ---- */
-.table { overflow-x: auto; }
+.table { overflow-x: auto; margin: 0 -12px; }
 .th, .sr { display: grid; grid-template-columns: minmax(220px, 2.4fr) repeat(4, minmax(90px, 1fr)); gap: 16px; align-items: center; min-width: 680px; }
+.th, .sr { padding: 0 12px; }
 .th { font-size: 12px; color: var(--sec); padding-bottom: 8px; }
 .th span:not(:first-child), .sr > span:not(:first-child) { text-align: right; }
-.sr { min-height: 66px; border-top: .5px solid var(--sep); }
+.sr { min-height: 64px; position: relative; }
+.sr::before { content: ''; position: absolute; top: 0; left: 66px; right: 12px; height: .5px; background: var(--sep); }
+.sr.link:hover::before, .sr.link:hover + .sr::before { opacity: 0; }
 .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
 
 /* ---- checklist questions: one per row, evenly spaced, hairline between ---- */
@@ -241,3 +245,56 @@ select.in { appearance: none; -webkit-appearance: none; text-align: left; cursor
   --fill: rgba(255,255,255,.12); --ink: var(--onhero); --onink: var(--hero); --link: #6cb6ff; }
 .hero.preview .qrow { padding: 0; }
 .hero.preview .in::placeholder { color: var(--herosec); }
+
+/* ---- trend chart (head office) ---- */
+.trend { gap: 14px; }
+.trend .hs { color: var(--herosec); font-weight: 400; }
+.trend-fig { margin-top: 6px; font-size: 34px; font-weight: 600; letter-spacing: -.045em; line-height: 42px; font-variant-numeric: tabular-nums; }
+.trend-fig b { font-weight: 600; }
+.trend-fig i { font-style: normal; font-size: 20px; color: var(--herosec); letter-spacing: -.02em; }
+.trend-chg { display: block; margin-top: 2px; font-size: 14px; font-weight: 600; letter-spacing: -.01em; color: var(--herosec); }
+.trend-svg { display: block; overflow: visible; }
+.trend-tick { font-size: 11px; fill: var(--herosec); font-variant-numeric: tabular-nums; }
+.range { display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: rgba(255,255,255,.05); }
+.range .rp { flex: 1; min-width: 0; height: 30px; padding: 0; border: 0; border-radius: 9px; background: transparent; color: var(--herosec); font: 600 13px/30px var(--font); letter-spacing: -.01em; cursor: pointer; transition: background .18s ease, color .18s ease; -webkit-tap-highlight-color: transparent; }
+.range .rp:hover { color: var(--onhero); }
+.range .rp.on { background: rgba(255,255,255,.14); color: var(--onhero); }
+.range .rp:focus-visible { outline: 2px solid var(--link); outline-offset: 1px; }
+.trend-key { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--herosec); align-items: center; }
+.trend-key i { display: inline-block; width: 14px; height: 2px; border-radius: 1px; vertical-align: middle; margin-right: 6px; }
+.trend-key i.dash { background: repeating-linear-gradient(90deg, var(--herosec) 0 4px, transparent 4px 7px); }
+.trend-key i.band { width: 12px; height: 8px; border-radius: 2px; background: rgba(255,255,255,.14); }
+.trend-note { font-size: 12px; color: var(--herosec); opacity: .8; }
+
+/* ---- restaurant page ---- */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.tile { background: var(--side); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+.tile .l { font-size: 13px; color: var(--sec); }
+.tile .v { font-size: 24px; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.tile .c { font-size: 13px; font-weight: 600; }
+.tile .c.good { color: var(--ok); } .tile .c.bad { color: var(--bad); } .tile .c.flat { color: var(--sec); font-weight: 400; }
+.splitbar { display: flex; gap: 2px; height: 8px; border-radius: 4px; overflow: hidden; }
+.splitbar span { background: var(--text); }
+.sr.link { cursor: pointer; border-radius: 12px; text-decoration: none; color: inherit; }
+.sr.link:hover { background: var(--sel); }
+.trend-chg.h-ok { color: var(--heroOk); } .trend-chg.h-bad { color: var(--heroBad); }
+
+/* ---- head office top row ---- */
+.ho-top { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: stretch; }
+@media (max-width: 900px) { .ho-top { grid-template-columns: 1fr; } }
+.ho-top .hero { padding: 20px; gap: 14px; justify-content: space-between; }
+.ho-top .big b { font-size: 40px; }
+.ho-top .big i { font-size: 20px; }
+.ho-top .hm { padding-top: 0; border-top: 0; }
+.ho-card { background: var(--hero); }
+.ho-v { font-size: 24px; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.ho-v small { font-size: 14px; font-weight: 500; color: var(--herosec); letter-spacing: 0; }
+.ho-bar { position: relative; height: 8px; border-radius: 4px; background: var(--heroline); }
+.ho-bar .fill { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--onhero); }
+.ho-bar .rng { position: absolute; top: -3px; bottom: -3px; border-radius: 3px; background: rgba(255,255,255,.14); }
+.ho-list { display: flex; flex-direction: column; }
+.ho-list a { display: flex; align-items: center; gap: 10px; min-height: 34px; font-size: 14px; color: var(--onhero); text-decoration: none; border-top: .5px solid var(--heroline); }
+.ho-list a:first-child { border-top: 0; }
+.ho-list a:hover { color: var(--herosec); }
+.ho-list .dot { width: 8px; height: 8px; border-radius: 4px; background: var(--herosec); flex: none; }
+.ho-list .dot.bad { background: var(--heroBad); } .ho-list .dot.warn { background: var(--heroWarn); }

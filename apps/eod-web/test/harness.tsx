@@ -12,6 +12,7 @@ import Done from '../app/routes/done';
 import Section from '../app/routes/section';
 import CashCount from '../app/routes/cash';
 import HeadOffice from '../app/routes/head-office';
+import HeadOfficeSite from '../app/routes/head-office-site';
 import Checklists from '../app/routes/checklists';
 import ChecklistRun from '../app/routes/checklist-run';
 import ChecklistFix from '../app/routes/checklist-fix';
@@ -46,6 +47,7 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="checklists/:key" element={<ChecklistRun />} />
             <Route path="checklists/:key/fix/:checkpoint" element={<ChecklistFix />} />
             <Route path="head-office" element={<HeadOffice />} />
+            <Route path="head-office/:site" element={<HeadOfficeSite />} />
           </Route>
         </Routes>
       </MemoryRouter>

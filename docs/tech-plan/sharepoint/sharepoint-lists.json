@@ -1883,6 +1883,160 @@
       ]
     },
     {
+      "group": "Forecasting",
+      "name": "BookingSnapshots",
+      "purpose": "Covers on the books for the next 14 days, saved every night. Can't be rebuilt later, so it starts before forecasting does",
+      "written_by": "Nightly function (nightly-snapshot)",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = SiteCode|TakenOn|ForDate|Session",
+          "flags": "IUR"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "TakenOn",
+          "type": "Date",
+          "notes": "Trading day the snapshot was taken (after close)",
+          "flags": "I"
+        },
+        {
+          "name": "ForDate",
+          "type": "Date",
+          "notes": "Trading day the bookings are for",
+          "flags": "I"
+        },
+        {
+          "name": "LeadDays",
+          "type": "Number",
+          "notes": "ForDate − TakenOn, 1–14",
+          "flags": ""
+        },
+        {
+          "name": "Session",
+          "type": "Choice",
+          "notes": "Lunch / Dinner",
+          "flags": ""
+        },
+        {
+          "name": "Covers",
+          "type": "Number",
+          "notes": "Covers booked",
+          "flags": ""
+        },
+        {
+          "name": "Bookings",
+          "type": "Number",
+          "notes": "Number of bookings (parties)",
+          "flags": ""
+        },
+        {
+          "name": "Source",
+          "type": "Text",
+          "notes": "Reservations system the figures came from",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Forecasting",
+      "name": "ForecastLog",
+      "purpose": "Every forecast shown, kept so accuracy can be measured honestly",
+      "written_by": "Nightly function (nightly-forecast)",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = SiteCode|MadeOn|ForDate|Service|Metric|Method",
+          "flags": "IUR"
+        },
+        {
+          "name": "Site",
+          "type": "Lookup → Sites",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "MadeOn",
+          "type": "Date",
+          "notes": "Trading day the forecast was made (after close)",
+          "flags": "I"
+        },
+        {
+          "name": "ForDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "Horizon",
+          "type": "Number",
+          "notes": "Days ahead, 1–14",
+          "flags": ""
+        },
+        {
+          "name": "Service",
+          "type": "Choice",
+          "notes": "Lunch / Dinner / Delivery",
+          "flags": ""
+        },
+        {
+          "name": "Metric",
+          "type": "Choice",
+          "notes": "Net / Covers",
+          "flags": ""
+        },
+        {
+          "name": "Method",
+          "type": "Choice",
+          "notes": "v1 (published) / Holt-Winters (hidden challenger) / Same weekday last week (baseline)",
+          "flags": "I"
+        },
+        {
+          "name": "Version",
+          "type": "Text",
+          "notes": "Code version, e.g. forecast-v1.0",
+          "flags": ""
+        },
+        {
+          "name": "P50",
+          "type": "Number",
+          "notes": "Central forecast (pence for Net)",
+          "flags": ""
+        },
+        {
+          "name": "P10",
+          "type": "Number",
+          "notes": "Low end of the 80% likely range",
+          "flags": ""
+        },
+        {
+          "name": "P90",
+          "type": "Number",
+          "notes": "High end of the 80% likely range",
+          "flags": ""
+        },
+        {
+          "name": "Confidence",
+          "type": "Choice",
+          "notes": "Normal / Low (little history)",
+          "flags": ""
+        },
+        {
+          "name": "Reasons",
+          "type": "Text",
+          "notes": "Why, e.g. 'Median of 6 Fridays · trend +4% · bank holiday'",
+          "flags": ""
+        }
+      ]
+    },
+    {
       "group": "People & handbook",
       "name": "PolicyAcknowledgements",
       "purpose": "E-signed policy sign-offs",

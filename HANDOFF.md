@@ -157,6 +157,21 @@ These fix the current bugs. Every rule should have a unit test.
 - **Everything unusual is a warning** with "It's right" or "Fix".
 - Submit stays disabled until required sections are done and the confirmation is ticked.
 
+### Forecasting v1 (built, `packages/core`)
+Method chosen in `reports/Restaurant sales forecasting algorithms.md`. Per site, service (lunch, dinner, delivery) and metric (net, covers), 1–14 days ahead.
+
+| Step | File | What it does |
+|---|---|---|
+| Clean | `data-quality.ts` `cleanSeries` | Fills calendar gaps; flags missing, closed, zero, negative, duplicate and unusual days (robust z-score against the same weekday ±8 weeks; a change that lasts isn't flagged). Raw figures are kept; flagged days are only left out of learning |
+| Statistics | `profileSeries`, `qualityNotes` | Counts, gaps, weekday medians and spread, weekly swing, 4-week trend, readiness (not enough < 21 usable days, low < 42, ok < 365, good), plain-English notes for head office |
+| Forecast | `forecast.ts` `forecastV1` | Median of last 6 same weekdays × capped trend nudge (half the trend, max ±10%); bank holidays from past bank holidays, else like a Sunday; little history → site level × group weekday pattern (low confidence); covers → bookings + usual pickup |
+| Likely range | `likelyRange`, `updateAlpha` | 80% range from v1's own logged misses at each horizon; adaptive conformal update keeps coverage near 80% |
+| Check | `backtest`, `accuracy` | Walk-forward, no leakage; MASE, WAPE, bias, coverage, width, pinball. Compared with same weekday last week and Holt-Winters (hidden challenger) |
+
+**Nightly jobs** (`apps/functions`): `nightly-snapshot` (05:15 UTC) saves covers on the books for the next 14 days; `nightly-forecast` (05:30 UTC) logs v1 and both comparison methods. SharePoint lists: **BookingSnapshots**, **ForecastLog**. The snapshot must start before forecasting is shown, because past bookings can't be fetched again.
+
+**Before trusting it on real data:** import the Excel history, run `cleanSeries` + `profileSeries` per site and service, review the flagged days with finance, then run `backtest` and record the figures.
+
 ---
 
 ## 6. Screens (designed, on the canvas)
@@ -317,6 +332,7 @@ Assumes 1–2 developers.
 5. Who owns tips/tronc, and is there an independent troncmaster?
 6. Who builds it, and how many developers?
 7. Food-safety module scope and probe hardware, when the time comes.
+8. Which reservations system does each site use (SevenRooms, OpenTable, ResDiary…)? The nightly bookings snapshot needs read access to it.
 
 ---
 

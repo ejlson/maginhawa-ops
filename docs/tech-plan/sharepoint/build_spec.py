@@ -328,6 +328,34 @@ lst("Trading (EOD)", "Feedback", "Service, kitchen, staff, complaints, maintenan
  ("WorkOrder", "Lookup → WorkOrders", "Created by F01 for urgent maintenance", "F"),
 ])
 
+# ---------------- Forecasting ----------------
+lst("Forecasting", "BookingSnapshots", "Covers on the books for the next 14 days, saved every night. Can't be rebuilt later, so it starts before forecasting does", "Nightly function (nightly-snapshot)", [
+ ("Title", "Text", "Key = SiteCode|TakenOn|ForDate|Session", "IUR"),
+ ("Site", "Lookup → Sites", "", "I"),
+ ("TakenOn", "Date", "Trading day the snapshot was taken (after close)", "I"),
+ ("ForDate", "Date", "Trading day the bookings are for", "I"),
+ ("LeadDays", "Number", "ForDate − TakenOn, 1–14", ""),
+ ("Session", "Choice", "Lunch / Dinner", ""),
+ ("Covers", "Number", "Covers booked", ""),
+ ("Bookings", "Number", "Number of bookings (parties)", ""),
+ ("Source", "Text", "Reservations system the figures came from", ""),
+])
+lst("Forecasting", "ForecastLog", "Every forecast shown, kept so accuracy can be measured honestly", "Nightly function (nightly-forecast)", [
+ ("Title", "Text", "Key = SiteCode|MadeOn|ForDate|Service|Metric|Method", "IUR"),
+ ("Site", "Lookup → Sites", "", "I"),
+ ("MadeOn", "Date", "Trading day the forecast was made (after close)", "I"),
+ ("ForDate", "Date", "", "I"),
+ ("Horizon", "Number", "Days ahead, 1–14", ""),
+ ("Service", "Choice", "Lunch / Dinner / Delivery", ""),
+ ("Metric", "Choice", "Net / Covers", ""),
+ ("Method", "Choice", "v1 (published) / Holt-Winters (hidden challenger) / Same weekday last week (baseline)", "I"),
+ ("Version", "Text", "Code version, e.g. forecast-v1.0", ""),
+ ("P50", "Number", "Central forecast (pence for Net)", ""),
+ ("P10", "Number", "Low end of the 80% likely range", ""),
+ ("P90", "Number", "High end of the 80% likely range", ""),
+ ("Confidence", "Choice", "Normal / Low (little history)", ""),
+ ("Reasons", "Text", "Why, e.g. 'Median of 6 Fridays · trend +4% · bank holiday'", ""),
+])
 # ---------------- People & handbook ----------------
 lst("People & handbook", "PolicyAcknowledgements", "E-signed policy sign-offs", "App", [
  ("Title", "Text", "Key = PolicyFileId|Version|StaffId", "IUR"),

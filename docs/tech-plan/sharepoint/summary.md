@@ -28,6 +28,8 @@
 | Trading (EOD) | **DeliveryRefunds** | Refund requests from delivery platforms | App | – |
 | Trading (EOD) | **ShiftStaff** | Who worked each session (fixes lunch managers being dropped) | App (rota later) | – |
 | Trading (EOD) | **Feedback** | Service, kitchen, staff, complaints, maintenance notes | App; flow F01 links work orders | – |
+| Forecasting | **BookingSnapshots** | Covers on the books for the next 14 days, saved every night. Can't be rebuilt later, so it starts before forecasting does | Nightly function (nightly-snapshot) | SiteCode\|TakenOn\|ForDate\|Session |
+| Forecasting | **ForecastLog** | Every forecast shown, kept so accuracy can be measured honestly | Nightly function (nightly-forecast) | SiteCode\|MadeOn\|ForDate\|Service\|Metric\|Method |
 | People & handbook | **PolicyAcknowledgements** | E-signed policy sign-offs | App | PolicyFileId\|Version\|StaffId |
 | People & handbook | **StaffCertificates** | Level 2/3 food hygiene, personal licence, first aid… | Manager | – |
 | People & handbook | **FitnessToWork** | Illness exclusion / return to work — restricted to Owner/Admin | Manager (restricted list) | – |
