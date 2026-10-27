@@ -12,3 +12,8 @@ export * from './data-quality';
 export * from './forecast';
 export * from './bookings';
 export * from './trends';
+export * from './sync';
+export * from './live';
+export * from './eod-client';
+export * from './checklist-sync';
+export * from './checklist-client';

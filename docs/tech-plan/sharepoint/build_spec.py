@@ -149,6 +149,7 @@ lst("Checklists", "Responses", "Every answer — the compliance record (largest 
  ("ClientRecordedAt", "Date/Time", "Device clock (Created = server time)", ""),
  ("Supersedes", "Number", "Id of the response this corrects (never edit in place)", ""),
  ("CorrectionReason", "Text", "", ""),
+ ("AnswerKey", "Text", "runKey|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who)", "I"),
 ])
 lst("Checklists", "CorrectiveActions", "What was done about a failed check", "App + flows F04/F05", [
  ("Title", "Text", "Short description", "R"),
@@ -263,6 +264,9 @@ lst("Trading (EOD)", "TradingDays", "One per site per service date — replaces 
  ("NetVsTarget", "Currency", "", "F"),
  ("CheckIssues", "Multi-line text", "Problems found by flow (e.g. discount lines ≠ EPOS total)", "F"),
  ("CalcVersion", "Text", "Formula version used", "F"),
+ ("DraftJson", "Multi-line text", "The whole report between saves. Every save is PATCH with If-Match: <item ETag>, so a stale save gets 412 and is merged by section", ""),
+ ("SectionStamps", "Multi-line text", "JSON: who last changed each section, and when (e.g. Jo changed Dinner at 21:14)", ""),
+ ("SubmitId", "Text", "The submit press that won; a retry of the same press is a no-op", ""),
 ])
 lst("Trading (EOD)", "TradingSessions", "Lunch / dinner figures and cash", "App; flow F01 adds net & variance", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|Session", "IUR"),

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
 import { canSubmit, formatPounds, SECTION_LABELS, sectionStatus, type Issue } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
-import { formatDay, useDraft } from '../lib/draft';
+import { formatDay, useDraft, useWhere } from '../lib/draft';
+import { AlreadySent, EodSyncNotice, SyncState } from '../components/Sync';
 import { BigMoney, Foot, Icon, ICONS, Nav, RowLink } from '../components/ui';
 
 function IssueRow({ i }: { i: Issue }) {
@@ -22,9 +23,12 @@ function IssueRow({ i }: { i: Issue }) {
 export default function Review() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { draft, result, issues, update, submit, status } = useDraft();
+  const { draft, result, issues, update, submit, status, sync } = useDraft();
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  useWhere('Review');
+  // Someone else sent it first: say so, with a link, instead of jumping away.
+  if (sync.alreadySent && sync.notice) return <Sent text={sync.notice} />;
   if (status === 'submitted' || status === 'approved') return <Navigate to="/close/done" replace />;
 
   const blocks = issues.filter((i) => i.level === 'block');
@@ -46,7 +50,7 @@ export default function Review() {
 
   return (
     <main className="page">
-      <Nav back="/close" title="Review" right={<span className="saved"><span className="dot" />Saved</span>} />
+      <Nav back="/close" title="Review" right={<SyncState />} />
       <div className="body form">
         <div className="hero">
           <span className="hl">{formatDay(draft.businessDate, { weekday: 'short', day: 'numeric', month: 'short' })}</span>
@@ -102,11 +106,21 @@ export default function Review() {
           </label>
         </section>
       </div>
+      <EodSyncNotice />
       <Foot>
         {error && <p className="note bad" role="alert" style={{ textAlign: 'center', margin: '0 0 8px' }}>{error}</p>}
         <button type="button" className="btn b1" disabled={!ready || sending} onClick={send}>{sending ? 'Sending…' : `Submit ${weekday} · ${formatPounds(result.totalNet)}`}</button>
         <p className="note">{blocks.length ? `Fix ${blocks.length} ${blocks.length === 1 ? 'issue' : 'issues'} to submit.` : draft.confirmed ? 'Goes to finance and the daily sheet.' : 'Tick the confirmation to submit.'}</p>
       </Foot>
+    </main>
+  );
+}
+
+function Sent({ text }: { text: string }) {
+  return (
+    <main className="page">
+      <Nav back="/close" title="Review" />
+      <div className="body form"><AlreadySent text={text} /></div>
     </main>
   );
 }

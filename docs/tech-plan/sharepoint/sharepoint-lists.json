@@ -779,6 +779,12 @@
           "type": "Text",
           "notes": "",
           "flags": ""
+        },
+        {
+          "name": "AnswerKey",
+          "type": "Text",
+          "notes": "runKey|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who)",
+          "flags": "I"
         }
       ]
     },
@@ -1489,6 +1495,24 @@
           "type": "Text",
           "notes": "Formula version used",
           "flags": "F"
+        },
+        {
+          "name": "DraftJson",
+          "type": "Multi-line text",
+          "notes": "The whole report between saves. Every save is PATCH with If-Match: <item ETag>, so a stale save gets 412 and is merged by section",
+          "flags": ""
+        },
+        {
+          "name": "SectionStamps",
+          "type": "Multi-line text",
+          "notes": "JSON: who last changed each section, and when (e.g. Jo changed Dinner at 21:14)",
+          "flags": ""
+        },
+        {
+          "name": "SubmitId",
+          "type": "Text",
+          "notes": "The submit press that won; a retry of the same press is a no-op",
+          "flags": ""
         }
       ]
     },

@@ -10,6 +10,7 @@
 import type { EodDraft } from './schema';
 import type { DayResult } from './calc';
 import type { Issue } from './checks';
+import { LOCKED_MESSAGE, SyncError, stampSections, STALE_MESSAGE, type SectionStamps } from './sync';
 
 export type ReportStatus = 'draft' | 'submitted' | 'approved' | 'sent-back';
 
@@ -21,45 +22,107 @@ export interface StoredReport {
   /** Official figures, set by the server on submit. */
   official: DayResult | null;
   issues: Issue[];
+  /** Set by the store on every write: the SharePoint item ETag. Missing on reports saved before versioning. */
+  version?: string;
+  /** Who last changed each section, and when. Set by the store. */
+  sections?: SectionStamps;
+  /** The submit attempt that won, so a retry of that attempt is a no-op. */
+  submitId?: string | null;
 }
 
+export interface SaveOptions {
+  /**
+   * The version this save started from. null = "nothing was stored yet".
+   * Left out = save regardless (seeding and tests only).
+   */
+  baseVersion?: string | null;
+  /** Who is saving, for the section stamps. */
+  by?: string;
+  now?: Date;
+}
+
+export interface SubmitOptions {
+  /** Submit only if the stored report is still this version. */
+  baseVersion?: string | null;
+  /** One per press of Submit, reused by retries of that press. Falls back to the report's clientId. */
+  submitId?: string;
+  now?: Date;
+}
+
+/**
+ * Every write is conditional (compare-and-set on `version`). Each method throws a
+ * SyncError when it can't go ahead: 'conflict' (stale version), 'locked' (already
+ * submitted, for drafts) or 'already-submitted' (someone else's submit won).
+ */
 export interface EodStore {
   get(siteCode: string, businessDate: string): Promise<StoredReport | null>;
-  saveDraft(draft: EodDraft): Promise<void>;
-  submit(report: StoredReport): Promise<void>;
+  saveDraft(draft: EodDraft, opts?: SaveOptions): Promise<StoredReport>;
+  /** Returns what is stored: the new report, or the first one when this was a retry. */
+  submit(report: StoredReport, opts?: SubmitOptions): Promise<StoredReport>;
   listByDate(businessDate: string): Promise<StoredReport[]>;
   setStatus(siteCode: string, businessDate: string, status: ReportStatus): Promise<void>;
 }
 
 export const reportKey = (siteCode: string, businessDate: string) => `${siteCode}|${businessDate}`;
 
+export const isEditable = (status: ReportStatus) => status === 'draft' || status === 'sent-back';
+
+/**
+ * In memory. Each method checks and writes without awaiting in between, so in one
+ * JavaScript process every write is atomic, the same guarantee SharePoint gives with If-Match.
+ */
 export class MemoryStore implements EodStore {
   protected rows = new Map<string, StoredReport>();
+  private counter = 0;
+
+  protected nextVersion() {
+    return `${++this.counter}.${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+  }
 
   async get(siteCode: string, businessDate: string) {
     return structuredClone(this.rows.get(reportKey(siteCode, businessDate)) ?? null);
   }
 
-  async saveDraft(draft: EodDraft) {
+  async saveDraft(draft: EodDraft, opts: SaveOptions = {}) {
     const key = reportKey(draft.siteCode, draft.businessDate);
     const existing = this.rows.get(key);
-    if (existing && existing.status !== 'draft' && existing.status !== 'sent-back') {
-      throw new Error('This day is already submitted. Ask finance to reopen it.');
+    if (existing && !isEditable(existing.status)) throw new SyncError('locked', LOCKED_MESSAGE, structuredClone(existing));
+    if (opts.baseVersion !== undefined && (existing?.version ?? null) !== opts.baseVersion) {
+      if (existing) throw new SyncError('conflict', STALE_MESSAGE, structuredClone(existing));
     }
-    this.rows.set(key, {
-      draft: structuredClone(draft),
+    const row: StoredReport = {
+      // The report keeps the identity it was first stored with.
+      draft: { ...structuredClone(draft), clientId: existing?.draft.clientId ?? draft.clientId },
       status: existing?.status ?? 'draft',
       submittedAt: null, submittedBy: null, official: null, issues: [],
-    });
+      version: this.nextVersion(),
+      sections: stampSections(existing?.draft ?? null, draft, existing?.sections, opts.by ?? 'Someone', opts.now ?? new Date()),
+      submitId: null,
+    };
+    this.rows.set(key, row);
+    return structuredClone(row);
   }
 
-  async submit(report: StoredReport) {
+  async submit(report: StoredReport, opts: SubmitOptions = {}) {
     const key = reportKey(report.draft.siteCode, report.draft.businessDate);
     const existing = this.rows.get(key);
-    // Same clientId resubmitted (a retry): keep the first, never duplicate.
-    if (existing && existing.status === 'submitted' && existing.draft.clientId === report.draft.clientId) return;
-    if (existing && existing.status === 'submitted') throw new Error('This day is already submitted. Ask finance to reopen it.');
-    this.rows.set(key, structuredClone(report));
+    if (existing && !isEditable(existing.status)) {
+      // The same press of Submit, retried: keep the first, never duplicate.
+      const attempt = (r: StoredReport) => r.submitId ?? r.draft.clientId;
+      if (attempt(existing) === (opts.submitId ?? report.draft.clientId)) return structuredClone(existing);
+      throw new SyncError('already-submitted', LOCKED_MESSAGE, structuredClone(existing));
+    }
+    if (opts.baseVersion !== undefined && existing && existing.version !== undefined && existing.version !== opts.baseVersion) {
+      throw new SyncError('conflict', STALE_MESSAGE, structuredClone(existing));
+    }
+    const row: StoredReport = {
+      ...structuredClone(report),
+      version: this.nextVersion(),
+      sections: stampSections(existing?.draft ?? null, report.draft, existing?.sections, report.submittedBy ?? 'Someone', opts.now ?? new Date()),
+      submitId: opts.submitId ?? null,
+    };
+    this.rows.set(key, row);
+    return structuredClone(row);
   }
 
   async listByDate(businessDate: string) {
@@ -70,6 +133,7 @@ export class MemoryStore implements EodStore {
     const row = this.rows.get(reportKey(siteCode, businessDate));
     if (!row) throw new Error('No report for that site and day.');
     row.status = status;
+    row.version = this.nextVersion();
   }
 }
 

@@ -1,18 +1,19 @@
 /**
  * Today's checklists for the signed-in site. Available all day, separate from the
- * end-of-day report. Saved on the device as each answer is given.
+ * end-of-day report. Several people can work on the same list at once: each answer is
+ * its own record, shared live between devices (ChecklistSyncClient in @maginhawa/core).
  */
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react';
 import {
-  activeTemplates, PHASE_LABELS, PHASES, runKey, summariseRun, tasksForDay, taskStatus, tradingDate,
-  type AnswerValue, type ChecklistRun, type Phase, type ChecklistTemplate, type CorrectiveAction, type Task, type TaskStatus,
+  activeTemplates, ChecklistSyncClient, PHASE_LABELS, PHASES, runKey, summariseRun, tasksForDay, taskStatus, tradingDate,
+  type AnswerValue, type ChecklistRun, type ChecklistSyncState, type FinishOutcome, type Phase, type ChecklistTemplate, type CorrectiveAction, type RunStart, type Task, type TaskStatus,
 } from '@maginhawa/core';
 import { storage } from './storage';
 import { settingsFor } from './draft';
 import { now } from './clock';
 import { useTemplates } from './templates';
-
-const keyFor = (siteCode: string, date: string) => `mgh.runs.v1.${siteCode}|${date}`;
+import { useAuth } from './auth';
+import { batchDelayMs, checklistBackend, deviceId, presenceRemote, useLive } from './sync';
 
 export interface TaskView extends Task {
   status: TaskStatus;
@@ -29,7 +30,11 @@ interface ChecklistsValue {
   templateFor: (key: string) => ChecklistTemplate | undefined;
   answer: (key: string, checkpointId: string, value: AnswerValue) => void;
   fix: (key: string, checkpointId: string, action: Omit<CorrectiveAction, 'at'>) => void;
-  finish: (key: string, by: string) => void;
+  /** A second Finish (someone got there first) is a no-op; the outcome says who finished. */
+  finish: (key: string, by?: string) => Promise<FinishOutcome>;
+  /** Saving, offline, who else is here. */
+  sync: ChecklistSyncState;
+  setWhere: (where: string | null) => void;
 }
 
 const Ctx = createContext<ChecklistsValue | null>(null);
@@ -40,17 +45,15 @@ export function ChecklistsProvider({ siteCode, children }: { siteCode: string; c
   const businessDate = tradingDate(now(), settings);
   const { records } = useTemplates();
   const templates = useMemo(() => activeTemplates(records, siteCode, businessDate), [records, siteCode, businessDate]);
-  const storeKey = keyFor(siteCode, businessDate);
-  const [runs, setRuns] = useState<Record<string, ChecklistRun>>(() => storage.get(storeKey, {}));
-
-  const save = useCallback((change: (r: Record<string, ChecklistRun>) => void) => {
-    setRuns((prev) => {
-      const next = structuredClone(prev);
-      change(next);
-      storage.set(storeKey, next);
-      return next;
-    });
-  }, [storeKey]);
+  const { user } = useAuth();
+  const who = user?.name ?? 'Manager';
+  const client = useMemo(() => new ChecklistSyncClient({
+    backend: checklistBackend(), siteCode, businessDate, user: who, deviceId: deviceId(),
+    storage, presence: presenceRemote(), now, batchDelayMs: batchDelayMs(),
+  }), [siteCode, businessDate, who]);
+  useLive(client, `checklists:${siteCode}|${businessDate}`);
+  const sync = useSyncExternalStore(client.subscribe, client.getState, client.getState);
+  const runs = sync.runs;
 
   const baseTasks = useMemo(() => tasksForDay(templates, Object.values(runs), businessDate, settings), [templates, runs, businessDate, settings]);
 
@@ -73,48 +76,30 @@ export function ChecklistsProvider({ siteCode, children }: { siteCode: string; c
     });
   }, [baseTasks, runs, templateFor, businessDate]);
 
-  const ensure = (r: Record<string, ChecklistRun>, key: string) => {
-    if (!r[key]) {
-      const task = baseTasks.find((t) => t.key === key);
-      r[key] = { key, templateId: task?.templateId ?? '', businessDate, dueTime: task?.dueTime ?? null, answers: {}, fixes: {}, completedAt: null, completedBy: null };
-    }
-    return r[key]!;
-  };
+  const startOf = useCallback((key: string): RunStart => {
+    const task = baseTasks.find((t) => t.key === key);
+    const run = runs[key];
+    return { key, templateId: task?.templateId ?? run?.templateId ?? '', businessDate, dueTime: task?.dueTime ?? run?.dueTime ?? null, ...(task?.recheckOf ?? run?.recheckOf ? { recheckOf: task?.recheckOf ?? run?.recheckOf } : {}) };
+  }, [baseTasks, runs, businessDate]);
 
   const answer = useCallback((key: string, checkpointId: string, value: AnswerValue) => {
-    save((r) => {
-      const run = ensure(r, key);
-      if (run.completedAt) return;
-      run.answers[checkpointId] = value;
-      // A changed answer may no longer fail, so its old fix no longer applies.
-      delete run.fixes[checkpointId];
-    });
-  }, [save, baseTasks, businessDate]);
+    void client.answer(startOf(key), checkpointId, value);
+  }, [client, startOf]);
 
   const fix = useCallback((key: string, checkpointId: string, action: Omit<CorrectiveAction, 'at'>) => {
-    save((r) => {
-      const run = ensure(r, key);
-      const at = now();
-      run.fixes[checkpointId] = { ...action, at: at.toISOString() };
-      const rcKey = `${businessDate}|recheck|${key}|${checkpointId}`;
-      r[rcKey] = {
-        key: rcKey, templateId: run.templateId, businessDate, dueTime: null, answers: {}, fixes: {}, completedAt: null, completedBy: null,
-        recheckOf: { runKey: key, checkpointId, dueAt: new Date(at.getTime() + action.recheckInMinutes * 60_000).toISOString() },
-      };
-    });
-  }, [save, baseTasks, businessDate]);
+    const run = startOf(key);
+    void client.fix(run, checkpointId, action, (at) => ({
+      key: `${businessDate}|recheck|${key}|${checkpointId}`, templateId: run.templateId, businessDate, dueTime: null,
+      recheckOf: { runKey: key, checkpointId, dueAt: new Date(at.getTime() + action.recheckInMinutes * 60_000).toISOString() },
+    }));
+  }, [client, startOf, businessDate]);
 
-  const finish = useCallback((key: string, by: string) => {
-    save((r) => {
-      const run = ensure(r, key);
-      run.completedAt = now().toISOString();
-      run.completedBy = by;
-    });
-  }, [save, baseTasks, businessDate]);
+  const finish = useCallback((key: string) => client.finish(startOf(key)), [client, startOf]);
+  const setWhere = useCallback((where: string | null) => client.setWhere(where), [client]);
 
   const value = useMemo<ChecklistsValue>(() => ({
-    businessDate, tasks, runFor: (k) => runs[k], templateFor, answer, fix, finish,
-  }), [businessDate, tasks, runs, templateFor, answer, fix, finish]);
+    businessDate, tasks, runFor: (k) => runs[k], templateFor, answer, fix, finish, sync, setWhere,
+  }), [businessDate, tasks, runs, templateFor, answer, fix, finish, sync, setWhere]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
