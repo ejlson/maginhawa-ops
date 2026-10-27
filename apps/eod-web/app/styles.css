@@ -555,3 +555,20 @@ a.linkbtn { text-decoration: none; }
   .pack-t { font-size: 10pt; }
   .pack-corr { color: #8a3b00; }
 }
+
+/* ---- skeleton loading (components/Skeleton.tsx): grey shapes where content will land, with a slow shimmer ---- */
+.sk { display: block; flex: none; max-width: 100%; background: var(--fill); position: relative; overflow: hidden; }
+.sk.on-hero { background: var(--heroline); }
+.sk-li { cursor: default; }
+.sk-li .tx { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
+.hm .sk + .sk { margin-top: 4px; }
+@media (prefers-reduced-motion: no-preference) {
+  .sk::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); animation: sk-shimmer 1.4s ease-in-out infinite; }
+  .sk.on-hero::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent); }
+  @media (prefers-color-scheme: dark) { .sk::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent); } }
+  /* Fade in so a skeleton that only just shows doesn't blink. */
+  [aria-busy="true"], .sub[role="status"] { animation: sk-in .2s ease-out; }
+}
+@keyframes sk-shimmer { to { transform: translateX(100%); } }
+@keyframes sk-in { from { opacity: 0; } }

@@ -258,7 +258,7 @@ describe('the name menu, for every role', () => {
 
   it('head office gets back to a site view too', async () => {
     const { user } = renderApp('/head-office', admin);
-    await user.click(screen.getByRole('button', { name: /Signed in as Ana/ }));
+    await user.click(await screen.findByRole('button', { name: /Signed in as Ana/ }));
     await user.click(screen.getByRole('menuitemradio', { name: 'Supervisor' }));
     expect(screen.getByRole('heading', { name: /, Ana$/ })).toBeInTheDocument();
   });

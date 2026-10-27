@@ -30,9 +30,9 @@ describe('who can edit checklists', () => {
     expect(screen.queryByRole('button', { name: /Publish/ })).not.toBeInTheDocument();
   });
 
-  it('head office can change a group list and reaches the builder from all sites', () => {
+  it('head office can change a group list and reaches the builder from all sites', async () => {
     const { unmount } = renderApp('/head-office', admin);
-    expect(screen.getByRole('link', { name: /Checklists/ })).toHaveAttribute('href', '/checklists/edit');
+    expect(await screen.findByRole('link', { name: /Checklists/ })).toHaveAttribute('href', '/checklists/edit');
     unmount();
     renderApp('/checklists/edit/opening', admin);
     expect(screen.getByLabelText('Name')).toBeEnabled();

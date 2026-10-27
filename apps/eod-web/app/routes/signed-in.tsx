@@ -8,6 +8,8 @@ import { SiteProvider } from '../lib/site';
 import { FoodSafetyProvider } from '../lib/food-safety';
 import { tradingDate } from '@maginhawa/core';
 import { SiteShell } from '../components/SiteShell';
+import { HeadOfficeShell } from '../components/HeadOfficeShell';
+import { PageSkeleton, useComingScreen } from '../components/Skeleton';
 
 /** Every screen after sign-in works on today's report and checklists for the manager's site. */
 export default function SignedIn() {
@@ -34,11 +36,19 @@ export default function SignedIn() {
           <SiteProvider siteCode={user.siteCode} businessDate={tradingDate(now(), settingsFor(user.siteCode))}>
             <FoodSafetyProvider siteCode={user.siteCode} businessDate={tradingDate(now(), settingsFor(user.siteCode))}>
               {/* Head office has its own frame; everyone else gets the site sidebar on desktop. */}
-              {user.role === 'headoffice' || pathname.startsWith('/head-office') ? <Outlet /> : <SiteShell><Outlet /></SiteShell>}
+              {user.role === 'headoffice' || pathname.startsWith('/head-office') ? <Screen headOffice /> : <SiteShell><Screen /></SiteShell>}
             </FoodSafetyProvider>
           </SiteProvider>
         </ChecklistsProvider>
       </TemplatesProvider>
     </DraftProvider>
   );
+}
+
+/** The screen, or the next screen's skeleton while its code is still downloading. */
+function Screen({ headOffice }: { headOffice?: boolean }) {
+  const next = useComingScreen();
+  if (!next) return <Outlet />;
+  // Head office screens draw their own frame, so keep the sidebar in place around the skeleton.
+  return headOffice && next.startsWith('/head-office') ? <HeadOfficeShell><PageSkeleton wide /></HeadOfficeShell> : <PageSkeleton />;
 }

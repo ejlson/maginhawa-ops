@@ -12,6 +12,7 @@ import { loadChecklistRecords, type PackRun } from '../lib/records-pack';
 import { isConnected } from '../lib/config';
 import { now } from '../lib/clock';
 import { Nav } from '../components/ui';
+import { Sk, SkRows } from '../components/Skeleton';
 
 const shown = (v: unknown, temp: boolean) => (typeof v === 'number' ? (temp ? degrees(v) : String(v)) : v === true ? 'Yes' : v === false ? 'No' : Array.isArray(v) ? v.join(', ') : typeof v === 'string' && v.startsWith('data:') ? 'Photo' : String(v ?? '—'));
 
@@ -78,7 +79,9 @@ export default function FsPack() {
           <button type="button" className="btn b1 no-print" onClick={() => window.print()}>Print or save as PDF</button>
         </header>
 
-        {wantRuns && runs === null && <p className="muted" role="status">Collecting checklist records…</p>}
+        {wantRuns && runs === null && (
+          <section className="pack-sec no-print" aria-busy="true"><Sk w={220} h={20} /><SkRows count={4} label="Collecting checklist records" /></section>
+        )}
 
         {has('checks') && runs && (
           <Section id="checks" title={PACK_LABELS.checks} count={checks.length}>

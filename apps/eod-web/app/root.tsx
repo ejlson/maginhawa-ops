@@ -1,6 +1,7 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, isRouteErrorResponse } from 'react-router';
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, isRouteErrorResponse, useLocation, useNavigation } from 'react-router';
 import type { ReactNode } from 'react';
 import { AuthProvider } from './lib/auth';
+import { ComingScreen, PageSkeleton, useDelayed } from './components/Skeleton';
 import './styles.css';
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -33,13 +34,20 @@ export async function clientLoader() {
 }
 
 export function HydrateFallback() {
-  return <div className="page" aria-busy="true" />;
+  return <PageSkeleton />;
 }
 
 export default function App() {
+  // A screen's code downloads the first time it's opened; show its skeleton if that takes a moment.
+  const navigation = useNavigation();
+  const { pathname } = useLocation();
+  const next = navigation.state === 'loading' && navigation.location.pathname !== pathname ? navigation.location.pathname : null;
+  const slow = useDelayed(next !== null);
   return (
     <AuthProvider>
-      <Outlet />
+      <ComingScreen.Provider value={slow ? next : null}>
+        <Outlet />
+      </ComingScreen.Provider>
     </AuthProvider>
   );
 }

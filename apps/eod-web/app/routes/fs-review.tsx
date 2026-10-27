@@ -8,6 +8,7 @@ import { useTemplates } from '../lib/templates';
 import { useDraft } from '../lib/draft';
 import { loadChecklistRecords } from '../lib/records-pack';
 import { Foot, Nav } from '../components/ui';
+import { SkRows } from '../components/Skeleton';
 
 /** The 4-weekly look back (HANDOFF.md §8a, item 11): repeat faults, what's changed, and a signed review. */
 export default function FsReview() {
@@ -50,7 +51,7 @@ export default function FsReview() {
         <section className="grp">
           <div className="gh"><h2>Repeat faults</h2><p>The same check failing {REPEAT_MIN} or more times in {REPEAT_WINDOW_DAYS} days: the cause hasn't been fixed.</p></div>
           <div className="sub">
-            {faults === null && <p className="muted" role="status">Looking through the last week…</p>}
+            {faults === null && <SkRows count={2} label="Looking through the last week" />}
             {faults?.map((f) => (
               <div className="li" key={`${f.templateId}${f.checkpointId}`}>
                 <span className="av bad">{f.count}×</span>
