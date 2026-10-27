@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><title>EHO brief</title>
+<style>
+@page { size: A4; margin: 14mm 15mm 14mm; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.2pt; line-height: 1.45; color: #1d2433; margin: 0; }
+header { border-left: 6px solid #1f6f5c; padding: 2px 0 2px 12px; margin-bottom: 12px; }
+header .k { color: #1f6f5c; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: 8pt; }
+header h1 { font-size: 20pt; line-height: 1.15; margin: 3px 0 4px; color: #0f1b2d; letter-spacing: -.01em; }
+header p { margin: 0; color: #556; font-size: 9.5pt; }
+h2 { font-size: 11.5pt; color: #0f1b2d; border-bottom: 1.5px solid #1f6f5c; padding-bottom: 2px; margin: 14px 0 6px; page-break-after: avoid; }
+h2 .n { color: #1f6f5c; margin-right: 4px; }
+p { margin: 4px 0 6px; }
+.lead { background: #f0f6f4; border-left: 3px solid #1f6f5c; padding: 7px 10px; margin: 0 0 4px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; }
+.grid div { padding: 0; }
+.grid b { color: #0f1b2d; }
+table { border-collapse: collapse; table-layout: fixed; width: 100%; font-size: 8.2pt; line-height: 1.35; margin: 4px 0; }
+th { background: #1f6f5c; color: #fff; text-align: left; padding: 3.5px 5px; font-weight: 600; vertical-align: bottom; }
+td { border-bottom: 1px solid #d9dee5; padding: 3.5px 5px; vertical-align: top; }
+tr { page-break-inside: avoid; }
+tr:nth-child(even) td { background: #f6f8f7; }
+td.v { font-weight: 600; font-variant-numeric: tabular-nums; }
+td.ok { color: #889; font-size: 7.6pt; white-space: nowrap; }
+.tag { display: inline-block; white-space: nowrap; font-size: 7pt; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 0 4px; border-radius: 3px; }
+.law { background: #e3f1ec; color: #1f6f5c; }
+.gd { background: #fdf2df; color: #8a5a12; }
+.ours { background: #ebe9fb; color: #4b43a3; }
+ol { margin: 4px 0 6px 0; padding-left: 18px; }
+ol li { margin: 2px 0; }
+.notes { border: 1px solid #c9d1d9; border-radius: 4px; height: 70px; margin-top: 4px; }
+.sign { display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 14px; margin-top: 10px; font-size: 8pt; color: #556; }
+.sign div { border-top: 1px solid #1d2433; padding-top: 3px; }
+.foot { margin-top: 10px; font-size: 7.6pt; color: #778; }
+.page2 { page-break-before: always; }
+</style></head>
+<body>
+
+<header>
+  <div class="k">Maginhawa · food safety · brief for an environmental health officer</div>
+  <h1>Checking our digital food-safety records before launch</h1>
+  <p>Draft for discussion · prepared 27 October 2026 · all figures are our proposed settings, not records</p>
+</header>
+
+<p class="lead"><b>Why we're asking.</b> Maginhawa runs 9 restaurants in London. We are replacing paper food-safety diaries with our own phone and tablet app. Before staff rely on it, we want an officer to confirm that the rules it enforces are right, and that its records would count as evidence of due diligence (Food Safety Act 1990, s.21). This brief lists exactly what we'd like you to check.</p>
+
+<h2><span class="n">1</span>What the app records</h2>
+<div class="grid">
+  <div><b>Daily checks.</b> Opening, closing, hot holding and fridge/freezer temperatures, with a time and the person's name on every answer. A failed reading must be fixed and re-checked.</div>
+  <div><b>Cooking and cooling.</b> Core temperature for each batch cooked or reheated. A cooling timer starts when food comes off the heat.</div>
+  <div><b>Probes.</b> Weekly calibration in iced and boiling water. A probe that fails can't be used for checks until it passes.</div>
+  <div><b>Allergens.</b> The 14 allergens for each dish. Every version is kept, and staff confirm they've read each change.</div>
+  <div><b>Deliveries and recalls.</b> Supplier (approved list only), chilled temperature, batch codes and use-by dates. FSA alerts are matched to the batches we received.</div>
+  <div><b>People.</b> Hygiene certificates with expiry dates. A fit-to-work question at the start of each shift.</div>
+  <div><b>Complaints, inspections and notices</b>, with deadlines for fixes and appeals.</div>
+  <div><b>Records you can trust.</b> Finished checklists are locked. A supervisor can correct an answer only by giving a reason, and the old answer, who changed it and when stay visible. Times come from our server, not the device.</div>
+</div>
+
+<h2><span class="n">2</span>Rules the app enforces: please confirm</h2>
+<table>
+  <thead><tr><th style="width:19%">Rule</th><th style="width:17%">Our setting</th><th style="width:12.5%">Basis</th><th>Our question</th><th style="width:15%">Confirmed?</th></tr></thead>
+  <tbody>
+    <tr><td>Fridges and chilled food</td><td class="v">warn &gt; 5°C<br>fail &gt; 8°C</td><td><span class="tag law">Law</span> 8°C<br><span class="tag gd">Guidance</span> 5°C</td><td>Is warning at 5°C and failing at 8°C the right split? Or should anything above 5°C count as a fail?</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Freezers</td><td class="v">−18°C or below</td><td><span class="tag gd">Guidance</span></td><td>Is −18°C the right fail point, or should we allow a margin while the freezer is being restocked or defrosted?</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Hot holding</td><td class="v">63°C or above</td><td><span class="tag law">Law</span></td><td>Do we need a rule for the 2-hour exception, or is this simple rule enough?</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Cooking core temperature</td><td class="v">75°C or above</td><td><span class="tag gd">Guidance</span></td><td>Should we also accept equivalent time and temperature combinations (e.g. 70°C for 2 minutes)?</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Reheating</td><td class="v">75°C or above</td><td><span class="tag gd">Guidance</span></td><td>Correct for England? (We understand Scotland requires 82°C.)</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Cooling hot food</td><td class="v">into the fridge within 90 min</td><td><span class="tag gd">Guidance</span></td><td>Is 90 minutes the right limit? Should staff also record a temperature when the food goes in?</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Probe calibration</td><td class="v">weekly · ice −1 to 1°C · boiling 99 to 101°C</td><td><span class="tag gd">Guidance</span></td><td>Are the weekly frequency and these ranges right?</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Off work after vomiting or diarrhoea</td><td class="v">48 hours after symptoms stop</td><td><span class="tag gd">Guidance</span></td><td>Is a yes/no question at the start of each shift enough? Only managers see the answers.</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Hygiene certificate expiry</td><td class="v">warn 30 days before</td><td><span class="tag ours">Our choice</span></td><td>What level of training do you expect for each role (kitchen, front of house, managers)?</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Repeat faults</td><td class="v">same check fails 3+ times in 7 days</td><td><span class="tag ours">Our choice</span></td><td>These are flagged in a signed review every 4 weeks. Is that a sensible trigger and review frequency?</td><td class="ok">☐ Yes ☐ Change</td></tr>
+  </tbody>
+</table>
+
+
+<h2><span class="n">3</span>How long we keep records: please advise</h2>
+<p>We understand there is no fixed legal period for most food-safety records. These are our suggestions. Nothing is deleted without head office's approval.</p>
+<table>
+  <thead><tr><th style="width:30%">Record</th><th style="width:22%">We suggest</th><th>Our reasoning</th><th style="width:15%">Confirmed?</th></tr></thead>
+  <tbody>
+    <tr><td>Temperatures and checks, including corrections</td><td class="v">2 years</td><td>Covers inspection cycles and most claims</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Faults and how they were fixed</td><td class="v">2 years</td><td>Kept alongside the checks they came from</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Allergen versions for each dish</td><td class="v">3 years</td><td>So we can show what a guest was told on a given date</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Complaints and incidents</td><td class="v">3 years</td><td>Personal injury claim time limit</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Training certificates</td><td class="v">until the person leaves, plus 2 years</td><td>Shows training was in place at the time</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Fit-to-work answers</td><td class="v">6 months</td><td>Health data; UK GDPR says keep it as short as possible</td><td class="ok">☐ Yes ☐ Change</td></tr>
+    <tr><td>Inspections and notices</td><td class="v">6 years</td><td>Matches the general limitation period</td><td class="ok">☐ Yes ☐ Change</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="n">4</span>Records and evidence: our questions</h2>
+<ol>
+  <li><b>Digital instead of paper.</b> Would you accept these digital records in place of the SFBB diary pages? Is there anything from the diary that we're missing?</li>
+  <li><b>Corrections.</b> We never overwrite: a correction keeps the original answer, the reason, the person and the server time. Is that enough for a record to be trusted?</li>
+  <li><b>The inspection pack.</b> On a visit, a manager can print one pack for chosen dates: temperatures and checks, faults, allergens, cooking and cooling, probes, deliveries, training, complaints, and inspections. Health answers and customer details are left out. Is that what you'd want to see, and is reading it on screen acceptable?</li>
+  <li><b>The written plan.</b> The app records the checks, but it doesn't hold our HACCP-based food safety management system. Is a written SFBB pack for each site, kept alongside the app, the right approach?</li>
+  <li><b>One answer for 9 sites.</b> Our sites fall under more than one London council. Would you recommend a Primary Authority partnership, and could your council act as ours?</li>
+</ol>
+
+<h2><span class="n">5</span>What we'll bring</h2>
+<p>The app on a phone and an iPad, with example records. A printed sample inspection pack. Our draft SFBB pack. The list of approved suppliers.</p>
+
+<h2>Notes from the meeting</h2>
+<div class="notes"></div>
+<div class="sign"><div>Officer name and council</div><div>For Maginhawa</div><div>Date</div></div>
+
+<p class="foot">Basis key: <span class="tag law">Law</span> set in legislation (Food Hygiene (England) Regulations 2013 and retained EU food hygiene law) · <span class="tag gd">Guidance</span> FSA or SFBB guidance · <span class="tag ours">Our choice</span> our own policy. Our reading of the law and guidance is not legal advice; that is why we're asking you to confirm it. Contact: ____________________</p>
+
+</body></html>
