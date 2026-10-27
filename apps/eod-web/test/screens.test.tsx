@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import { renderApp, seedVerifiedDraft, admin, staff } from './harness';
-import { deviceStore } from '../app/lib/store';
+import { deviceStore, resetDemoEod } from '../app/lib/store';
 
 describe('sign-in', () => {
   it('sends people who are not signed in to sign-in', async () => {
@@ -220,6 +220,57 @@ describe('review and submit', () => {
     const saved = await deviceStore().get('BUN', '2026-10-05');
     expect(saved?.status).toBe('submitted');
     expect(saved?.official?.totalNet).toBe(268750);
+  });
+});
+
+describe('Submit all on the EOD overview', () => {
+  it('asks first, then submits and locks the day', async () => {
+    await seedVerifiedDraft();
+    const { user } = renderApp('/close');
+    await user.click(screen.getByRole('button', { name: 'Submit all' }));
+    const ask = screen.getByRole('alertdialog', { name: "Submit Monday's EOD?" });
+    expect(ask).toHaveTextContent('£2,687.50 net');
+    expect(ask).toHaveTextContent("Once submitted, it can't be edited.");
+    // Escape backs out without sending.
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect((await deviceStore().get('BUN', '2026-10-05'))?.status).not.toBe('submitted');
+
+    await user.click(screen.getByRole('button', { name: 'Submit all' }));
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByRole('heading', { name: 'Day closed' })).toBeInTheDocument();
+    const saved = await deviceStore().get('BUN', '2026-10-05');
+    expect(saved?.status).toBe('submitted');
+    expect(saved?.draft.confirmed).toBe(true);
+  });
+
+  it('stays greyed out until the sections are finished', async () => {
+    await seedVerifiedDraft((d) => { d.completed.wages = false; });
+    renderApp('/close');
+    expect(screen.getByRole('button', { name: 'Submit all' })).toBeDisabled();
+    expect(screen.getByText('Finish the sections, then submit here.')).toBeInTheDocument();
+  });
+
+  it('points to Review when something blocks it', async () => {
+    await seedVerifiedDraft((d) => { d.sessions.dinner.cash.tillCash = 40000; });
+    renderApp('/close');
+    expect(screen.getByRole('button', { name: 'Submit all' })).toBeDisabled();
+    expect(screen.getByRole('link', { name: 'See Review' })).toBeInTheDocument();
+  });
+});
+
+describe('demo reset', () => {
+  it("clears today's EOD, even once sent, and leaves other days alone", async () => {
+    await seedVerifiedDraft((d) => { d.confirmed = true; });
+    const other = await seedVerifiedDraft((d) => { d.businessDate = '2026-10-04'; });
+    const { user } = renderApp('/close');
+    await user.click(screen.getByRole('button', { name: 'Submit all' }));
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByRole('heading', { name: 'Day closed' })).toBeInTheDocument();
+
+    resetDemoEod('BUN', '2026-10-05');
+    expect(await deviceStore().get('BUN', '2026-10-05')).toBeNull();
+    expect((await deviceStore().get('BUN', other.businessDate))?.draft.businessDate).toBe('2026-10-04');
   });
 });
 

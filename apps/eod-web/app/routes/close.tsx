@@ -1,4 +1,5 @@
-import { Link } from 'react-router';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
@@ -6,6 +7,7 @@ import { EodSyncNotice } from '../components/Sync';
 import { BigMoney, Icon, ICONS, Nav, RowLink, SectionIcon, SECTION_ICONS, Segments, Toggle } from '../components/ui';
 import { TabBar } from '../components/TabBar';
 import { Columns } from '../components/Columns';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 const SALES: SectionKey[] = ['lunch', 'dinner', 'delivery', 'promotions'];
 const TEAM: SectionKey[] = ['wages', 'tips', 'feedback', 'handover'];
@@ -78,6 +80,7 @@ export default function Close() {
           <div className="sub"><div className="sl"><span>Sales</span><span>{count(SALES)}</span></div>{SALES.map(row)}</div>
           <div className="sub"><div className="sl"><span>Team &amp; notes</span><span>{count(TEAM)}</span></div>{TEAM.map(row)}</div>
         </section>
+        {!locked && <SubmitEod />}
         </>}
         side={<>
         <section className="grp quiet">
@@ -108,5 +111,48 @@ export default function Close() {
       />
       <TabBar />
     </main>
+  );
+}
+
+/** "Submit all" under the sections, like the checklists. Always there; greyed out until nothing blocks the day. */
+function SubmitEod() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { draft, result, issues, update, submit } = useDraft();
+  const [asking, setAsking] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const blocks = issues.filter((i) => i.level === 'block');
+  const warns = issues.filter((i) => i.level === 'warn').length;
+  const unfinished = blocks.some((i) => i.code === 'section-incomplete');
+  const weekday = formatDay(draft.businessDate, { weekday: 'long' });
+
+  const onSubmit = async () => {
+    setBusy(true);
+    setError(null);
+    // Pressing Submit in the dialog is the same confirmation as the tick box on Review.
+    update((d) => { d.confirmed = true; });
+    const res = await submit(user?.name ?? 'Manager');
+    setBusy(false);
+    if (res.ok) navigate('/close/done');
+    else { setAsking(false); setError(res.error); }
+  };
+
+  return (
+    <div className="submit-lists">
+      <button type="button" className="btn b1" disabled={busy || blocks.length > 0} onClick={() => { setError(null); setAsking(true); }}>Submit all</button>
+      {asking && blocks.length === 0 && (
+        <ConfirmDialog title={`Submit ${weekday}'s EOD?`} busy={busy} onConfirm={onSubmit} onCancel={() => setAsking(false)}>
+          <p>{formatPounds(result.totalNet)} net · {result.covers} covers. Once submitted, it can't be edited.</p>
+          <p>This confirms the figures match the till reports and the cash you counted.{warns > 0 && ` ${warns} ${warns === 1 ? 'note' : 'notes'} from Review ${warns === 1 ? 'goes' : 'go'} with it.`}</p>
+        </ConfirmDialog>
+      )}
+      <p className={`note${error ? ' bad' : ''}`} role="status">
+        {error ?? (blocks.length === 0
+          ? 'Goes to finance and the daily sheet.'
+          : unfinished ? 'Finish the sections, then submit here.'
+          : <>Fix {blocks.length} {blocks.length === 1 ? 'issue' : 'issues'} first. <Link to="/close/review">See Review</Link></>)}
+      </p>
+    </div>
   );
 }

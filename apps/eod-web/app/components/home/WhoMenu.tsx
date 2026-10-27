@@ -6,10 +6,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { hasLeft, SITES, tradingDate } from '@maginhawa/core';
-import { homeFor, recentPeople, ROLE_LABELS, useAuth, type Role } from '../../lib/auth';
+import { can, homeFor, recentPeople, ROLE_LABELS, useAuth, type Role } from '../../lib/auth';
 import { isConnected } from '../../lib/config';
 import { pins } from '../../lib/pins';
-import { resetDemoChecklists } from '../../lib/store';
+import { resetDemoChecklists, resetDemoEod } from '../../lib/store';
 import { people } from '../../lib/people';
 import { settingsFor } from '../../lib/draft';
 import { now } from '../../lib/clock';
@@ -42,6 +42,11 @@ export function WhoMenu() {
   const resetChecklists = () => {
     setOpen(false);
     resetDemoChecklists(user.siteCode, tradingDate(now(), settingsFor(user.siteCode)));
+    window.location.reload();
+  };
+  const resetEod = () => {
+    setOpen(false);
+    resetDemoEod(user.siteCode, tradingDate(now(), settingsFor(user.siteCode)));
     window.location.reload();
   };
 
@@ -87,6 +92,11 @@ export function WhoMenu() {
               <button type="button" role="menuitem" className="menuitem small" onClick={resetChecklists}>
                 <span className="tx"><span>Reset today's checklists</span><small>Demo only. Clears {site}'s answers for today</small></span>
               </button>
+              {can.doEod(user.role) && (
+                <button type="button" role="menuitem" className="menuitem small" onClick={resetEod}>
+                  <span className="tx"><span>Reset today's EOD</span><small>Demo only. Clears {site}'s figures for today, even if sent</small></span>
+                </button>
+              )}
             </>}
           </>}
 
