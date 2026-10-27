@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
-import { useAuth } from '../lib/auth';
+import { recordedAs, useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
 import { EodSyncNotice } from '../components/Sync';
 import { BigMoney, Icon, ICONS, Nav, RowLink, SectionIcon, SECTION_ICONS, Segments, Toggle } from '../components/ui';
@@ -132,7 +132,7 @@ function SubmitEod() {
     setError(null);
     // Pressing Submit in the dialog is the same confirmation as the tick box on Review.
     update((d) => { d.confirmed = true; });
-    const res = await submit(user?.name ?? 'Manager');
+    const res = await submit(user ? recordedAs(user) : 'Manager');
     setBusy(false);
     if (res.ok) navigate('/close/done');
     else { setAsking(false); setError(res.error); }

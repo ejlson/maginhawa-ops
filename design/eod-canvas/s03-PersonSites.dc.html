@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Head office · a person's sites</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.ph{--bg:#ffffff;--side:#f7f7f9;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--ink:#1d1d1f;--onink:#ffffff;--link:#0066cc;--scrim:rgba(0,0,0,.28);position:relative;overflow:hidden;width:390px;height:844px;box-sizing:border-box;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:17px;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.ph.dark{--bg:#121214;--side:#1b1b1f;--text:#f2f2f4;--sec:#a3a3ab;--sep:rgba(255,255,255,.12);--fill:#2a2a2f;--ink:#f2f2f4;--onink:#121214;--link:#4aa3ff;--scrim:rgba(0,0,0,.55)}
+.ph.dark .sheet{background:var(--side)}
+.li{display:flex;align-items:center;gap:12px;min-height:58px;position:relative}
+.li + .li::before{content:'';position:absolute;top:0;left:0;right:0;height:.5px;background:var(--sep)}
+.tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.tx small{font-size:14px;color:var(--sec)}
+.av{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;font-size:13px;font-weight:700}
+.circ{width:24px;height:24px;flex:none}
+.scrim{position:absolute;inset:0;background:var(--scrim)}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:54px;background:var(--bg);border-radius:24px 24px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -10px 40px -10px rgba(0,0,0,.3)}
+.grab{width:36px;height:5px;border-radius:3px;background:var(--sep);margin:8px auto 0;flex:none}
+.sh-head{padding:10px 20px 12px;display:flex;align-items:flex-start;gap:12px;border-bottom:.5px solid var(--sep)}
+.x{width:32px;height:32px;border-radius:16px;border:0;background:var(--fill);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.sh-body{flex:1;overflow-y:auto;padding:0 20px 20px;scrollbar-width:thin}
+.pick{width:100%;display:flex;align-items:center;gap:12px;min-height:60px;padding:4px 0;border:0;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;position:relative}
+.pick + .pick::before{content:'';position:absolute;top:0;left:54px;right:0;height:.5px;background:var(--sep)}
+.lk{border:0;background:transparent;color:var(--link);font:inherit;font-size:14px;cursor:pointer;padding:0;height:32px}
+.tag{font-size:12px;font-weight:600;color:var(--sec);background:var(--fill);border-radius:11px;height:22px;padding:0 8px;display:inline-flex;align-items:center}
+.sh-foot{padding:12px 20px 30px;border-top:.5px solid var(--sep)}
+.go{height:54px;width:100%;border-radius:999px;border:0;background:var(--ink);color:var(--onink);font:inherit;font-size:17px;font-weight:600;cursor:pointer}
+</style>
+</helmet>
+<div class="ph {{theme}}">
+<div style="padding: 58px 20px 0; display: flex; flex-direction: column; gap: 18px">
+<span style="color: var(--link)">‹ People</span>
+<div style="display: flex; align-items: center; gap: 14px"><span class="av" style="width: 56px; height: 56px; border-radius: 28px; font-size: 18px">TS</span><div class="tx"><h1 style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.03em">[Manager name]</h1><small>Manager</small></div></div>
+<div>
+<div class="li"><span class="tx"><span>Role</span></span><span style="color: var(--sec)">Manager</span></div>
+<div class="li" onClick="{{openSheet}}" style="cursor: pointer"><span class="tx"><span>Sites</span></span><span style="color: var(--sec)">{{summary}}</span><svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--sec)"><path d="M1 1l6 6-6 6"></path></svg></div>
+<div class="li"><span class="tx"><span>PIN</span></span><span style="color: var(--link)">Reset</span></div>
+</div>
+</div>
+
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+<div class="scrim" onClick="{{closeSheet}}"></div>
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+<div class="grab"></div>
+<div class="sh-head">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><h2 id="pTitle" style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.03em">Sites they work at</h2><span style="font-size: 14px; color: var(--sec)">They can switch between these. Their main site opens first.</span></div>
+<button class="x" aria-label="Close" onClick="{{closeSheet}}"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9"></path></svg></button>
+</div>
+<div class="sh-body">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="9">
+<div class="pick">
+<button aria-pressed="{{r.pressed}}" onClick="{{r.toggle}}" style="display: flex; align-items: center; gap: 12px; flex: 1; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; padding: 0; min-height: 52px">
+<span class="av">{{r.short}}</span>
+<span class="tx"><span style="font-weight: 600">{{r.name}}</span></span>
+</button>
+<sc-if value="{{r.main}}" hint-placeholder-val="{{ false }}"><span class="tag">Main site</span></sc-if>
+<sc-if value="{{r.canMain}}" hint-placeholder-val="{{ false }}"><button class="lk" onClick="{{r.makeMain}}">Make main</button></sc-if>
+<span onClick="{{r.toggle}}" style="cursor: pointer; display: flex">
+<sc-if value="{{r.on}}" hint-placeholder-val="{{ false }}"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="var(--ink)"></circle><path d="M7 12.4l3.2 3.1L17 8.8" fill="none" stroke="var(--onink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+<sc-if value="{{r.off}}" hint-placeholder-val="{{ true }}"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.75" fill="none" stroke="var(--sec)" stroke-opacity=".5" stroke-width="1.5"></circle></svg></sc-if>
+</span>
+</div>
+</sc-for>
+</div>
+<div class="sh-foot"><button class="go" onClick="{{closeSheet}}">Done</button></div>
+</section>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: true, picked: { BUN: true, GUA: true }, main: 'BUN' };
+  }
+  renderVals() {
+    const st = this.state;
+    const all = [['BIN', 'Bintang'], ['GUA', 'Guanabana'], ['BEL', 'Belly'], ['RAM', 'Ramo'], ['HOO', 'Hoodwood'], ['BUN', 'Bunso'], ['CAF', 'Cafe Mamasons'], ['MKT', 'Mamasons Kentish Town'], ['MCT', 'Mamasons China Town']];
+    const rows = all.map(([code, name]) => {
+      const on = !!st.picked[code];
+      return { name, short: code.slice(0, 2), on, off: !on, pressed: on ? 'true' : 'false', main: on && st.main === code, canMain: on && st.main !== code,
+        makeMain: () => this.setState({ main: code }),
+        toggle: () => {
+          const picked = { ...this.state.picked, [code]: !this.state.picked[code] };
+          if (!Object.values(picked).some(Boolean)) return; // always at least one site
+          const main = picked[this.state.main] ? this.state.main : Object.keys(picked).find((k) => picked[k]);
+          this.setState({ picked, main });
+        } };
+    });
+    const names = all.filter(([c]) => st.picked[c]).map(([, n]) => n);
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      rows, open: st.open,
+      summary: names.length === 1 ? names[0] : `${names.length} sites`,
+      openSheet: () => this.setState({ open: true }),
+      closeSheet: () => this.setState({ open: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Navigate, useParams, useSearchParams } from 'react-router';
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
+import { useAuth } from '../lib/auth';
 import { formatPounds, periodRange, periodStats, breakdown, PERIOD_NAMES, SITES, type Period, type PeriodStats } from '@maginhawa/core';
 import { useTradingHistory } from '../lib/history';
 import { settingsFor } from '../lib/draft';
@@ -33,6 +34,8 @@ const pctChange = (now: number | null, before: number | null, upIsGood: boolean)
 /** Head office · one restaurant over a chosen period: trend, forecast, the key figures and what made them. */
 export default function HeadOfficeSite() {
   const { site: code = '' } = useParams();
+  const { openSite } = useAuth();
+  const navigate = useNavigate();
   const site = SITES.find((s) => s.code === code.toUpperCase());
   const { rows: all, example, lastDate } = useTradingHistory();
   const [period, setPeriod] = useState<Period>('1W');
@@ -61,7 +64,13 @@ export default function HeadOfficeSite() {
     <main className="page wide">
       <Nav back="/head-office" backLabel="All sites" title={site.name} right={example ? <span className="muted" style={{ fontSize: 13 }}>Example data</span> : undefined} />
       <div className="body" style={{ paddingTop: 16 }}>
-        <div className="titleblock"><span className="eyebrow">Restaurant</span><h1>{site.name}</h1></div>
+        <div className="opensite">
+          <div className="titleblock"><span className="eyebrow">Restaurant</span><h1>{site.name}</h1></div>
+          <div className="opensite-go">
+            <button type="button" className="btn b1 sm" onClick={() => { openSite(site.code); navigate('/'); }}>Open {site.name}<Icon d="M6.5 3.5L12 9l-5.5 5.5" size={14} /></button>
+            <small>Use {site.name}'s own screens: EOD, checklists, repairs</small>
+          </div>
+        </div>
 
         <div className="seg" role="tablist" aria-label="View">
           <button type="button" role="tab" aria-selected={tab === 'trends'} onClick={() => setParams({}, { replace: true })}>Trends</button>

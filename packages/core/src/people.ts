@@ -10,7 +10,10 @@ export interface Person {
   id: string;
   name: string;
   role: PersonRole;
+  /** Their main site: where they land after signing in. */
   siteCode: string;
+  /** Other sites they also work at (managers covering more than one). Head office sets these. */
+  otherSites?: string[];
   /** Managers and head office sign in with their Microsoft work account. */
   email: string | null;
   addedAt: string;
@@ -55,10 +58,27 @@ export function personProblem(
   return null;
 }
 
+/** Every site someone works at, main site first, without repeats. */
+export const sitesOf = (p: Pick<Person, 'siteCode' | 'otherSites'>): string[] =>
+  [p.siteCode, ...(p.otherSites ?? [])].filter((c, i, all) => all.indexOf(c) === i);
+
+export const worksAt = (p: Pick<Person, 'siteCode' | 'otherSites'>, siteCode: string) => sitesOf(p).includes(siteCode);
+
+/**
+ * The sites to save for someone, from the ones ticked and the one chosen as main. There's always at
+ * least one: unticking the last site keeps it, and a main site that's been unticked moves to the first one left.
+ */
+export function siteChoice(ticked: string[], main: string): Pick<Person, 'siteCode' | 'otherSites'> {
+  const list = ticked.filter((c, i) => ticked.indexOf(c) === i);
+  if (!list.length) return { siteCode: main, otherSites: [] };
+  const home = list.includes(main) ? main : list[0]!;
+  return { siteCode: home, otherSites: list.filter((c) => c !== home) };
+}
+
 /** The active person at a site with this name, if any (names are unique per site). */
 export const findPerson = (people: Person[], siteCode: string, name: string) =>
-  people.find((p) => p.siteCode === siteCode && isActive(p) && sameName(p.name, name));
+  people.find((p) => worksAt(p, siteCode) && isActive(p) && sameName(p.name, name));
 
 /** Has left, so can't sign in at this site. */
 export const hasLeft = (people: Person[], siteCode: string, name: string) =>
-  !findPerson(people, siteCode, name) && people.some((p) => p.siteCode === siteCode && !isActive(p) && sameName(p.name, name));
+  !findPerson(people, siteCode, name) && people.some((p) => worksAt(p, siteCode) && !isActive(p) && sameName(p.name, name));

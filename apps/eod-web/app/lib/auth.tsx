@@ -3,8 +3,9 @@
  * Connected mode will use Microsoft sign-in (MSAL, Entra ID) behind the same useUser() hook.
  */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { findPerson, SITES, sitesOf } from '@maginhawa/core';
 import { storage } from './storage';
-import { people } from './people';
+import { people, usePeople } from './people';
 
 /** Staff, supervisors and managers see their own site; head office sees every site. */
 export type Role = 'staff' | 'supervisor' | 'manager' | 'headoffice';
@@ -53,8 +54,20 @@ export interface User {
   name: string;
   initials: string;
   role: Role;
+  /** The site they're working in now. */
   siteCode: string;
+  /** Head office working inside one site's own screens (EOD, checklists, repairs) rather than across all sites. */
+  inSite?: boolean;
 }
+
+/** The EOD is for supervisors and managers, and for head office once they've opened a site. */
+export const canDoEod = (u: User) => can.doEod(u.role) || (u.role === 'headoffice' && !!u.inSite);
+
+/** Where someone's home is right now: head office's overview, or the site they're working in. */
+export const homeOf = (u: User) => (u.role === 'headoffice' && !u.inSite ? '/head-office' : '/');
+
+/** The name saved on records someone fills in, so a report shows when head office did it. */
+export const recordedAs = (u: User) => (u.role === 'headoffice' ? `${u.name} (head office)` : u.name);
 
 const KEY = 'mgh.user';
 const peopleKey = (siteCode: string) => `mgh.people.v1.${siteCode}`;
@@ -71,6 +84,12 @@ interface AuthValue {
   user: User | null;
   signIn: (u: User) => void;
   signOut: () => void;
+  /** Move to another of their sites. Each site keeps its own EOD and checklists. */
+  switchSite: (siteCode: string) => void;
+  /** Head office: work in one site's own screens. */
+  openSite: (siteCode: string) => void;
+  /** Head office: back to all sites. */
+  leaveSite: () => void;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -84,7 +103,16 @@ export function AuthProvider({ children, initialUser }: { children: ReactNode; i
     setUser(u);
   }, []);
   const signOut = useCallback(() => { storage.remove(KEY); setUser(null); }, []);
-  const value = useMemo(() => ({ user, signIn, signOut }), [user, signIn, signOut]);
+  const save = useCallback((patch: Partial<User>) => setUser((u) => {
+    if (!u) return u;
+    const next = { ...u, ...patch };
+    storage.set(KEY, next);
+    return next;
+  }), []);
+  const switchSite = useCallback((siteCode: string) => save({ siteCode }), [save]);
+  const openSite = useCallback((siteCode: string) => save({ siteCode, inSite: true }), [save]);
+  const leaveSite = useCallback(() => save({ inSite: false }), [save]);
+  const value = useMemo(() => ({ user, signIn, signOut, switchSite, openSite, leaveSite }), [user, signIn, signOut, switchSite, openSite, leaveSite]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
@@ -92,6 +120,20 @@ export function useAuth(): AuthValue {
   const v = useContext(AuthContext);
   if (!v) throw new Error('useAuth must be used inside AuthProvider');
   return v;
+}
+
+/**
+ * The sites someone can switch between: every site for head office, otherwise the sites head office
+ * has given them on the People list (main site first). Always includes the site they're in now.
+ */
+export function useMySites(): string[] {
+  const { user } = useAuth();
+  const here = usePeople(user?.siteCode ?? '');
+  if (!user) return [];
+  if (user.role === 'headoffice') return SITES.map((s) => s.code);
+  const me = findPerson(here, user.siteCode, user.name);
+  const mine = me ? sitesOf(me) : [];
+  return mine.includes(user.siteCode) ? mine : [user.siteCode, ...mine];
 }
 
 export function initialsOf(name: string): string {

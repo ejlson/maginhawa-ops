@@ -37,7 +37,7 @@ export function WhoMenu() {
   const others = shared ? recentPeople(user.siteCode).filter((p) => p.name !== user.name && p.role === 'staff' && !hasLeft(people.at(user.siteCode), user.siteCode, p.name)).slice(0, 5) : [];
   const site = SITES.find((s) => s.code === user.siteCode)?.name ?? user.siteCode;
   const go = (to: string) => { setOpen(false); navigate(to); };
-  const asRole = (r: Role) => { setOpen(false); if (r !== user.role) { signIn({ ...user, role: r }); navigate(homeFor(r)); } };
+  const asRole = (r: Role) => { setOpen(false); if (r !== user.role) { signIn({ ...user, role: r, inSite: false }); navigate(homeFor(r)); } };
   // Demo mode: start today's checklists again, to try them from scratch.
   const resetChecklists = () => {
     setOpen(false);
@@ -75,7 +75,7 @@ export function WhoMenu() {
             </button>
           </> : (
             <button ref={firstItem} type="button" role="menuitem" className="menuitem" onClick={() => go('/account')}>
-              <span className="av ink">{user.initials}</span><span className="tx"><span>{user.name}</span><small>{ROLE_LABELS[user.role]} · {user.role === 'headoffice' ? 'All sites' : site}</small></span>
+              <span className="av ink">{user.initials}</span><span className="tx"><span>{user.name}</span><small>{ROLE_LABELS[user.role]} · {user.role === 'headoffice' && !user.inSite ? 'All sites' : site}</small></span>
             </button>
           )}
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
 import { canSubmit, formatPounds, SECTION_LABELS, sectionStatus, type Issue } from '@maginhawa/core';
-import { useAuth } from '../lib/auth';
+import { recordedAs, useAuth } from '../lib/auth';
 import { formatDay, useDraft, useWhere } from '../lib/draft';
 import { AlreadySent, EodSyncNotice, SyncState } from '../components/Sync';
 import { BigMoney, Foot, Icon, ICONS, Nav, RowLink } from '../components/ui';
@@ -42,7 +42,7 @@ export default function Review() {
   const send = async () => {
     setSending(true);
     setError(null);
-    const res = await submit(user?.name ?? 'Manager');
+    const res = await submit(user ? recordedAs(user) : 'Manager');
     setSending(false);
     if (res.ok) navigate('/close/done');
     else setError(res.error);

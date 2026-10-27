@@ -6,8 +6,8 @@
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
 import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
-import { can, useAuth } from '../lib/auth';
-import { formatDay, useDraft } from '../lib/draft';
+import { can, canDoEod, useAuth } from '../lib/auth';
+import { useDraft } from '../lib/draft';
 import { Icon, ICONS, Pie } from './ui';
 import { useWide } from '../lib/wide';
 import { useChecklists } from '../lib/checklists';
@@ -17,6 +17,7 @@ import { attentionFor } from '../lib/food-safety-attention';
 import { now } from '../lib/clock';
 import { WhoMenu } from './home/WhoMenu';
 import { CommandMenu, useCommandMenu } from './CommandMenu';
+import { InSiteBar, SitePicker, SwitchToast } from './SitePicker';
 
 export const EOD_SALES: SectionKey[] = ['lunch', 'dinner', 'delivery', 'promotions'];
 export const EOD_TEAM: SectionKey[] = ['wages', 'tips', 'feedback', 'handover'];
@@ -24,28 +25,29 @@ export const EOD_TEAM: SectionKey[] = ['wages', 'tips', 'feedback', 'handover'];
 export function SiteShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { pathname } = useLocation();
-  const { draft, settings, progress } = useDraft();
+  const { progress } = useDraft();
   const wide = useWide();
   const counts = useCounts();
   const menu = useCommandMenu();
-  if (!user || !wide) return <>{children}</>;
+  if (!user) return <>{children}</>;
+  if (!wide) return <><InSiteBar />{children}<SwitchToast /></>;
 
   const links = [
     { to: '/', label: 'Home', icon: ICONS.home, on: pathname === '/' },
     { to: '/day', label: 'Timeline', icon: ICONS.clock, on: pathname === '/day' },
     { to: '/checklists', label: 'Checklists', icon: ICONS.check, on: pathname.startsWith('/checklists'), badge: counts.checklists },
-    ...(can.doEod(user.role) ? [{ to: '/close', label: "Today's EOD", icon: ICONS.list, on: pathname.startsWith('/close'), meta: `${progress.done} of ${progress.active}` }] : []),
+    ...(canDoEod(user) ? [{ to: '/close', label: "Today's EOD", icon: ICONS.list, on: pathname.startsWith('/close'), meta: `${progress.done} of ${progress.active}` }] : []),
     ...(can.fixRepairs(user.role) ? [{ to: '/repairs', label: 'Repairs', icon: ICONS.wrench, on: pathname.startsWith('/repairs'), badge: counts.repairs }] : []),
     ...(can.managePeople(user.role) ? [{ to: '/people', label: 'People', icon: ICONS.people, on: pathname.startsWith('/people') }] : []),
     { to: '/handover', label: 'Handover', icon: ICONS.handover, on: pathname.startsWith('/handover'), badge: counts.handover },
     { to: '/food-safety', label: 'Food safety', icon: ICONS.thermo, on: pathname.startsWith('/food-safety'), badge: counts.foodSafety },
   ];
-  const inEod = pathname.startsWith('/close') && can.doEod(user.role);
+  const inEod = pathname.startsWith('/close') && canDoEod(user);
 
   return (
     <div className="ho-shell site-shell">
       <nav className="ho-side" aria-label="Main">
-        <div className="ho-brand"><span>{settings.siteName} · {formatDay(draft.businessDate, { weekday: 'short', day: 'numeric', month: 'short' })}</span><b>{inEod ? "Today's close" : settings.siteName}</b></div>
+        <SitePicker place="side" title={inEod ? "Today's close" : undefined} />
         <button type="button" className="ho-search" onClick={() => menu.setOpen(true)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
           Search or jump to<span className="kbd">⌘K</span>
@@ -61,7 +63,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
         {/* Switch person, staff PINs, sign out (and, in demo mode, see the app as another role). */}
         <div className="ho-me"><WhoMenu /></div>
       </nav>
-      <div className="ho-main">{children}</div>
+      <div className="ho-main"><InSiteBar />{children}</div>
+      <SwitchToast />
       {menu.open && <CommandMenu onClose={() => menu.setOpen(false)} />}
     </div>
   );

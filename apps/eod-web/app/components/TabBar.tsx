@@ -1,6 +1,6 @@
 /** The bottom tab bar on the three main screens, so you always know where you are. */
 import { NavLink } from 'react-router';
-import { can, useAuth } from '../lib/auth';
+import { canDoEod, useAuth } from '../lib/auth';
 import { Icon, ICONS } from './ui';
 
 const TABS = [
@@ -11,7 +11,7 @@ const TABS = [
 
 export function TabBar() {
   const { user } = useAuth();
-  const tabs = TABS.filter((t) => t.to !== '/close' || (user && can.doEod(user.role)));
+  const tabs = TABS.filter((t) => t.to !== '/close' || (user && canDoEod(user)));
   return (
     <nav className="tabbar" aria-label="Main">
       {tabs.map((t) => (

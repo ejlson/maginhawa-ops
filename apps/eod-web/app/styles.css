@@ -731,3 +731,47 @@ a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.
 .order-row { cursor: default; }
 .order-row .rt { gap: 8px; }
 .hd .linkbtn, .sl .linkbtn { font-size: 15px; text-transform: none; letter-spacing: -.01em; min-height: 32px; }
+
+/* ---- Switching site (components/SitePicker.tsx; design/eod-canvas/s01–s03, a05) ---- */
+.sitepick { position: relative; }
+.ho-brand.sitebtn { align-items: flex-start; width: 100%; margin: -6px 0 0; padding: 6px 12px 8px; border: 0; border-radius: 12px; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.ho-brand.sitebtn:hover, .ho-brand.sitebtn[aria-expanded="true"] { background: var(--sel); }
+.ho-brand.sitebtn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--link); }
+.ho-brand.sitebtn b { display: flex; align-items: center; gap: 8px; }
+.ho-brand.sitebtn b svg { color: var(--sec); flex: none; }
+.sitepop { position: fixed; z-index: 30; width: 340px; padding: 6px; border-radius: 18px; background: var(--bg);
+  box-shadow: 0 24px 60px -16px rgba(0,0,0,.3), 0 0 0 .5px var(--sep); }
+@media (prefers-color-scheme: dark) { .sitepop { background: var(--side); box-shadow: 0 24px 60px -16px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.08); } }
+.sitelist { display: flex; flex-direction: column; }
+.sitelist .menuitem { width: 100%; }
+.sitelist .menuitem .av { width: 40px; height: 40px; font-size: 13px; font-weight: 700; }
+.sitelist .tx small.ok { color: var(--ok); } .sitelist .tx small.warn { color: var(--warn); } .sitelist .tx small.bad { color: var(--bad); }
+.siteopts { display: flex; flex-direction: column; max-height: min(560px, 60vh); overflow-y: auto; scrollbar-width: thin; }
+.sitefind { display: flex; align-items: center; gap: 10px; height: 40px; margin: 4px 4px 6px; padding: 0 12px; border-radius: 10px; background: var(--fill); color: var(--sec); }
+.sitefind input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 15px; outline: none; }
+.sitefind:focus-within { box-shadow: 0 0 0 2px var(--link); }
+.sitefoot { margin: 6px 0 0; padding: 10px 10px 4px; border-top: .5px solid var(--sep); font-size: 13px; line-height: 1.4; color: var(--sec); }
+.sitenone { margin: 0; padding: 12px 10px; font-size: 14px; color: var(--sec); }
+.sitetitle { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: var(--text); font: inherit; font-weight: 600; font-size: 17px; padding: 0; min-height: 44px; cursor: pointer; }
+.sitetitle svg { color: var(--sec); }
+.ssheet { gap: 12px; max-height: calc(100dvh - 48px); }
+.ssheet .siteopts { max-height: none; }
+.ssheet .menuitem { min-height: 60px; }
+/* Head office inside a site: a quiet bar that says so, with the way back. */
+.insite { position: sticky; top: 0; z-index: 15; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px max(20px, env(safe-area-inset-right)) 8px max(20px, env(safe-area-inset-left)); background: var(--side); border-bottom: .5px solid var(--sep); font-size: 14px; line-height: 1.35; }
+.insite > svg { color: var(--sec); flex: none; }
+.insite b { font-weight: 600; }
+.insite .linkbtn { margin-left: auto; font-size: 14px; white-space: nowrap; min-height: 36px; }
+@media (min-width: 900px) { .insite { padding: 0 28px; min-height: 52px; } }
+.opensite { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.opensite-go { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.opensite-go small { font-size: 13px; color: var(--sec); }
+.btn.sm { width: auto; height: 44px; padding: 0 20px; font-size: 15px; gap: 6px; }
+@media (max-width: 599px) { .opensite-go { align-items: stretch; width: 100%; } .opensite-go .btn.sm { width: 100%; height: 52px; } }
+/* A manager's sites on the People panel. */
+.site-opt { display: flex; align-items: center; gap: 12px; }
+.site-opt .role-opt { flex: 1; min-width: 0; min-height: 48px; }
+.site-opt .pill { flex: none; }
+.site-opt .linkbtn { flex: none; font-size: 14px; min-height: 36px; }
+.site-opt .pill { height: 24px; padding: 0 9px; font-size: 12px; background: var(--fill); color: var(--sec); }
+.ssheet .menuhead { display: none; }

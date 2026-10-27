@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Head office · open a site</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.ad{--bg:#ffffff;--side:#f7f7f9;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--sel:rgba(0,0,0,.06);--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.16);--heroOk:#30d158;--link:#0066cc;--ok:#1f7a35;--okbg:rgba(52,199,89,.14);--warn:#b25000;--warnbg:rgba(255,149,0,.16);--warnfill:#ff9500;--bad:#d70015;--badbg:rgba(255,59,48,.12);--pop:#ffffff;position:relative;overflow:hidden;width:1440px;height:1000px;box-sizing:border-box;display:flex;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:15px;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.ad.dark{--bg:#121214;--side:#1b1b1f;--text:#f2f2f4;--sec:#a3a3ab;--sep:rgba(255,255,255,.12);--fill:#2a2a2f;--sel:rgba(255,255,255,.08);--ink:#f2f2f4;--onink:#121214;--hero:#232328;--heroline:rgba(255,255,255,.12);--link:#4aa3ff;--ok:#4cd964;--okbg:rgba(76,217,100,.16);--warn:#ffb340;--warnbg:rgba(255,179,64,.16);--warnfill:#ffb340;--bad:#ff6b60;--badbg:rgba(255,107,96,.16);--pop:#232328}
+.ad.dark .hero{box-shadow:0 24px 48px -24px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.07)}
+.ad.dark .pop{box-shadow:0 24px 60px -16px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.08)}
+.side{width:260px;flex:none;box-sizing:border-box;background:var(--side);display:flex;flex-direction:column;gap:24px;padding:28px 14px;position:relative}
+.sbrand{display:flex;flex-direction:column;gap:4px;padding:0 12px}
+.sbrand span,.brand span{font-size:14px;color:var(--sec)}
+.sbrand b{font-size:26px;font-weight:700;letter-spacing:-.035em}
+.brand{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:6px 12px 8px;margin:-6px 0 0;border:0;border-radius:12px;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;width:100%}
+.brand:hover,.brand[aria-expanded="true"]{background:var(--sel)}
+.brand b{font-size:26px;font-weight:700;letter-spacing:-.035em;display:flex;align-items:center;gap:8px}
+.brand b svg{color:var(--sec)}
+.links{display:flex;flex-direction:column;gap:2px}
+.si{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--text);font-size:15px}
+.si svg{color:var(--sec);flex:none}
+.si.on{background:var(--sel);font-weight:600}.si.on svg{color:var(--text)}
+.si small{margin-left:auto;font-size:13px;color:var(--sec)}
+.cnt{margin-left:auto;min-width:20px;height:20px;border-radius:10px;background:var(--bad);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.sg{font-size:13px;font-weight:600;color:var(--sec);padding:0 12px 4px}
+.eods{display:flex;flex-direction:column;gap:2px;border-top:.5px solid var(--sep);padding-top:18px}
+.me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:0 10px;height:48px;font-size:14px}
+.av{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;font-size:13px;font-weight:700;letter-spacing:-.02em;color:var(--text)}
+.av.sm{width:32px;height:32px;font-size:12px}
+.tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.tx small{font-size:13px;color:var(--sec)}
+.tx small.warn{color:var(--warn)}.tx small.bad{color:var(--bad)}.tx small.ok{color:var(--ok)}
+.circ{width:24px;height:24px;flex:none}
+.pop{position:absolute;top:96px;left:14px;width:360px;max-height:820px;background:var(--pop);border-radius:18px;box-shadow:0 24px 60px -16px rgba(0,0,0,.28),0 0 0 .5px var(--sep);padding:8px;z-index:3;display:flex;flex-direction:column}
+.find{display:flex;align-items:center;gap:10px;height:40px;margin:4px 4px 6px;padding:0 12px;border-radius:10px;background:var(--fill);color:var(--sec);font-size:14px}
+.find input{border:0;background:transparent;color:var(--text);font:inherit;outline:none;flex:1;min-width:0}
+.opt{display:flex;align-items:center;gap:12px;min-height:56px;padding:4px 10px;border:0;border-radius:12px;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;width:100%}
+.opt:hover{background:var(--sel)}
+.optlist{overflow-y:auto;scrollbar-width:thin}
+.pop-sep{height:.5px;background:var(--sep);margin:6px 10px}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.bar{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 48px;background:var(--side);border-bottom:.5px solid var(--sep);font-size:14px}
+.bar b{font-weight:600}
+.bar .lk{margin-left:auto}
+.lk{border:0;background:transparent;color:var(--link);font:inherit;font-size:15px;font-weight:500;cursor:pointer;padding:0;height:36px}
+.body{padding:40px 48px;display:flex;gap:40px;align-items:flex-start}
+.col{flex:1;min-width:0;display:flex;flex-direction:column;gap:24px}
+.rail{width:320px;flex:none;display:flex;flex-direction:column;gap:14px}
+.hero{background:var(--hero);color:var(--onhero);border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 48px -24px rgba(0,0,0,.4)}
+.hd{display:flex;justify-content:space-between;align-items:baseline}
+.hd h2{margin:0;font-size:20px;font-weight:700;letter-spacing:-.025em}
+.hd span{font-size:14px;color:var(--sec)}
+.li{display:flex;align-items:center;gap:14px;min-height:60px;position:relative}
+.li + .li::before{content:'';position:absolute;top:0;left:38px;right:0;height:.5px;background:var(--sep)}
+.amt{font-weight:600}
+.panel{border-radius:20px;background:var(--side);padding:18px 20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.45}
+.panel h3{margin:0 0 4px;font-size:17px;font-weight:700;letter-spacing:-.02em}
+.go{height:54px;border-radius:999px;border:0;background:var(--ink);color:var(--onink);font:inherit;font-size:17px;font-weight:600;cursor:pointer}
+.open{height:44px;padding:0 20px;border-radius:999px;border:0;background:var(--ink);color:var(--onink);font:inherit;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px}
+.seg{display:inline-flex;background:var(--fill);border-radius:12px;padding:3px;gap:2px}
+.seg span{height:36px;padding:0 16px;display:flex;align-items:center;border-radius:10px;color:var(--sec);font-weight:600;font-size:14px}
+.seg span.on{background:var(--bg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.tile{background:var(--side);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:6px}
+.tile b{font-size:22px;letter-spacing:-.03em}
+.tile span{font-size:13px;color:var(--sec)}
+.chart{height:260px;border-radius:20px;background:var(--side);display:flex;align-items:flex-end;gap:10px;padding:24px}
+.chart i{flex:1;background:var(--ink);opacity:.18;border-radius:6px 6px 0 0}
+</style>
+</helmet>
+<div class="ad {{theme}}">
+
+<sc-if value="{{onPage}}" hint-placeholder-val="{{ true }}">
+<nav class="side" aria-label="Head office">
+<div class="sbrand"><span>Maginhawa · 9 sites</span><b>Head office</b></div>
+<div class="links">
+<div class="si"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5L12 4l8 6.5V20h-5v-6h-6v6H4z"></path></svg>Today<small>7 of 9 in</small></div>
+<div class="si on"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17V8l7-4 7 4v9M8 17v-5h4v5"></path></svg>Sites</div>
+<div class="si"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8.5 3.5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12.2 12.2L16.5 16.5"></path></svg>Reports</div>
+<div class="si"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18l5-6 4 3 7-9"></path></svg>Trends &amp; forecast</div>
+<div class="si"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path></svg>People</div>
+</div>
+<div class="me"><span class="av sm">HO</span><span class="tx"><span style="font-weight: 600">[Your name]</span><small>Head office</small></span></div>
+</nav>
+<main class="main">
+<div class="body" style="flex-direction: column; gap: 24px">
+<span class="lk" style="height: auto">‹ All sites</span>
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; width: 100%">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; color: var(--sec)">Restaurant</span><h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.035em">Bunso</h1></div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+<button class="open" onClick="{{enter}}">Open Bunso<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+<span style="font-size: 13px; color: var(--sec)">Use Bunso's own screens: EOD, checklists, repairs</span>
+</div>
+</div>
+<div class="seg"><span class="on">Trends</span><span>Today's timeline</span></div>
+<div class="chart" style="width: 100%; box-sizing: border-box" aria-hidden="true"><i style="height: 55%"></i><i style="height: 62%"></i><i style="height: 48%"></i><i style="height: 70%"></i><i style="height: 82%"></i><i style="height: 95%"></i><i style="height: 66%"></i><i style="height: 58%"></i><i style="height: 64%"></i><i style="height: 51%"></i><i style="height: 73%"></i><i style="height: 86%"></i><i style="height: 92%"></i><i style="height: 60%"></i></div>
+<div class="tiles" style="width: 100%"><div class="tile"><span>Covers</span><b>1,240</b></div><div class="tile"><span>Spend per head</span><b>£27.10</b></div><div class="tile"><span>Wage %</span><b>29.8%</b></div><div class="tile"><span>Cash</span><b>All balanced</b></div></div>
+</div>
+</main>
+</sc-if>
+
+<sc-if value="{{inside}}" hint-placeholder-val="{{ false }}">
+<nav class="side" aria-label="Main">
+<button class="brand" aria-haspopup="listbox" aria-expanded="{{expanded}}" onClick="{{toggle}}">
+<span>Head office · Tue 27 Oct</span>
+<b>{{site.name}}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9.5l4-4 4 4M8 14.5l4 4 4-4"></path></svg></b>
+</button>
+<div class="links">
+<div class="si"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5L12 4l8 6.5V20h-5v-6h-6v6H4z"></path></svg>Home</div>
+<div class="si"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Checklists<sc-if value="{{site.late}}" hint-placeholder-val="{{ true }}"><span class="cnt">{{site.late}}</span></sc-if></div>
+<div class="si on"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 5h12M6 12h12M6 19h12"></path></svg>Today's EOD<small>{{site.eod}}</small></div>
+<div class="si"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6.5a4 4 0 0 0-5 5L4 17v3h3l5.5-5.5a4 4 0 0 0 5-5l-2.5 2.5-2.5-2.5z"></path></svg>Repairs</div>
+<div class="si"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path></svg>People</div>
+</div>
+<div class="eods">
+<div class="sg">Sales</div>
+<sc-for list="{{sections}}" as="x" hint-placeholder-count="4">
+<div class="si"><svg class="circ" style="width: 20px; height: 20px" viewBox="0 0 24 24" aria-hidden="true"><sc-if value="{{x.done}}" hint-placeholder-val="{{ true }}"><circle cx="12" cy="12" r="12" fill="var(--ok)"></circle><path d="M7 12.4l3.2 3.1L17 8.8" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></sc-if><sc-if value="{{x.todo}}" hint-placeholder-val="{{ false }}"><circle cx="12" cy="12" r="10.75" fill="none" stroke="var(--sec)" stroke-opacity=".5" stroke-width="1.5"></circle></sc-if></svg>{{x.t}}<small>{{x.amt}}</small></div>
+</sc-for>
+</div>
+<div class="me"><span class="av sm">HO</span><span class="tx"><span style="font-weight: 600">[Your name]</span><small>Head office</small></span></div>
+
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+<div class="pop" role="listbox" aria-label="Sites">
+<button class="opt" onClick="{{leave}}"><span class="av"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17V8l7-4 7 4v9M8 17v-5h4v5"></path></svg></span><span class="tx"><span style="font-weight: 600">Back to head office</span><small>All 9 sites</small></span></button>
+<div class="pop-sep"></div>
+<label class="find"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input placeholder="Find a site" aria-label="Find a site" value="{{q}}" onInput="{{setQ}}"></label>
+<div class="optlist">
+<sc-for list="{{sites}}" as="s" hint-placeholder-count="9">
+<button class="opt" role="option" aria-selected="{{s.selected}}" onClick="{{s.pick}}">
+<span class="av">{{s.short}}</span>
+<span class="tx"><span style="font-weight: 600">{{s.name}}</span><small class="{{s.tone}}">{{s.sub}}</small></span>
+<sc-if value="{{s.on}}" hint-placeholder-val="{{ false }}"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="var(--ink)"></circle><path d="M7 12.4l3.2 3.1L17 8.8" fill="none" stroke="var(--onink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</nav>
+<main class="main">
+<div class="bar" role="status">
+<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--sec)"><path d="M3 17V8l7-4 7 4v9M8 17v-5h4v5"></path></svg>
+<span>You're in <b>{{site.name}}</b> as head office. Anything you change is saved under your name.</span>
+<button class="lk" onClick="{{leave}}">Back to head office</button>
+</div>
+<div class="body">
+<div class="col">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; color: var(--sec)">{{site.name}} · Tuesday 27 October</span><h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.035em">Today's close</h1></div>
+<div class="hero">
+<span style="font-size: 15px; color: var(--herosec)">Day net so far</span>
+<div style="display: flex; align-items: baseline; line-height: 1"><span style="font-size: 56px; font-weight: 600; letter-spacing: -0.055em">{{site.pounds}}</span><span style="font-size: 28px; font-weight: 500; color: var(--herosec)">{{site.pence}}</span></div>
+<span style="font-size: 14px; color: var(--herosec); padding-top: 12px; border-top: 0.5px solid var(--heroline)">{{site.eod}} sections · started by [Manager name]</span>
+</div>
+<div>
+<div class="hd"><h2>Sales</h2><span>{{site.eod}}</span></div>
+<sc-for list="{{sections}}" as="x" hint-placeholder-count="4">
+<div class="li"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><sc-if value="{{x.done}}" hint-placeholder-val="{{ true }}"><circle cx="12" cy="12" r="12" fill="var(--ok)"></circle><path d="M7 12.4l3.2 3.1L17 8.8" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></sc-if><sc-if value="{{x.todo}}" hint-placeholder-val="{{ false }}"><circle cx="12" cy="12" r="10.75" fill="none" stroke="var(--sec)" stroke-opacity=".5" stroke-width="1.5"></circle></sc-if></svg><span class="tx"><span style="font-weight: 600">{{x.t}}</span><small>{{x.by}}</small></span><span class="amt">{{x.amt}}</span></div>
+</sc-for>
+</div>
+</div>
+<div class="rail">
+<div class="panel"><h3>Working as head office</h3><span>You can finish or fix {{site.name}}'s EOD, run checklists and log repairs.</span><span style="color: var(--sec)">The report shows which parts you filled in, and the site manager is told when you submit.</span></div>
+<button class="go">Continue Dinner</button>
+</div>
+</div>
+</main>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { inside: true, open: true, cur: 'BUN', q: '' };
+  }
+  renderVals() {
+    const st = this.state;
+    const all = [
+      { code: 'BIN', name: 'Bintang', sub: 'EOD sent 23:41', tone: 'ok', eod: '8 of 8', late: 0, net: '£3,104.20' },
+      { code: 'GUA', name: 'Guanabana', sub: 'EOD sent 23:58', tone: 'ok', eod: '8 of 8', late: 0, net: '£2,412.00' },
+      { code: 'BEL', name: 'Belly', sub: 'EOD 6 of 8', tone: '', eod: '6 of 8', late: 0, net: '£1,960.75' },
+      { code: 'RAM', name: 'Ramo', sub: 'EOD sent 22:50', tone: 'ok', eod: '8 of 8', late: 0, net: '£2,233.40' },
+      { code: 'HOO', name: 'Hoodwood', sub: 'EOD sent 23:12', tone: 'ok', eod: '8 of 8', late: 0, net: '£1,875.10' },
+      { code: 'BUN', name: 'Bunso', sub: 'EOD 3 of 8 · 3 checklists late', tone: 'bad', eod: '3 of 8', late: 3, net: '£850.00' },
+      { code: 'CAF', name: 'Cafe Mamasons', sub: 'EOD sent 18:20', tone: 'ok', eod: '8 of 8', late: 0, net: '£1,320.60' },
+      { code: 'MKT', name: 'Mamasons Kentish Town', sub: 'EOD sent 23:05', tone: 'ok', eod: '8 of 8', late: 0, net: '£1,742.90' },
+      { code: 'MCT', name: 'Mamasons China Town', sub: 'EOD not started', tone: 'warn', eod: '0 of 8', late: 1, net: '£0.00' }
+    ];
+    const site = all.find((s) => s.code === st.cur);
+    const [pounds, pence] = site.net.split('.');
+    const q = st.q.trim().toLowerCase();
+    const sites = all.filter((s) => !q || s.name.toLowerCase().includes(q)).map((s) => ({ ...s, short: s.code.slice(0, 2), on: s.code === st.cur, selected: s.code === st.cur ? 'true' : 'false',
+      pick: () => this.setState({ cur: s.code, open: false, q: '' }) }));
+    const done = parseInt(site.eod, 10);
+    const sections = [['Lunch', '£850.00'], ['Dinner', ''], ['Delivery', ''], ['Promotions & other', '']].map(([t, amt], i) => {
+      const d = i < Math.min(done, 4) && (done >= 8 || i === 0);
+      return { t, amt: d ? (amt || 'Done') : '', done: d, todo: !d, by: d ? 'By [Manager name] · 15:40' : 'Not started' };
+    });
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      onPage: !st.inside, inside: st.inside, open: st.open, expanded: st.open ? 'true' : 'false',
+      site: { ...site, pounds, pence: '.' + pence }, sites, sections, q: st.q,
+      setQ: (e) => this.setState({ q: e.target.value }),
+      toggle: () => this.setState({ open: !this.state.open }),
+      enter: () => this.setState({ inside: true, open: false, cur: 'BUN' }),
+      leave: () => this.setState({ inside: false, open: false })
+    };
+  }
+}
+</script>
+</body>
+</html>
