@@ -128,3 +128,11 @@ describe('task status through the day', () => {
     expect(taskStatus(t, undefined, at('2026-10-05T12:00:00Z'), delivery, today)).toBe('anytime');
   });
 });
+
+describe('phases', () => {
+  it('every example list belongs to opening, mid-shift or closing', () => {
+    expect(EXAMPLE_TEMPLATES.map((t) => `${t.id}:${t.phase}`)).toEqual([
+      'opening:opening', 'hothold:mid-shift', 'bar:mid-shift', 'closing:closing', 'delivery:mid-shift',
+    ]);
+  });
+});

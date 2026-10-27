@@ -11,7 +11,7 @@ function Shell({ section, hero, children }: { section: SectionKey; hero: ReactNo
   return (
     <main className="page">
       <Nav back="/close" title={label} right={<span className="saved"><span className="dot" />Saved</span>} />
-      <div className="body">
+      <div className="body form">
         <div className="hero" role="status" aria-live="polite">{hero}</div>
         {children}
       </div>

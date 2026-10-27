@@ -1,7 +1,9 @@
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
+import { PHASE_LABELS, PHASES, type Phase } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
 import { isUrgent, runPath, statusPill, useChecklists, type TaskView } from '../lib/checklists';
 import { Foot, Nav, Pie, RowLink } from '../components/ui';
+import { TabBar } from '../components/TabBar';
 
 function TaskRow({ t }: { t: TaskView }) {
   const pill = statusPill(t);
@@ -13,7 +15,11 @@ function TaskRow({ t }: { t: TaskView }) {
 }
 
 export default function Checklists() {
-  const { tasks, businessDate } = useChecklists();
+  const { tasks: all, businessDate } = useChecklists();
+  const [params] = useSearchParams();
+  const phase = (PHASES as readonly string[]).includes(params.get('phase') ?? '') ? (params.get('phase') as Phase) : null;
+  const tasks = phase ? all.filter((t) => t.template.phase === phase) : all;
+  const title = phase ? `${PHASE_LABELS[phase]} checklists` : 'Checklists';
   const now = tasks.filter((t) => isUrgent(t.status));
   const missed = tasks.filter((t) => t.status === 'missed');
   const later = tasks.filter((t) => t.status === 'upcoming');
@@ -23,13 +29,13 @@ export default function Checklists() {
   const next = now[0] ?? later[0];
 
   return (
-    <main className="page">
-      <Nav back="/" backLabel="Home" title="Checklists" />
+    <main className="page tabs">
+      <Nav back={phase ? '/checklists' : undefined} backLabel="All" title={title} />
       <div className="body">
         <div className="top">
           <div className="titleblock">
             <span className="eyebrow">{formatDay(businessDate)}</span>
-            <h1>Checklists</h1>
+            <h1>{title}</h1>
             <p className="lead">Do them any time of day. They're separate from the end-of-day report.</p>
           </div>
           <div className="hero" role="status">
@@ -67,6 +73,7 @@ export default function Checklists() {
           <Link className="btn b1" to={runPath(next.key)}>{next.status === 'late' ? 'Do now: ' : 'Start '}{next.title}</Link>
         </Foot>
       )}
+      <TabBar />
     </main>
   );
 }

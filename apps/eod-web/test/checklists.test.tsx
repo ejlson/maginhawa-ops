@@ -12,15 +12,32 @@ describe('checklists are available all day, separate from the end-of-day report'
     at('2026-10-05T09:00:00Z'); // 10:00 BST, opening was due 09:30
     renderApp('/');
     expect(screen.getByRole('link', { name: 'Do now: Opening checks' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: "Start today's close" })).toBeInTheDocument();
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    expect(within(needs).getByText('Opening checks')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: "Start today's EOD" })).toBeInTheDocument();
+    // The top card shows it, once; it isn't repeated under Needs you.
+    expect(screen.getByRole('link', { name: 'Next checklist: Opening checks, 30 min late' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Needs you' })).not.toBeInTheDocument();
+  });
+
+  it('during the day, before anything is due, the top card shows the next checklist', () => {
+    at('2026-10-05T07:00:00Z'); // 08:00 BST
+    renderApp('/');
+    expect(screen.getByRole('link', { name: /^Next checklist: Opening checks/ })).toBeInTheDocument();
   });
 
   it('in the evening, the end-of-day report is the main button and checklists stay open', () => {
     renderApp('/'); // 22:00 BST
-    expect(screen.getByRole('link', { name: "Start today's close" })).toHaveClass('b1');
-    expect(screen.getByRole('link', { name: /Checklists/ })).toHaveAttribute('href', '/checklists');
+    expect(screen.getByRole('link', { name: "Start today's EOD" })).toHaveClass('b1');
+    // Today groups checklists by part of the day. One list opens directly; several open the filtered list.
+    expect(screen.getByRole('link', { name: /^To do ?Opening/ })).toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|opening|09:30'));
+    expect(screen.getByRole('link', { name: /Mid-shift/ })).toHaveAttribute('href', '/checklists?phase=mid-shift');
+    expect(screen.getByRole('link', { name: /^To do ?Closing/ })).toHaveTextContent('Closing checks · 23:00');
+  });
+
+  it('a phase opens the checklists filtered to it', () => {
+    renderApp('/checklists?phase=mid-shift');
+    expect(screen.getByRole('heading', { name: 'Mid-shift checklists' })).toBeInTheDocument();
+    expect(screen.getByText('Bar opening')).toBeInTheDocument();
+    expect(screen.queryByText('Opening checks')).not.toBeInTheDocument();
   });
 
   it('the checklists screen groups today\'s lists by time', () => {

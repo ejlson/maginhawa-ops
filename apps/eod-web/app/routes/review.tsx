@@ -47,7 +47,7 @@ export default function Review() {
   return (
     <main className="page">
       <Nav back="/close" title="Review" right={<span className="saved"><span className="dot" />Saved</span>} />
-      <div className="body">
+      <div className="body form">
         <div className="hero">
           <span className="hl">{formatDay(draft.businessDate, { weekday: 'short', day: 'numeric', month: 'short' })}</span>
           <div className="titleblock" style={{ gap: 6 }}><BigMoney value={result.totalNet} /><span className="hs-small">Net sales for the day</span></div>

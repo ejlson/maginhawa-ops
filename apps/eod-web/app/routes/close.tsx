@@ -3,6 +3,7 @@ import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@m
 import { useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
 import { BigMoney, Foot, Icon, ICONS, Nav, Pie, RowLink, Segments, Toggle } from '../components/ui';
+import { TabBar } from '../components/TabBar';
 
 const SALES: SectionKey[] = ['lunch', 'dinner', 'delivery', 'promotions'];
 const TEAM: SectionKey[] = ['wages', 'tips', 'feedback', 'handover'];
@@ -47,13 +48,13 @@ export default function Close() {
   const all = [...SALES, ...TEAM].map((k) => sectionStatus(draft, k)).filter((s) => s !== 'skipped');
 
   return (
-    <main className="page">
-      <Nav back="/" backLabel="Home" title={settings.siteName} right={<span className="saved"><span className="dot" />{savedAt ? `Saved ${timeHM(savedAt)}` : 'Not started'}</span>} />
+    <main className="page tabs">
+      <Nav title={settings.siteName} right={<span className="saved"><span className="dot" />{savedAt ? `Saved ${timeHM(savedAt)}` : 'Not started'}</span>} />
       <div className="body">
         <div className="top">
           <div className="titleblock">
             <span className="eyebrow">{formatDay(draft.businessDate)}</span>
-            <h1>Today's close</h1>
+            <h1>Today's EOD</h1>
             <p className="lead">Do the sections in any order. Everything saves on this device, even without signal.</p>
           </div>
           <div className="hero" role="status">
@@ -97,6 +98,7 @@ export default function Close() {
           : <Link className="btn b1" to="/close/review">Review and submit</Link>}
         {!locked && next && <Link className="btn b2" to="/close/review">Review and submit · {progress.left} to go</Link>}
       </Foot>
+      <TabBar />
     </main>
   );
 }

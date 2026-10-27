@@ -202,15 +202,18 @@ All figures in the designs are **made-up examples**.
 
 | Token | Light | Dark |
 |---|---|---|
-| Background | `#FFFFFF` | `#000000` |
-| Text | `#1D1D1F` | `#F5F5F7` |
-| Secondary text | `#6E6E73` | `#A1A1A6` |
-| Fill (icons, inputs) | `#F2F2F5` | `#1C1C1E` |
-| Hairline | `rgba(0,0,0,.08)` | `rgba(255,255,255,.10)` |
-| Hero card | `#1D1D1F`, text `#F5F5F7`, secondary `rgba(245,245,247,.6)` | `#1C1C1E` |
-| Primary button | Ink pill `#1D1D1F` / white text, 54px tall, fully rounded | Inverted |
-| Links | `#0066CC` | `#2997FF` |
-| Good / check / blocks | `#1F7A35` / `#B25000` / `#D70015` | `#30D158` / `#FF9F0A` / `#FF453A` |
+| Background | `#FFFFFF` | `#121214` (dark grey, never pure black) |
+| Panels | `#F7F7F9` | `#1B1B1F` |
+| Text | `#1D1D1F` | `#F2F2F4` |
+| Secondary text | `#6E6E73` | `#A3A3AB` |
+| Fill (icons, inputs) | `#F2F2F5` | `#2A2A2F` |
+| Hairline | `rgba(0,0,0,.08)` | `rgba(255,255,255,.12)` |
+| Hero card | `#1D1D1F`, text `#F5F5F7`, secondary `rgba(245,245,247,.6)` | `#232328` with a faint 1px edge instead of a shadow |
+| Primary button | Ink pill `#1D1D1F` / white text, 52px tall, fully rounded | Inverted |
+| Links | `#0066CC` | `#4AA3FF` |
+| Good / check / blocks | `#1F7A35` / `#B25000` / `#D70015` | `#4CD964` / `#FFB340` / `#FF6B60` |
+
+In dark mode, depth comes from lighter surfaces rather than shadows: page → panel → hero card → inputs, each a step lighter. Full rules in `design/design-language.md`.
 
 **Type:** system San Francisco (`-apple-system`), with **Geist** as the fallback; `tabular-nums` for all money.
 - Hero figure 56–60px, weight 600, tracking −0.055em, **pence smaller and lighter**.

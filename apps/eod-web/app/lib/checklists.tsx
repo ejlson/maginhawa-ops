@@ -4,8 +4,8 @@
  */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import {
-  EXAMPLE_TEMPLATES, runKey, summariseRun, tasksForDay, taskStatus, tradingDate,
-  type AnswerValue, type ChecklistRun, type ChecklistTemplate, type CorrectiveAction, type Task, type TaskStatus,
+  EXAMPLE_TEMPLATES, PHASE_LABELS, PHASES, runKey, summariseRun, tasksForDay, taskStatus, tradingDate,
+  type AnswerValue, type ChecklistRun, type Phase, type ChecklistTemplate, type CorrectiveAction, type Task, type TaskStatus,
 } from '@maginhawa/core';
 import { storage } from './storage';
 import { settingsFor } from './draft';
@@ -136,3 +136,30 @@ export function statusPill(t: Pick<TaskView, 'status' | 'dueAt' | 'done' | 'tota
 }
 
 export const isUrgent = (s: TaskStatus) => s === 'late' || s === 'due';
+
+export interface PhaseSummary {
+  phase: Phase;
+  label: string;
+  tasks: TaskView[];
+  scheduled: TaskView[];
+  done: number;
+  /** The task to show the status of: the most urgent, else the next one, else the last done. */
+  lead: TaskView | undefined;
+  status: 'done' | 'started' | 'todo';
+  /** Where a tap goes: straight into the list if there's only one. */
+  to: string;
+}
+
+/** Groups today's lists into opening, mid-shift and closing for the home screen. */
+export function phaseSummaries(tasks: TaskView[]): PhaseSummary[] {
+  return PHASES.map((phase) => {
+    const mine = tasks.filter((t) => t.template.phase === phase);
+    const scheduled = mine.filter((t) => t.status !== 'anytime');
+    const done = scheduled.filter((t) => t.status === 'done' || t.status === 'failed').length;
+    const order: TaskView['status'][] = ['late', 'due', 'missed', 'upcoming'];
+    const lead = order.map((s) => scheduled.find((t) => t.status === s)).find(Boolean) ?? scheduled[scheduled.length - 1];
+    const status: PhaseSummary['status'] = scheduled.length > 0 && done === scheduled.length ? 'done' : done > 0 || mine.some((t) => t.done > 0) ? 'started' : 'todo';
+    const to = scheduled.length === 1 && mine.length === 1 ? runPath(scheduled[0]!.key) : `/checklists?phase=${phase}`;
+    return { phase, label: PHASE_LABELS[phase], tasks: mine, scheduled, done, lead, status, to };
+  }).filter((p) => p.tasks.length > 0);
+}

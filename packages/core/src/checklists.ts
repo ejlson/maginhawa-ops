@@ -34,9 +34,15 @@ export interface Checkpoint {
   faultOnFail?: boolean;
 }
 
+export const PHASES = ['opening', 'mid-shift', 'closing'] as const;
+export type Phase = (typeof PHASES)[number];
+export const PHASE_LABELS: Record<Phase, string> = { opening: 'Opening', 'mid-shift': 'Mid-shift', closing: 'Closing' };
+
 export interface ChecklistTemplate {
   id: string;
   title: string;
+  /** Which part of the day it belongs to, for grouping on home. */
+  phase: Phase;
   /** Due times, site-local HH:MM. One run per time. Empty = do when needed. */
   times: string[];
   /** Minutes after the due time before an undone run counts as missed. */
@@ -224,7 +230,7 @@ export function taskStatus(task: Task, run: ChecklistRun | undefined, now: Date,
 /** Example lists for demo use. Limits are placeholders until the real rules are checked. */
 export const EXAMPLE_TEMPLATES: ChecklistTemplate[] = [
   {
-    id: 'opening', title: 'Opening checks', times: ['09:30'], windowMinutes: 60, who: 'Kitchen', scope: 'group',
+    id: 'opening', title: 'Opening checks', phase: 'opening', times: ['09:30'], windowMinutes: 60, who: 'Kitchen', scope: 'group',
     checkpoints: [
       { id: 'walkin', section: 'Temperatures', title: 'Walk-in fridge', help: 'Probe the middle of the unit', type: 'temp', required: true, max: 8, faultOnFail: true },
       { id: 'reachin', section: 'Temperatures', title: 'Reach-in fridge 1', type: 'temp', required: true, max: 8, faultOnFail: true },
@@ -236,7 +242,7 @@ export const EXAMPLE_TEMPLATES: ChecklistTemplate[] = [
     ],
   },
   {
-    id: 'hothold', title: 'Hot holding', times: ['12:00', '15:00', '18:00'], windowMinutes: 45, who: 'Kitchen', scope: 'group',
+    id: 'hothold', title: 'Hot holding', phase: 'mid-shift', times: ['12:00', '15:00', '18:00'], windowMinutes: 45, who: 'Kitchen', scope: 'group',
     checkpoints: [
       { id: 'pass', title: 'Pass', type: 'temp', required: true, min: 63 },
       { id: 'bain', title: 'Bain-marie', type: 'temp', required: true, min: 63 },
@@ -244,7 +250,7 @@ export const EXAMPLE_TEMPLATES: ChecklistTemplate[] = [
     ],
   },
   {
-    id: 'bar', title: 'Bar opening', times: ['16:30'], windowMinutes: 30, who: 'Bar team', scope: 'site',
+    id: 'bar', title: 'Bar opening', phase: 'mid-shift', times: ['16:30'], windowMinutes: 30, who: 'Bar team', scope: 'site',
     checkpoints: [
       { id: 'ice', title: 'Ice machine cleaned', help: 'Empty, wipe and refill', type: 'yesno', required: true, failOn: 'no' },
       { id: 'cellar', title: 'Beer cellar temperature', type: 'temp', required: true, min: 11, max: 13, faultOnFail: true },
@@ -257,7 +263,7 @@ export const EXAMPLE_TEMPLATES: ChecklistTemplate[] = [
     ],
   },
   {
-    id: 'closing', title: 'Closing checks', times: ['23:00'], windowMinutes: 90, who: 'Closing manager', scope: 'group',
+    id: 'closing', title: 'Closing checks', phase: 'closing', times: ['23:00'], windowMinutes: 90, who: 'Closing manager', scope: 'group',
     checkpoints: [
       { id: 'fridges', title: 'Fridges at close', type: 'temp', required: true, max: 8, faultOnFail: true },
       { id: 'clean', title: 'Kitchen cleaned', type: 'yesno', required: true, failOn: 'no' },
@@ -266,7 +272,7 @@ export const EXAMPLE_TEMPLATES: ChecklistTemplate[] = [
     ],
   },
   {
-    id: 'delivery', title: 'Delivery check', times: [], windowMinutes: 0, who: 'Whoever receives it', scope: 'group',
+    id: 'delivery', title: 'Delivery check', phase: 'mid-shift', times: [], windowMinutes: 0, who: 'Whoever receives it', scope: 'group',
     checkpoints: [
       { id: 'supplier', title: 'Supplier', type: 'choice', required: true, options: ['Brakes', 'Bidfood', 'Local butcher', 'Other'] },
       { id: 'chilled', title: 'Chilled goods temperature', type: 'temp', required: true, max: 8 },

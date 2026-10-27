@@ -15,12 +15,29 @@ describe('sign-in', () => {
     await user.type(screen.getByPlaceholderText('e.g. Jo'), 'Sam');
     await user.click(screen.getByRole('button', { name: /Continue/ }));
     expect(await screen.findByRole('heading', { name: /, Sam$/ })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: "Start today's close" })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: "Start today's EOD" })).toBeInTheDocument();
+  });
+});
+
+describe('tab bar', () => {
+  it('home is marked as the current tab', () => {
+    renderApp('/');
+    const tabs = screen.getByRole('navigation', { name: 'Main' });
+    expect(within(tabs).getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
+    expect(within(tabs).getByRole('link', { name: 'EOD' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('shows on the EOD and checklists screens, and not inside a task', () => {
+    const { unmount } = renderApp('/close');
+    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'EOD' })).toHaveAttribute('aria-current', 'page');
+    unmount();
+    renderApp('/close/lunch');
+    expect(screen.queryByRole('navigation', { name: 'Main' })).not.toBeInTheDocument();
   });
 });
 
 describe('home', () => {
-  it('shows today\'s close and the trading day', () => {
+  it('shows today\'s EOD and the trading day', () => {
     renderApp('/');
     expect(screen.getByText('Monday 5 October')).toBeInTheDocument();
     expect(screen.getByText('0 of 8 sections done')).toBeInTheDocument();
@@ -86,7 +103,7 @@ describe('lunch', () => {
     const { user } = renderApp('/close/lunch');
     await user.type(screen.getByLabelText('Gross sales'), '100');
     await user.click(screen.getByRole('button', { name: 'Save lunch' }));
-    expect(await screen.findByRole('heading', { name: "Today's close" })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: "Today's EOD" })).toBeInTheDocument();
     expect(screen.getByText('1 of 8 sections done')).toBeInTheDocument();
   });
 });

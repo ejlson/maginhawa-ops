@@ -137,7 +137,7 @@ export default function ChecklistRun() {
   return (
     <main className="page">
       <Nav back="/checklists" backLabel="Checklists" title={task?.recheckOf ? 'Re-check' : template.title} right={<span className="saved"><span className="dot" />Saved</span>} />
-      <div className="body">
+      <div className="body form">
         <div className="hero" role="status" aria-live="polite">
           <span className="hl">{task?.title ?? template.title}</span>
           <div className="big"><b>{s.answered}</b><i>&nbsp;of {s.total} done</i></div>
@@ -158,7 +158,7 @@ export default function ChecklistRun() {
                 const e = evaluate(c, v, businessDate);
                 const fixed = run?.fixes[c.id];
                 return (
-                  <div key={c.id}>
+                  <div key={c.id} className="qrow">
                     <Answer c={c} value={v} set={(x) => answer(key, c.id, x)} today={businessDate} disabled={done} />
                     {e.passed === false && (
                       fixed ? (

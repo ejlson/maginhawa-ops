@@ -26,7 +26,7 @@ export default function ChecklistFix() {
   return (
     <main className="page">
       <Nav back={runPath(key)} backLabel="Back" title="Fix a failed check" />
-      <div className="body">
+      <div className="body form">
         <div className="hero">
           <span className="hl">{c.title}</span>
           <div className="big"><b className="h-bad">{typeof value === 'number' ? String(value).replace('-', '−') : e.reason}</b>{c.type === 'temp' && <i>°C</i>}</div>

@@ -15,17 +15,23 @@ The user's reactions, in order:
 
 | Token | Light | Dark |
 |---|---|---|
-| `--bg` | `#FFFFFF` | `#000000` |
-| `--text` | `#1D1D1F` | `#F5F5F7` |
-| `--sec` | `#6E6E73` | `#A1A1A6` |
-| `--fill` | `#F2F2F5` | `#1C1C1E` |
-| `--sep` | `rgba(0,0,0,.08)` | `rgba(255,255,255,.10)` |
-| `--ink` / `--onink` | `#1D1D1F` / `#FFFFFF` | `#F5F5F7` / `#000000` |
-| `--hero` / `--onhero` / `--herosec` | `#1D1D1F` / `#F5F5F7` / `rgba(245,245,247,.6)` | `#1C1C1E` / same / same |
-| `--link` | `#0066CC` | `#2997FF` |
-| `--ok` / `--okbg` | `#1F7A35` / `rgba(52,199,89,.14)` | `#30D158` / `rgba(48,209,88,.16)` |
-| `--warn` / `--warnbg` | `#B25000` / `rgba(255,149,0,.16)` | `#FF9F0A` / `rgba(255,159,10,.16)` |
-| `--bad` / `--badbg` | `#D70015` / `rgba(255,59,48,.12)` | `#FF453A` / `rgba(255,69,58,.16)` |
+| `--bg` (page) | `#FFFFFF` | `#121214` |
+| `--side` (panels) | `#F7F7F9` | `#1B1B1F` |
+| `--hero` / `--onhero` / `--herosec` | `#1D1D1F` / `#F5F5F7` / `rgba(245,245,247,.6)` | `#232328` / `#F5F5F7` / `rgba(245,245,247,.66)` |
+| `--fill` (inputs, icon circles, chips) | `#F2F2F5` | `#2A2A2F` |
+| `--text` | `#1D1D1F` | `#F2F2F4` |
+| `--sec` | `#6E6E73` | `#A3A3AB` |
+| `--sep` | `rgba(0,0,0,.08)` | `rgba(255,255,255,.12)` |
+| `--ink` / `--onink` | `#1D1D1F` / `#FFFFFF` | `#F2F2F4` / `#121214` |
+| `--link` | `#0066CC` | `#4AA3FF` |
+| `--ok` / `--okbg` | `#1F7A35` / `rgba(52,199,89,.14)` | `#4CD964` / `rgba(76,217,100,.16)` |
+| `--warn` / `--warnbg` | `#B25000` / `rgba(255,149,0,.16)` | `#FFB340` / `rgba(255,179,64,.16)` |
+| `--bad` / `--badbg` | `#D70015` / `rgba(255,59,48,.12)` | `#FF6B60` / `rgba(255,107,96,.16)` |
+
+**Dark mode rules** (how Apple, Revolut and Material do it):
+- **No pure black.** The page is a dark grey (`#121214`), not `#000000`.
+- **Depth comes from lighter surfaces, not shadows:** page `#121214` → panel `#1B1B1F` → hero card `#232328` → inputs `#2A2A2F`. The hero card gets a faint 1px edge (`rgba(255,255,255,.07)`) instead of a shadow.
+- **Text is off-white** (`#F2F2F4`), and status colours are a little lighter and softer than in light mode.
 
 **Font stack:** `-apple-system, BlinkMacSystemFont, 'Geist', sans-serif`. Use `font-variant-numeric: tabular-nums` everywhere, and `letter-spacing: -0.012em` for body text.
 

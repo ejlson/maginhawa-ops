@@ -6,15 +6,26 @@
   --heroOk: #30d158; --heroWarn: #ff9f0a; --heroBad: #ff6961;
   --link: #0066cc; --ok: #1f7a35; --okbg: rgba(52,199,89,.14); --warn: #b25000; --warnbg: rgba(255,149,0,.16); --bad: #d70015; --badbg: rgba(255,59,48,.12);
   --nav: rgba(255,255,255,.82);
+  --heroEdge: transparent;
   --font: -apple-system, BlinkMacSystemFont, "Geist", "Helvetica Neue", Arial, sans-serif;
   color-scheme: light;
 }
+/* Dark mode, done the way the best apps do it:
+   a dark grey base (not pure black), depth shown by lighter surfaces instead of shadows,
+   off-white text, stronger hairlines, softer accents. Levels: page → card → input. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #000000; --side: #0c0c0e; --text: #f5f5f7; --sec: #a1a1a6; --sep: rgba(255,255,255,.1); --fill: #1c1c1e; --sel: rgba(255,255,255,.08);
-    --ink: #f5f5f7; --onink: #000000; --hero: #1c1c1e; --heroline: rgba(245,245,247,.14);
-    --link: #2997ff; --ok: #30d158; --okbg: rgba(48,209,88,.16); --warn: #ff9f0a; --warnbg: rgba(255,159,10,.16); --bad: #ff453a; --badbg: rgba(255,69,58,.16);
-    --nav: rgba(0,0,0,.75);
+    --bg: #121214;            /* page */
+    --side: #1b1b1f;          /* panels */
+    --hero: #232328;          /* the one card: a clear step up from the page */
+    --heroEdge: rgba(255,255,255,.07);
+    --fill: #2a2a2f;          /* inputs, icon circles, chips: one more step up */
+    --text: #f2f2f4; --sec: #a3a3ab; --sep: rgba(255,255,255,.12); --sel: rgba(255,255,255,.1);
+    --ink: #f2f2f4; --onink: #121214;
+    --onhero: #f5f5f7; --herosec: rgba(245,245,247,.66); --heroline: rgba(255,255,255,.12);
+    --heroOk: #4cd964; --heroWarn: #ffb340; --heroBad: #ff7a70;
+    --link: #4aa3ff; --ok: #4cd964; --okbg: rgba(76,217,100,.16); --warn: #ffb340; --warnbg: rgba(255,179,64,.16); --bad: #ff6b60; --badbg: rgba(255,107,96,.16);
+    --nav: rgba(18,18,20,.82);
     color-scheme: dark;
   }
 }
@@ -37,40 +48,44 @@ button { font: inherit; color: inherit; }
 .saved { font-size: 13px; color: var(--sec); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .dot { display: inline-block; width: 6px; height: 6px; border-radius: 3px; background: var(--ok); }
 .dot.warn { background: var(--warn); }
-.body { padding: 4px max(20px, env(safe-area-inset-right)) 180px max(20px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 40px; }
+.body { padding: 8px max(20px, env(safe-area-inset-right)) 180px max(20px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 32px; }
 .foot { position: sticky; bottom: 0; margin-top: auto; background: var(--nav); backdrop-filter: saturate(180%) blur(24px); -webkit-backdrop-filter: saturate(180%) blur(24px);
   padding: 14px max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 4px; }
 .foot .note { text-align: center; margin: 4px 0 0; }
 
 /* ---- headings and grouping ---- */
 .titleblock { display: flex; flex-direction: column; gap: 4px; }
-.eyebrow { font-size: 15px; color: var(--sec); }
-h1 { margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -.035em; line-height: 1.08; }
+.eyebrow { font-size: 14px; color: var(--sec); }
+h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -.03em; line-height: 1.1; }
 .lead { font-size: 15px; color: var(--sec); margin: 4px 0 0; line-height: 1.4; }
-.top { display: flex; flex-direction: column; gap: 20px; }
+.top { display: flex; flex-direction: column; gap: 16px; }
 /* Main groups (Sales, Covers, Cash…): a hairline and space above each, so it's clear where a section starts. */
-.grp { display: flex; flex-direction: column; gap: 32px; }
-.grp + .grp:not(.quiet) { padding-top: 36px; border-top: .5px solid var(--sep); }
+.grp { display: flex; flex-direction: column; gap: 12px; }
+.grp > .sub + .sub, .grp > .gh + .sub, .grp > .sub + .panel, .grp > .gh + .chips, .grp > .gh + .panel, .grp > .gh + .ta { margin-top: 8px; }
+.grp > .sub + .sub { margin-top: 20px; }
+/* Form screens (sections): a hairline above each main group, so it's clear where a section starts. */
+.form > .grp + .grp:not(.quiet) { padding-top: 32px; border-top: .5px solid var(--sep); }
 .gh { display: flex; flex-direction: column; gap: 6px; }
-.gh h2, .hd h2 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.028em; }
-.gh p { margin: 0; font-size: 15px; line-height: 1.4; color: var(--sec); }
+.gh h2, .hd h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.024em; }
+.gh p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--sec); }
 .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.hd span { font-size: 15px; color: var(--sec); }
+.hd span { font-size: 14px; color: var(--sec); }
 .sub { display: flex; flex-direction: column; }
 /* Sub-headings inside a group (From the till, Food & drink…): small caps, so they never read as an input row. */
 .sl { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; font-weight: 600; color: var(--sec); letter-spacing: .06em; text-transform: uppercase; padding-bottom: 6px; }
 .sl span + span { font-weight: 500; letter-spacing: .02em; text-transform: none; font-size: 13px; }
-.quiet { padding-top: 28px; border-top: .5px solid var(--sep); }
+.quiet { padding-top: 24px; border-top: .5px solid var(--sep); }
 .note { font-size: 14px; color: var(--sec); line-height: 1.45; margin: 8px 0 0; }
 
 /* ---- hero ---- */
-.hero { background: var(--hero); color: var(--onhero); border-radius: 26px; padding: 24px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 24px 48px -24px rgba(0,0,0,.4); text-decoration: none; }
+.hero { background: var(--hero); color: var(--onhero); border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 24px 48px -24px rgba(0,0,0,.4), inset 0 0 0 1px var(--heroEdge); text-decoration: none; }
 .hero-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.hl { font-size: 15px; color: var(--herosec); }
+.hl { font-size: 14px; color: var(--herosec); }
 .hs-small { font-size: 13px; color: var(--herosec); }
 .big { display: flex; align-items: baseline; line-height: 1; }
-.big b { font-size: 60px; font-weight: 600; letter-spacing: -.055em; }
-.big i { font-style: normal; font-size: 30px; font-weight: 500; letter-spacing: -.03em; color: var(--herosec); }
+.big b { font-size: 52px; font-weight: 600; letter-spacing: -.05em; }
+.big i { font-style: normal; font-size: 26px; font-weight: 500; letter-spacing: -.02em; color: var(--herosec); }
+.hero-title { font-size: 28px; font-weight: 650; letter-spacing: -.03em; line-height: 1.1; }
 .hm { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 16px; border-top: .5px solid var(--heroline); }
 .hm.two { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
 .hm span { display: flex; flex-direction: column; gap: 2px; font-size: 17px; font-weight: 600; letter-spacing: -.02em; }
@@ -83,25 +98,27 @@ h1 { margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -.035em; line
 .h-ok { color: var(--heroOk); } .h-warn { color: var(--heroWarn); } .h-bad { color: var(--heroBad); }
 
 /* ---- list rows ---- */
-.li { display: flex; align-items: center; gap: 14px; min-height: 66px; color: var(--text); text-decoration: none; position: relative; background: none; border: 0; padding: 0; text-align: left; width: 100%; cursor: pointer; }
+.li { display: flex; align-items: center; gap: 14px; min-height: 64px; color: var(--text); text-decoration: none; position: relative; background: none; border: 0; padding: 0; text-align: left; width: 100%; cursor: pointer; }
 div.li { cursor: default; }
 .li + .li::before, .fr + .li::before, .li + .fr::before { content: ''; position: absolute; top: 0; left: 56px; right: 0; height: .5px; background: var(--sep); }
 .fr + .li::before { left: 0; }
-.av { width: 42px; height: 42px; border-radius: 21px; background: var(--fill); display: flex; align-items: center; justify-content: center; flex: none; color: var(--text); font-size: 14px; font-weight: 600; }
+.av { width: 40px; height: 40px; border-radius: 20px; background: var(--fill); display: flex; align-items: center; justify-content: center; flex: none; color: var(--text); font-size: 14px; font-weight: 600; }
 .av.ink { background: var(--ink); color: var(--onink); }
 .av.ok { background: var(--okbg); color: var(--ok); } .av.warn { background: var(--warnbg); color: var(--warn); } .av.bad { background: var(--badbg); color: var(--bad); }
 .av.dash { background: transparent; border: 1.5px dashed var(--sep); color: var(--link); }
-.pie { width: 42px; display: flex; justify-content: center; flex: none; }
+.pie { width: 40px; display: flex; justify-content: center; flex: none; }
 .tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.tx small { font-size: 14px; color: var(--sec); line-height: 1.35; }
+.tx > span:first-child { font-size: 16px; font-weight: 500; letter-spacing: -.01em; }
+.tx small { font-size: 13.5px; color: var(--sec); line-height: 1.35; }
 .tx .act { color: var(--link); font-size: 15px; font-weight: 500; margin-top: 4px; text-decoration: none; }
 .rt { color: var(--sec); display: flex; align-items: center; gap: 8px; font-size: 15px; white-space: nowrap; }
+.rt .pill { height: 26px; font-size: 13px; padding: 0 10px; }
 .amt { font-weight: 600; white-space: nowrap; color: var(--text); }
 .chev { width: 7px; height: 12px; flex: none; color: var(--sec); opacity: .5; }
 .muted { color: var(--sec) !important; }
 
 /* ---- form rows ---- */
-.fr { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 54px; position: relative; }
+.fr { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 54px; position: relative; font-size: 16px; }
 .fr + .fr::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: .5px; background: var(--sep); }
 /* Totals: the result of the rows above. */
 .fr.tot { font-weight: 700; min-height: 58px; margin-top: 2px; }
@@ -117,15 +134,15 @@ div.li { cursor: default; }
 .blk { display: flex; flex-direction: column; gap: 10px; padding: 14px 0; }
 
 /* ---- pills, buttons, chips, toggles ---- */
-.pill { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 15px; font-size: 15px; font-weight: 600; white-space: nowrap; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border-radius: 14px; font-size: 14px; font-weight: 600; white-space: nowrap; }
 .p-ok { background: var(--okbg); color: var(--ok); } .p-warn { background: var(--warnbg); color: var(--warn); } .p-bad { background: var(--badbg); color: var(--bad); } .p-mut { background: var(--fill); color: var(--sec); }
-.btn { height: 54px; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 17px; font-weight: 600; text-decoration: none; border: 0; cursor: pointer; padding: 0 24px; width: 100%; }
+.btn { height: 52px; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; font-weight: 600; text-decoration: none; border: 0; cursor: pointer; padding: 0 24px; width: 100%; }
 .b1 { background: var(--ink); color: var(--onink); }
 .b2 { color: var(--link); background: transparent; height: 44px; font-weight: 500; font-size: 15px; }
 .btn:disabled, .btn[aria-disabled="true"] { background: var(--fill); color: var(--sec); cursor: not-allowed; }
 .b2:disabled { background: transparent; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { height: 40px; border-radius: 20px; border: 0; padding: 0 16px; font-size: 15px; font-weight: 600; cursor: pointer; background: var(--fill); color: var(--text); }
+.chip { height: 38px; border-radius: 19px; border: 0; padding: 0 15px; font-size: 14.5px; font-weight: 600; cursor: pointer; background: var(--fill); color: var(--text); }
 .chip[aria-pressed="true"] { background: var(--ink); color: var(--onink); }
 .tg { width: 51px; height: 31px; border-radius: 16px; background: var(--fill); border: 0; padding: 0; position: relative; flex: none; cursor: pointer; transition: background .2s; }
 .tg[aria-checked="true"] { background: #34c759; }
@@ -154,3 +171,22 @@ div.li { cursor: default; }
 .th span:not(:first-child), .sr > span:not(:first-child) { text-align: right; }
 .sr { min-height: 66px; border-top: .5px solid var(--sep); }
 .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+
+/* ---- checklist questions: one per row, evenly spaced, hairline between ---- */
+.qrow { padding: 6px 0; position: relative; }
+.qrow + .qrow::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: .5px; background: var(--sep); }
+.qrow > .fr { min-height: 60px; }
+.qrow > .blk { padding: 10px 0; }
+.qrow > .banner, .qrow > div[style] { margin-top: 4px; }
+
+/* ---- bottom tab bar (Home · Checklists · EOD) on the three main screens ---- */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: flex; justify-content: center; gap: 8px;
+  background: var(--nav); backdrop-filter: saturate(180%) blur(24px); -webkit-backdrop-filter: saturate(180%) blur(24px);
+  border-top: .5px solid var(--sep); padding: 6px max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+.tabbar .tab { flex: 1; max-width: 160px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0 2px;
+  color: var(--sec); text-decoration: none; font-size: 11px; font-weight: 600; letter-spacing: 0; border-radius: 12px; }
+.tabbar .tab.on { color: var(--text); }
+.tabbar .tab.on svg { stroke-width: 2.1; }
+/* Pages with the tab bar: the action button sits just above it. */
+.page.tabs .body { padding-bottom: 230px; }
+.page.tabs .foot { bottom: calc(58px + env(safe-area-inset-bottom, 0px)); padding-bottom: 12px; }
