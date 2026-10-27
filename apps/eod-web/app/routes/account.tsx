@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { SITES } from '@maginhawa/core';
-import { homeFor, recentPeople, ROLE_LABELS, useAuth } from '../lib/auth';
-import { pins } from '../lib/pins';
+import { can, homeFor, ROLE_LABELS, useAuth } from '../lib/auth';
 import { Foot, Icon, ICONS, Nav, RowLink } from '../components/ui';
 import { RolePicker } from '../components/RolePicker';
 
@@ -10,13 +8,7 @@ import { RolePicker } from '../components/RolePicker';
 export default function Account() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const [confirm, setConfirm] = useState<string | null>(null);
-  const [, refresh] = useState(0);
   if (!user) return null;
-  // Managers reset a forgotten PIN; the person chooses a new one next time they pick up the iPad.
-  const withPins = user.role === 'manager' || user.role === 'headoffice'
-    ? recentPeople(user.siteCode).filter((p) => p.role === 'staff' && pins.has(user.siteCode, p.name))
-    : [];
   const site = SITES.find((s) => s.code === user.siteCode)?.name ?? user.siteCode;
   const back = homeFor(user.role);
 
@@ -32,19 +24,10 @@ export default function Account() {
           </div>
         </div>
 
-        {withPins.length > 0 && (
+        {can.managePeople(user.role) && (
           <section className="grp">
-            <div className="gh"><h2>Staff PINs</h2><p>For the shared iPad. Reset one if someone forgets theirs.</p></div>
             <div className="sub">
-              {withPins.map((p) => (
-                <RowLink key={p.name} lead={<span className="av">{p.initials}</span>} title={p.name} sub="PIN set"
-                  right={<button type="button" className="chip" onClick={() => {
-                    if (confirm !== p.name) return setConfirm(p.name);
-                    pins.reset(user.siteCode, p.name);
-                    setConfirm(null);
-                    refresh((n) => n + 1);
-                  }}>{confirm === p.name ? 'Tap again' : 'Reset PIN'}</button>} />
-              ))}
+              <RowLink to="/people" lead={<span className="av"><Icon d={ICONS.people} size={18} /></span>} title="People" sub="Add people, change roles, reset a forgotten PIN" />
             </div>
           </section>
         )}

@@ -28,6 +28,8 @@ import Repairs from '../app/routes/repairs';
 import Handover from '../app/routes/handover';
 import Switch from '../app/routes/switch';
 import Account from '../app/routes/account';
+import People from '../app/routes/people';
+import PeopleNew from '../app/routes/people-new';
 import ChecklistCorrect from '../app/routes/checklist-correct';
 import FoodSafety from '../app/routes/food-safety';
 import FsRecords from '../app/routes/fs-records';
@@ -96,6 +98,8 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="handover" element={<Handover />} />
             <Route path="switch" element={<Switch />} />
             <Route path="account" element={<Account />} />
+            <Route path="people" element={<People />} />
+            <Route path="people/new" element={<PeopleNew />} />
             <Route path="head-office/:site" element={<HeadOfficeSite />} />
           </Route>
         </Routes>
