@@ -9,10 +9,11 @@ import { formatDay, timeHM, useDraft } from '../../lib/draft';
 import { runPath, statusPill, useChecklists } from '../../lib/checklists';
 import { useSite } from '../../lib/site';
 import { useTradingHistory } from '../../lib/history';
-import { Foot, Icon, ICONS, RowLink } from '../ui';
+import { Icon, ICONS, RowLink } from '../ui';
 import { TabBar } from '../TabBar';
 import { EodHero, EodRow, firstName, greeting, HomeHeader, isDaytime, NextChecklistHero, PhaseRows, TimelineRow, useEod, useToday } from './shared';
 import { FoodSafetyRow } from '../FoodSafetyRow';
+import { Columns } from '../Columns';
 
 interface LastNight {
   net: Pence;
@@ -114,14 +115,17 @@ export function ManagerHome() {
   return (
     <main className="page tabs">
       <HomeHeader />
-      <div className="body">
-        <div className="top">
+      <Columns
+        top={<>
           <div className="titleblock">
             <span className="eyebrow">{formatDay(businessDate)}</span>
             <h1>{greeting(at)}, {firstName(user?.name ?? '')}</h1>
           </div>
+        </>}
+        hero={<>
           {focus ? <NextChecklistHero focus={focus} /> : morning && lastNight ? <LastNightHero n={lastNight} /> : <EodHero />}
-        </div>
+        </>}
+        main={<>
 
         {showNeeds && (
           <section className="grp">
@@ -153,8 +157,9 @@ export function ManagerHome() {
         )}
 
         {morning && <LastSevenDays />}
-
-        <section className="grp side">
+        </>}
+        side={<>
+        <section className="grp">
           <div className="hd"><h2>Today</h2>{user && can.editChecklists(user.role) && <Link className="linkbtn" to="/checklists/edit">Edit lists</Link>}</div>
           <div className="sub">
             <div className="sl"><span>Checklists</span></div>
@@ -168,8 +173,8 @@ export function ManagerHome() {
             {handover.length > 0 && !unreadHandover && <RowLink to="/handover" lead={<span className="av"><Icon d={ICONS.chat} /></span>} title="Handover from last night" sub={handover.map((h) => h.body).join(' · ')} />}
           </div>
         </section>
-      </div>
-      <Foot>
+        </>}
+        actions={<>
         {readFirst ? (
           <>
             <Link className="btn b1" to="/handover">Read {handoverBy ? `${firstName(handoverBy)}'s` : "last night's"} handover</Link>
@@ -183,7 +188,8 @@ export function ManagerHome() {
         ) : (
           <Link className="btn b1" to={eod.to}>{eod.label}</Link>
         )}
-      </Foot>
+        </>}
+      />
       <TabBar />
     </main>
   );

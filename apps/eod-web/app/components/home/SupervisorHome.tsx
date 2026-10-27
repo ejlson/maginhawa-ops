@@ -5,10 +5,11 @@ import { initialsOf, useAuth } from '../../lib/auth';
 import { formatDay, timeHM } from '../../lib/draft';
 import { runPath, statusPill, useChecklists } from '../../lib/checklists';
 import { useSite } from '../../lib/site';
-import { Foot, Icon, ICONS, RowLink } from '../ui';
+import { Icon, ICONS, RowLink } from '../ui';
 import { TabBar } from '../TabBar';
 import { EodRow, TimelineRow, firstName, greeting, HomeHeader, isDone, useEod, useToday } from './shared';
 import { FoodSafetyRow } from '../FoodSafetyRow';
+import { Columns } from '../Columns';
 
 export function SupervisorHome() {
   const { user } = useAuth();
@@ -27,12 +28,14 @@ export function SupervisorHome() {
   return (
     <main className="page tabs">
       <HomeHeader />
-      <div className="body">
-        <div className="top">
+      <Columns
+        top={<>
           <div className="titleblock">
             <span className="eyebrow">{formatDay(businessDate)}</span>
             <h1>{greeting(at)}, {firstName(user?.name ?? '')}</h1>
           </div>
+        </>}
+        hero={<>
           <Link className="hero" to="/checklists" aria-label={`Today so far: ${checksDone} of ${scheduled.length} checklists done, ${late.length} late or missed`}>
             <div className="hero-row"><span className="hl">Today so far</span><span className="hs-small">{timeHM(at)}</span></div>
             <div className="big"><b>{checksDone}</b><i>&nbsp;of {scheduled.length} checklists done</i></div>
@@ -45,7 +48,8 @@ export function SupervisorHome() {
               <span>{eod.submitted ? 'Sent' : formatPounds(eod.result.totalNet).replace(/\.00$/, '')}<small>EOD so far</small></span>
             </div>
           </Link>
-        </div>
+        </>}
+        main={<>
 
         {(needs.length > 0 || open.length > 0 || eod.issues.length > 0) && (
           <section className="grp">
@@ -71,8 +75,9 @@ export function SupervisorHome() {
             </div>
           </section>
         )}
-
-        <section className="grp side">
+        </>}
+        side={<>
+        <section className="grp">
           <div className="hd"><h2>On shift</h2><span>Who did what</span></div>
           <div className="sub">
             {people.map((p) => (
@@ -95,13 +100,14 @@ export function SupervisorHome() {
             {handover.length > 0 && <RowLink to="/handover" lead={<span className="av"><Icon d={ICONS.chat} /></span>} title="Handover from last night" sub={handover.map((h) => h.body).join(' · ')} />}
           </div>
         </section>
-      </div>
-      <Foot>
+        </>}
+        actions={<>
         {focus
           ? <Link className="btn b1" to={runPath(focus.key)}>Do now: {focus.title}</Link>
           : <Link className="btn b1" to={eod.to}>{eod.label}</Link>}
         {!eod.submitted && <Link className="btn b2" to="/close/handover">Write the handover</Link>}
-      </Foot>
+        </>}
+      />
       <TabBar />
     </main>
   );

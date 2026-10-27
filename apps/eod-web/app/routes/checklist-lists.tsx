@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { canCreateList, canEditList, editableTemplate, recordStatus, scheduleText, SITES, STATUS_LABELS, type TemplateRecord } from '@maginhawa/core';
+import { addOnFor, canCreateList, canEditList, editableTemplate, recordStatus, scheduleText, SITES, STATUS_LABELS, type TemplateRecord } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { useChecklists } from '../lib/checklists';
 import { editPath, useTemplates } from '../lib/templates';
@@ -16,21 +16,40 @@ export default function ChecklistLists() {
   if (!user) return null;
   const isHo = user.role === 'headoffice';
 
-  const visible = records.filter((r) => isHo || r.scope === 'group' || r.siteCode === user.siteCode);
+  // A site's own checks on a group list show on that list's row, not as a list of their own.
+  const lists = records.filter((r) => !r.extends);
+  const addOns = records.filter((r) => r.extends && (isHo || r.siteCode === user.siteCode));
+  const visible = lists.filter((r) => isHo || r.scope === 'group' || r.siteCode === user.siteCode);
   const stopped = visible.filter((r) => recordStatus(r, businessDate) === 'archived');
   const current = visible.filter((r) => !stopped.includes(r));
   const group = current.filter((r) => r.scope === 'group');
   const sites = SITES.map((s) => ({ ...s, lists: current.filter((r) => r.scope === 'site' && r.siteCode === s.code) })).filter((s) => s.lists.length || (!isHo && s.code === user.siteCode));
   const mine = current.filter((r) => canEditList(user, r));
-  const unpublished = mine.filter((r) => ['new', 'draft'].includes(recordStatus(r, businessDate))).length;
-  const tomorrow = mine.filter((r) => recordStatus(r, businessDate) === 'starts-tomorrow').length;
+  const changeable = [...mine, ...addOns.filter((r) => canEditList(user, r))];
+  const unpublished = changeable.filter((r) => ['new', 'draft'].includes(recordStatus(r, businessDate))).length;
+  const tomorrow = changeable.filter((r) => recordStatus(r, businessDate) === 'starts-tomorrow').length;
+
+  /** What a group list's row says about sites' own checks on it. */
+  const extraText = (r: TemplateRecord) => {
+    if (r.scope !== 'group') return null;
+    if (isHo) {
+      const n = addOns.filter((a) => a.extends === r.id && recordStatus(a, businessDate) !== 'archived').length;
+      return n ? `+ checks at ${n} ${n === 1 ? 'site' : 'sites'}` : null;
+    }
+    const a = addOnFor(addOns, r.id, user.siteCode);
+    const st = a && recordStatus(a, businessDate);
+    if (!a || st === 'archived') return null;
+    const k = editableTemplate(a)!.checkpoints.length;
+    const label = st === 'new' || st === 'draft' ? ', not published' : st === 'starts-tomorrow' ? ', from tomorrow' : '';
+    return `+ ${k} of yours${label}`;
+  };
 
   const row = (r: TemplateRecord) => {
     const t = editableTemplate(r)!;
     const status = recordStatus(r, businessDate);
     const pill = status === 'live' ? null : <span className={`pill ${status === 'new' || status === 'draft' ? 'p-warn' : 'p-mut'}`}>{STATUS_LABELS[status]}</span>;
     const n = t.checkpoints.length;
-    const sub = [scheduleText(t), `${n} ${n === 1 ? 'check' : 'checks'}`, canEditList(user, r) ? null : 'Head office'].filter(Boolean).join(' · ');
+    const sub = [scheduleText(t), `${n} ${n === 1 ? 'check' : 'checks'}`, extraText(r), canEditList(user, r) ? null : 'Head office'].filter(Boolean).join(' · ');
     return <RowLink key={r.id} to={editPath(r.id)} lead={<span className="av"><Icon d={ICONS.list} /></span>} title={t.title || 'Untitled checklist'} sub={sub} right={pill} />;
   };
 
@@ -72,7 +91,7 @@ export default function ChecklistLists() {
 
         <section className="grp">
           <div className="hd"><h2>Group lists</h2><span>Every site</span></div>
-          {!isHo && <p className="note" style={{ margin: 0 }}>Head office looks after these. You can see them but not change them.</p>}
+          {!isHo && <p className="note" style={{ margin: 0 }}>Head office looks after these. Open one to add checks of your own for {siteName(user.siteCode)}.</p>}
           <div className="sub">{group.map(row)}</div>
         </section>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { clockTime, evaluate, summariseRun } from '@maginhawa/core';
 import { can, useAuth } from '../lib/auth';
@@ -6,6 +6,9 @@ import { runPath, useChecklists } from '../lib/checklists';
 import { Foot, Icon, ICONS, Nav } from '../components/ui';
 import { Answer } from '../components/Answer';
 import { PresenceLine } from '../components/Sync';
+import { nextAfter, SplitFrame } from '../components/ChecklistSplit';
+import { TempSheet } from '../components/TempSheet';
+import { useTouch, useTwoColumns } from '../lib/wide';
 
 export default function ChecklistRun() {
   const navigate = useNavigate();
@@ -15,6 +18,18 @@ export default function ChecklistRun() {
   const { templateFor, runFor, answer, finish, businessDate, tasks, sync, setWhere } = useChecklists();
   const [finishing, setFinishing] = useState(false);
   const [beaten, setBeaten] = useState<string | null>(null);
+  const two = useTwoColumns();
+  const touch = useTouch();
+  // The big temperature entry, open for one check at a time.
+  const [big, setBig] = useState<string | null>(null);
+  // ⌘↵ finishes on desktop.
+  const finishRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    if (!two) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); finishRef.current?.(); } };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [two]);
   const template = templateFor(key);
   const title = template?.title ?? null;
   // Other devices see "Jo is in Closing checks".
@@ -34,10 +49,20 @@ export default function ChecklistRun() {
     setFinishing(false);
     // Someone else finished it first: nothing changed, so stay and say who.
     if (out.already) setBeaten(out.message);
-    else navigate('/checklists');
+    else {
+      // Beside the list, finishing opens the next one still to do.
+      const after = two ? nextAfter(tasks, key) : undefined;
+      navigate(after ? runPath(after.key) : '/checklists');
+    }
   };
-  return (
-    <main className="page">
+  finishRef.current = !done && s.canFinish && !finishing ? () => void onFinish() : null;
+  const bigCheck = big ? template.checkpoints.find((c) => c.id === big) : undefined;
+  const nextTemp = (id: string) => {
+    const at = template.checkpoints.findIndex((c) => c.id === id);
+    return template.checkpoints.slice(at + 1).find((c) => c.type === 'temp' && (run?.answers[c.id] === undefined || run?.answers[c.id] === null));
+  };
+  const content = (
+    <>
       <Nav back="/checklists" backLabel="Checklists" title={task?.recheckOf ? 'Re-check' : template.title} right={<span className="saved"><span className="dot" />Saved</span>} />
       <div className="body form">
         <div className="hero" role="status" aria-live="polite">
@@ -64,7 +89,8 @@ export default function ChecklistRun() {
                 const by = run?.answeredBy?.[c.id];
                 return (
                   <div key={c.id} className="qrow">
-                    <Answer c={c} value={v} set={(x) => answer(key, c.id, x)} today={businessDate} disabled={done} />
+                    <Answer c={c} value={v} set={(x) => answer(key, c.id, x)} today={businessDate} disabled={done}
+                      onBig={touch && !done && c.type === 'temp' ? () => setBig(c.id) : undefined} />
                     {by && by.by !== user?.name && <small className="ans-by">{by.by} · {clockTime(by.at)}</small>}
                     {run?.corrections?.[c.id]?.map((x, i) => (
                       <small key={i} className="ans-by">Corrected from {String(x.previous).replace('-', '−')}{c.type === 'temp' ? '°C' : ''} by {x.by} · {clockTime(x.at)} · “{x.reason}”</small>
@@ -92,8 +118,15 @@ export default function ChecklistRun() {
           <button type="button" className="btn b1" disabled={!s.canFinish || finishing} onClick={onFinish}>
             {s.unfixed ? `Fix ${s.unfixed} failed ${s.unfixed === 1 ? 'check' : 'checks'} first` : s.requiredLeft ? `${s.requiredLeft} left to answer` : 'Finish'}
           </button>
+          {two && s.canFinish && <p className="note"><span className="kbd">⌘↵</span> finishes{nextAfter(tasks, key) ? ` and opens ${nextAfter(tasks, key)!.title}` : ''}</p>}
         </Foot>
       )}
-    </main>
+      {bigCheck && (
+        <TempSheet c={bigCheck} value={run?.answers[bigCheck.id]} today={businessDate}
+          onSave={(n) => answer(key, bigCheck.id, n)} onClose={() => setBig(null)}
+          next={nextTemp(bigCheck.id) ? { title: nextTemp(bigCheck.id)!.title, open: () => setBig(nextTemp(bigCheck.id)!.id) } : undefined} />
+      )}
+    </>
   );
+  return two ? <SplitFrame selected={key}>{content}</SplitFrame> : <main className="page">{content}</main>;
 }

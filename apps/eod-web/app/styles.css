@@ -463,30 +463,25 @@ a.linkbtn { text-decoration: none; }
 
 /* ---- Site screens on wide screens: one frame, two columns that each stack on their own ---- */
 @media (min-width: 1100px) {
-  .site-shell .page:not(.wide, .eod-page, .day-page, .pack) { max-width: 1120px; }
+  .site-shell .page:not(.wide, .eod-page, .day-page, .pack, .split-page) { max-width: 1120px; }
 
-  /* Home, Checklists and the EOD overview: the title and the main lists on the left; the dark card, then
-     the section marked .side and everything after it, on the right. Floats let each column stack on its
-     own, so neither leaves a gap beside the other. */
-  .site-shell .page.tabs > .body { display: flow-root; }
-  .site-shell .page.tabs > .body > .top { display: contents; }
-  .site-shell .page.tabs > .body > :not(.top),
-  .site-shell .page.tabs > .body > .top > * { float: left; clear: left; width: calc(50% - 24px); margin: 0 0 32px; }
-  .site-shell .page.tabs > .body > .top > .titleblock { margin-bottom: 40px; }
-  .site-shell .page.tabs > .body > .top > .hero,
-  .site-shell .page.tabs > .body > .side,
-  .site-shell .page.tabs > .body > .side ~ * { float: right; clear: right; }
+  /* Home and the EOD overview: two columns that each stack on their own (components/Columns.tsx).
+     The title and main lists on the left; the dark card, its actions and the rest on the right. */
+  .site-shell .page.tabs > .body.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 48px; align-items: start; }
+  .site-shell .page.tabs > .body.cols > .col { display: flex; flex-direction: column; gap: 32px; min-width: 0; }
+  .site-shell .page.tabs > .body.cols > .col:last-child { padding-top: 6px; }
+  .acts { display: flex; flex-direction: column; gap: 4px; margin-top: -16px; }
 
   /* Every other site screen: the content on the left, the dark card at the top right, like the EOD sections. */
-  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack) > .body { position: relative; padding-right: calc(50% + 24px); }
-  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack) > .body > .hero:not(.hero ~ .hero),
-  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack) > .body > .top > .hero:not(.hero ~ .hero) { position: absolute; top: 8px; right: max(20px, env(safe-area-inset-right)); width: calc(50% - 44px); box-sizing: border-box; }
+  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack, .split-page) > .body { position: relative; padding-right: calc(50% + 24px); }
+  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack, .split-page) > .body > .hero:not(.hero ~ .hero),
+  .site-shell .page:not(.tabs, .wide, .eod-page, .day-page, .pack, .split-page) > .body > .top > .hero:not(.hero ~ .hero) { position: absolute; top: 8px; right: max(20px, env(safe-area-inset-right)); width: calc(50% - 44px); box-sizing: border-box; }
 
   /* Actions stack at the foot of the right column, as on a phone; the left column is never covered. */
-  .site-shell .page:not(.wide, .eod-page, .day-page, .pack) .foot { padding-left: calc(50% + 24px); background: none; backdrop-filter: none; -webkit-backdrop-filter: none; pointer-events: none; }
-  .site-shell .page:not(.wide, .eod-page, .day-page, .pack) .foot::before { content: ''; position: absolute; z-index: -1; top: -24px; right: 0; bottom: 0; left: calc(50% + 4px); background: linear-gradient(to bottom, transparent, var(--bg) 24px); }
-  .site-shell .page:not(.wide, .eod-page, .day-page, .pack) .foot > * { pointer-events: auto; }
-  .site-shell .page.tabs .body { padding-bottom: 180px; }
+  .site-shell .page:not(.wide, .eod-page, .day-page, .pack, .split-page) .foot { padding-left: calc(50% + 24px); background: none; backdrop-filter: none; -webkit-backdrop-filter: none; pointer-events: none; }
+  .site-shell .page:not(.wide, .eod-page, .day-page, .pack, .split-page) .foot::before { content: ''; position: absolute; z-index: -1; top: -24px; right: 0; bottom: 0; left: calc(50% + 4px); background: linear-gradient(to bottom, transparent, var(--bg) 24px); }
+  .site-shell .page:not(.wide, .eod-page, .day-page, .pack, .split-page) .foot > * { pointer-events: auto; }
+  .site-shell .page.tabs .body { padding-bottom: 64px; }
 
   /* The sidebar already names the site. */
   .site-shell .homenav .title { visibility: hidden; }
@@ -572,3 +567,70 @@ a.linkbtn { text-decoration: none; }
 }
 @keyframes sk-shimmer { to { transform: translateX(100%); } }
 @keyframes sk-in { from { opacity: 0; } }
+
+/* ---- sidebar: search and what each place is waiting on ---- */
+.ho-search { display: flex; align-items: center; gap: 10px; height: 38px; margin: -6px 0 0; padding: 0 12px; border: 0; border-radius: 10px; background: var(--fill); color: var(--sec); font: inherit; font-size: 14px; cursor: pointer; text-align: left; }
+.ho-search:hover { color: var(--text); }
+.ho-search .kbd { margin-left: auto; }
+.ho-search:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--link); }
+.ho-side .si .cnt { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 10px; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; background: var(--bad); }
+.ho-side .si .cnt.warn { background: var(--warnbg); color: var(--warn); }
+.ho-side .si .cdot { margin-left: auto; width: 8px; height: 8px; border-radius: 4px; background: var(--warn); margin-right: 6px; }
+.ho-side .si small + .cnt, .ho-side .si small + .cdot { margin-left: 8px; }
+
+/* ---- ⌘K: search and do ---- */
+.cmdk-back { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.4); display: flex; justify-content: center; align-items: flex-start; padding: 12vh 16px 16px; }
+.cmdk { width: min(640px, 100%); max-height: 70vh; display: flex; flex-direction: column; background: var(--side); border-radius: 20px; box-shadow: inset 0 0 0 1px var(--sep), 0 40px 80px -20px rgba(0,0,0,.6); padding: 8px; }
+.cmdk-q { display: flex; align-items: center; gap: 12px; height: 54px; padding: 0 12px; color: var(--sec); border-bottom: .5px solid var(--sep); margin-bottom: 4px; flex: none; }
+.cmdk-q input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 18px; outline: none; }
+.cmdk-list { overflow-y: auto; min-height: 0; }
+.cmdk-grp { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--sec); padding: 12px 12px 4px; }
+.cmdk-row { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 12px; border-radius: 12px; cursor: pointer; }
+.cmdk-row[aria-selected="true"] { background: var(--sel); }
+.cmdk-row .av { width: 32px; height: 32px; }
+.cmdk-row .tx small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cmdk-foot { display: flex; gap: 18px; padding: 10px 12px 4px; border-top: .5px solid var(--sep); margin-top: 4px; font-size: 12.5px; color: var(--sec); flex: none; }
+
+/* ---- desktop top bar: a path, never a second copy of the title ---- */
+.nav.path { justify-content: space-between; padding-left: max(20px, env(safe-area-inset-left)); font-size: 14px; min-height: 56px; }
+.nav.path .crumbs { display: flex; align-items: center; gap: 8px; color: var(--sec); min-width: 0; }
+.nav.path .crumbs a { color: var(--link); text-decoration: none; font-weight: 500; }
+.nav.path .crumbs span:last-child { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav .kbd { margin: 0 2px; }
+
+/* ---- checklists beside the list (components/ChecklistSplit.tsx) ---- */
+.page.split-page { max-width: none; margin: 0; display: grid; grid-template-columns: minmax(320px, 380px) minmax(0, 1fr); align-items: start; }
+.split-list { position: sticky; top: 0; height: 100dvh; overflow-y: auto; box-sizing: border-box; padding: 18px 20px 40px 28px; border-right: .5px solid var(--sep); display: flex; flex-direction: column; gap: 18px; scrollbar-width: thin; }
+.split-hd { display: flex; justify-content: space-between; align-items: center; min-height: 20px; }
+.split-list .sub > div > .li { margin: 0 -10px; padding: 0 10px; border-radius: 12px; width: calc(100% + 20px); }
+.split-list .sub > div > .li:hover { background: var(--sel); }
+.split-list .sel > .li { background: var(--sel); }
+.split-list .sub > div:not(.sl) + div > .li::before { content: ''; position: absolute; top: 0; left: 66px; right: 10px; height: .5px; background: var(--sep); }
+.split-list .sel > .li::before, .split-list .sel + div > .li::before { display: none; }
+.split-main { min-width: 0; min-height: 100dvh; display: flex; flex-direction: column; }
+.split-main > .body { width: 100%; max-width: 760px; box-sizing: border-box; padding-left: 48px; padding-right: 48px; padding-bottom: 48px; }
+.split-body { gap: 20px; }
+.split-main > .foot { width: 100%; max-width: 760px; box-sizing: border-box; padding: 24px 48px 28px; background: linear-gradient(to bottom, transparent, var(--bg) 24px); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.split-main > .foot .note { text-align: left; display: flex; align-items: center; gap: 6px; }
+
+/* ---- big temperature entry, for the kitchen iPad (components/TempSheet.tsx) ---- */
+.tbig { width: 44px; height: 44px; border: 0; border-radius: 12px; background: var(--fill); color: var(--text); display: grid; place-items: center; cursor: pointer; flex: none; }
+.sheet-back { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; padding: 16px max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+@media (min-width: 700px) { .sheet-back { align-items: center; } }
+.tsheet { width: min(560px, 100%); background: var(--side); border-radius: 28px; padding: 22px 24px 18px; display: flex; flex-direction: column; gap: 22px; box-shadow: inset 0 0 0 1px var(--sep), 0 40px 80px -20px rgba(0,0,0,.6); }
+.tsheet-hd { display: flex; align-items: flex-start; gap: 12px; }
+.tsheet-hd .tx > span { font-size: 22px; font-weight: 700; letter-spacing: -.025em; }
+.tsheet-hd .tx small { font-size: 15px; }
+.tsheet-dial { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.tstep { width: 84px; height: 84px; border-radius: 42px; border: 0; background: var(--fill); color: var(--text); font: inherit; font-size: 40px; line-height: 1; cursor: pointer; flex: none; }
+.tstep:active { background: var(--sel); }
+.tread { font-size: 96px; font-weight: 600; letter-spacing: -.06em; line-height: 1; text-align: center; flex: 1; font-variant-numeric: tabular-nums; }
+.tread small { font-size: 36px; color: var(--sec); letter-spacing: -.02em; }
+.tquick { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.tquick .chip { min-width: 72px; height: 52px; font-size: 19px; border-radius: 26px; }
+.tverdict { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; border-radius: 16px; background: var(--fill); font-size: 17px; font-weight: 600; color: var(--sec); }
+.tverdict.ok { background: var(--okbg); color: var(--ok); }
+.tverdict.bad { background: var(--badbg); color: var(--bad); }
+.tsheet .btn.b1 { height: 60px; font-size: 18px; }
+.tread { white-space: nowrap; }
+@media (max-width: 500px) { .tread { font-size: 68px; } .tread small { font-size: 26px; } .tstep { width: 68px; height: 68px; font-size: 32px; } .tsheet { padding: 20px 18px 14px; gap: 18px; } }

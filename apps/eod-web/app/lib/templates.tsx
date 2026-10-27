@@ -5,7 +5,7 @@
  */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import {
-  archive, canEditList, editableTemplate, recordStatus, tradingDate, EXAMPLE_TEMPLATES, newRecord, publish, seedRecords, uniqueId,
+  addOnFor, archive, canEditList, editableTemplate, recordStatus, tradingDate, EXAMPLE_TEMPLATES, newAddOn, newRecord, publish, seedRecords, uniqueId,
   type ChecklistTemplate, type TemplateRecord,
 } from '@maginhawa/core';
 import { storage } from './storage';
@@ -20,6 +20,8 @@ interface TemplatesValue {
   recordFor: (id: string) => TemplateRecord | undefined;
   /** Starts a new list and returns its id. */
   create: (o: { scope: 'group' | 'site'; siteCode?: string; by: string }) => string;
+  /** Opens one site's own checks on a group list, starting them if needed, and returns their id. */
+  addChecks: (groupId: string, siteCode: string, by: string) => string;
   /** Saves changes to the draft, starting one from the live version if needed. */
   edit: (id: string, change: (t: ChecklistTemplate) => ChecklistTemplate) => void;
   publish: (id: string, today: string, by: string) => void;
@@ -52,6 +54,19 @@ export function TemplatesProvider({ children, initial }: { children: ReactNode; 
       const id = uniqueId(`list-${Date.now().toString(36)}`, records.map((r) => r.id));
       save((all) => [...all, newRecord({ id, ...o })]);
       return id;
+    },
+    addChecks: (groupId, siteCode, by) => {
+      const found = addOnFor(records, groupId, siteCode);
+      // Checks that were removed start again from an empty draft; nothing runs until it is published.
+      if (found && recordStatus(found, tradingDate(now(), settingsFor(siteCode))) === 'archived') {
+        update(found.id, (r) => ({ ...r, draft: { ...editableTemplate(r)!, checkpoints: [] } }));
+      }
+      if (found) return found.id;
+      const group = records.find((r) => r.id === groupId);
+      if (!group) throw new Error(`No list ${groupId}`);
+      const rec = newAddOn(group, { siteCode, by });
+      save((all) => [...all, rec]);
+      return rec.id;
     },
     edit: (id, change) => update(id, (r) => {
       const draft = change(structuredClone(editableTemplate(r)!));

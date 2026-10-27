@@ -4,10 +4,11 @@ import { useAuth } from '../../lib/auth';
 import { formatDay } from '../../lib/draft';
 import { runPath, useChecklists } from '../../lib/checklists';
 import { useSite } from '../../lib/site';
-import { Foot, Icon, ICONS } from '../ui';
+import { Icon, ICONS } from '../ui';
 import { TabBar } from '../TabBar';
 import { AllDoneHero, firstName, HomeHeader, isDone, NextChecklistHero, TaskRow, TimelineRow, useToday } from './shared';
 import { FoodSafetyRow } from '../FoodSafetyRow';
+import { Columns } from '../Columns';
 
 export function StaffHome() {
   const { user } = useAuth();
@@ -22,15 +23,18 @@ export function StaffHome() {
   return (
     <main className="page tabs">
       <HomeHeader />
-      <div className="body">
-        <div className="top">
+      <Columns
+        top={<>
           <div className="titleblock">
             <span className="eyebrow">{formatDay(businessDate)}</span>
             <h1>Hi {firstName(user?.name ?? '')}</h1>
           </div>
           {reported && <div className="banner" role="status"><Icon d={ICONS.check} size={16} /><span>Sent. Your manager can see it now.</span></div>}
+        </>}
+        hero={<>
           {focus ? <NextChecklistHero focus={focus} label="Your next checklist" /> : <AllDoneHero />}
-        </div>
+        </>}
+        main={<>
 
         {(left.length > 0 || done.length > 0) && (
           <section className="grp">
@@ -43,9 +47,10 @@ export function StaffHome() {
             </div>
           </section>
         )}
-
+        </>}
+        side={<>
         {handover.length > 0 && (
-          <section className="grp side">
+          <section className="grp">
             <div className="hd"><h2>From last night</h2>{handoverBy && <span>{handoverBy}</span>}</div>
             <div className="notecard">
               <span className="av"><Icon d={ICONS.chat} /></span>
@@ -53,11 +58,12 @@ export function StaffHome() {
             </div>
           </section>
         )}
-      </div>
-      <Foot>
+        </>}
+        actions={<>
         {focus && <Link className="btn b1" to={runPath(focus.key)}>{focus.status === 'late' || focus.status === 'missed' ? 'Do now' : 'Start'}: {focus.title}</Link>}
         <Link className="btn b2" to="/report"><Icon d={ICONS.wrench} size={17} />Report a problem</Link>
-      </Foot>
+        </>}
+      />
       <TabBar />
     </main>
   );

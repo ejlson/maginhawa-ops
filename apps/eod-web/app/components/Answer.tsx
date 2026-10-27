@@ -1,7 +1,7 @@
 /** One checklist question and its answer control: used when doing a list and in the builder's preview. */
 import { useEffect, useRef, useState } from 'react';
 import { evaluate, ruleText, type AnswerValue, type Checkpoint } from '@maginhawa/core';
-import { Icon, TempInput, nextOnEnter } from './ui';
+import { Icon, ICONS, TempInput, nextOnEnter } from './ui';
 
 /** Downscales a photo to keep it small enough to store on the device. */
 async function shrinkPhoto(file: File): Promise<string> {
@@ -73,7 +73,8 @@ function SignaturePad({ value, onChange, disabled }: { value: AnswerValue | unde
   );
 }
 
-export function Answer({ c, value, set, today, disabled }: { c: Checkpoint; value: AnswerValue | undefined; set: (v: AnswerValue) => void; today: string; disabled: boolean }) {
+/** `onBig` opens the big-target temperature entry (kitchen iPad). */
+export function Answer({ c, value, set, today, disabled, onBig }: { c: Checkpoint; value: AnswerValue | undefined; set: (v: AnswerValue) => void; today: string; disabled: boolean; onBig?: () => void }) {
   const e = evaluate(c, value, today);
   const rule = ruleText(c);
   const sub = [c.help, rule].filter(Boolean).join(' · ');
@@ -95,7 +96,11 @@ export function Answer({ c, value, set, today, disabled }: { c: Checkpoint; valu
       );
     case 'temp':
     case 'number':
-      return <label className="fr">{head}<span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>{status}<NumberAnswer c={c} value={value} onChange={set} invalid={e.passed === false} disabled={disabled} /></span></label>;
+      return (
+        <label className="fr">{head}<span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>{status}<NumberAnswer c={c} value={value} onChange={set} invalid={e.passed === false} disabled={disabled} />
+          {onBig && <button type="button" className="tbig" aria-label={`Enter ${c.title} with big buttons`} onClick={(ev) => { ev.preventDefault(); onBig(); }}><Icon d={ICONS.thermo} /></button>}
+        </span></label>
+      );
     case 'date':
       return <label className="fr">{head}<span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>{status}<input className={`in${e.passed === false ? ' bad' : ''}`} style={{ width: 160 }} type="date" aria-label={c.title} disabled={disabled} value={typeof value === 'string' ? value : ''} onChange={(ev) => set(ev.target.value || null)} /></span></label>;
     case 'text':

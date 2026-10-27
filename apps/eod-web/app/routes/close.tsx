@@ -3,8 +3,9 @@ import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@m
 import { useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
 import { EodSyncNotice } from '../components/Sync';
-import { BigMoney, Foot, Icon, ICONS, Nav, RowLink, SectionIcon, SECTION_ICONS, Segments, Toggle } from '../components/ui';
+import { BigMoney, Icon, ICONS, Nav, RowLink, SectionIcon, SECTION_ICONS, Segments, Toggle } from '../components/ui';
 import { TabBar } from '../components/TabBar';
+import { Columns } from '../components/Columns';
 
 const SALES: SectionKey[] = ['lunch', 'dinner', 'delivery', 'promotions'];
 const TEAM: SectionKey[] = ['wages', 'tips', 'feedback', 'handover'];
@@ -51,13 +52,16 @@ export default function Close() {
   return (
     <main className="page tabs">
       <Nav title={settings.siteName} right={<span className="saved"><span className="dot" />{savedAt ? `Saved ${timeHM(savedAt)}` : 'Not started'}</span>} />
-      <div className="body">
-        <div className="top">
+      <EodSyncNotice />
+      <Columns
+        top={<>
           <div className="titleblock">
             <span className="eyebrow">{formatDay(draft.businessDate)}</span>
             <h1>Today's EOD</h1>
             <p className="lead">Do the sections in any order. Everything saves on this device, even without signal.</p>
           </div>
+        </>}
+        hero={<>
           <div className="hero" role="status">
             <div className="hero-row"><span className="hl">Net so far</span><span className="hs-small">{result.covers} covers</span></div>
             <BigMoney value={result.totalNet} />
@@ -66,15 +70,17 @@ export default function Close() {
               <span className="hs-small">{progress.done} of {progress.active} sections done</span>
             </div>
           </div>
-        </div>
+        </>}
+        main={<>
 
         <section className="grp">
           <div className="hd"><h2>Sections</h2><span>{progress.done} of {progress.active}</span></div>
           <div className="sub"><div className="sl"><span>Sales</span><span>{count(SALES)}</span></div>{SALES.map(row)}</div>
           <div className="sub"><div className="sl"><span>Team &amp; notes</span><span>{count(TEAM)}</span></div>{TEAM.map(row)}</div>
         </section>
-
-        <section className="grp quiet side">
+        </>}
+        side={<>
+        <section className="grp quiet">
           <div className="sub">
             <div className="sl"><span>What ran today</span></div>
             {(['lunch', 'dinner', 'delivery'] as const).map((k) => (
@@ -92,14 +98,14 @@ export default function Close() {
             <div className="li"><span className="av"><Icon d={ICONS.cal} /></span><span className="tx"><span>{formatDay(draft.businessDate)}</span><small>Trading day · reports before {settings.dayCloseTime} count as the day before</small></span></div>
           </div>
         </section>
-      </div>
-      <EodSyncNotice />
-      <Foot>
+        </>}
+        actions={<>
         {locked ? <Link className="btn b1" to="/close/done">See today's report</Link> : next
           ? <Link className="btn b1" to={`/close/${next}`}>{progress.done === 0 ? 'Start with' : 'Continue with'} {SECTION_LABELS[next]}</Link>
           : <Link className="btn b1" to="/close/review">Review and submit</Link>}
         {!locked && next && <Link className="btn b2" to="/close/review">Review and submit · {progress.left} to go</Link>}
-      </Foot>
+        </>}
+      />
       <TabBar />
     </main>
   );
