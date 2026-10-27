@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { checkPin, lockedFor, makePinRecord, PIN_LENGTH, pinIssues } from '@maginhawa/core';
 import { initialsOf, recentPeople, remember, useAuth } from '../lib/auth';
 import { pins } from '../lib/pins';
@@ -40,7 +40,13 @@ export default function Switch() {
   const navigate = useNavigate();
   const { user, signIn } = useAuth();
   const [name, setName] = useState('');
-  const [step, setStep] = useState<Step>({ kind: 'pick' });
+  // The home screen's menu can open straight onto one person's PIN.
+  const [params] = useSearchParams();
+  const asked = params.get('who');
+  const [step, setStep] = useState<Step>(() => {
+    if (!asked || !user) return { kind: 'pick' };
+    return pins.has(user.siteCode, asked) ? { kind: 'enter', name: asked } : { kind: 'create', name: asked, first: null };
+  });
   const [msg, setMsg] = useState<{ text: string; bad: boolean } | null>(null);
   if (!user) return null;
   const site = user.siteCode;

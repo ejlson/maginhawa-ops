@@ -51,7 +51,8 @@ describe('staff home (the shared kitchen iPad)', () => {
   it('switching person on the shared iPad: a new person chooses a PIN, then it is them', async () => {
     at('2026-10-05T10:50:00Z');
     const { user } = renderApp('/', staff);
-    await user.click(screen.getByRole('link', { name: /Switch person/ }));
+    await user.click(screen.getByRole('button', { name: /Switch person/ }));
+    await user.click(screen.getByRole('menuitem', { name: 'Someone else…' }));
     await user.type(screen.getByLabelText('Someone else'), 'Alex');
     await user.click(screen.getByRole('button', { name: "I'm Alex" }));
     expect(screen.getByRole('heading', { name: 'Choose a PIN' })).toBeInTheDocument();
@@ -60,9 +61,24 @@ describe('staff home (the shared kitchen iPad)', () => {
     await user.type(screen.getByLabelText('New PIN'), '4817');
     await user.type(await screen.findByLabelText('New PIN again'), '4817');
     expect(await screen.findByRole('heading', { name: 'Hi Alex' })).toBeInTheDocument();
-    // Sam is one tap away next time, and chooses a PIN the first time too.
-    await user.click(screen.getByRole('link', { name: /Switch person/ }));
-    expect(screen.getByRole('button', { name: /Sam\s*No PIN yet/ })).toBeInTheDocument();
+    // Sam is in the menu next time; one tap goes straight to choosing a PIN.
+    await user.click(screen.getByRole('button', { name: /Switch person/ }));
+    await user.click(screen.getByRole('menuitem', { name: /Sam\s*No PIN yet/ }));
+    expect(screen.getByRole('heading', { name: 'Choose a PIN' })).toBeInTheDocument();
+  });
+
+  it('the menu opens and closes like a dropdown', async () => {
+    const { user } = renderApp('/', staff);
+    const chip = screen.getByRole('button', { name: /Switch person/ });
+    expect(chip).toHaveAttribute('aria-expanded', 'false');
+    await user.click(chip);
+    expect(screen.getByRole('menu', { name: "Who's using the iPad" })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /Sam\s*Using it now/ })).toHaveFocus();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    await user.click(chip);
+    await user.click(screen.getByRole('heading', { name: 'Hi Sam' }));
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 });
 
@@ -82,7 +98,7 @@ describe('staff PIN', () => {
     await user.type(screen.getByLabelText('Your PIN'), '1111');
     expect(await screen.findByRole('alert')).toHaveTextContent('Wrong PIN. 4 tries left.');
     await user.type(screen.getByLabelText('Your PIN'), '4817');
-    expect(await screen.findByRole('link', { name: /Alice is using this device/ })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Alice is using this device/ })).toBeInTheDocument();
   });
 
   it('locks after five wrong tries', async () => {
@@ -213,26 +229,37 @@ describe('manager home', () => {
   });
 });
 
-describe('changing role and signing out', () => {
-  it('staff can get to another role from the shared iPad', async () => {
+describe('the name menu, for every role', () => {
+  it('staff switch role from the menu on the shared iPad', async () => {
     const { user } = renderApp('/', staff);
-    await user.click(screen.getByRole('link', { name: /Switch person/ }));
-    await user.click(screen.getByRole('radio', { name: 'Manager' }));
+    await user.click(screen.getByRole('button', { name: /Switch person/ }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Manager' }));
     expect(screen.getByRole('link', { name: "Start today's EOD" })).toBeInTheDocument();
   });
 
-  it('tapping your initials opens your account instead of signing straight out', async () => {
+  it('supervisors and managers get the same menu, with their role ticked', async () => {
+    const { user } = renderApp('/', supervisor);
+    await user.click(screen.getByRole('button', { name: /Signed in as Jo/ }));
+    expect(screen.getByRole('menu', { name: 'Your account' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: 'Supervisor' })).toHaveAttribute('aria-checked', 'true');
+    // Only managers and head office look after staff PINs.
+    expect(screen.queryByRole('menuitem', { name: 'Staff PINs' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('menuitemradio', { name: 'Manager' }));
+    await user.click(screen.getByRole('button', { name: /Signed in as Jo/ }));
+    expect(screen.getByRole('menuitem', { name: 'Staff PINs' })).toBeInTheDocument();
+  });
+
+  it('signs out from the menu', async () => {
     const { user } = renderApp('/', manager);
-    await user.click(screen.getByRole('link', { name: /Signed in as Jo/ }));
-    expect(screen.getByRole('radio', { name: 'Manager' })).toHaveAttribute('aria-checked', 'true');
-    await user.click(screen.getByRole('button', { name: 'Sign out' }));
+    await user.click(screen.getByRole('button', { name: /Signed in as Jo/ }));
+    await user.click(screen.getByRole('menuitem', { name: 'Sign out' }));
     expect(screen.getByRole('heading', { name: 'Close the day' })).toBeInTheDocument();
   });
 
   it('head office gets back to a site view too', async () => {
     const { user } = renderApp('/head-office', admin);
-    await user.click(screen.getByRole('link', { name: /Signed in as Ana/ }));
-    await user.click(screen.getByRole('radio', { name: 'Supervisor' }));
+    await user.click(screen.getByRole('button', { name: /Signed in as Ana/ }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Supervisor' }));
     expect(screen.getByRole('heading', { name: /, Ana$/ })).toBeInTheDocument();
   });
 });

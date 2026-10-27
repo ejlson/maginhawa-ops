@@ -20,12 +20,7 @@ export function StaffHome() {
 
   return (
     <main className="page tabs">
-      <HomeHeader right={
-        <Link className="who" to="/switch" aria-label={`${user?.name} is using this device. Switch person`}>
-          <span className="av ink" style={{ width: 30, height: 30, fontSize: 11 }}>{user?.initials}</span>{user?.name}
-          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4" /></svg>
-        </Link>
-      } />
+      <HomeHeader />
       <div className="body">
         <div className="top">
           <div className="titleblock">

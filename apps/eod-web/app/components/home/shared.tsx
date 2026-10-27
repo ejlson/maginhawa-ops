@@ -6,6 +6,7 @@ import { useAuth } from '../../lib/auth';
 import { timeHM, useDraft } from '../../lib/draft';
 import { now } from '../../lib/clock';
 import { isUrgent, phaseSummaries, runPath, statusPill, useChecklists, type PhaseSummary, type TaskView } from '../../lib/checklists';
+import { WhoMenu } from './WhoMenu';
 import { BigMoney, Chevron, Icon, ICONS, PHASE_ICONS, Pie, RowLink, Segments, StatusIcon } from '../ui';
 
 export function greeting(d: Date) {
@@ -74,14 +75,13 @@ export function useEod() {
 }
 
 export function HomeHeader({ right }: { right?: ReactNode }) {
-  const { user } = useAuth();
   const { settings, savedAt } = useDraft();
   return (
     <header className="nav" style={{ paddingLeft: 20 }}>
       <span className="title">{settings.siteName}</span>
       {right ?? <>
         <span className="saved"><span className="dot" />{savedAt ? `Saved ${timeHM(savedAt)}` : 'On this device'}</span>
-        <Link className="av ink" style={{ width: 32, height: 32, fontSize: 12, textDecoration: 'none' }} to="/account" aria-label={`Signed in as ${user?.name}. Account`}>{user?.initials}</Link>
+        <WhoMenu />
       </>}
     </header>
   );
