@@ -83,3 +83,21 @@ let sharedPresence: DevicePresence | null = null;
 export const devicePresence = () => (sharedPresence ??= new DevicePresence());
 /** Tests start each case with a clean store. */
 export const resetDeviceStore = () => { shared = null; sharedChecklists = null; sharedPresence = null; };
+
+/**
+ * Demo mode only: wipes one site's checklists for one day so they can be done again.
+ * Other days, other sites and the EOD are left alone. Reload afterwards so the open screens re-read it.
+ */
+export function resetDemoChecklists(siteCode: string, businessDate: string) {
+  const data = storage.get<ChecklistData>('mgh.checklists.v2', { seq: 0, runs: {}, answers: {} });
+  const mine = (r: { siteCode: string; businessDate: string }) => r.siteCode === siteCode && r.businessDate === businessDate;
+  const gone = new Set(Object.entries(data.runs).filter(([, r]) => mine(r)).map(([k]) => k));
+  storage.set('mgh.checklists.v2', {
+    ...data,
+    runs: Object.fromEntries(Object.entries(data.runs).filter(([k]) => !gone.has(k))),
+    answers: Object.fromEntries(Object.entries(data.answers).filter(([, a]) => !(a.siteCode === siteCode && gone.has(a.runKey)))),
+  });
+  // This device's copy and its unsent queue, or the old answers would come straight back.
+  storage.remove(`mgh.sync.checklists.v1.${siteCode}|${businessDate}`);
+  sharedChecklists = null;
+}
