@@ -74,13 +74,13 @@ export default function ChecklistLists() {
   const live = (r: TemplateRecord) => !r.extends && recordStatus(r, businessDate) !== 'archived';
   const inGroup = (r: TemplateRecord) => live(r) && r.scope === 'group';
   const inSite = (code: string) => (r: TemplateRecord) => live(r) && r.scope === 'site' && r.siteCode === code;
-  /** A section's rows, and its Reorder / Done link when this person can change every list in it. */
+  /** A section's rows, and its Reorder link when this person can change every list in it. */
   const section = (key: string, list: TemplateRecord[], sameGroup: (r: TemplateRecord) => boolean) => {
     const can = list.length > 1 && list.every((r) => canEditList(user, r));
     const on = ordering === key && can;
     return {
       rows: on ? list.map((r, i) => orderRow(r, i, list, sameGroup)) : list.map(row),
-      toggle: can ? <button type="button" className="linkbtn" onClick={() => setOrdering(on ? null : key)}>{on ? 'Done' : 'Reorder'}</button> : null,
+      toggle: can && !ordering ? <button type="button" className="linkbtn" onClick={() => setOrdering(key)}>Reorder</button> : null,
       note: on ? <p className="note" style={{ margin: 0 }}>Lists due at the same time, and lists done when needed, show in this order on the Checklists screen.</p> : null,
     };
   };
@@ -147,7 +147,9 @@ export default function ChecklistLists() {
           </section>
         )}
       </div>
-      {(canCreateList(user, 'site') || canCreateList(user, 'group')) && (
+      {ordering ? (
+        <Foot><button type="button" className="btn b1" onClick={() => setOrdering(null)}>Finished editing</button></Foot>
+      ) : (canCreateList(user, 'site') || canCreateList(user, 'group')) && (
         <Foot><button type="button" className="btn b1" onClick={startNew}><Icon d={ICONS.plus} />New checklist</button></Foot>
       )}
     </main>

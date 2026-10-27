@@ -114,7 +114,7 @@ export default function ChecklistBuilder() {
         <section className="grp">
           <div className="hd">
             <h2>{group ? `${siteName(rec.siteCode)}'s own checks` : 'Checks'}</h2>
-            {editable && n > 1 && <button type="button" className="linkbtn" onClick={() => setReorder(!reorder)}>{reorder ? 'Done' : 'Reorder'}</button>}
+            {editable && n > 1 && !reorder && <button type="button" className="linkbtn" onClick={() => { setPicking(false); setReorder(true); }}>Reorder</button>}
           </div>
           <div className="sub">
             {group && !n && <p className="note" style={{ margin: 0 }}>Staff do these after head office's checks, at {siteName(rec.siteCode)} only.</p>}
@@ -246,7 +246,12 @@ export default function ChecklistBuilder() {
         )}
       </div>
 
-      {editable && hasDraft && (
+      {/* While reordering, the one thing to do next is finish; publishing comes after. */}
+      {reorder ? (
+        <Foot>
+          <button type="button" className="btn b1" onClick={() => setReorder(false)}>Finished editing</button>
+        </Foot>
+      ) : editable && hasDraft && (
         <Foot>
           <button type="button" className="btn b1" disabled={issues.length > 0} onClick={() => { store.publish(id, businessDate, user.name); setConfirm(null); }}>
             {issues.length ? `${issues.length} ${issues.length === 1 ? 'thing' : 'things'} to finish first` : 'Publish · starts tomorrow'}

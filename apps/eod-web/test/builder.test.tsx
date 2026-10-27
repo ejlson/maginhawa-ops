@@ -185,6 +185,9 @@ describe('building a checklist', () => {
     await user.click(screen.getByRole('button', { name: 'Move Beer cellar temperature up' }));
     const rows = screen.getAllByRole('button', { name: /up$/ }).map((b) => b.getAttribute('aria-label'));
     expect(rows.slice(0, 2)).toEqual(['Move Beer cellar temperature up', 'Move Ice machine cleaned up']);
+    await user.click(screen.getByRole('button', { name: 'Finished editing' }));
+    expect(screen.queryByRole('button', { name: /^Move / })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Publish|things? to finish/ })).toBeInTheDocument();
   });
 
   it('a choice needs two real options before it can be published', async () => {
@@ -219,14 +222,14 @@ describe('building a checklist', () => {
 describe('putting lists in order', () => {
   const names = () => screen.getAllByRole('button', { name: /^Move .* up$/ }).map((b) => b.getAttribute('aria-label')!.replace(/^Move | up$/g, ''));
 
-  it('head office moves a group list up, and Done goes back to links', async () => {
+  it('head office moves a group list up, and Finished editing goes back to links', async () => {
     const { user } = renderApp('/checklists/edit', admin);
     await user.click(screen.getByRole('button', { name: 'Reorder' }));
     expect(names()).toEqual(['Opening checks', 'Hot holding', 'Closing checks', 'Delivery check']);
     expect(screen.getByRole('button', { name: 'Move Opening checks up' })).toBeDisabled();
     await user.click(screen.getByRole('button', { name: 'Move Closing checks up' }));
     expect(names()).toEqual(['Opening checks', 'Closing checks', 'Hot holding', 'Delivery check']);
-    await user.click(screen.getByRole('button', { name: 'Done' }));
+    await user.click(screen.getByRole('button', { name: 'Finished editing' }));
     expect(screen.queryByRole('button', { name: /^Move / })).not.toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem('mgh.templates.v1')!).filter((r: { scope: string }) => r.scope === 'group').map((r: { id: string }) => r.id).slice(0, 3))
       .toEqual(['opening', 'closing', 'hothold']);
