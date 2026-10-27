@@ -634,3 +634,9 @@ a.linkbtn { text-decoration: none; }
 .tsheet .btn.b1 { height: 60px; font-size: 18px; }
 .tread { white-space: nowrap; }
 @media (max-width: 500px) { .tread { font-size: 68px; } .tread small { font-size: 26px; } .tstep { width: 68px; height: 68px; font-size: 32px; } .tsheet { padding: 20px 18px 14px; gap: 18px; } }
+
+/* The one Submit under all the checklists. */
+.submit-lists { display: flex; flex-direction: column; gap: 4px; padding: 20px 0 8px; }
+.submit-lists .btn { width: 100%; }
+.submit-lists .note { text-align: center; }
+.split-list .submit-lists { padding: 20px 16px 24px; }

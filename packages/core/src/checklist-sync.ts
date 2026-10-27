@@ -71,9 +71,9 @@ export interface ChecklistBackend {
 
 export const answerKey = (runKey: string, checkpointId: string) => `${runKey}|${checkpointId}`;
 
-/** "Finished by Jo at 21:02" */
+/** "Submitted by Jo at 21:02" */
 export const finishedByMessage = (r: Pick<RunRecord, 'completedBy' | 'completedAt'>) =>
-  `Finished by ${r.completedBy ?? 'someone else'}${r.completedAt ? ` at ${clockTime(r.completedAt)}` : ''}`;
+  `Submitted by ${r.completedBy ?? 'someone else'}${r.completedAt ? ` at ${clockTime(r.completedAt)}` : ''}`;
 
 export interface ChecklistData {
   seq: number;

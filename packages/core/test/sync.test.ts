@@ -336,7 +336,7 @@ describe('shared checklists', () => {
     const [a, b] = await Promise.all([jo.finish(run), sam.finish(run)]);
     expect([a.already, b.already].sort()).toEqual([false, true]);
     const loser = a.already ? a : b;
-    expect(loser.message).toMatch(/^Finished by (Jo|Sam) at 21:00$/);
+    expect(loser.message).toMatch(/^Submitted by (Jo|Sam) at 21:00$/);
     await jo.refresh();
     await sam.refresh();
     expect(jo.getState().runs[run.key]?.completedBy).toBe(sam.getState().runs[run.key]?.completedBy);
