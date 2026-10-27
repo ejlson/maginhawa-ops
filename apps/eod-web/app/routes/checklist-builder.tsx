@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import {
-  ANSWER_LABELS, ANSWER_TYPES, moveCheckpoint, newCheckpoint, nextDay, PHASE_LABELS, PHASES, ruleText, scheduleText, SITES,
-  templateIssues, uniqueId, type AnswerType,
+  addOnFor, ANSWER_LABELS, ANSWER_TYPES, canAddChecks, latestVersion, moveCheckpoint, newCheckpoint, nextDay, PHASE_LABELS, PHASES,
+  recordIssues, recordStatus, ruleText, scheduleText, SITES, STATUS_LABELS, uniqueId, type AnswerType, type Checkpoint,
 } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
-import { checkPath, useListEditor } from '../lib/templates';
+import { checkPath, editPath, useListEditor } from '../lib/templates';
 import { ANSWER_ICONS, Foot, Icon, ICONS, Nav, RowLink, Toggle } from '../components/ui';
 
 const TYPE_HINTS: Record<AnswerType, string> = {
@@ -21,6 +21,10 @@ const TYPE_HINTS: Record<AnswerType, string> = {
 
 const WINDOWS = [15, 30, 45, 60, 90, 120];
 
+const siteName = (code?: string) => SITES.find((s) => s.code === code)?.name ?? code ?? '';
+const checkSub = (c: Checkpoint) => [ANSWER_LABELS[c.type], ruleText(c), c.required ? null : 'Optional', c.section].filter(Boolean).join(' · ');
+const checkLead = (c: Checkpoint) => <span className="av"><Icon d={ANSWER_ICONS[c.type]} /></span>;
+
 /**
  * Builds or changes one checklist. Name at the top, the checks next, settings last.
  * Every change is saved as a draft; staff only see it once published.
@@ -35,20 +39,30 @@ export default function ChecklistBuilder() {
   const [newTime, setNewTime] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<'discard' | 'stop' | null>(null);
   if (!rec || !t || !status || !user) return <Navigate to="/checklists/edit" replace />;
+  // A site's own checks on a group list are edited here too, under the group list's name.
+  const group = rec.extends ? store.recordFor(rec.extends) : undefined;
+  const groupT = group ? latestVersion(group)?.template ?? null : null;
+  if (rec.extends && !groupT) return <Navigate to="/checklists/edit" replace />;
+  // For a manager on a group list: their site's own checks (null if none yet). Undefined elsewhere.
+  const addOn = !rec.extends && rec.scope === 'group' && user.role === 'manager' ? addOnFor(store.records, rec.id, user.siteCode) ?? null : undefined;
+  const siteAddOns = rec.scope === 'group' && user.role === 'headoffice' ? store.records.filter((r) => r.extends === rec.id) : [];
 
   const isNew = status === 'new';
   const hasDraft = isNew || status === 'draft';
-  const issues = templateIssues(t);
-  const where = rec.scope === 'group' ? 'Every site' : `${SITES.find((s) => s.code === rec.siteCode)?.name ?? rec.siteCode} only`;
+  const issues = recordIssues(rec, t);
+  const where = rec.extends ? `${siteName(rec.siteCode)} only · added to a group list` : rec.scope === 'group' ? 'Every site' : `${siteName(rec.siteCode)} only`;
+  const title = groupT?.title ?? t.title;
   const n = t.checkpoints.length;
   const tomorrow = formatDay(nextDay(businessDate));
   const [statusText, statusCls] = !editable && status !== 'archived' ? ['Live', 'h-ok']
+    : status === 'archived' && rec.extends ? ['Removed. Staff no longer see these checks', '']
     : status === 'archived' ? ['Stopped. Staff no longer see it', '']
     : status === 'starts-tomorrow' ? [rec.versions.length > 1 ? `Changes start ${tomorrow}` : `Starts ${tomorrow}`, 'h-ok']
     : status === 'live' ? ['Live', 'h-ok']
     : issues.length ? [`${issues.length} ${issues.length === 1 ? 'thing' : 'things'} to finish`, 'h-warn']
     : [`Ready to publish · starts ${tomorrow}`, 'h-ok'];
 
+  const openAddOn = () => navigate(editPath(store.addChecks(rec.id, user.siteCode, user.name)));
   const addCheck = (type: AnswerType) => {
     const cid = uniqueId(type, t.checkpoints.map((c) => c.id));
     edit((d) => ({ ...d, checkpoints: [...d.checkpoints, newCheckpoint(type, cid)] }));
@@ -64,38 +78,49 @@ export default function ChecklistBuilder() {
 
   return (
     <main className="page">
-      <Nav back="/checklists/edit" backLabel="Lists" title={t.title || 'New checklist'}
+      <Nav back={group ? editPath(group.id) : '/checklists/edit'} backLabel={group ? 'Group list' : 'Lists'} title={title || 'New checklist'}
         right={editable && hasDraft ? <span className="saved"><span className="dot warn" />Draft saved</span> : undefined} />
       <div className="body form">
         <div className="hero" role="status">
           <span className="hl">{where}{status === 'starts-tomorrow' && rec.versions.length > 1 ? ' · today runs the old version' : ''}</span>
           <label className="title-edit">
-            <input className="title-in" aria-label="Name" placeholder="Name this list" disabled={!editable} autoFocus={isNew && !t.title}
-              value={t.title} onChange={(e) => edit((d) => ({ ...d, title: e.target.value }))} />
-            {editable && <Icon d={ICONS.pen} size={16} />}
+            <input className="title-in" aria-label="Name" placeholder="Name this list" disabled={!editable || Boolean(group)} autoFocus={isNew && !t.title}
+              value={title} onChange={(e) => edit((d) => ({ ...d, title: e.target.value }))} />
+            {editable && !group && <Icon d={ICONS.pen} size={16} />}
           </label>
           <div className="hero-row hero-foot">
             <span className={`hero-next ${statusCls}`}>{statusText}</span>
-            <span className="hs-small">{n} {n === 1 ? 'check' : 'checks'} · {scheduleText(t)}</span>
+            <span className="hs-small">{group ? `${n} of your own` : `${n} ${n === 1 ? 'check' : 'checks'}`} · {scheduleText(groupT ?? t)}</span>
           </div>
         </div>
 
         {!editable && status !== 'archived' && (
-          <div className="banner" role="note"><Icon d={ICONS.bang} size={16} /><span>{rec.scope === 'group' ? 'Head office looks after this list. Ask them if something needs to change.' : 'You can see this list but not change it.'}</span></div>
+          <div className="banner" role="note"><Icon d={ICONS.bang} size={16} /><span>{
+            addOn !== undefined ? `Head office looks after this list. You can add checks of your own for ${siteName(user.siteCode)} at the end.`
+            : rec.scope === 'group' ? 'Head office looks after this list. Ask them if something needs to change.' : 'You can see this list but not change it.'
+          }</span></div>
         )}
         {editable && hasDraft && issues.length > 0 && (
           <ul className="issues" aria-label="Before you publish">{issues.map((x) => <li key={x}><Icon d={ICONS.bang} size={16} />{x}</li>)}</ul>
         )}
 
+        {groupT && (
+          <section className="grp quiet">
+            <div className="hd"><h2>From head office</h2><span>{groupT.checkpoints.length}</span></div>
+            <div className="sub">{groupT.checkpoints.map((c) => <RowLink key={c.id} lead={checkLead(c)} title={c.title} sub={checkSub(c)} />)}</div>
+          </section>
+        )}
+
         <section className="grp">
           <div className="hd">
-            <h2>Checks</h2>
+            <h2>{group ? `${siteName(rec.siteCode)}'s own checks` : 'Checks'}</h2>
             {editable && n > 1 && <button type="button" className="linkbtn" onClick={() => setReorder(!reorder)}>{reorder ? 'Done' : 'Reorder'}</button>}
           </div>
           <div className="sub">
+            {group && !n && <p className="note" style={{ margin: 0 }}>Staff do these after head office's checks, at {siteName(rec.siteCode)} only.</p>}
             {t.checkpoints.map((c, i) => {
-              const sub = [ANSWER_LABELS[c.type], ruleText(c), c.required ? null : 'Optional', c.section].filter(Boolean).join(' · ');
-              const lead = <span className="av"><Icon d={ANSWER_ICONS[c.type]} /></span>;
+              const sub = checkSub(c);
+              const lead = checkLead(c);
               const title = c.title || <span className="muted">Check {i + 1} · no question yet</span>;
               if (reorder) {
                 return (
@@ -126,7 +151,40 @@ export default function ChecklistBuilder() {
           )}
         </section>
 
-        <section className="grp">
+        {addOn !== undefined && canAddChecks(user, rec) && (() => {
+          const mine = addOn && (addOn.draft ?? latestVersion(addOn)?.template);
+          const st = addOn && recordStatus(addOn, businessDate);
+          const live = st && st !== 'archived' && mine ? mine.checkpoints : [];
+          return (
+            <section className="grp">
+              <div className="hd"><h2>{siteName(user.siteCode)}'s own checks</h2>{st && st !== 'live' && <span className={`pill ${st === 'new' || st === 'draft' ? 'p-warn' : 'p-mut'}`}>{STATUS_LABELS[st]}</span>}</div>
+              <div className="sub">
+                {live.map((c) => <RowLink key={c.id} lead={checkLead(c)} title={c.title || <span className="muted">No question yet</span>} sub={checkSub(c)} />)}
+                <RowLink onClick={openAddOn} lead={<span className="av dash"><Icon d={live.length ? ICONS.pen : ICONS.plus} /></span>}
+                  title={<span style={{ color: 'var(--link)' }}>{live.length ? 'Change these checks' : `Add checks for ${siteName(user.siteCode)}`}</span>}
+                  sub={live.length ? undefined : 'Staff do them after the checks above, at your site only'} />
+              </div>
+            </section>
+          );
+        })()}
+
+        {siteAddOns.length > 0 && (
+          <section className="grp">
+            <div className="hd"><h2>Sites' own checks</h2><span>Added by managers</span></div>
+            <div className="sub">
+              {siteAddOns.map((r) => {
+                const st = recordStatus(r, businessDate);
+                const k = (r.draft ?? latestVersion(r)?.template)?.checkpoints.length ?? 0;
+                return <RowLink key={r.id} to={editPath(r.id)} lead={<span className="av"><Icon d={ICONS.list} /></span>} title={siteName(r.siteCode)}
+                  sub={`${k} ${k === 1 ? 'check' : 'checks'} at the end`} right={st === 'live' ? null : <span className={`pill ${st === 'new' || st === 'draft' ? 'p-warn' : 'p-mut'}`}>{STATUS_LABELS[st]}</span>} />;
+              })}
+            </div>
+          </section>
+        )}
+
+        {group && groupT && <p className="note" style={{ margin: 0 }}>Runs with the group list: {groupT.who || 'staff'}, {scheduleText(groupT).toLowerCase()}. Head office sets who and when.</p>}
+
+        {!group && <section className="grp">
           <div className="gh"><h2>Who and when</h2></div>
           <label className="field"><span>Who does it</span>
             <input className="in" placeholder="e.g. Bar team" disabled={!editable} value={t.who} onChange={(e) => edit((d) => ({ ...d, who: e.target.value }))} />
@@ -176,14 +234,15 @@ export default function ChecklistBuilder() {
               </div>
             </div>
           </>}
-        </section>
+        </section>}
 
         {editable && !hasDraft && (
           <button type="button" className="linkbtn" style={{ color: 'var(--bad)', alignSelf: 'flex-start', minHeight: 44 }} onClick={() => {
             if (confirm !== 'stop') return setConfirm('stop');
             store.stop(id, businessDate);
             setConfirm(null);
-          }}>{confirm === 'stop' ? 'Tap again to stop it from tomorrow' : 'Stop using this list'}</button>
+          }}>{group ? (confirm === 'stop' ? 'Tap again to remove them from tomorrow' : `Remove ${siteName(rec.siteCode)}'s checks`)
+            : confirm === 'stop' ? 'Tap again to stop it from tomorrow' : 'Stop using this list'}</button>
         )}
       </div>
 
@@ -196,7 +255,7 @@ export default function ChecklistBuilder() {
             if (confirm !== 'discard') return setConfirm('discard');
             store.discard(id);
             setConfirm(null);
-            if (isNew) navigate('/checklists/edit');
+            if (isNew) navigate(group ? editPath(group.id) : '/checklists/edit');
           }}>{confirm === 'discard' ? 'Tap again to confirm' : isNew ? 'Delete this draft' : 'Undo my changes'}</button>
         </Foot>
       )}

@@ -22,7 +22,7 @@ describe('who can edit checklists', () => {
   it('a manager sees their site lists and the group lists, but only changes their own', async () => {
     const { user } = renderApp('/checklists/edit');
     expect(screen.getByRole('heading', { name: 'Bunso lists' })).toBeInTheDocument();
-    expect(screen.getByText('Head office looks after these. You can see them but not change them.')).toBeInTheDocument();
+    expect(screen.getByText('Head office looks after these. Open one to add checks of your own for Bunso.')).toBeInTheDocument();
     await user.click(screen.getByRole('link', { name: /Opening checks/ }));
     expect(screen.getByLabelText('Name')).toBeDisabled();
     expect(screen.getByText(/Head office looks after this list/)).toBeInTheDocument();
@@ -36,6 +36,54 @@ describe('who can edit checklists', () => {
     unmount();
     renderApp('/checklists/edit/opening', admin);
     expect(screen.getByLabelText('Name')).toBeEnabled();
+  });
+});
+
+describe("a site's own checks on a group list", () => {
+  it('a manager adds checks to a group list for their site, from tomorrow', async () => {
+    const { user, unmount } = renderApp('/checklists/edit/opening');
+    expect(screen.getByLabelText('Name')).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: /^Add checks for Bunso/ }));
+    expect(screen.getByText('Bunso only · added to a group list')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'From head office' })).toBeInTheDocument();
+    // Head office sets who and when.
+    expect(screen.queryByLabelText('Who does it')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '1 thing to finish first' })).toBeDisabled();
+
+    await user.click(screen.getByRole('button', { name: 'Add a check' }));
+    await user.click(screen.getByRole('button', { name: /^Yes \/ No/ }));
+    await user.type(screen.getByLabelText('Question'), 'Brunch menus out');
+    await user.click(screen.getByRole('button', { name: 'Done' }));
+    await user.click(screen.getByRole('button', { name: 'Publish · starts tomorrow' }));
+    expect(screen.getByText('Starts Tuesday 6 October')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('link', { name: 'Group list' }));
+    expect(screen.getByRole('heading', { name: "Bunso's own checks" })).toBeInTheDocument();
+    expect(screen.getByText('Brunch menus out')).toBeInTheDocument();
+    unmount();
+
+    renderApp('/checklists/edit');
+    expect(screen.getByText(/\+ 1 of yours, from tomorrow/)).toBeInTheDocument();
+  });
+
+  it("head office sees which sites have added checks, and staff elsewhere don't get them", async () => {
+    const { user, unmount } = renderApp('/checklists/edit/opening');
+    await user.click(screen.getByRole('button', { name: /^Add checks for Bunso/ }));
+    await user.click(screen.getByRole('button', { name: 'Add a check' }));
+    await user.click(screen.getByRole('button', { name: /^Yes \/ No/ }));
+    await user.type(screen.getByLabelText('Question'), 'Brunch menus out');
+    await user.click(screen.getByRole('button', { name: 'Done' }));
+    await user.click(screen.getByRole('button', { name: 'Publish · starts tomorrow' }));
+    unmount();
+
+    const ho = renderApp('/checklists/edit/opening', admin);
+    expect(screen.getByRole('heading', { name: "Sites' own checks" })).toBeInTheDocument();
+    expect(screen.getByText('1 check at the end')).toBeInTheDocument();
+    ho.unmount();
+
+    renderApp('/checklists/edit/opening', { ...manager, siteCode: 'GUA' });
+    expect(screen.queryByText('Brunch menus out')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Add checks for/ })).toBeInTheDocument();
   });
 });
 

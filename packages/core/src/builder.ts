@@ -27,6 +27,11 @@ export interface TemplateRecord {
   draft: ChecklistTemplate | null;
   /** First trading day the list is no longer used. */
   archivedFrom?: string;
+  /**
+   * Set when this record is one site's own checks on a group list (the group list's id).
+   * Its checks are added to the end of that list at that site only; its name and times are unused.
+   */
+  extends?: string;
 }
 
 export type RecordStatus = 'new' | 'draft' | 'starts-tomorrow' | 'live' | 'archived';
@@ -40,6 +45,11 @@ export interface Editor {
 export function canEditList(who: Editor, rec: Pick<TemplateRecord, 'scope' | 'siteCode'>): boolean {
   if (who.role === 'headoffice') return true;
   return who.role === 'manager' && rec.scope === 'site' && rec.siteCode === who.siteCode;
+}
+
+/** Managers may add their own site's checks to a group list; head office changes the list itself. */
+export function canAddChecks(who: Editor, rec: Pick<TemplateRecord, 'scope' | 'extends'>): boolean {
+  return (who.role === 'manager' || who.role === 'headoffice') && rec.scope === 'group' && !rec.extends;
 }
 
 /** Managers make lists for their own site; head office can also make group lists. */
@@ -66,6 +76,16 @@ export function seedRecords(templates: ChecklistTemplate[]): TemplateRecord[] {
 export const appliesTo = (rec: Pick<TemplateRecord, 'scope' | 'siteCode'>, siteCode: string) =>
   rec.scope === 'group' || rec.siteCode === siteCode;
 
+/** The id of one site's own checks on a group list. */
+export const addOnId = (groupId: string, siteCode: string) => `${groupId}+${siteCode.toLowerCase()}`;
+
+/** One site's own checks on a group list, if it has any. */
+export const addOnFor = (records: TemplateRecord[], groupId: string, siteCode: string) =>
+  records.find((r) => r.extends === groupId && r.siteCode === siteCode);
+
+/** Ids of a site's added checks, as staff see them: kept apart from head office's ids. */
+export const addedCheckId = (id: string) => `site-${id}`;
+
 /** The version staff use on a trading day, or null if the list isn't running then. */
 export function versionOn(rec: TemplateRecord, date: string): TemplateVersion | null {
   if (rec.archivedFrom && rec.archivedFrom <= date) return null;
@@ -75,9 +95,21 @@ export function versionOn(rec: TemplateRecord, date: string): TemplateVersion | 
   return null;
 }
 
-/** The lists a site runs on a trading day. */
+/**
+ * The lists a site runs on a trading day. A group list carries the site's own checks, if it has
+ * any running that day, after head office's.
+ */
 export function activeTemplates(records: TemplateRecord[], siteCode: string, date: string): ChecklistTemplate[] {
-  return records.filter((r) => appliesTo(r, siteCode)).map((r) => versionOn(r, date)?.template).filter((t): t is ChecklistTemplate => Boolean(t));
+  return records.filter((r) => !r.extends && appliesTo(r, siteCode)).flatMap((r) => {
+    const t = versionOn(r, date)?.template;
+    if (!t) return [];
+    const extra = r.scope === 'group' ? addOnFor(records, r.id, siteCode) : undefined;
+    const added = (extra && versionOn(extra, date)?.template.checkpoints) || [];
+    if (!added.length) return [t];
+    const taken = new Set(t.checkpoints.map((c) => c.id));
+    const mine = added.map((c) => ({ ...c, id: addedCheckId(c.id) })).filter((c) => !taken.has(c.id));
+    return [{ ...t, checkpoints: [...t.checkpoints, ...mine] }];
+  });
 }
 
 export const latestVersion = (rec: TemplateRecord) => rec.versions[rec.versions.length - 1] ?? null;
@@ -87,8 +119,9 @@ export const editableTemplate = (rec: TemplateRecord): ChecklistTemplate | null 
 
 export function recordStatus(rec: TemplateRecord, today: string): RecordStatus {
   if (!rec.versions.length) return 'new';
-  if (rec.archivedFrom && rec.archivedFrom <= nextDay(today)) return 'archived';
+  // Stopping clears the draft, so a draft here is a stopped list being started again.
   if (rec.draft) return 'draft';
+  if (rec.archivedFrom && rec.archivedFrom <= nextDay(today)) return 'archived';
   return latestVersion(rec)!.startsOn > today ? 'starts-tomorrow' : 'live';
 }
 
@@ -102,6 +135,16 @@ export function newTemplate(o: { id: string; scope: 'group' | 'site'; siteCode?:
 
 export function newRecord(o: { id: string; scope: 'group' | 'site'; siteCode?: string; by: string }): TemplateRecord {
   return { id: o.id, scope: o.scope, siteCode: o.scope === 'site' ? o.siteCode : undefined, createdBy: o.by, versions: [], draft: newTemplate(o) };
+}
+
+/** Starts one site's own checks on a group list, with none yet. */
+export function newAddOn(group: TemplateRecord, o: { siteCode: string; by: string }): TemplateRecord {
+  const base = editableTemplate(group)!;
+  const id = addOnId(group.id, o.siteCode);
+  return {
+    id, scope: 'site', siteCode: o.siteCode, extends: group.id, createdBy: o.by, versions: [],
+    draft: { ...base, id, scope: 'site', siteCode: o.siteCode, checkpoints: [] },
+  };
 }
 
 /** Sensible starting rules for each kind of answer. Limits are left blank: the manager sets them. */
@@ -168,6 +211,18 @@ export function checkpointIssues(c: Checkpoint, n: number): string[] {
   return issues;
 }
 
+/** What must be fixed before a site's own checks on a group list can be published. Empty = ready. */
+export function addOnIssues(t: ChecklistTemplate): string[] {
+  const issues: string[] = [];
+  if (!t.checkpoints.length) issues.push('Add at least one check');
+  if (new Set(t.checkpoints.map((c) => c.id)).size !== t.checkpoints.length) issues.push('Two checks share an id');
+  t.checkpoints.forEach((c, i) => issues.push(...checkpointIssues(c, i + 1)));
+  return issues;
+}
+
+/** What must be fixed before this record's draft can be published. */
+export const recordIssues = (rec: Pick<TemplateRecord, 'extends'>, t: ChecklistTemplate) => (rec.extends ? addOnIssues(t) : templateIssues(t));
+
 /** Everything that must be fixed before a list can be published. Empty = ready. */
 export function templateIssues(t: ChecklistTemplate): string[] {
   const issues: string[] = [];
@@ -206,7 +261,7 @@ export function cleanTemplate(t: ChecklistTemplate): ChecklistTemplate {
  */
 export function publish(rec: TemplateRecord, o: { today: string; by: string; at: string }): TemplateRecord {
   if (!rec.draft) throw new Error('Nothing to publish');
-  const issues = templateIssues(rec.draft);
+  const issues = recordIssues(rec, rec.draft);
   if (issues.length) throw new Error(`Not ready to publish: ${issues[0]}`);
   const startsOn = nextDay(o.today);
   const template = cleanTemplate(rec.draft);

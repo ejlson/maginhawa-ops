@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  activeTemplates, archive, canCreateList, canEditList, changeType, cleanTemplate, editableTemplate, moveCheckpoint, newCheckpoint,
-  newRecord, nextDay, publish, recordStatus, scheduleText, seedRecords, templateIssues, uniqueId, versionOn, type TemplateRecord,
+  activeTemplates, addOnFor, addOnId, archive, canAddChecks, canCreateList, canEditList, changeType, cleanTemplate, editableTemplate, moveCheckpoint, newCheckpoint,
+  newAddOn, newRecord, nextDay, publish, recordIssues, recordStatus, scheduleText, seedRecords, templateIssues, uniqueId, versionOn, type TemplateRecord,
 } from '../src/builder';
 import { EXAMPLE_TEMPLATES, type ChecklistTemplate } from '../src/checklists';
 
@@ -137,5 +137,67 @@ describe('editing checks', () => {
     expect(uniqueId('Bar opening!', ['bar-opening'])).toBe('bar-opening-2');
     expect(uniqueId('', [])).toBe('list');
     expect(nextDay('2026-12-31')).toBe('2027-01-01');
+  });
+});
+
+describe("a site's own checks on a group list", () => {
+  const bunsoManager = { role: 'manager', siteCode: 'BUN' };
+  const opening = () => records().find((r) => r.id === 'opening')!;
+  const withChecks = (titles: string[]): TemplateRecord => {
+    const rec = newAddOn(opening(), { siteCode: 'BUN', by: 'Jo' });
+    return { ...rec, draft: { ...rec.draft!, checkpoints: titles.map((title, i) => ({ ...newCheckpoint('yesno', `c${i}`), title })) } };
+  };
+  const ids = (all: TemplateRecord[], site: string, date: string) =>
+    activeTemplates(all, site, date).find((t) => t.id === 'opening')!.checkpoints.map((c) => c.id);
+
+  it('managers add checks to group lists, and edit only their own site\'s', () => {
+    expect(canAddChecks(bunsoManager, opening())).toBe(true);
+    expect(canAddChecks({ role: 'supervisor', siteCode: 'BUN' }, opening())).toBe(false);
+    const rec = newAddOn(opening(), { siteCode: 'BUN', by: 'Jo' });
+    expect(rec).toMatchObject({ id: addOnId('opening', 'BUN'), scope: 'site', siteCode: 'BUN', extends: 'opening' });
+    expect(canEditList(bunsoManager, rec)).toBe(true);
+    expect(canEditList({ role: 'manager', siteCode: 'GUA' }, rec)).toBe(false);
+    expect(canAddChecks(bunsoManager, rec)).toBe(false);
+  });
+
+  it('only needs checks to publish, not a name or times', () => {
+    const empty = newAddOn(opening(), { siteCode: 'BUN', by: 'Jo' });
+    expect(recordIssues(empty, empty.draft!)).toEqual(['Add at least one check']);
+    const rec = withChecks(['Brunch menus out']);
+    expect(recordIssues(rec, { ...rec.draft!, title: '', who: '' })).toEqual([]);
+  });
+
+  it("adds the checks after head office's, at that site only, from the next trading day", () => {
+    const base = ids(records(), 'BUN', today);
+    const all = [...records().filter((r) => r.id !== 'opening'), opening(), publish(withChecks(['Brunch menus out']), { today, ...by })];
+    expect(ids(all, 'BUN', today)).toEqual(base);
+    expect(ids(all, 'BUN', tomorrow)).toEqual([...base, 'site-c0']);
+    expect(ids(all, 'GUA', tomorrow)).toEqual(ids(records(), 'GUA', tomorrow));
+    expect(activeTemplates(all, 'BUN', tomorrow)).toHaveLength(5);
+    expect(addOnFor(all, 'opening', 'BUN')?.extends).toBe('opening');
+  });
+
+  it("follows head office's changes, and stops with the group list", () => {
+    const extra = publish(withChecks(['Brunch menus out']), { today, ...by });
+    const changed = publish({ ...opening(), draft: { ...editableTemplate(opening())!, times: ['08:30'] } }, { today, ...by });
+    const merged = activeTemplates([changed, extra], 'BUN', tomorrow)[0]!;
+    expect(merged.times).toEqual(['08:30']);
+    expect(merged.checkpoints.at(-1)!.title).toBe('Brunch menus out');
+    expect(activeTemplates([archive(changed, tomorrow), extra], 'BUN', nextDay(tomorrow))).toEqual([]);
+  });
+
+  it('removing them takes them off from the next trading day', () => {
+    const extra = archive(publish(withChecks(['Brunch menus out']), { today, ...by }), tomorrow);
+    expect(ids([opening(), extra], 'BUN', tomorrow)).toContain('site-c0');
+    expect(ids([opening(), extra], 'BUN', nextDay(tomorrow))).not.toContain('site-c0');
+  });
+
+  it('removed checks can be started again; nothing runs until they are published', () => {
+    const removed = archive(publish(withChecks(['Brunch menus out']), { today, ...by }), today);
+    expect(recordStatus(removed, today)).toBe('archived');
+    const again = { ...removed, draft: { ...editableTemplate(removed)!, checkpoints: [{ ...newCheckpoint('yesno', 'c9'), title: 'Patio heaters off' }] } };
+    expect(recordStatus(again, today)).toBe('draft');
+    expect(ids([opening(), again], 'BUN', tomorrow)).not.toContain('site-c9');
+    expect(ids([opening(), publish(again, { today, ...by })], 'BUN', tomorrow)).toContain('site-c9');
   });
 });
