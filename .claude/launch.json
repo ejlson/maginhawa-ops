@@ -68,6 +68,15 @@
         "/Users/ethanjameslegson/Work/Maginhawa/MaginhawaApp/design/report-builder"
       ],
       "port": 4190
+    },
+    {
+      "name": "eod-web-shared",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:shared"
+      ],
+      "port": 5180
     }
   ]
 }

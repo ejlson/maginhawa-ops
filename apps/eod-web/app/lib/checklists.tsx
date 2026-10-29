@@ -14,7 +14,7 @@ import { now } from './clock';
 import { useTemplates } from './templates';
 import { useAuth } from './auth';
 import { batchDelayMs, checklistBackend, deviceId, presenceRemote, useLive } from './sync';
-import { isConnected } from './config';
+import { usesServer } from './config';
 import { deviceChecklistStore } from './store';
 
 export interface TaskView extends Task {
@@ -61,7 +61,7 @@ export function ChecklistsProvider({ siteCode, children }: { siteCode: string; c
     backend: checklistBackend(), siteCode, businessDate, user: who, deviceId: deviceId(),
     storage, presence: presenceRemote(), now, batchDelayMs: batchDelayMs(),
     // Demo mode: the "server" is on this device, so today's answers can show straight away.
-    initial: isConnected() ? undefined : deviceChecklistStore().changesNow(siteCode, businessDate, 0),
+    initial: usesServer() ? undefined : deviceChecklistStore().changesNow(siteCode, businessDate, 0),
   }), [siteCode, businessDate, who]);
   useLive(client, `checklists:${siteCode}|${businessDate}`);
   const sync = useSyncExternalStore(client.subscribe, client.getState, client.getState);
@@ -121,12 +121,12 @@ export function ChecklistsProvider({ siteCode, children }: { siteCode: string; c
   // Yesterday's runs: read straight away in demo mode, fetched once in connected mode.
   const yesterday = addDays(businessDate, -1);
   const [oldRuns, setOldRuns] = useState<ChecklistRun[]>(() => {
-    if (isConnected()) return [];
+    if (usesServer()) return [];
     const c = deviceChecklistStore().changesNow(siteCode, yesterday, 0);
     return Object.values(buildRuns(c.runs, c.answers));
   });
   useEffect(() => {
-    if (!isConnected()) return;
+    if (!usesServer()) return;
     let live = true;
     checklistBackend().changes(siteCode, yesterday, 0)
       .then((c) => { if (live) setOldRuns(Object.values(buildRuns(c.runs, c.answers))); })

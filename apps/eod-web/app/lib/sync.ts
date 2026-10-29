@@ -3,6 +3,7 @@
  * clients from @maginhawa/core; this file picks what sits behind them:
  *
  * - Connected: the Netlify Functions (eod-draft, submit-eod, checklist-sync, presence).
+ * - Shared test mode: the same functions on the laptop running `npm run dev:shared`, with demo sign-in.
  * - Demo: the same rules on this device (lib/store.ts), so two tabs act as two devices.
  *
  * Live updates come through a LiveTransport: polling every 10 s (30 s when idle) and on focus for now.
@@ -11,12 +12,14 @@
 import { demoDefinitions } from './definition';
 import { useEffect } from 'react';
 import {
-  ManualTransport, PollingTransport, SyncError, storeRemote, submitReport,
+  DEV_USER_HEADER, ManualTransport, PollingTransport, SITES, SyncError, storeRemote, submitReport,
   type ChecklistBackend, type ChecklistOp, type EodDraft, type EodRemote, type LiveTransport, type PresenceRemote, type SiteSettings, type SubmitResult,
 } from '@maginhawa/core';
-import { config, isConnected } from './config';
+import { config, isSharedDev, usesServer } from './config';
 import { now } from './clock';
 import { deviceChecklistStore, devicePresence, deviceStore } from './store';
+import { storage } from './storage';
+import type { User } from './auth';
 
 export const uuid = () => (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12));
 
@@ -35,8 +38,17 @@ export function deviceId(): string {
 
 // ── connected: the Netlify Functions ───────────────────────────────────
 
+/** Shared test mode: the local server trusts the demo sign-in sent in this header. */
+function devUser(): Record<string, string> {
+  if (!isSharedDev()) return {};
+  const u = storage.get<User | null>('mgh.user', null);
+  if (!u) return {};
+  const siteCodes = u.role === 'headoffice' ? SITES.map((s) => s.code) : [u.siteCode];
+  return { [DEV_USER_HEADER]: encodeURIComponent(JSON.stringify({ name: u.name, role: u.role, siteCodes })) };
+}
+
 /** Sign-in token goes here once Entra ID is connected. */
-const headers = (): Record<string, string> => ({ 'Content-Type': 'application/json' });
+const headers = (): Record<string, string> => ({ 'Content-Type': 'application/json', ...devUser() });
 
 async function call(path: string, init: RequestInit = {}): Promise<Response> {
   const res = await fetch(`${config.apiBase}/${path}`, { ...init, headers: { ...headers(), ...(init.headers as Record<string, string> | undefined) } });
@@ -96,7 +108,7 @@ const httpPresence: PresenceRemote = {
 // ── what the screens use ───────────────────────────────────────────────
 
 export function eodRemote(settingsFor: (siteCode: string) => SiteSettings): EodRemote {
-  if (isConnected()) return httpEod;
+  if (usesServer()) return httpEod;
   const store = deviceStore();
   return storeRemote(
     store,
@@ -105,10 +117,10 @@ export function eodRemote(settingsFor: (siteCode: string) => SiteSettings): EodR
   );
 }
 
-export const checklistBackend = (): ChecklistBackend => (isConnected() ? httpChecklists : deviceChecklistStore());
-export const presenceRemote = (): PresenceRemote => (isConnected() ? httpPresence : devicePresence());
+export const checklistBackend = (): ChecklistBackend => (usesServer() ? httpChecklists : deviceChecklistStore());
+export const presenceRemote = (): PresenceRemote => (usesServer() ? httpPresence : devicePresence());
 /** Answers are batched for a second in connected mode (scalability rule 1), sent straight away in demo mode. */
-export const batchDelayMs = () => (isConnected() ? 1000 : 0);
+export const batchDelayMs = () => (usesServer() ? 1000 : 0);
 
 /** Tests poke this to simulate "another device changed something". */
 export const testTransport = new ManualTransport();
