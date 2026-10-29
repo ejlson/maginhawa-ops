@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { hasLeft, SITES, tradingDate } from '@maginhawa/core';
 import { can, homeFor, recentPeople, ROLE_LABELS, useAuth, type Role } from '../../lib/auth';
-import { isConnected } from '../../lib/config';
+import { isConnected, isSharedDev } from '../../lib/config';
 import { pins } from '../../lib/pins';
 import { resetDemoChecklists, resetDemoEod } from '../../lib/store';
 import { people } from '../../lib/people';
@@ -87,7 +87,7 @@ export function WhoMenu() {
                 {label}{user.role === r && <Icon d={ICONS.check} size={18} />}
               </button>
             ))}
-            {user.role !== 'headoffice' && <>
+            {user.role !== 'headoffice' && !isSharedDev() && <>
               <div className="menusep" role="separator" />
               <button type="button" role="menuitem" className="menuitem small" onClick={resetChecklists}>
                 <span className="tx"><span>Reset today's checklists</span><small>Demo only. Clears {site}'s answers for today</small></span>

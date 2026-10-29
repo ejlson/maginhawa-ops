@@ -1,7 +1,7 @@
 import { Link, Navigate } from 'react-router';
 import { formatPounds, splitPounds } from '@maginhawa/core';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
-import { isConnected } from '../lib/config';
+import { isConnected, isSharedDev } from '../lib/config';
 import { Foot, Icon, ICONS } from '../components/ui';
 
 export default function Done() {
@@ -28,7 +28,7 @@ export default function Done() {
         <section className="grp">
           <div className="hd"><h2>What happens next</h2></div>
           <div className="sub">
-            <div className="li"><span className="av ok"><Icon d={ICONS.check} size={17} /></span><span className="tx"><span>{isConnected() ? 'Received by head office' : 'Saved on this device'}</span><small>{at}{warns.length ? ` · ${warns.length} ${warns.length === 1 ? 'note' : 'notes'} for finance` : ''}</small></span></div>
+            <div className="li"><span className="av ok"><Icon d={ICONS.check} size={17} /></span><span className="tx"><span>{isConnected() ? 'Received by head office' : isSharedDev() ? 'Saved on the test server' : 'Saved on this device'}</span><small>{at}{warns.length ? ` · ${warns.length} ${warns.length === 1 ? 'note' : 'notes'} for finance` : ''}</small></span></div>
             <div className="li"><span className="av"><Icon d={ICONS.chart} /></span><span className="tx"><span>Figures checked again</span><small>{formatPounds(o.totalNet)} net · {o.covers} covers · wages {o.wagePct ?? '—'}%</small></span></div>
             {report.draft.handover.length > 0 && <div className="li"><span className="av"><Icon d={ICONS.arrow} /></span><span className="tx"><span>Handover waits for the opener</span><small>{report.draft.handover.length} for tomorrow morning</small></span></div>}
             {repairs > 0 && <div className="li"><span className="av warn"><Icon d={ICONS.wrench} size={17} /></span><span className="tx"><span>Repair raised</span><small>{repairs} from feedback</small></span></div>}

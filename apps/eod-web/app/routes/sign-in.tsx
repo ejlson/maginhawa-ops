@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import { SITES } from '@maginhawa/core';
 import { homeFor, initialsOf, ROLE_LABELS, useAuth, type Role } from '../lib/auth';
-import { isConnected } from '../lib/config';
+import { isConnected, isSharedDev } from '../lib/config';
 import { Icon, ICONS } from '../components/ui';
 
 export default function SignIn() {
@@ -36,7 +36,9 @@ export default function SignIn() {
         {!isConnected() && (
           <div className="banner" role="note">
             <Icon d={ICONS.bang} size={16} />
-            <span>Demo mode. Reports stay on this device. Microsoft sign-in replaces this screen once Entra ID is connected.</span>
+            <span>{isSharedDev()
+              ? 'Shared test mode. Reports and checklists are kept on the laptop running the test server, so every device on this Wi‑Fi sees the same site. Examples only, not real figures.'
+              : 'Demo mode. Reports stay on this device. Microsoft sign-in replaces this screen once Entra ID is connected.'}</span>
           </div>
         )}
 

@@ -10,7 +10,7 @@ import {
   type DayResult, type EodDraft, type EodSyncState, type Issue, type SectionKey, type SiteSettings, type StoredReport, type SubmitErrorCode,
 } from '@maginhawa/core';
 import { deviceStore } from './store';
-import { isConnected } from './config';
+import { usesServer } from './config';
 import { useAuth } from './auth';
 import { now as clockNow } from './clock';
 import { storage } from './storage';
@@ -54,7 +54,7 @@ export function DraftProvider({ siteCode, now, children }: { siteCode: string; n
     siteCode, businessDate, user: who, deviceId: deviceId(),
     blank: () => newDraft({ clientId: uuid(), siteCode, businessDate, platformIds: settings.platforms.filter((p) => p.active).map((p) => p.id) }),
     // Demo mode: the "server" is on this device, so the saved report can show straight away.
-    initial: isConnected() ? null : deviceStore().peek(siteCode, businessDate),
+    initial: usesServer() ? null : deviceStore().peek(siteCode, businessDate),
     storage, presence: presenceRemote(), newId: uuid, now: clockNow,
   }), [siteCode, businessDate, who, settings]);
   useLive(client, `eod:${siteCode}|${businessDate}`);

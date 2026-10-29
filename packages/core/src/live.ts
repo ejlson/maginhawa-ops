@@ -134,3 +134,9 @@ export const memoryKeyValue = (): KeyValue => {
     set: (k: string, v: unknown) => m.set(k, JSON.stringify(v)),
   };
 };
+
+/**
+ * Shared test mode only (never deployed): who the demo sign-in says is calling, as
+ * encodeURIComponent(JSON.stringify({ name, role, siteCodes })). The local server trusts it.
+ */
+export const DEV_USER_HEADER = 'X-Maginhawa-Dev-User';

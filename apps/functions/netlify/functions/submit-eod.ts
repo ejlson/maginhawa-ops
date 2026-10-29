@@ -7,10 +7,14 @@
  */
 import { createSubmitHandler } from '../../src/handler';
 import { blobsVersionIndex } from '../../src/version-index';
+import { devSendEmail, devSettingsFor, sharedDev } from '../../src/dev-shared';
 
 const required = ['ENTRA_TENANT_ID', 'ENTRA_CLIENT_ID', 'ENTRA_CLIENT_SECRET', 'SHAREPOINT_SITE_ID', 'MAIL_FROM', 'MAIL_TO'] as const;
 
 export default async (req: Request): Promise<Response> => {
+  // Shared test mode (local only, never deployed): see README.
+  const dev = sharedDev();
+  if (dev) return createSubmitHandler({ authenticate: dev.authenticate, store: dev.eod, settingsFor: devSettingsFor, sendEmail: devSendEmail, index: dev.index })(req);
   const missing = required.filter((k) => !process.env[k]);
   if (missing.length) {
     return new Response(JSON.stringify({ error: 'The server is not connected to SharePoint yet. Your report is saved on this device.', missing }), {
