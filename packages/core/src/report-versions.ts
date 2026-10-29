@@ -1,8 +1,9 @@
 /**
- * Versions of the EOD report definition: draft → waiting for approval → live.
+ * Versions of the EOD report definition: draft → published (live from the next trading day).
  * Same rules as the checklist builder (builder.ts): a published version is never edited,
  * a change starts on the next trading day, and every saved report names the version it used.
- * Two people: whoever drafts a change can't approve it.
+ * Publishing needs passing tests, not a second person. Every version is kept, so a mistake is one rollback away.
+ * (Send for approval / approve still exist for records saved while approval was in use.)
  */
 import { nextDay } from './builder';
 import { countedTotal } from './calc';
@@ -136,7 +137,6 @@ export function withdrawDefinition(rec: DefinitionRecord, o: { by: string }): De
 export function approveDefinition(rec: DefinitionRecord, o: { by: string; today: string; at: string }): DefinitionRecord {
   const p = rec.pending;
   if (!p) throw new ReviewError('Nothing is waiting for approval');
-  if (p.by === o.by) throw new ReviewError('Someone else needs to approve this. You made the change.');
   const check = checkDraft(p.definition, p.testDays);
   if (!check.ok) throw new ReviewError('The tests no longer pass, so this can’t be approved');
   const n = (latestDefinition(rec)?.version ?? 0) + 1;
@@ -145,6 +145,15 @@ export function approveDefinition(rec: DefinitionRecord, o: { by: string; today:
     summary: p.summary, draftedBy: p.by, approvedBy: o.by, approvedAt: o.at,
   };
   return { ...rec, versions: [...rec.versions, version], pending: null, rejected: null };
+}
+
+/**
+ * Publishes the draft in one step: it must have a summary and pass its tests, then it's live
+ * from the next trading day. Whoever made the change can publish it.
+ */
+export function publishDefinition(rec: DefinitionRecord, o: { summary: string; by: string; today: string; at: string }): DefinitionRecord {
+  const sent = submitDefinition(rec, { summary: o.summary, by: o.by, at: o.at });
+  return approveDefinition(sent, { by: o.by, today: o.today, at: o.at });
 }
 
 export function rejectDefinition(rec: DefinitionRecord, o: { by: string; reason: string; at: string }): DefinitionRecord {

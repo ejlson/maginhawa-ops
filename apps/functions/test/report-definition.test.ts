@@ -54,17 +54,25 @@ describe('report-definition', () => {
     expect(etag).toBe('"1"');
   });
 
-  it('runs the whole journey: draft, submit, approve by someone else, live tomorrow', async () => {
+  it('runs the whole journey: draft, publish, live tomorrow; one person is enough', async () => {
     const s = setup();
     expect((await s.send('ana', 'PUT', { definition: withFees(), testDays: [VERIFIED_TEST_DAY] })).body.status).toBe('draft');
-    expect((await s.send('ana', 'POST', { action: 'submit', summary: 'Card fees' })).body.status).toBe('waiting');
-    expect((await s.send('ana', 'POST', { action: 'approve' }))).toMatchObject({ status: 422, body: { error: 'Someone else needs to approve this. You made the change.' } });
-    const ok = await s.send('ben', 'POST', { action: 'approve' });
+    const ok = await s.send('ana', 'POST', { action: 'publish', summary: 'Card fees' });
     expect(ok.status).toBe(200);
     expect(ok.body).toMatchObject({ status: 'starts-tomorrow', live: 1 });
-    expect(ok.body.record.versions.at(-1)).toMatchObject({ version: 2, startsOn: '2026-11-03', draftedBy: 'Ana', approvedBy: 'Ben' });
+    expect(ok.body.record.versions.at(-1)).toMatchObject({ version: 2, startsOn: '2026-11-03', draftedBy: 'Ana', approvedBy: 'Ana', summary: 'Card fees' });
   });
-
+  it('publishing needs a summary and passing tests', async () => {
+    const s = setup();
+    await s.send('ana', 'PUT', { definition: withFees(), testDays: [VERIFIED_TEST_DAY] });
+    expect(await s.send('ana', 'POST', { action: 'publish', summary: '' })).toMatchObject({ status: 422, body: { error: expect.stringMatching(/Say what changed/) } });
+  });
+  it('a change sent for approval under the old two-step flow can still be approved, by anyone in head office', async () => {
+    const s = setup();
+    await s.send('ana', 'PUT', { definition: withFees(), testDays: [VERIFIED_TEST_DAY] });
+    expect((await s.send('ana', 'POST', { action: 'submit', summary: 'Card fees' })).body.status).toBe('waiting');
+    expect((await s.send('ana', 'POST', { action: 'approve' })).body.status).toBe('starts-tomorrow');
+  });
   it('turns down, withdraws, discards and rolls back', async () => {
     const s = setup();
     await s.send('ana', 'PUT', { definition: withFees(), testDays: [VERIFIED_TEST_DAY] });

@@ -2,16 +2,16 @@
  * /report-definition: the report builder's back end.
  *   GET                                  → the record, today's status and the live version
  *   PUT  { definition, testDays }        → save the draft
- *   POST { action: 'submit', summary }   → send for approval
- *   POST { action: 'withdraw' | 'discard' }
- *   POST { action: 'approve' }           → a second person; live from the next trading day
- *   POST { action: 'reject', reason }
+ *   POST { action: 'publish', summary }  → live from the next trading day (tests must pass)
+ *   POST { action: 'discard' }
  *   POST { action: 'rollback', to, reason }
+ * Older two-step actions still work for records saved while approval was used:
+ *   POST { action: 'submit', summary } · { action: 'approve' } · { action: 'reject', reason } · { action: 'withdraw' }
  * Head office only. Every write is conditional on the ETag the caller last saw, so two
  * people editing at once can't overwrite each other.
  */
 import {
-  ReviewError, approveDefinition, definitionOn, definitionStatus, discardDefinitionDraft, rejectDefinition,
+  ReviewError, approveDefinition, publishDefinition, definitionOn, definitionStatus, discardDefinitionDraft, rejectDefinition,
   rollbackDefinition, saveDefinitionDraft, submitDefinition, tradingDate, withdrawDefinition,
   type DefinitionRecord, type ReportDefinition, type SiteSettings, type TestDay,
 } from '@maginhawa/core';
@@ -98,6 +98,7 @@ export function createDefinitionHandler(deps: DefinitionDeps, key = 'eod') {
           case 'submit': next = submitDefinition(r, { summary: String(body.summary ?? ''), by: caller.name, at }); break;
           case 'withdraw': next = withdrawDefinition(r, { by: caller.name }); break;
           case 'discard': next = discardDefinitionDraft(r); break;
+          case 'publish': next = publishDefinition(r, { summary: String(body.summary ?? ''), by: caller.name, today, at }); break;
           case 'approve': next = approveDefinition(r, { by: caller.name, today, at }); break;
           case 'reject': next = rejectDefinition(r, { by: caller.name, reason: String(body.reason ?? ''), at }); break;
           case 'rollback': next = rollbackDefinition(r, { to: Number(body.to), by: caller.name, reason: String(body.reason ?? ''), today, at }); break;

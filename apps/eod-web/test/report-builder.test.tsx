@@ -1,11 +1,11 @@
 /**
  * The report builder inside the app (head office only): the prototype's key interactions, then saving,
- * approval by a second person, conflicts, roll back, and the whole journey to a manager's EOD.
+ * publishing (no second person needed), conflicts, roll back, and the whole journey to a manager's EOD.
  * Demo mode: the record is saved on the device under 'mgh.definitions'. All figures are examples.
  */
 import { describe, expect, it } from 'vitest';
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
-import { EOD_DEFINITION, saveDefinitionDraft, updateFigure, type DefinitionRecord } from '@maginhawa/core';
+import { EOD_DEFINITION, VERIFIED_TEST_DAY, saveDefinitionDraft, seedDefinitionRecord, submitDefinition, updateFigure, type DefinitionRecord } from '@maginhawa/core';
 import { setNow } from '../app/lib/clock';
 import { demoDefinitions, setDemoDefinitions } from '../app/lib/definition';
 import type { User } from '../app/lib/auth';
@@ -56,7 +56,7 @@ describe('loading', () => {
     expect(text('#heroTests')).toBe('8 of 8');
     expect(text('#heroChanges')).toBe('No changes');
     expect(screen.getByRole('status', { name: 'Status: Live' })).toBeInTheDocument();
-    for (const b of screen.getAllByRole('button', { name: 'Send for approval' })) expect(b).toBeDisabled();
+    for (const b of screen.getAllByRole('button', { name: 'Publish' })) expect(b).toBeDisabled();
   });
 
   it('draws a dozen cards in four labelled columns: six sections and six calculation groups', async () => {
@@ -309,11 +309,11 @@ describe('tests', () => {
     await user.keyboard('{Escape}');
     expect(text('#heroTests')).toBe('3 of 8');
     expect(screen.getByText('5 tests failing')).toBeInTheDocument();
-    for (const b of screen.getAllByRole('button', { name: 'Send for approval' })) expect(b).toBeDisabled();
+    for (const b of screen.getAllByRole('button', { name: 'Publish' })) expect(b).toBeDisabled();
     while (screen.queryAllByRole('button', { name: 'It’s right, update' }).length) await user.click(screen.getAllByRole('button', { name: 'It’s right, update' })[0]!);
     expect(text('#heroTests')).toBe('8 of 8');
     expect(changes()).toContain('Changed the expected Lunch net');
-    for (const b of screen.getAllByRole('button', { name: 'Send for approval' })) expect(b).toBeEnabled();
+    for (const b of screen.getAllByRole('button', { name: 'Publish' })) expect(b).toBeEnabled();
   }, SLOW);
 
   it('a broken formula blocks sending', async () => {
@@ -441,77 +441,77 @@ describe('saving', () => {
   });
 });
 
-/** Ana makes the service-charge change, confirms the new figures and sends it for approval. */
-async function anaSends(summary = 'Count service charge in lunch net sales') {
+/** Ana makes the service-charge change, confirms the new figures and publishes it. */
+async function anaPublishes(summary = 'Count service charge in lunch net sales') {
   const r = await openByNameReady('Lunch net');
   typeFormula('[Lunch gross] − [Lunch VAT] − [Lunch discounts]');
   await r.user.keyboard('{Escape}');
   while (screen.queryAllByRole('button', { name: 'It’s right, update' }).length) await r.user.click(screen.getAllByRole('button', { name: 'It’s right, update' })[0]!);
   await waitSaved();
-  await r.user.click(screen.getAllByRole('button', { name: 'Send for approval' })[0]!);
-  const dlg = screen.getByRole('dialog', { name: 'Send for approval' });
+  await r.user.click(screen.getAllByRole('button', { name: 'Publish' })[0]!);
+  const dlg = screen.getByRole('dialog', { name: 'Publish' });
   const box = within(dlg).getByLabelText('What changed');
   await r.user.clear(box);
-  await r.user.click(within(dlg).getByRole('button', { name: 'Send for approval' }));
+  await r.user.click(within(dlg).getByRole('button', { name: 'Publish' }));
   expect(within(dlg).getByRole('alert')).toHaveTextContent('Say what changed');
   await r.user.type(box, summary);
-  await r.user.click(within(dlg).getByRole('button', { name: 'Send for approval' }));
-  await screen.findByRole('status', { name: 'Status: Waiting for approval' });
+  await r.user.click(within(dlg).getByRole('button', { name: 'Publish' }));
+  await screen.findByRole('status', { name: 'Status: Starts tomorrow' });
   return r;
 }
 
-describe('approval', () => {
-  it('sending locks the change; the drafter can’t approve it, but can withdraw it', async () => {
-    const { user } = await anaSends();
-    expect(stored().pending?.summary).toBe('Count service charge in lunch net sales');
-    expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument();
-    expect(screen.getByText('Sent for approval')).toBeInTheDocument();
-    await user.click($('[data-act="input"]')!);
-    expect(screen.getByText(/This change is waiting for approval. Withdraw it to keep editing./)).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Withdraw' }));
-    await user.click(within(screen.getByRole('dialog', { name: 'Withdraw this change' })).getByRole('button', { name: 'Withdraw' }));
-    await screen.findByRole('status', { name: 'Status: Draft' });
+/** A change Ana sent for approval before publishing replaced approval, already saved on the device. */
+function waitingFromBefore() {
+  let rec = seedDefinitionRecord({ startsOn: '2000-01-01', by: 'Finance', at: '2000-01-01T00:00:00Z' });
+  const def = updateFigure(EOD_DEFINITION, 'wagePct', { description: 'Share of today’s net spent on wages' });
+  rec = saveDefinitionDraft(rec, { definition: def, testDays: [VERIFIED_TEST_DAY], by: 'Ana', at: '2026-10-05T10:00:00Z' });
+  rec = submitDefinition(rec, { summary: 'Clearer wording for Wage %', by: 'Ana', at: '2026-10-05T10:00:00Z' });
+  setDemoDefinitions(rec);
+}
+
+describe('publishing', () => {
+  it('needs a summary; then it’s live from the next trading day, with no second person; it can be rolled back', async () => {
+    const { user } = await anaPublishes();
+    expect(screen.getByText('Published. Managers at every site use it from Tuesday 6 October.')).toBeInTheDocument();
+    const v2 = stored().versions[1]!;
+    expect([v2.version, v2.startsOn, v2.summary, v2.draftedBy, v2.approvedBy]).toEqual([2, '2026-10-06', 'Count service charge in lunch net sales', 'Ana', 'Ana']);
     expect(stored().pending).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Roll back to v1' }));
+    const rb = screen.getByRole('dialog', { name: 'Roll back to v1' });
+    await user.type(within(rb).getByLabelText('Why'), 'Published by mistake');
+    await user.click(within(rb).getByRole('button', { name: 'Roll back to v1' }));
+    await waitFor(() => expect(stored().versions).toHaveLength(3));
+    expect(stored().versions[2]!.summary).toBe('Back to v1: Published by mistake');
   }, SLOW);
 
-  it('a second person can turn it down with a reason, and it goes back to Ana as a draft', async () => {
-    const first = await anaSends();
-    first.unmount();
+  it('a change sent for approval before can be approved by the person who sent it', async () => {
+    waitingFromBefore();
+    const { user } = await openBuilder(ana);
+    expect(screen.getByText('Sent for approval')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Withdraw' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Approve' }));
+    await user.click(within(screen.getByRole('dialog', { name: 'Approve this change' })).getByRole('button', { name: 'Approve' }));
+    await screen.findByRole('status', { name: 'Status: Starts tomorrow' });
+    expect(stored().versions[1]).toMatchObject({ version: 2, draftedBy: 'Ana', approvedBy: 'Ana', startsOn: '2026-10-06' });
+  }, SLOW);
+
+  it('someone else can still turn such a change down with a reason, and it goes back to Ana as a draft', async () => {
+    waitingFromBefore();
     const { user } = await openBuilder(ben);
     expect(screen.getByText('Ana sent this for approval')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Turn down' }));
     const dlg = screen.getByRole('dialog', { name: 'Turn this change down' });
-    await user.type(within(dlg).getByLabelText('Why'), 'Service charge goes to staff, keep it out of net');
+    await user.type(within(dlg).getByLabelText('Why'), 'Keep the old wording');
     await user.click(within(dlg).getByRole('button', { name: 'Turn down' }));
     await screen.findByRole('status', { name: 'Status: Draft' });
-    expect(screen.getByText('Ben turned this change down')).toBeInTheDocument();
-    expect(stored().rejected?.reason).toBe('Service charge goes to staff, keep it out of net');
-  }, SLOW);
-
-  it('approved by a second person, it starts on the next trading day; it can be rolled back', async () => {
-    const first = await anaSends();
-    first.unmount();
-    const { user } = await openBuilder(ben);
-    await user.click(screen.getByRole('button', { name: 'Approve' }));
-    const dlg = screen.getByRole('dialog', { name: 'Approve this change' });
-    expect(within(dlg).getByText('“Count service charge in lunch net sales”')).toBeInTheDocument();
-    await user.click(within(dlg).getByRole('button', { name: 'Approve' }));
-    await screen.findByRole('status', { name: 'Status: Starts tomorrow' });
-    expect(screen.getByText('Approved. Managers use it from Tuesday 6 October.')).toBeInTheDocument();
-    const v2 = stored().versions[1]!;
-    expect([v2.version, v2.startsOn, v2.draftedBy, v2.approvedBy]).toEqual([2, '2026-10-06', 'Ana', 'Ben']);
-
-    await user.click(screen.getByRole('button', { name: 'Roll back to v1' }));
-    const rb = screen.getByRole('dialog', { name: 'Roll back to v1' });
-    await user.type(within(rb).getByLabelText('Why'), 'Approved by mistake');
-    await user.click(within(rb).getByRole('button', { name: 'Roll back to v1' }));
-    await waitFor(() => expect(stored().versions).toHaveLength(3));
-    expect(stored().versions[2]!.summary).toBe('Back to v1: Approved by mistake');
+    expect(stored().rejected?.reason).toBe('Keep the old wording');
   }, SLOW);
 });
 
 describe('the whole journey', () => {
-  it('edit → autosave → reopen → send → approve as a second person → a manager’s EOD shows it from the next trading day', async () => {
+  it('edit → autosave → reopen → publish → a manager’s EOD shows it from the next trading day', async () => {
     // Ana edits; it saves itself; she closes the builder and opens it again: the edit is still there.
     const first = await openByNameReady('Lunch net');
     typeFormula('[Lunch gross] − [Lunch VAT] − [Lunch discounts]');
@@ -523,21 +523,14 @@ describe('the whole journey', () => {
     while (screen.queryAllByRole('button', { name: 'It’s right, update' }).length) await again.user.click(screen.getAllByRole('button', { name: 'It’s right, update' })[0]!);
     await waitSaved();
 
-    // She sends it, with a summary.
-    await again.user.click(screen.getAllByRole('button', { name: 'Send for approval' })[0]!);
-    const dlg = screen.getByRole('dialog', { name: 'Send for approval' });
+    // She publishes it on Monday 5 October, with a summary. Nobody else needs to approve it.
+    await again.user.click(screen.getAllByRole('button', { name: 'Publish' })[0]!);
+    const dlg = screen.getByRole('dialog', { name: 'Publish' });
     await again.user.clear(within(dlg).getByLabelText('What changed'));
     await again.user.type(within(dlg).getByLabelText('What changed'), 'Service charge counts in lunch net');
-    await again.user.click(within(dlg).getByRole('button', { name: 'Send for approval' }));
-    await screen.findByRole('status', { name: 'Status: Waiting for approval' });
-    again.unmount();
-
-    // Ben approves it on Monday 5 October.
-    const ben1 = await openBuilder(ben);
-    await ben1.user.click(screen.getByRole('button', { name: 'Approve' }));
-    await ben1.user.click(within(screen.getByRole('dialog', { name: 'Approve this change' })).getByRole('button', { name: 'Approve' }));
+    await again.user.click(within(dlg).getByRole('button', { name: 'Publish' }));
     await screen.findByRole('status', { name: 'Status: Starts tomorrow' });
-    ben1.unmount();
+    again.unmount();
 
     // Tonight's report keeps today's rules.
     await seedVerifiedDraft();

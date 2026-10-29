@@ -10,11 +10,11 @@ All figures are examples (the verified test day in HANDOFF.md §5).
 |---|---|---|
 | Formula engine and edits (add, rename, delete, connect, disconnect) | `packages/core/src/report-definition.ts` | Built, 70+ unit tests |
 | Today's EOD as a definition (v1.3), identical to `computeDay` | same file, `EOD_DEFINITION` | Built, figure-by-figure parity tests |
-| Versions, approval, rollback, EOD → engine inputs | `packages/core/src/report-versions.ts` | Built, 18 unit tests |
+| Versions, publishing, rollback, EOD → engine inputs | `packages/core/src/report-versions.ts` | Built, 18 unit tests |
 | Server endpoint (`/report-definition`) | `apps/functions/src/report-definition-handler.ts` | Built, 9 tests; not connected to SharePoint |
 | Prototype builder (map, pop-up editor, layers, history, comments, colours) | `design/report-builder/src/` → `index.html` | Built, 81 interaction tests |
 | Live EOD uses the approved version (app, server, email) | `packages/core/src/report-live.ts` and step 6 | Built, 30+ tests |
-| The builder in the app, saving drafts, approval, roll back | `apps/eod-web/app/routes/report-builder.tsx` and step 7 | Built, 40 interaction tests |
+| The builder in the app, saving drafts, publishing, roll back | `apps/eod-web/app/routes/report-builder.tsx` and step 7 | Built, 40 interaction tests |
 | SharePoint store | (step 5) | **Not started** |
 
 ## Step 0: set up
@@ -62,14 +62,14 @@ ev.values['Card fees'];                                 // 5075 (£50.75)
 
 To add a formula function, add it to `FUNCTIONS` and `run()` in `report-definition.ts`, then add a test in `packages/core/test/report-definition.test.ts`.
 
-## Step 3: versions and approval
+## Step 3: versions and publishing
 
-`report-versions.ts` follows the checklist builder's rules (`builder.ts`):
+`report-versions.ts` follows the checklist builder's rules (`builder.ts`). **No second person is needed** (decided 29 Oct 2026): whoever makes a change can publish it, as long as it has a summary, no broken formulas and all tests passing. Every version is kept, so a mistake is one rollback away.
 
 ```
-saveDefinitionDraft → submitDefinition (needs a summary, no broken formulas, all tests passing)
-  → approveDefinition (a different person; live from the next trading day)
-  or rejectDefinition (with a reason; back to draft) / withdrawDefinition (by the drafter)
+saveDefinitionDraft → publishDefinition (summary + passing tests; live from the next trading day)
+Older two-step records: submitDefinition → approveDefinition (anyone in head office, including the sender)
+  or rejectDefinition (with a reason; back to draft) / withdrawDefinition (by the sender)
 rollbackDefinition (a new version copying an old one, from the next trading day)
 definitionOn(record, date)  → the version for a trading day
 officialFigures(record, eodDraft, settings, extra, target) → the official figures, by id
@@ -83,9 +83,9 @@ officialFigures(record, eodDraft, settings, extra, target) → the official figu
 |---|---|
 | `GET` | Record, ETag, today's trading day, status, live version |
 | `PUT { definition, testDays }` + `If-Match` | Save the draft |
-| `POST { action: 'submit', summary }` | Send for approval |
-| `POST { action: 'approve' }` | Approve (not the drafter) |
-| `POST { action: 'reject', reason }` / `'withdraw'` / `'discard'` | |
+| `POST { action: 'publish', summary }` | Publish: live from the next trading day (tests must pass) |
+| `POST { action: 'discard' }` | Throw the draft away |
+| `POST { action: 'submit' }` / `'approve'` / `'reject'` / `'withdraw'` | Only for changes sent for approval before publishing replaced it |
 | `POST { action: 'rollback', to, reason }` | Roll back |
 
 Head office only (403 otherwise). A stale ETag gets 409 with the current record, so two people can't overwrite each other.
@@ -171,25 +171,23 @@ Built and tested. Head office opens it from **Report builder** in the sidebar (`
 
 | Button | Who | Does |
 |---|---|---|
-| Send for approval | Anyone in head office, when tests pass and something changed | Asks for a summary (prefilled from the changes), then `submit` |
-| Approve | A different person from the one who sent it | `approve`; live from the next trading day |
-| Turn down | A different person | Asks why, then `reject`; the drafter sees the reason |
-| Withdraw | The person who sent it | Back to their draft |
+| Publish | Anyone in head office, when tests pass and something changed | Asks for a summary (prefilled from the changes), then `publish`; live from the next trading day |
+| Approve / Turn down / Withdraw | Only shown for a change sent for approval before publishing replaced it. Anyone can approve it, including the sender | `approve` / `reject` / `withdraw` |
 | Discard the saved draft | Anyone, from the review panel | `discard` |
 | Roll back | Anyone, from Versions in the review panel | Asks why, then `rollback` |
 
-Status in the top bar: **Draft**, **Waiting for approval**, **Starts tomorrow**, **Live**. While a change waits, nothing can be edited. If someone else saved first (409), a banner says who, lists their changes, and **Reload their version** takes them.
+Status in the top bar: **Draft**, **Starts tomorrow**, **Live** (and **Waiting for approval** for an older change still waiting). If someone else saved first (409), a banner says who, lists their changes, and **Reload their version** takes them.
 
 **Demo mode** (`isConnected()` false) keeps the `DefinitionRecord` on the device under `mgh.definitions`, the key the managers' EOD already reads, and runs the same core rules (`saveDefinitionDraft`, `submitDefinition`, `approveDefinition`…). A fingerprint of the record stands in for the ETag, so two tabs conflict just as two people would. An approved change reaches the managers' EOD on that device from the next trading day. Card positions and which panels are open stay on the device too (`mgh.builder.layout`); they aren't part of the draft.
 
-Tests: `apps/eod-web/test/report-builder.test.tsx` (the prototype's key interactions; autosave and reopen; discard; a conflict; send, withdraw, turn down, approve and roll back; and the whole journey from an edit to a manager's review screen on the next trading day).
+Tests: `apps/eod-web/test/report-builder.test.tsx` (the prototype's key interactions; autosave and reopen; discard; a conflict; publish, an older waiting change approved by its sender or turned down, and roll back; and the whole journey from an edit to a manager's review screen on the next trading day).
 
 **Not ported yet** (in the prototype, but they save nothing or need other work first): the *What managers fill in* and *After submit* tabs, the assistant (needs the AI proxy), comments (need storing in SharePoint), the colour picker, the mini-map, drag-to-select and two-finger zoom. History of steps is for the current visit; the draft itself is saved. The builder link is in the desktop and iPad sidebar only; the phone tab bar has no room.
 
 ## Step 8 (to do): before going live
 
 - [ ] Import the Excel history and check last month's reports against `officialFigures` (should match `computeDay` to the penny).
-- [ ] Agree who in finance drafts and who approves.
+- [ ] Agree who in finance can publish changes (anyone in the Head office group can today).
 - [ ] Decide whether changes apply to all 9 sites or per site (today: all sites, with site settings per site).
 - [ ] Turn on the endpoint by setting the Netlify environment variables (`ENTRA_*`, `SHAREPOINT_SITE_ID`).
 

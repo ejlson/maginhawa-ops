@@ -7,7 +7,7 @@
  */
 import {
   ReviewError, approveDefinition, definitionOn, definitionStatus, discardDefinitionDraft, rejectDefinition, rollbackDefinition,
-  saveDefinitionDraft, submitDefinition, tradingDate, withdrawDefinition,
+  publishDefinition, saveDefinitionDraft, submitDefinition, tradingDate, withdrawDefinition,
   type DefinitionRecord, type DefinitionStatus, type ReportDefinition, type TestDay,
 } from '@maginhawa/core';
 import { config, isConnected } from '../config';
@@ -28,6 +28,7 @@ export interface DefinitionView {
 }
 
 export type DefinitionAction =
+  | { action: 'publish'; summary: string }
   | { action: 'submit'; summary: string }
   | { action: 'approve' }
   | { action: 'reject'; reason: string }
@@ -106,6 +107,7 @@ export function deviceDefinitions(by: () => string, siteCode: string): Definitio
     async act(b, etag) {
       return write(etag, (r) => {
         switch (b.action) {
+          case 'publish': return publishDefinition(r, { summary: b.summary, by: by(), today: today(), at: at() });
           case 'submit': return submitDefinition(r, { summary: b.summary, by: by(), at: at() });
           case 'withdraw': return withdrawDefinition(r, { by: by() });
           case 'discard': return discardDefinitionDraft(r);

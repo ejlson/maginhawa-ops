@@ -84,12 +84,11 @@ export function Workspace({ save, user, notice, onNotice }: { save: DefinitionSa
               <button type="button" className="lnk small" aria-pressed={ws.showLayers} onClick={() => ws.setShowLayers(!ws.showLayers)}>Layers</button>
               <button type="button" className="lnk small" aria-pressed={ws.showPanel} onClick={() => ws.setShowPanel(!ws.showPanel)}>Review</button>
               <span className={`fb-only pill ${pass === T.length && !errs ? 'ok' : 'bad'}`} id="fbTests">Tests {pass}/{T.length}</span>
+              {/* Changes sent for approval before publishing replaced it: anyone in head office, including the sender, can approve. */}
               {pending && mine && <button type="button" className="btn sm ghost" onClick={() => ws.setDialog('withdraw')}>Withdraw</button>}
-              {pending && !mine && <>
-                <button type="button" className="danger" onClick={() => ws.setDialog('reject')}>Turn down</button>
-                <button type="button" className="btn sm" onClick={() => ws.setDialog('approve')}>Approve</button>
-              </>}
-              {!pending && <button type="button" className="btn sm" disabled={!ready || save.state === 'failed'} onClick={() => ws.setDialog('submit')}>Send for approval</button>}
+              {pending && !mine && <button type="button" className="danger" onClick={() => ws.setDialog('reject')}>Turn down</button>}
+              {pending && <button type="button" className="btn sm" onClick={() => ws.setDialog('approve')}>Approve</button>}
+              {!pending && <button type="button" className="btn sm" disabled={!ready || save.state === 'failed'} onClick={() => ws.setDialog('publish')}>Publish</button>}
             </div>
           </div>
 
@@ -144,7 +143,7 @@ function Banners() {
         <div className="banner" role="note">
           <div className="t">
             <b>{rec.pending.by === user.name ? 'Sent for approval' : `${rec.pending.by} sent this for approval`}</b>
-            <small>“{rec.pending.summary}”. {rec.pending.by === user.name ? 'Someone else in head office needs to approve it. You can’t change it while it waits.' : 'Check the changes and tests, then approve it or turn it down.'}</small>
+            <small>“{rec.pending.summary}”. {rec.pending.by === user.name ? 'Approve it to publish, or withdraw it to keep editing.' : 'Check the changes and tests, then approve it or turn it down.'}</small>
           </div>
         </div>
       )}

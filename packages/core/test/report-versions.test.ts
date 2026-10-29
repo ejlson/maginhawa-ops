@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { computeDay } from '../src/calc';
 import { EOD_DEFINITION, VERIFIED_TEST_DAY, addFigure, connect, renameFigure, updateFigure } from '../src/report-definition';
 import {
-  ReviewError, approveDefinition, checkDraft, definitionOn, definitionStatus, discardDefinitionDraft, editableDefinition,
+  ReviewError, approveDefinition, publishDefinition, checkDraft, definitionOn, definitionStatus, discardDefinitionDraft, editableDefinition,
   inputsFromDraft, officialFigures, rejectDefinition, rollbackDefinition, saveDefinitionDraft, seedDefinitionRecord,
   submitDefinition, withdrawDefinition, type DefinitionRecord,
 } from '../src/report-versions';
@@ -56,9 +56,25 @@ describe('draft → approval → live', () => {
     expect(back.pending).toBeNull();
     expect(back.draft!.definition.figures.some((f) => f.name === 'Card fees')).toBe(true);
   });
-  it('needs a second person to approve', () => {
+  it('whoever made the change can approve it; no second person is needed', () => {
     const rec = submitDefinition(withDraft(seed(), addTips()), { summary: 'Card fees', by: 'Ana', at: AT });
-    expect(() => approveDefinition(rec, { by: 'Ana', today: '2026-11-02', at: AT })).toThrow('Someone else needs to approve');
+    const done = approveDefinition(rec, { by: 'Ana', today: '2026-11-02', at: AT });
+    expect(done.versions.at(-1)).toMatchObject({ version: 2, draftedBy: 'Ana', approvedBy: 'Ana', startsOn: '2026-11-03' });
+  });
+  it('publishes a draft in one step, live from the next trading day', () => {
+    const rec = publishDefinition(withDraft(seed(), addTips()), { summary: 'Card fees', by: 'Ana', today: '2026-11-02', at: AT });
+    expect(rec).toMatchObject({ draft: null, pending: null });
+    expect(rec.versions.at(-1)).toMatchObject({ version: 2, startsOn: '2026-11-03', summary: 'Card fees', draftedBy: 'Ana', approvedBy: 'Ana' });
+    expect(definitionOn(rec, '2026-11-02')!.version).toBe(1);
+    expect(definitionOn(rec, '2026-11-03')!.version).toBe(2);
+  });
+  it('publishing still needs a summary and passing tests, and nothing to publish is refused', () => {
+    expect(() => publishDefinition(withDraft(seed(), addTips()), { summary: '', by: 'Ana', today: '2026-11-02', at: AT })).toThrow('Say what changed');
+    const moved = withDraft(seed(), updateFigure(EOD_DEFINITION, 'lunchNet', { formula: '[Lunch gross] − [Lunch VAT] − [Lunch discounts]' }));
+    expect(() => publishDefinition(moved, { summary: 'x', by: 'Ana', today: '2026-11-02', at: AT })).toThrow(/tests failing/);
+    const broken = withDraft(seed(), updateFigure(EOD_DEFINITION, 'lunchNet', { formula: '[Lunch gross] −' }));
+    expect(() => publishDefinition(broken, { summary: 'x', by: 'Ana', today: '2026-11-02', at: AT })).toThrow('Fix the formulas with problems first');
+    expect(() => publishDefinition(seed(), { summary: 'x', by: 'Ana', today: '2026-11-02', at: AT })).toThrow('no changes');
   });
   it('goes live on the next trading day, and the day before keeps the old version', () => {
     const rec = approveDefinition(submitDefinition(withDraft(seed(), addTips()), { summary: 'Card fees', by: 'Ana', at: AT }), { by: 'Ben', today: '2026-11-02', at: AT });

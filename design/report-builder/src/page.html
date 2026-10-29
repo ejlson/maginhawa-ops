@@ -617,7 +617,7 @@ kbd{font-family:var(--mono);font-size:.85em;background:var(--fill);border:1px so
   <header class="intro">
     <span class="eyebrow">Design proposal · 29 Oct 2026 · Nothing built yet</span>
     <h1>Let finance change the EOD report themselves</h1>
-    <p class="sec">A report builder in head office. Finance write sums the way they would in Excel, using names instead of cells. The app draws the flowchart from those sums, tests every change against a known day, and nothing goes live until a second person approves it. Try it below: add an input, rename it, drag its dot onto a calculation, or ask the assistant for a change.</p>
+    <p class="sec">A report builder in head office. Finance write sums the way they would in Excel, using names instead of cells. The app draws the flowchart from those sums, tests every change against a known day, and nothing can be published while a test fails. Try it below: add an input, rename it, drag its dot onto a calculation, or ask the assistant for a change.</p>
     <span class="note">All figures are examples (the verified test day from HANDOFF §5). Nothing on this page is sent anywhere.</span>
   </header>
 
@@ -641,7 +641,7 @@ kbd{font-family:var(--mono);font-size:.85em;background:var(--fill);border:1px so
       <div class="steps" id="steps" aria-label="Progress to live"></div>
       <div class="acts" style="justify-content:space-between;flex-wrap:wrap;gap:12px">
         <span id="heroState" class="pill plain">Make a change to start</span>
-        <button class="btn" id="publishBtn" disabled>Send for approval</button>
+        <button class="btn" id="publishBtn" disabled>Publish</button>
       </div>
     </div>
   </section>
@@ -659,7 +659,7 @@ kbd{font-family:var(--mono);font-size:.85em;background:var(--fill);border:1px so
         <button class="lnk small" id="tglLayers" aria-pressed="true">Layers</button>
         <button class="lnk small" id="tglPanel" aria-pressed="true">Review</button>
         <span class="fb-only pill" id="fbTests"></span>
-        <button class="btn sm fb-only" id="fbSend">Send for approval</button>
+        <button class="btn sm fb-only" id="fbSend">Publish</button>
         <button class="btn sm" id="fullBtn" aria-pressed="false">Full screen</button>
       </div>
     </div>
@@ -726,7 +726,7 @@ kbd{font-family:var(--mono);font-size:.85em;background:var(--fill);border:1px so
         <tr><td>Connect</td><td>Drag the small dot on the right of a figure onto a calculation or an email. Or use “Use it in…” in the side panel.</td><td>It can’t feed an input, connect twice, or make a loop. Only valid boxes light up while you drag.</td></tr>
         <tr><td>Disconnect</td><td>Click a line → <b>Remove link</b>, or edit the formula.</td><td>Tests show straight away if a total moves.</td></tr>
         <tr><td>Delete</td><td><b>×</b> on the row, the bin on a card, or press <kbd>Delete</kbd>.</td><td>Blocked while something still uses it, and it says what. Past reports keep their figures.</td></tr>
-        <tr><td>Undo</td><td><b>Undo</b> on the message, <kbd>⌘Z</kbd> / <kbd>Ctrl Z</kbd>, or undo any single step from <b>Review → History</b>.</td><td>Nothing is live until a second person approves.</td></tr>
+        <tr><td>Undo</td><td><b>Undo</b> on the message, <kbd>⌘Z</kbd> / <kbd>Ctrl Z</kbd>, or undo any single step from <b>Review → History</b>.</td><td>Every published version is kept, and <b>Roll back</b> makes an earlier one live again.</td></tr>
       </tbody>
     </table></div>
   </section>
@@ -742,7 +742,7 @@ kbd{font-family:var(--mono);font-size:.85em;background:var(--fill);border:1px so
       <div class="li"><span class="diff add">6</span><span class="t">Map or List<small>The same report as a spreadsheet-style list, for anyone who prefers rows to boxes. On a phone, List is the better view. Causal offers both.</small></span></div>
       <div class="li"><span class="diff add">7</span><span class="t">Colour says what a box is<small>Indigo is an input, slate is a setting, purple is a calculation, teal is a check or action. The same colours appear on the formula chips, the lines and the column backgrounds, so you can read a formula's source at a glance. Green, amber and red still only mean good, watch and wrong.</small></span></div>
       <div class="li"><span class="diff add">8</span><span class="t">Lines that move and carry values<small>When you follow a figure, dots flow along its lines in the direction the money moves, and each line shows the amount it carries (£850.00 into Day total net). Movement shows direction better than arrowheads. It stops if the device asks for reduced motion.</small></span></div>
-      <div class="li"><span class="diff add">9</span><span class="t">A clear path to live<small>The hero card shows four steps: Change made → Tests pass → Approved → Live. Seeing how far along you are keeps people going (the goal-gradient effect), and a test that turns green gets a small pop.</small></span></div>
+      <div class="li"><span class="diff add">9</span><span class="t">A clear path to live<small>The hero card shows four steps: Change made → Tests pass → Published → Live. Seeing how far along you are keeps people going (the goal-gradient effect), and a test that turns green gets a small pop.</small></span></div>
       <div class="li"><span class="diff">·</span><span class="t">Later<small>Zoom and a mini-map, search to jump to a figure, a comment on any box, and undo for each step</small></span></div>
     </div>
   </section>
@@ -775,7 +775,7 @@ kbd{font-family:var(--mono);font-size:.85em;background:var(--fill);border:1px so
           <tr><td>Causal</td><td>Models built from named variables joined by readable formulas, replacing cell references.</td><td>Formulas with names in brackets. No cell references and no code.</td></tr>
           <tr><td>Zapier Copilot</td><td>Builds or edits a workflow from a description. Has an "ask as you build" mode that suggests but won't act without confirmation.</td><td>The assistant only proposes a list of changes. A person applies them, and nothing goes live from the assistant.</td></tr>
           <tr><td>Pigment AI builder</td><td>Plain-English model building. Reviewers note weak awareness of what a change affects downstream, and no undo for AI changes.</td><td>Every proposal shows what it touches and which tests it moves. Every change can be undone.</td></tr>
-          <tr><td>Retool Workflows</td><td>Numbered, versioned releases. Only the published version runs, and you can roll back to an earlier one.</td><td>Draft → approval → live, with versions. Each saved report records the version it was worked out with.</td></tr>
+          <tr><td>Retool Workflows</td><td>Numbered, versioned releases. Only the published version runs, and you can roll back to an earlier one.</td><td>Draft → publish → live, with versions. Each saved report records the version it was worked out with.</td></tr>
           <tr><td>Power Automate</td><td>A step flowchart with expressions for logic.</td><td>The look of the "After submit" tab only. Sums stay out of the flowchart.</td></tr>
           <tr><td>React Flow (xyflow)</td><td>The open-source library behind most node editors (MIT, TypeScript).</td><td>What we'd build the canvas with, inside our React Router app.</td></tr>
         </tbody>
@@ -808,7 +808,7 @@ kbd{font-family:var(--mono);font-size:.85em;background:var(--fill);border:1px so
       <h2>Safety rails</h2>
       <div class="list">
         <div class="li"><span class="circ done"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3.5 8.5l3 3 6-7"/></svg></span><span class="t">Tests must pass to publish<small>Changing an expected figure is allowed, but it is listed as a change and needs a reason</small></span></div>
-        <div class="li"><span class="circ done"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3.5 8.5l3 3 6-7"/></svg></span><span class="t">Two people<small>One finance user drafts, another approves</small></span></div>
+        <div class="li"><span class="circ done"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3.5 8.5l3 3 6-7"/></svg></span><span class="t">Publish when ready<small>No second person needed. Tests must pass, and it starts on the next trading day</small></span></div>
         <div class="li"><span class="circ done"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3.5 8.5l3 3 6-7"/></svg></span><span class="t">Starts on a set trading day<small>Never mid-shift. A report started on v1.3 finishes on v1.3</small></span></div>
         <div class="li"><span class="circ done"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3.5 8.5l3 3 6-7"/></svg></span><span class="t">One-click roll back<small>To any earlier version</small></span></div>
         <div class="li"><span class="circ done"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3.5 8.5l3 3 6-7"/></svg></span><span class="t">Locked basics<small>Cash difference and required-section blocks stay on, so tips and cash rules can't be removed by accident</small></span></div>

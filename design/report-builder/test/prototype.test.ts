@@ -268,7 +268,7 @@ describe('deleting', () => {
 });
 
 describe('tests and publishing', () => {
-  it('a formula change that moves totals blocks approval until someone confirms', () => {
+  it('a formula change that moves totals blocks publishing until someone confirms', () => {
     openNode('lunchNet');
     type($<HTMLTextAreaElement>('#fx')!, '[Lunch gross] − [Lunch VAT] − [Lunch discounts]', 'input');
     expect(testsPassing()).toBe('3 of 8');
@@ -279,9 +279,9 @@ describe('tests and publishing', () => {
     expect(changes()).toContain('Changed the expected Lunch net');
     expect($<HTMLButtonElement>('#publishBtn')!.disabled).toBe(false);
     $<HTMLButtonElement>('#publishBtn')!.click();
-    expect(text('#heroState')).toBe('Waiting for a second finance user');
+    expect(text('#heroState')).toBe('Published · live from the next trading day');
   });
-  it('a broken formula blocks approval', () => {
+  it('a broken formula blocks publishing', () => {
     openNode('dinnerNet');
     type($<HTMLTextAreaElement>('#fx')!, '[Dinner gross] − ', 'input');
     expect(text('#heroState')).toBe('A formula needs fixing');
@@ -735,14 +735,14 @@ describe('workspace', () => {
     $<HTMLButtonElement>('#fullBtn')!.click();
     expect($('.builder')!.classList.contains('full')).toBe(true);
   });
-  it('the top bar shows the test status and sends for approval', () => {
+  it('the top bar shows the test status and publishes, with no second person needed', () => {
     expect(text('#fbTests')).toBe('Tests 8/8');
     expect($<HTMLButtonElement>('#fbSend')!.disabled).toBe(true); // nothing changed yet
     addFromMenu('input'); renameInline('Agency staff');
     expect($<HTMLButtonElement>('#fbSend')!.disabled).toBe(false);
     $<HTMLButtonElement>('#fbSend')!.click();
-    expect(text('#heroState')).toBe('Waiting for a second finance user');
-    expect(text('#fbSend')).toBe('Sent for approval');
+    expect(text('#heroState')).toBe('Published · live from the next trading day');
+    expect(text('#fbSend')).toBe('Published');
   });
   it('the flow tab’s step library opens as a pop-up too', () => {
     $<HTMLButtonElement>('#tab-flow')!.click();

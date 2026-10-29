@@ -1,6 +1,6 @@
 /**
- * End to end: a change made in the builder → saved, sent and approved through the real server
- * endpoint → a manager's submitted EOD worked out with the approved version.
+ * End to end: a change made in the builder → saved and published through the real server
+ * endpoint (no second person needed) → a manager's submitted EOD worked out with the published version.
  *
  * Checks that each change moves exactly the figures it should, and that everything else still
  * matches today's EOD (computeDay) to the penny. Example figures only (HANDOFF.md §5).
@@ -52,7 +52,7 @@ function openBuilder() {
   };
 }
 
-/* ---------- the server: draft → approval → live ---------- */
+/* ---------- the server: draft → publish → live ---------- */
 const PEOPLE = { ana: { name: 'Ana', siteCodes: [], role: 'headoffice' as const }, ben: { name: 'Ben', siteCodes: [], role: 'headoffice' as const } };
 async function approveThroughServer(draft: { definition: unknown; testDays: unknown }): Promise<DefinitionRecord> {
   const store = new MemoryDefinitionStore(seedDefinitionRecord({ startsOn: '2026-09-01', by: 'Finance', at: '2026-09-01T09:00:00Z' }));
@@ -70,8 +70,7 @@ async function approveThroughServer(draft: { definition: unknown; testDays: unkn
     return json;
   };
   await call('ana', 'PUT', draft);
-  await call('ana', 'POST', { action: 'submit', summary: 'Change from the builder' });
-  const done = await call('ben', 'POST', { action: 'approve' });
+  const done = await call('ana', 'POST', { action: 'publish', summary: 'Change from the builder' });
   return done.record as DefinitionRecord;
 }
 

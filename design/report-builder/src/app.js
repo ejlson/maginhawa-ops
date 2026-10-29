@@ -1342,23 +1342,23 @@ function renderSide() {
   document.getElementById('heroWage').textContent = fmt(valOf(R, 'wagePct'), 'pct');
   const st = document.getElementById('heroState'), pb = document.getElementById('publishBtn');
   const lvl = !C.length ? 0 : (pass < T.length || errs) ? 1 : S.sent ? 3 : 2;
-  document.getElementById('steps').innerHTML = ['Change made', 'Tests pass', 'Approved', 'Live'].map((x, i) => { const k = i < lvl ? 'done' : i === lvl ? 'now' : ''; return '<div class="stp ' + k + '"><i>' + (k === 'done' ? TICK : '') + '</i>' + x + '</div>'; }).join('');
+  document.getElementById('steps').innerHTML = ['Change made', 'Tests pass', 'Published', 'Live'].map((x, i) => { const k = i < lvl ? 'done' : i === lvl ? 'now' : ''; return '<div class="stp ' + k + '"><i>' + (k === 'done' ? TICK : '') + '</i>' + x + '</div>'; }).join('');
   if (window._lastPass !== undefined && pass > window._lastPass) setTimeout(() => document.querySelectorAll('#tests .circ.done').forEach(c => c.classList.add('pop')));
   window._lastPass = pass;
   const ok = C.length && pass === T.length && !errs;
   const ft = document.getElementById('fbTests'); ft.textContent = 'Tests ' + pass + '/' + T.length; ft.className = 'fb-only pill ' + (pass === T.length && !errs ? 'ok' : 'bad');
-  const fs = document.getElementById('fbSend'); fs.disabled = !ok || S.sent; fs.textContent = S.sent ? 'Sent for approval' : 'Send for approval';
-  if (S.sent) { st.className = 'pill warn'; st.textContent = 'Waiting for a second finance user'; pb.disabled = true; pb.textContent = 'Sent for approval'; }
+  const fs = document.getElementById('fbSend'); fs.disabled = !ok || S.sent; fs.textContent = S.sent ? 'Published' : 'Publish';
+  if (S.sent) { st.className = 'pill ok'; st.textContent = 'Published · live from the next trading day'; pb.disabled = true; pb.textContent = 'Published'; }
   else {
-    pb.textContent = 'Send for approval'; pb.disabled = !ok;
+    pb.textContent = 'Publish'; pb.disabled = !ok;
     if (!C.length) { st.className = 'pill plain'; st.textContent = 'Make a change to start'; }
     else if (errs) { st.className = 'pill bad'; st.textContent = 'A formula needs fixing'; }
     else if (pass < T.length) { st.className = 'pill bad'; st.textContent = (T.length - pass) + ' test' + (T.length - pass > 1 ? 's' : '') + ' failing'; }
-    else { st.className = 'pill ok'; st.textContent = 'Ready for approval'; }
+    else { st.className = 'pill ok'; st.textContent = 'Ready to publish'; }
   }
 }
 document.getElementById('publishBtn').addEventListener('click', () => { S.sent = true; renderSide(); });
-document.getElementById('fbSend').addEventListener('click', () => { S.sent = true; renderSide(); toast('Sent for approval. A second finance user needs to approve it.'); });
+document.getElementById('fbSend').addEventListener('click', () => { S.sent = true; renderSide(); toast('Published. Managers at every site use it from the next trading day.'); });
 
 /* ---------- assistant ---------- */
 const PROPS = {

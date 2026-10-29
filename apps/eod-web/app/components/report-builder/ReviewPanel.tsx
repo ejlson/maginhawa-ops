@@ -18,11 +18,11 @@ export function ReviewPanel({ draftLabel, ready }: { draftLabel: string; ready: 
   const latest = latestDefinition(rec);
   const liveNow = definitionOn(rec, view.today);
   const lvl = view.status === 'starts-tomorrow' ? 3 : rec.pending ? 2 : !C.length ? 0 : pass < T.length || errs ? 1 : 2;
-  const state = rec.pending ? ['warn', 'Waiting for a second person in head office']
+  const state = rec.pending ? ['warn', 'Waiting to be approved']
     : !C.length ? ['plain', view.status === 'starts-tomorrow' ? `v${latest?.version} starts tomorrow` : 'Make a change to start']
     : errs ? ['bad', 'A formula needs fixing']
     : pass < T.length ? ['bad', `${T.length - pass} test${T.length - pass > 1 ? 's' : ''} failing`]
-    : ['ok', 'Ready for approval'];
+    : ['ok', 'Ready to publish'];
 
   return (
     <aside className="panel" aria-label="Review">
@@ -41,12 +41,12 @@ export function ReviewPanel({ draftLabel, ready }: { draftLabel: string; ready: 
             <div><b id="heroWage">{fmt(wage, 'percent')}</b><span>wages</span></div>
           </div>
           <div className="steps" aria-label="Progress to live">
-            {['Change made', 'Tests pass', 'Approved', 'Live'].map((x, i) => {
+            {['Change made', 'Tests pass', 'Published', 'Live'].map((x, i) => {
               const k = i < lvl ? 'done' : i === lvl ? 'now' : '';
               return <div key={x} className={`stp ${k}`}><i>{k === 'done' && <Ic name="tick" />}</i>{x}</div>;
             })}
           </div>
-          <div className="hero-foot"><span className={`pill ${state[0]}`} id="heroState">{state[1]}</span>{!rec.pending && <button type="button" className="btn sm" disabled={!ready} onClick={() => ws.setDialog('submit')}>Send for approval</button>}</div>
+          <div className="hero-foot"><span className={`pill ${state[0]}`} id="heroState">{state[1]}</span>{!rec.pending && <button type="button" className="btn sm" disabled={!ready} onClick={() => ws.setDialog('publish')}>Publish</button>}</div>
           <div className="hero-rows">
             <div className="row"><span>Live today</span><span>{liveNow ? `v${liveNow.version}` : 'Today’s rules'}</span></div>
             <div className="row"><span>This draft</span><span>{draftLabel}</span></div>
