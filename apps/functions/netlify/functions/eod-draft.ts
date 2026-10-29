@@ -4,6 +4,7 @@
  */
 import { createEodDraftHandler } from '../../src/sync-handlers';
 import { notConnected, notReady } from '../../src/not-connected';
+import { blobsVersionIndex } from '../../src/version-index';
 
 export default async (req: Request): Promise<Response> => {
   const off = notConnected();
@@ -12,5 +13,6 @@ export default async (req: Request): Promise<Response> => {
   return createEodDraftHandler({
     authenticate: async () => null,
     store: { get: notReady, saveDraft: notReady, submit: notReady, listByDate: notReady, setStatus: notReady },
+    index: blobsVersionIndex(),
   })(req);
 };

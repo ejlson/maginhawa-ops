@@ -10,27 +10,55 @@ export interface LiveTransport {
   subscribe(topic: string, poke: () => void): () => void;
 }
 
+type LiveEvent = 'focus' | 'online' | 'visibilitychange' | 'pointerdown' | 'keydown';
+
 /** The bits of `window` and `document` polling needs, so tests can pass their own. */
 export interface LiveEnv {
-  addEventListener(type: 'focus' | 'online' | 'visibilitychange', fn: () => void): void;
-  removeEventListener(type: 'focus' | 'online' | 'visibilitychange', fn: () => void): void;
+  addEventListener(type: LiveEvent, fn: () => void): void;
+  removeEventListener(type: LiveEvent, fn: () => void): void;
   isVisible(): boolean;
   setInterval(fn: () => void, ms: number): unknown;
   clearInterval(id: unknown): void;
+  /** Defaults to Date.now. */
+  now?(): number;
 }
 
-/** Pokes every ~10 s while the screen is visible, and straight away on focus or when back online. */
+/** No tap or key press for this long and polling drops to the idle rate. */
+export const IDLE_AFTER_MS = 2 * 60_000;
+
+/**
+ * Pokes every ~10 s while someone is using the screen, every ~30 s once it has sat
+ * untouched for two minutes (a tablet left open on the pass), never while hidden, and
+ * straight away on focus or when back online.
+ */
 export class PollingTransport implements LiveTransport {
-  constructor(private env: LiveEnv, private intervalMs = 10_000) {}
+  constructor(private env: LiveEnv, private intervalMs = 10_000, private idleIntervalMs = 30_000) {}
 
   subscribe(_topic: string, poke: () => void) {
-    const tick = () => { if (this.env.isVisible()) poke(); };
+    const now = () => this.env.now?.() ?? Date.now();
+    let lastActive = now();
+    let lastPoke = 0;
+    const fire = () => { lastPoke = now(); poke(); };
+    const tick = () => {
+      if (!this.env.isVisible()) return;
+      const idle = now() - lastActive >= IDLE_AFTER_MS;
+      if (!idle || now() - lastPoke >= this.idleIntervalMs) fire();
+    };
+    const wake = () => { lastActive = now(); if (this.env.isVisible()) fire(); };
+    const touch = () => {
+      const wasIdle = now() - lastActive >= IDLE_AFTER_MS;
+      lastActive = now();
+      if (wasIdle && this.env.isVisible()) fire(); // Catch up as soon as someone picks it up.
+    };
     const id = this.env.setInterval(tick, this.intervalMs);
-    const events = ['focus', 'online', 'visibilitychange'] as const;
-    for (const e of events) this.env.addEventListener(e, tick);
+    const wakes = ['focus', 'online', 'visibilitychange'] as const;
+    const touches = ['pointerdown', 'keydown'] as const;
+    for (const e of wakes) this.env.addEventListener(e, wake);
+    for (const e of touches) this.env.addEventListener(e, touch);
     return () => {
       this.env.clearInterval(id);
-      for (const e of events) this.env.removeEventListener(e, tick);
+      for (const e of wakes) this.env.removeEventListener(e, wake);
+      for (const e of touches) this.env.removeEventListener(e, touch);
     };
   }
 }

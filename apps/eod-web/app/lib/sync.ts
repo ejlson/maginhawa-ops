@@ -5,7 +5,7 @@
  * - Connected: the Netlify Functions (eod-draft, submit-eod, checklist-sync, presence).
  * - Demo: the same rules on this device (lib/store.ts), so two tabs act as two devices.
  *
- * Live updates come through a LiveTransport: polling every 10 s and on focus for now.
+ * Live updates come through a LiveTransport: polling every 10 s (30 s when idle) and on focus for now.
  * A push service (e.g. Azure Web PubSub) can replace it here without touching the screens.
  */
 import { useEffect } from 'react';

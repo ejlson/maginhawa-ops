@@ -3,6 +3,7 @@
  * figures, then emails finance. Every outside service is passed in, so the handler is
  * fully testable and the real ones (SharePoint via Graph, Entra, mail) plug in later.
  */
+import { eodKey, record, type VersionIndex } from './version-index';
 import { eodSummaryEmail, submitReport, type EmailMessage, type EodStore, type SiteSettings } from '@maginhawa/core';
 
 export interface Caller {
@@ -21,6 +22,8 @@ export interface SubmitDeps {
   targetNetFor?: (siteCode: string, businessDate: string) => Promise<number | null>;
   sendEmail: (msg: EmailMessage) => Promise<void>;
   now?: () => Date;
+  /** Netlify Blobs: so other devices' polls see the submit without asking SharePoint. */
+  index?: VersionIndex;
 }
 
 export const json = (status: number, body: unknown) =>
@@ -53,8 +56,13 @@ export function createSubmitHandler(deps: SubmitDeps) {
 
     const res = await submitReport(body, { store: deps.store, settings, submittedBy: caller.name, now: deps.now?.(), targetNet, ...condition });
     // 409: someone else sent it first, or changed it since this person last looked. `current` is what is stored.
-    if (!res.ok && (res.code === 'already-submitted' || res.code === 'conflict')) return json(409, { error: res.error, code: res.code, current: res.current });
+    const at = (deps.now?.() ?? new Date()).getTime();
+    if (!res.ok && (res.code === 'already-submitted' || res.code === 'conflict')) {
+      if (res.current) await record(deps.index, eodKey(res.current.draft.siteCode, res.current.draft.businessDate), res.current.version, at);
+      return json(409, { error: res.error, code: res.code, current: res.current });
+    }
     if (!res.ok) return json(422, { error: res.error, code: res.code, issues: res.issues ?? [] });
+    await record(deps.index, eodKey(res.report.draft.siteCode, res.report.draft.businessDate), res.report.version, at);
 
     // The report is safely stored; an email failure must not make the manager resubmit.
     let emailed = true;

@@ -6,6 +6,7 @@
  * 503 with a clear message, and the app keeps running in demo mode on the device.
  */
 import { createSubmitHandler } from '../../src/handler';
+import { blobsVersionIndex } from '../../src/version-index';
 
 const required = ['ENTRA_TENANT_ID', 'ENTRA_CLIENT_ID', 'ENTRA_CLIENT_SECRET', 'SHAREPOINT_SITE_ID', 'MAIL_FROM', 'MAIL_TO'] as const;
 
@@ -26,6 +27,7 @@ export default async (req: Request): Promise<Response> => {
     store: { get: notReady, saveDraft: notReady, submit: notReady, listByDate: notReady, setStatus: notReady },
     settingsFor: async () => null,
     sendEmail: notReady,
+    index: blobsVersionIndex(),
   });
   return handler(req);
 };
