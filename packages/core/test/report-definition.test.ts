@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { computeDay } from '../src/calc';
 import {
-  addGroup, definitionGroups, deleteGroup, renameGroup, SETTINGS_GROUP,
+  addGroup, definitionGroups, deleteGroup, figurePicker, renameGroup, SETTINGS_GROUP,
   EOD_DEFINITION, VERIFIED_TEST_DAY, EditError, FormulaError, addFigure, addRef, connect, deleteFigure, dependsOn,
   disconnect, evaluateDefinition, formulaRefs, parseFormula, removeRef, renameFigure, renameRef, runTestDay, sameFigure,
   testDayInputs, tokenize, uniqueName, updateFigure, usedBy, validateName, wouldLoop, type ReportDefinition,
@@ -395,5 +395,37 @@ describe('sections', () => {
   it('lists a section a figure names even if the list doesn’t have it', () => {
     const d = addFigure(EOD_DEFINITION, { id: 'room', name: 'Room hire', kind: 'input', type: 'money', group: 'events' });
     expect(definitionGroups(d).at(-1)).toEqual({ id: 'events', title: 'events' });
+  });
+});
+
+describe('figurePicker', () => {
+  const items = EOD_DEFINITION.figures.map((f) => ({ name: f.name, kind: f.kind, group: f.group }));
+  const groups = definitionGroups(EOD_DEFINITION);
+  const tab = (p: ReturnType<typeof figurePicker>, id: string) => p.tabs.find((t) => t.id === id)!;
+
+  it('puts every figure in exactly one tab, leaving out the one being edited', () => {
+    const p = figurePicker(items, groups, 'Lunch net');
+    const shown = p.tabs.flatMap((t) => t.rows.flatMap((r) => r.names.map((n) => n.name)));
+    expect(shown.sort()).toEqual(items.map((i) => i.name).filter((n) => n !== 'Lunch net').sort());
+    expect(p.tabs.map((t) => t.title)).toEqual(['Lunch', 'Dinner', 'Delivery', 'Wages', 'Tips', 'Day totals', 'Checks', 'Settings']);
+  });
+
+  it('keeps a session’s inputs, calculations and checks together, with short names', () => {
+    const p = figurePicker(items, groups, 'Lunch net');
+    expect(p.start).toBe('lunch');
+    const lunch = tab(p, 'lunch');
+    expect(lunch.rows.map((r) => r.label)).toEqual(['Typed in', 'Worked out', 'Yes/no checks']);
+    expect(lunch.rows[0]!.names[0]).toEqual({ name: 'Lunch gross', short: 'Gross' });
+    expect(lunch.rows[2]!.names.map((n) => n.short)).toContain('Cash doesn’t balance?');
+    expect(tab(p, 'delivery').rows[1]!.names.map((n) => n.name)).toEqual(expect.arrayContaining(['Deliveroo net', 'Delivery net']));
+    expect(tab(p, 'totals').rows[0]!.names.map((n) => n.short)).toContain('Day total net');
+    expect(tab(p, 'settings').rows[0]!.label).toBe('Set by head office');
+  });
+
+  it('starts on the tab of what’s being edited, and gives a section finance add its own tab', () => {
+    const def = addFigure(addGroup(EOD_DEFINITION, { id: 'events', title: 'Events' }), { id: 'ev.gross', name: 'Events gross', kind: 'input', type: 'money', group: 'events' });
+    const p = figurePicker(def.figures.map((f) => ({ name: f.name, kind: f.kind, group: f.group })), definitionGroups(def), 'Wage %');
+    expect(p.start).toBe('totals');
+    expect(tab(p, 'events').rows[0]!.names).toEqual([{ name: 'Events gross', short: 'Gross' }]);
   });
 });

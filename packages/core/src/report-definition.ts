@@ -567,3 +567,45 @@ export const VERIFIED_TEST_DAY: TestDay = {
   },
   expect: { lunchNet: 85000, dayNet: 268750, wagePct: 0.298, covers: 105, headNet: 2429, tipsTotal: 22840, vsTarget: 18750, lunchCashDiff: 0 },
 };
+
+/* ------------------------------------------------------------ the figure picker in the formula editor */
+
+export interface PickItem { name: string; kind: FigureKind; group?: string }
+export interface PickTab { id: string; title: string; rows: { label: string; names: { name: string; short: string }[] }[] }
+
+const PICK_ROWS: [FigureKind, string][] = [['input', 'Typed in'], ['setting', 'Set by head office'], ['calc', 'Worked out'], ['check', 'Yes/no checks']];
+
+/**
+ * Groups the figures a formula can use into tabs, so finance see a handful at a time, not 60.
+ * One tab per input section (holding its inputs and the calculations named after it: "Lunch net" sits
+ * under Lunch), then Day totals, Checks and Settings. Names lose the tab's word ("Lunch gross" shows as
+ * "Gross" under Lunch); the full name is what goes into the formula. `start` is the tab of the figure
+ * being edited, which is itself left out.
+ */
+export function figurePicker(items: PickItem[], groups: { id: string; title: string }[], editing?: string): { tabs: PickTab[]; start: string } {
+  const sections = groups.filter((g) => g.id !== SETTINGS_GROUP);
+  const lower = (s: string) => s.toLowerCase();
+  const home = (it: PickItem): string => {
+    if (it.kind === 'input') return it.group ?? 'totals';
+    if (it.kind === 'setting') return SETTINGS_GROUP;
+    const g = sections.find((s) => lower(it.name).startsWith(`${lower(s.title)} `));
+    if (g) return g.id;
+    if (/^(deliveroo|uber eats|delivery)\b/i.test(it.name) && sections.some((s) => s.id === 'delivery')) return 'delivery';
+    return it.kind === 'check' ? 'checks' : 'totals';
+  };
+  const order = [...sections, { id: 'totals', title: 'Day totals' }, { id: 'checks', title: 'Checks' }, { id: SETTINGS_GROUP, title: 'Settings' }];
+  const short = (name: string, tab: { id: string; title: string }) => {
+    const p = `${lower(tab.title)} `;
+    if (!sections.includes(tab) || !lower(name).startsWith(p) || name.length === p.length) return name;
+    const rest = name.slice(p.length);
+    return rest.charAt(0).toUpperCase() + rest.slice(1);
+  };
+  const tabs = order.map((tab) => {
+    const mine = items.filter((it) => it.name !== editing && home(it) === tab.id);
+    const rows = PICK_ROWS.map(([kind, label]) => ({ label, names: mine.filter((it) => it.kind === kind).map((it) => ({ name: it.name, short: short(it.name, tab) })) })).filter((r) => r.names.length);
+    return { id: tab.id, title: tab.title, rows };
+  }).filter((t) => t.rows.length);
+  const own = items.find((it) => it.name === editing);
+  const start = own && tabs.some((t) => t.id === home(own)) ? home(own) : tabs[0]?.id ?? '';
+  return { tabs, start };
+}

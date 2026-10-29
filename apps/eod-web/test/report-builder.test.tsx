@@ -131,6 +131,21 @@ describe('adding', () => {
     await user.click(within(editor()).getByRole('button', { name: 'Card tips' }));
     expect(ta.value).toBe('[Card tips]');
   });
+
+  it('groups the figures in tabs, starting on the one being edited, with short names that add the full name', async () => {
+    const { user } = await openByNameReady('Lunch net');
+    const tabs = within(editor()).getByRole('tablist', { name: 'Figures by group' });
+    expect(within(tabs).getAllByRole('tab').map((t) => t.textContent)).toEqual(['Lunch', 'Dinner', 'Delivery', 'Wages', 'Tips', 'Day totals', 'Checks', 'Settings']);
+    expect(within(tabs).getByRole('tab', { name: 'Lunch' })).toHaveAttribute('aria-selected', 'true');
+    const panel = within(editor()).getByRole('tabpanel');
+    expect(within(panel).getByRole('button', { name: 'Lunch gross' })).toHaveTextContent(/^Gross$/);
+    expect(within(panel).queryByRole('button', { name: 'Wage %' })).not.toBeInTheDocument();
+    await user.click(within(tabs).getByRole('tab', { name: 'Day totals' }));
+    const ta = within(editor()).getByLabelText('Formula') as HTMLTextAreaElement;
+    fireEvent.change(ta, { target: { value: '', selectionStart: 0 } });
+    await user.click(within(editor()).getByRole('button', { name: 'Wage %' }));
+    expect(ta.value).toBe('[Wage %]');
+  });
 });
 
 /** Opens the builder and one figure. */

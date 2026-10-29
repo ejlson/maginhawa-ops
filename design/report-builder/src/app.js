@@ -1249,10 +1249,20 @@ function calcEditor(n) {
   bindName(n.id, n.name); bindUses(n.name);
   const ta = document.getElementById('fx'), names = allNames().filter(x => x !== n.name);
   const partial = () => { const m = ta.value.slice(0, ta.selectionStart).match(/\[([^\]\[]*)$/); return m ? {q: m[1], at: ta.selectionStart - m[1].length - 1} : null; };
+  // Not searching: the figures in tabs (Lunch, Dinner, Day totals…), a handful at a time.
+  const items = [], groups = [];
+  S.nodes.forEach(x => { if (x.fields) { groups.push({id: x.id, title: x.title}); x.fields.forEach(fd => items.push({name: fd.name, kind: x.kind, group: x.id})); } else if (x.formula !== undefined) items.push({name: x.name, kind: x.kind}); });
+  const pick = RD.figurePicker(items, groups, n.name);
+  let tab = pick.start;
   const list = () => {
     const p = partial(), q = p ? p.q.toLowerCase().trim() : ''; const hits = names.filter(x => x.toLowerCase().includes(q));
-    document.getElementById('insHead').textContent = p && q ? (hits.length ? 'Figures matching “' + p.q.trim() + '”' : 'No figure called “' + p.q.trim() + '”') : 'Type [ to pick a figure, or tap one';
-    document.getElementById('insList').innerHTML = hits.map(x => '<button class="' + roleOfName(x) + '" data-n="' + esc(x) + '">' + esc(x) + '</button>').join('');
+    document.getElementById('insHead').textContent = p && q ? (hits.length ? 'Figures matching “' + p.q.trim() + '”' : 'No figure called “' + p.q.trim() + '”') : 'Tap a figure to add it, or type [ to search';
+    const box = document.getElementById('insList');
+    if (p && q) { box.className = 'ins'; box.innerHTML = hits.map(x => '<button class="' + roleOfName(x) + '" data-n="' + esc(x) + '">' + esc(x) + '</button>').join(''); return; }
+    const cur = pick.tabs.find(t => t.id === tab) || pick.tabs[0];
+    box.className = 'pick';
+    box.innerHTML = !cur ? '' : '<div class="pick-tabs" role="tablist" aria-label="Figures by group">' + pick.tabs.map(t => '<button role="tab" data-tab="' + esc(t.id) + '" aria-selected="' + (t === cur) + '">' + esc(t.title) + '</button>').join('') + '</div>' +
+      cur.rows.map(r => '<div class="pick-row"><span class="pick-h">' + esc(r.label) + '</span><div class="ins">' + r.names.map(x => '<button class="' + roleOfName(x.name) + '" data-n="' + esc(x.name) + '" aria-label="' + esc(x.name) + '" title="' + esc(x.name) + '">' + esc(x.short) + '</button>').join('') + '</div></div>').join('');
   };
   const upd = () => { const R2 = computeAll(); const e = R2.errs[n.name]; document.getElementById('fxRes').innerHTML = e ? '<div class="err">' + esc(e) + '</div>' : '<div class="worked">' + worked(n, R2) + '</div>'; };
   let before = null;
@@ -1266,7 +1276,7 @@ function calcEditor(n) {
   fxd.addEventListener('input', e => { if (!dBefore) dBefore = snapshot(); n.desc = e.target.value; renderCalc(); });
   fxd.addEventListener('change', () => { if (!dBefore) return; const id = n.id, v = fxd.value; recordTyped('Changed the description of ' + n.name, dBefore, () => { byId(id).desc = v; return null; }); dBefore = snapshot(); });
   document.getElementById('insList').addEventListener('mousedown', e => e.preventDefault());
-  document.getElementById('insList').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; const p = partial(); const s = p ? p.at : ta.selectionStart, t = '[' + b.dataset.n + ']'; ta.value = ta.value.slice(0, s) + t + ta.value.slice(ta.selectionEnd); ta.focus(); ta.selectionStart = ta.selectionEnd = s + t.length; ta.dispatchEvent(new Event('input')); });
+  document.getElementById('insList').addEventListener('click', e => { const tb = e.target.closest('[data-tab]'); if (tb) { tab = tb.dataset.tab; list(); return; } const b = e.target.closest('button'); if (!b) return; const p = partial(); const s = p ? p.at : ta.selectionStart, t = '[' + b.dataset.n + ']'; ta.value = ta.value.slice(0, s) + t + ta.value.slice(ta.selectionEnd); ta.focus(); ta.selectionStart = ta.selectionEnd = s + t.length; ta.dispatchEvent(new Event('input')); });
   const del = document.getElementById('del'); if (!del.disabled) del.addEventListener('click', () => deleteFig(n.id));
   upd(); list();
   if (!n.formula && !S.focusName) ta.focus();

@@ -1,6 +1,6 @@
 /** The pop-up editor over the darkened map: one for an input or setting, a section, a calculation or check, and an action. */
-import { useRef, useState, type KeyboardEvent } from 'react';
-import { SETTINGS_GROUP, updateFigure, usedBy, validateName, type Figure, type FigureType } from '@maginhawa/core';
+import { useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { SETTINGS_GROUP, definitionGroups, figurePicker, updateFigure, usedBy, validateName, type Figure, type FigureType } from '@maginhawa/core';
 import {
   KIND_LABEL, TYPE_LABEL, allNames, fmt, parseValue, roleOfName, targetsFor, testDay, valueText, worked, type Section,
 } from '../../lib/report-builder/model';
@@ -211,6 +211,10 @@ function CalcEditor({ f }: { f: Figure }) {
   };
   const p = partial(), q = p ? p.q.toLowerCase().trim() : '';
   const hits = names.filter((x) => x.toLowerCase().includes(q));
+  // Not searching: the figures in tabs (Lunch, Dinner, Day totals…), a handful at a time.
+  const pick = useMemo(() => figurePicker(ws.def.figures.map((x) => ({ name: x.name, kind: x.kind, group: x.group })), definitionGroups(ws.def), f.name), [ws.def, f.name]);
+  const [tab, setTab] = useState<string | null>(null);
+  const cur = pick.tabs.find((t) => t.id === (tab ?? pick.start)) ?? pick.tabs[0];
   const [desc, setDesc] = useState(f.description ?? '');
   const setFormula = (v: string) => ws.live(ws.onDef((d) => updateFigure(d, id, { formula: v })));
   const commitFormula = () => { const v = ta.current?.value ?? formula; ws.commit(`Changed the formula for ${f.name}`, ws.onDef((d) => updateFigure(d, id, { formula: v }))); };
@@ -241,10 +245,26 @@ function CalcEditor({ f }: { f: Figure }) {
           onBlur={commitFormula} />
       </label>
       <div id="fxRes">{err ? <div className="err">{err}</div> : <div className="worked">{worked(ws.def, f, ws.R)}</div>}</div>
-      <div className="cap small" id="insHead">{p && q ? (hits.length ? `Figures matching “${p.q.trim()}”` : `No figure called “${p.q.trim()}”`) : 'Type [ to pick a figure, or tap one'}</div>
-      <div className="ins" id="insList" onMouseDown={(e) => e.preventDefault()}>
-        {!ws.locked && hits.map((x) => <button type="button" key={x} className={roleOfName(ws.def, x)} onClick={() => insert(x)}>{x}</button>)}
-      </div>
+      <div className="cap small" id="insHead">{p && q ? (hits.length ? `Figures matching “${p.q.trim()}”` : `No figure called “${p.q.trim()}”`) : 'Tap a figure to add it, or type [ to search'}</div>
+      {!ws.locked && (p && q ? (
+        <div className="ins" id="insList" onMouseDown={(e) => e.preventDefault()}>
+          {hits.map((x) => <button type="button" key={x} className={roleOfName(ws.def, x)} onClick={() => insert(x)}>{x}</button>)}
+        </div>
+      ) : cur && (
+        <div className="pick" onMouseDown={(e) => e.preventDefault()}>
+          <div className="pick-tabs" role="tablist" aria-label="Figures by group">
+            {pick.tabs.map((t) => <button type="button" role="tab" key={t.id} aria-selected={t.id === cur.id} onClick={() => setTab(t.id)}>{t.title}</button>)}
+          </div>
+          <div id="insList" role="tabpanel" aria-label={cur.title}>
+            {cur.rows.map((r) => (
+              <div className="pick-row" key={r.label}>
+                <span className="pick-h">{r.label}</span>
+                <div className="ins">{r.names.map((n) => <button type="button" key={n.name} className={roleOfName(ws.def, n.name)} aria-label={n.name} title={n.name} onClick={() => insert(n.name)}>{n.short}</button>)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
       <p className="cap small">Use + − × ÷ and brackets. 1.75% works as a number. &gt; and &lt; make a yes/no check. round(), min(), max() and if() are there too.</p>
       <UsesBlock name={f.name} />
       <DeleteBlock name={f.name} label={`Delete ${isCheck ? 'check' : 'calculation'}`} onDelete={() => ws.deleteFig(f.id)} />
