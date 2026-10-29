@@ -9,6 +9,7 @@ import {
   CLUSTERS, boxes, changes, clusterOf, compute, graph, newId, sections, testDay, testResults, trace, type Box, type Change, type Computed, type Doc, type Graph, type Section, type ShownResult,
 } from '../../lib/report-builder/model';
 import { baseOf, docOf, type DefinitionSave } from '../../lib/report-builder/save';
+import { useColours } from '../../lib/report-builder/colours';
 import type { DialogKind } from './ActionDialog';
 
 export type View = 'map' | 'list' | 'pipe';
@@ -56,6 +57,9 @@ export function useWorkspace(save: DefinitionSave, user: User, onNotice: (msg: s
   const [showLayers, setShowLayers] = useState(() => saved?.layers ?? wideNow);
   const [showPanel, setShowPanel] = useState(() => saved?.panel ?? wideNow);
   useEffect(() => { saveLayout({ layers: showLayers, panel: showPanel }); }, [showLayers, showPanel]);
+  const colours = useColours();
+  // Cards picked with Shift-click or Shift-drag on the map, to move together.
+  const [picked, setPicked] = useState<Set<string>>(() => new Set());
   const [flash, setFlash] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogKind | null>(null);
   const [toastState, setToast] = useState<Toast | null>(null);
@@ -154,7 +158,7 @@ export function useWorkspace(save: DefinitionSave, user: User, onNotice: (msg: s
   return {
     user, view, rec, h, doc, def, base, baseIds, R, G, T, C, secs, bx, locked, save,
     vw, setVw, sel, selField, open, setSelState, setSelField, modal, setModal, inline, setInline, collapsed, setCollapsed, reveal,
-    showLayers, setShowLayers, showPanel, setShowPanel, flash, setFlash, dialog, setDialog, toast, toastState, setToast,
+    showLayers, setShowLayers, showPanel, setShowPanel, colours, picked, setPicked, flash, setFlash, dialog, setDialog, toast, toastState, setToast,
     edit, live, commit, onDef, onDay, setValue, addInput, addSection, addCalc, addByKey, renameFig, renameSection, deleteFig, deleteSection,
     connectTo, disconnectFrom, setType, updateExpected, dropTest, undoAll, undo, redo, undoStep, sectionOf, fieldById,
     /** A message to show once the screen has started again from the record (after send, approve…). */

@@ -44,6 +44,7 @@ export function Workspace({ save, user, notice, onNotice }: { save: DefinitionSa
       if (e.key === 'Escape') {
         if (w.dialog) { w.setDialog(null); return; }
         if (w.modal && w.sel) { e.preventDefault(); w.setModal(false); return; }
+        if (!typing && w.picked.size) { w.setPicked(new Set()); return; }
         if (!typing && (w.sel || w.selField)) { w.open(null); return; }
       }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); document.getElementById('find')?.focus(); return; }
@@ -69,7 +70,7 @@ export function Workspace({ save, user, notice, onNotice }: { save: DefinitionSa
 
   return (
     <WsContext.Provider value={ws}>
-      <div className="rb">
+      <div className="rb" style={ws.colours.style}>
         <section className="builder full" aria-label="Report builder">
           <div className="bar">
             <div className="fb-title">
@@ -163,7 +164,7 @@ function Toolbar() {
           <button key={v} type="button" aria-selected={ws.vw === v} onClick={() => ws.setVw(v)}>{v === 'map' ? 'Map' : v === 'list' ? 'List' : 'Pipeline'}</button>
         ))}
       </div>
-      <span className="cap small grow">{name && <>Following <b style={{ color: 'var(--text)' }}>{name}</b> · <button type="button" className="lnk small" onClick={() => ws.open(null)}>Clear</button></>}</span>
+      <span className="cap small grow">{ws.vw === 'map' && ws.picked.size > 0 ? <><b style={{ color: 'var(--text)' }}>{ws.picked.size} selected</b> · drag one to move them all · <button type="button" className="lnk small" onClick={() => ws.setPicked(new Set())}>Clear</button></> : name && <>Following <b style={{ color: 'var(--text)' }}>{name}</b> · <button type="button" className="lnk small" onClick={() => ws.open(null)}>Clear</button></>}</span>
       {ws.vw === 'map' && <button type="button" className="lnk small" onClick={() => { ws.setCollapsed(ws.collapsed.size ? new Set() : new Set(allIds)); }}>{ws.collapsed.size ? 'Expand all' : 'Collapse all'}</button>}
       <button type="button" className="lnk small" disabled={!ws.h.steps.length} onClick={ws.undo}>Undo</button>
       <button type="button" className="lnk small" disabled={!ws.h.redoLabel} onClick={ws.redo}>Redo</button>

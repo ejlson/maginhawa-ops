@@ -518,7 +518,10 @@ html.rb-full,html.rb-full body{overflow:hidden}
 .rb .lyr-lane{gap:4px;padding:12px 6px 4px 2px}
 .rb .lyr-card{display:flex;align-items:center}
 .rb .lyr-card .lyr{flex:1;min-width:0}
-.rb .lyr-kids .lyr.sub{padding-left:44px}
+/* Indented like a tree: cards under their column, figures under their card with a guide line. */
+.rb .lyr-group{padding-left:14px}
+.rb .lyr-kids{margin:2px 0 6px 22px;padding-left:8px;border-left:1px solid var(--sep2)}
+.rb .lyr-kids .lyr.sub{padding-left:10px}
 .rb .lchev{border:0;background:none;color:var(--sec);width:22px;height:22px;border-radius:6px;padding:0;display:grid;place-items:center;flex:none}
 .rb .lchev:hover{background:var(--fill);color:var(--text)}
 .rb .lchev svg{width:12px;height:12px;transition:transform .15s}
@@ -605,3 +608,11 @@ html.rb-full,html.rb-full body{overflow:hidden}
 .rb .fb-mark:hover{text-decoration:none;opacity:.85}
 .rb .bar-acts .danger{height:36px}
 @media (max-width:760px){.rb .bar-mid{order:2;margin:0}}
+/* One height for the three headers under the top bar (search, view bar, review tabs), so their lines meet. */
+.rb .builder.full .lyr-head,.rb .builder.full .tool,.rb .builder.full .ptabs{height:56px;min-height:0;box-sizing:border-box;flex:none}
+.rb .builder.full .lyr-head{display:flex;align-items:center;padding:0 12px}
+.rb .builder.full .lyr-head>*{flex:1;min-width:0}
+.rb .builder.full .tool{padding:0 16px;flex-wrap:nowrap}
+.rb .builder.full .ptabs{padding:0 10px;align-items:stretch}
+.rb .builder.full .ptabs button{padding:0 10px}
+.rb .builder.full .ptabs .pclose{align-self:center;border-bottom:0;margin-bottom:0;padding:4px 6px}

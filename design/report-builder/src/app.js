@@ -533,8 +533,9 @@ function dragCard(el, pos, onClick) {
     pos.x = st.ox + dx; pos.y = st.oy + dy; el.style.left = pos.x + 'px'; el.style.top = pos.y + 'px'; moveCompanions(st.group, dx, dy);
     drawEdges(computeAll(), focusNow()); drawMinimap();
   });
-  el.addEventListener('pointerup', () => {
+  el.addEventListener('pointerup', e => {
     if (!st) return; const s0 = st; st = null; el.classList.remove('dragging');
+    if (!s0.moved && e.shiftKey) { togglePick(el.dataset.id); return; }
     if (s0.moved) { const r = s0.target.closest && s0.target.closest('.mrow'); if (r) r.dataset.dragged = '1'; sizeCanvas(); recordMove(s0.before, [el.dataset.id, ...(s0.group || []).map(c => c.id)]); }
     else { S.picked = new Set(); if (onClick) onClick(s0.target); }
   });
@@ -644,7 +645,7 @@ function bindNode(el, n) {
     if (!moved) { moved = true; before = snapshot(); S.tidy = false; group = companions(n.id); const t = document.getElementById('tidy'); if (t) { t.disabled = false; t.style.color = ''; } }
     n.x = ox + dx; n.y = oy + dy; el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; moveCompanions(group, dx, dy); drawEdges(computeAll(), focusNow()); drawMinimap();
   });
-  el.addEventListener('pointerup', () => { if (!moved && downOn) { S.picked = new Set(); select(n, downOn); } else if (moved) { sizeCanvas(); recordMove(before, [n.id, ...(group || []).map(c => c.id)]); } sx = undefined; downOn = null; group = null; moved = false; });
+  el.addEventListener('pointerup', e => { if (!moved && downOn && e.shiftKey) { togglePick(n.id); } else if (!moved && downOn) { S.picked = new Set(); select(n, downOn); } else if (moved) { sizeCanvas(); recordMove(before, [n.id, ...(group || []).map(c => c.id)]); } sx = undefined; downOn = null; group = null; moved = false; });
   h.tabIndex = 0;
   h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(n, h); } });
   el.querySelectorAll('.frow').forEach(r => { r.tabIndex = 0; r.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); select(n, r); } }); });
@@ -702,6 +703,11 @@ function pinchState() {
 function setTool(t) { S.tool = t; const c = document.getElementById('cvs'); if (c) c.classList.toggle('tool-select', t === 'select'); document.querySelectorAll('[data-tool]').forEach(b => { b.classList.toggle('on', b.dataset.tool === t); b.setAttribute('aria-pressed', String(b.dataset.tool === t)); }); }
 /** Where a card's position lives: section cards are figures' groups, calculation groups keep theirs in S.cpos. */
 const posOf = id => byId(id) || S.cpos[id];
+/** Shift-click: adds a card to the picked ones, or takes it out. */
+function togglePick(id) {
+  const p = new Set(S.picked); if (p.has(id)) p.delete(id); else p.add(id);
+  S.picked = p; renderCalc();
+}
 /** The other picked cards that move with this one. */
 function companions(id) {
   if (!S.picked.has(id)) return [];

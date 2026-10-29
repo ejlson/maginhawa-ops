@@ -3,7 +3,8 @@
  * calculation groups that fold to a summary, lines drawn from the formulas, drag a dot to connect, drag a card
  * to move it, and a canvas you can move around and zoom, like Figma. Ported from the prototype's own map.
  */
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent as RMouseEvent, type PointerEvent as RPointerEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent as RMouseEvent, type PointerEvent as RPointerEvent, type ReactNode } from 'react';
+import { DEFAULT_COLOURS, PALETTE, ROLES, pickColour, type ColourId, type Role } from '../../lib/report-builder/colours';
 import { formulaRefs, validateName, type FigureType } from '@maginhawa/core';
 import {
   CARD_W, CLUSTERS, KIND_LABEL, LANES, LANEX, LANE_ROLE, ROLE_OF, TYPE_CHIP, boxName, clusterKeys, clusterOf, clusterRole,
@@ -62,7 +63,8 @@ export function MapView() {
   const [zoom, setZoomState] = useState(1);
   const [pan, setPan] = useState<Pos>({ x: 0, y: 0 });
   const [placed, setPlaced] = useState<Record<string, Pos>>({});
-  const [drag, setDrag] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [drag, setDrag] = useState<Record<string, Pos> | null>(null);
+  const [marquee, setMarquee] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
   const [wiring, setWiring] = useState<{ src: string; ok: Set<string> } | null>(null);
   const [linkPop, setLinkPop] = useState<{ src: string; tgt: string; x: number; y: number } | null>(null);
   const [panning, setPanning] = useState(false);
@@ -76,7 +78,7 @@ export function MapView() {
   wsRef.current = ws;
 
   const heights = () => Object.fromEntries(items.map((it) => [it.id, els.current[it.id]?.offsetHeight ?? 0]));
-  const posOf = (id: string): Pos => (drag?.id === id ? drag : placed[id]) ?? { x: LANEX[items.find((i) => i.id === id)?.lane ?? 0]!, y: 64 };
+  const posOf = (id: string): Pos => (drag?.[id] ?? placed[id]) ?? { x: LANEX[items.find((i) => i.id === id)?.lane ?? 0]!, y: 64 };
 
   /* ---------- zoom ---------- */
   const setZoom = (next: number, ox?: number, oy?: number) => {
@@ -221,6 +223,7 @@ export function MapView() {
     const anywhere = e.button === 1;
     if (!anywhere && (e.button !== 0 || t.closest('.node,.linkpop,.hit,.dock'))) return;
     if (anywhere) e.preventDefault();
+    if (!anywhere && e.shiftKey) { startMarquee(e); return; }
     const start = { x: e.clientX, y: e.clientY, p: z.current.pan };
     let moved = false;
     const move = (ev: PointerEvent) => {
@@ -232,33 +235,60 @@ export function MapView() {
     const up = () => {
       window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up);
       setPanning(false);
-      if (!moved && !anywhere) { setLinkPop(null); if (wsRef.current.sel || wsRef.current.selField) wsRef.current.open(null); }
+      if (!moved && !anywhere) { setLinkPop(null); if (wsRef.current.picked.size) wsRef.current.setPicked(new Set()); if (wsRef.current.sel || wsRef.current.selField) wsRef.current.open(null); }
     };
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
   };
 
-  /* ---------- dragging a card ---------- */
+  /* ---------- picking several: Shift-drag a box round them (Shift keeps what's already picked) ---------- */
+  const startMarquee = (e: RPointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const box = cvs.current!.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY;
+    const keep = new Set(wsRef.current.picked);
+    const move = (ev: PointerEvent) => {
+      const l = Math.min(x0, ev.clientX), t = Math.min(y0, ev.clientY), r = Math.max(x0, ev.clientX), b = Math.max(y0, ev.clientY);
+      setMarquee({ x: l - box.left, y: t - box.top, w: r - l, h: b - t });
+      const next = new Set(keep);
+      Object.entries(els.current).forEach(([id, el]) => {
+        const c = el?.getBoundingClientRect();
+        if (c && c.left < r && c.right > l && c.top < b && c.bottom > t) next.add(id);
+      });
+      wsRef.current.setPicked(next);
+    };
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); setMarquee(null); };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+  };
+  const togglePick = (id: string) => ws.setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+
+  /* ---------- dragging a card (and any others picked with it) ---------- */
   const dragged = useRef(false);
   const onCardDown = (id: string) => (e: RPointerEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement;
     if (e.button !== 0 || t.closest('input,select,button,textarea,.port')) return;
-    const start = { x: e.clientX, y: e.clientY, o: posOf(id) };
+    const shift = e.shiftKey;
+    const group = ws.picked.has(id) ? [...ws.picked] : [id];
+    const start = { x: e.clientX, y: e.clientY, o: Object.fromEntries(group.map((g) => [g, posOf(g)])) as Record<string, Pos> };
+    const shifted = (dx: number, dy: number) => Object.fromEntries(group.map((g) => [g, { x: start.o[g]!.x + dx, y: start.o[g]!.y + dy }]));
     let moved = false;
     dragged.current = false;
     const move = (ev: PointerEvent) => {
       const dx = (ev.clientX - start.x) / z.current.zoom, dy = (ev.clientY - start.y) / z.current.zoom;
       if (!moved && Math.hypot(dx, dy) < 4) return;
       moved = true; dragged.current = true;
-      setDrag({ id, x: start.o.x + dx, y: start.o.y + dy });
+      setDrag(shifted(dx, dy));
     };
     const up = (ev: PointerEvent) => {
       window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up);
-      if (!moved) return;
-      const final = { x: start.o.x + (ev.clientX - start.x) / z.current.zoom, y: start.o.y + (ev.clientY - start.y) / z.current.zoom };
-      const all = { ...placed, [id]: final };
+      if (!moved) {
+        // Shift-click adds the card to the picked ones (or takes it out); a plain click starts again.
+        if (shift) { togglePick(id); dragged.current = true; setTimeout(() => { dragged.current = false; }, 0); }
+        else if (ws.picked.size) ws.setPicked(new Set());
+        return;
+      }
+      const all = { ...placed, ...shifted((ev.clientX - start.x) / z.current.zoom, (ev.clientY - start.y) / z.current.zoom) };
       setDrag(null);
       const it = items.find((i) => i.id === id);
-      const name = it ? (it.cluster ? it.title : it.section.title) : 'card';
+      const name = group.length > 1 ? `${group.length} cards` : it ? (it.cluster ? it.title : it.section.title) : 'card';
       ws.h.edit(`Moved ${name}`, (s) => ({ ...s, tidy: false, pos: { ...all } }));
       // A click arrives after the drag ends; ignore that one.
       setTimeout(() => { dragged.current = false; }, 0);
@@ -340,14 +370,11 @@ export function MapView() {
             )}
           </div>
         </div>
+        {marquee && <div className="marquee" style={{ left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h }} />}
       </div>
       <div className="dock">
         <div className="dock-l">
-          <div className="cv-legend"><div className="legwrap">
-            {([['in', 'Inputs'], ['set', 'Settings'], ['calc', 'Calculations'], ['act', 'Checks & actions']] as const).map(([k, label]) => (
-              <span key={k} className={`swbtn r-${k}`} title={label}><span className="sw" /><span className="swl">{label}</span></span>
-            ))}
-          </div></div>
+          <Legend />
         </div>
         <div className="dock-c">
           <div className="floatbar" role="toolbar" aria-label="Add to the report">
@@ -369,6 +396,53 @@ export function MapView() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** The colour dots. Click one to give that type of box another colour. */
+function Legend() {
+  const ws = useWs();
+  const { colours, set } = ws.colours;
+  const [open, setOpen] = useState<Role | null>(null);
+  const wrap = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => { if (!wrap.current?.contains(e.target as Node)) setOpen(null); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(null); } };
+    document.addEventListener('pointerdown', away); document.addEventListener('keydown', esc, true);
+    return () => { document.removeEventListener('pointerdown', away); document.removeEventListener('keydown', esc, true); };
+  }, [open]);
+  const label = (r: Role) => ROLES.find(([k]) => k === r)![1];
+  const pick = (role: Role, id: ColourId) => {
+    const { colours: next, swapped } = pickColour(colours, role, id);
+    set(next);
+    ws.toast(swapped ? `Swapped colours with ${label(swapped)}` : `${label(role)} are now ${PALETTE[id].name}`);
+  };
+  return (
+    <div className="cv-legend"><div className="legwrap" ref={wrap}>
+      {ROLES.map(([k, l]) => (
+        <button key={k} type="button" className={`swbtn r-${k}`} aria-haspopup="dialog" aria-expanded={open === k} title={`${l}: change its colour`}
+          onClick={() => setOpen(open === k ? null : k)}><span className="sw" /><span className="swl">{l}</span></button>
+      ))}
+      {open && (
+        <div className="palette" role="dialog" aria-label={`Colour for ${label(open)}`}>
+          <div className="ph"><b>Colour for {label(open)}</b><button type="button" className="lnk small" onClick={() => setOpen(null)}>Done</button></div>
+          <div className="grid">
+            {(Object.keys(PALETTE) as ColourId[]).map((id) => {
+              const user = ROLES.find(([k]) => k !== open && colours[k] === id);
+              return (
+                <button key={id} type="button" aria-pressed={colours[open] === id} onClick={() => pick(open, id)}
+                  style={{ '--pl': PALETTE[id].l, '--pd': PALETTE[id].d } as CSSProperties} title={`${PALETTE[id].name}${user ? ` (swaps with ${user[1]})` : ''}`}>
+                  <i />{PALETTE[id].name}
+                </button>
+              );
+            })}
+          </div>
+          <p className="why">Green, amber and red aren’t offered, because they mean good, watch and wrong. Picking a colour another type uses swaps the two.</p>
+          <button type="button" className="lnk small" style={{ alignSelf: 'flex-start' }} onClick={() => { set({ ...DEFAULT_COLOURS }); ws.toast('Colours reset'); }}>Reset all colours</button>
+        </div>
+      )}
+    </div></div>
   );
 }
 
@@ -431,7 +505,7 @@ function SectionCard({ s, pos, focus, values, setRef, onDown, clicked, onPortDow
   return (
     <div ref={setRef} data-id={s.id} style={{ left: pos.x, top: pos.y }} onPointerDown={onDown}
       onClick={(e) => { const t = e.target as HTMLElement; if (!clicked() || t.closest('input,select,button:not(.addrow),.port')) return; select(t); }}
-      className={`node ${role}${closed ? ' collapsed' : ''}${isNew ? ' isnew' : ''}${ws.sel === s.id ? ' sel' : ''}${focus && !focus.has(s.id) ? ' dim' : ''}${dropClass(s.id)}`}>
+      className={`node ${role}${ws.picked.has(s.id) ? ' picked' : ''}${closed ? ' collapsed' : ''}${isNew ? ' isnew' : ''}${ws.sel === s.id ? ' sel' : ''}${focus && !focus.has(s.id) ? ' dim' : ''}${dropClass(s.id)}`}>
       <div className="nh" tabIndex={0} onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); ws.open(s.id); } }}>
         <button type="button" className="chev" aria-expanded={!closed} aria-label={`${closed ? 'Show' : 'Hide'} the ${s.title} ${isSet ? 'settings' : 'inputs'}`}
           onClick={(e) => { e.stopPropagation(); if (!closed && holds(ws.selField)) ws.setSelField(null); toggle(s.id); }}><Ic name="chev" /></button>
@@ -515,7 +589,7 @@ function ClusterCard({ it, pos, focus, setRef, onDown, clicked, onPortDown, drop
   };
   return (
     <div ref={setRef} data-id={it.id} style={{ left: pos.x, top: pos.y }} onPointerDown={onDown}
-      className={`node cluster ${role}${closed ? ' collapsed' : ' open'}${live ? '' : ' dim'}${m.some((x) => x.id === ws.sel) ? ' sel' : ''}`}>
+      className={`node cluster ${role}${ws.picked.has(it.id) ? ' picked' : ''}${closed ? ' collapsed' : ' open'}${live ? '' : ' dim'}${m.some((x) => x.id === ws.sel) ? ' sel' : ''}`}>
       <div className="nh" tabIndex={0}
         onClick={(e) => { if (!clicked() || (e.target as HTMLElement).closest('button')) return; toggle(it.id); }}
         onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggle(it.id); } }}>

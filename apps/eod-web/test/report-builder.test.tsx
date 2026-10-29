@@ -389,6 +389,48 @@ describe('workspace', () => {
     for (const k of ['i', 'c', 'k']) { await user.keyboard(k); await user.keyboard('{Enter}'); }
     expect(changes()).toEqual(expect.arrayContaining(['Added New input', 'Added New calculation', 'Added New check']));
   });
+
+  it('Shift-click picks several cards; dragging one moves them all, and one Undo puts them back', async () => {
+    await openBuilder();
+    const card = (id: string) => $(`.node[data-id="${id}"]`)!;
+    const at = (id: string) => [card(id).style.left, card(id).style.top];
+    const click = (id: string, shiftKey: boolean) => { fireEvent.pointerDown(card(id).querySelector('.nh')!, { button: 0, shiftKey, clientX: 10, clientY: 10 }); fireEvent.pointerUp(window, { clientX: 10, clientY: 10 }); fireEvent.click(card(id).querySelector('.nh')!); };
+    click('lunch', true); click('dinner', true);
+    expect($$('.node.picked').map((n) => n.dataset.id)).toEqual(['lunch', 'dinner']);
+    expect(text('.tool')).toContain('2 selected');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    click('dinner', true);
+    expect($$('.node.picked').map((n) => n.dataset.id)).toEqual(['lunch']);
+    click('dinner', true);
+    const before = { lunch: at('lunch'), dinner: at('dinner') };
+    fireEvent.pointerDown(card('lunch').querySelector('.nh')!, { button: 0, clientX: 10, clientY: 10 });
+    fireEvent.pointerMove(window, { clientX: 60, clientY: 90 });
+    fireEvent.pointerUp(window, { clientX: 60, clientY: 90 });
+    expect(at('lunch')).not.toEqual(before.lunch);
+    expect(at('dinner')).not.toEqual(before.dinner);
+    await act(async () => { fireEvent.keyDown(document, { key: 'z', metaKey: true }); });
+    expect({ lunch: at('lunch'), dinner: at('dinner') }).toEqual(before);
+    expect(text('.toast')).toContain('Undid: Moved 2 cards');
+    await act(async () => { fireEvent.keyDown(document, { key: 'Escape' }); });
+    expect($$('.node.picked')).toHaveLength(0);
+  });
+
+  it('changes a type’s colour from the dots at the bottom; taking one in use swaps the two', async () => {
+    const { user } = await openBuilder();
+    const rb = $('.rb')!;
+    await user.click(screen.getByRole('button', { name: 'Inputs' }));
+    const pal = screen.getByRole('dialog', { name: 'Colour for Inputs' });
+    await user.click(within(pal).getByRole('button', { name: /^Plum/ }));
+    expect(rb.style.getPropertyValue('--r-in')).toBe('#A23B72');
+    await user.click(within(pal).getByRole('button', { name: /^Teal/ }));
+    expect(rb.style.getPropertyValue('--r-in')).toBe('#16879D');
+    expect(rb.style.getPropertyValue('--r-act')).toBe('#A23B72'); // checks took the inputs' old colour
+    expect(text('.toast')).toBe('Swapped colours with Checks & actions');
+    await user.click(within(pal).getByRole('button', { name: 'Reset all colours' }));
+    expect(rb.style.getPropertyValue('--r-in')).toBe('');
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: 'Colour for Inputs' })).not.toBeInTheDocument();
+  });
 });
 
 /* ------------------------------------------------------------------ saving */
