@@ -21,9 +21,17 @@ export function eodSummaryEmail(r: StoredReport, settings: Pick<SiteSettings, 's
     `Net sales: ${formatPounds(o.totalNet)}${o.netVsTarget !== null ? ` (${o.netVsTarget >= 0 ? '+' : '−'}${formatPounds(Math.abs(o.netVsTarget))} vs target)` : ''}`,
     `Covers: ${o.covers}`,
     `Net a head (dine-in): ${o.perHeadDineIn !== null ? formatPounds(o.perHeadDineIn) : '—'}`,
+    `Gross a head (dine-in): ${o.perHeadGrossDineIn !== null ? formatPounds(o.perHeadGrossDineIn) : '—'}`,
     `Wages: ${o.wagePct !== null ? `${o.wagePct}% (${o.wageRag})` : '—'}`,
     '',
   ];
+  // Figures finance added in the report builder and put in the email.
+  const added = new Set(o.definition?.added.map((x) => x.name) ?? []);
+  const extra = (o.definition?.email ?? []).filter((x) => added.has(x.name));
+  if (extra.length) {
+    for (const x of extra) lines.push(`${x.name}: ${figureText(x.type, x.value)}`);
+    lines.push('');
+  }
   for (const k of ['lunch', 'dinner'] as const) {
     const s = o.sessions[k];
     if (!s.ran) { lines.push(`${k === 'lunch' ? 'Lunch' : 'Dinner'}: didn't run`); continue; }
@@ -44,4 +52,12 @@ export function eodSummaryEmail(r: StoredReport, settings: Pick<SiteSettings, 's
   }
   const subject = `EOD · ${settings.siteName} · ${date} · ${formatPounds(o.totalNet)} net${notes.length ? ` · ${notes.length} to look at` : ''}`;
   return { subject, text: lines.join('\n') };
+}
+
+function figureText(type: 'money' | 'percent' | 'number' | 'yesno', v: number | null): string {
+  if (v === null) return '—';
+  if (type === 'money') return formatPounds(v);
+  if (type === 'percent') return `${Math.round(v * 1000) / 10}%`;
+  if (type === 'yesno') return v ? 'Yes' : 'No';
+  return String(Math.round(v * 100) / 100);
 }

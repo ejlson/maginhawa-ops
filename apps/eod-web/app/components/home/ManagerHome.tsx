@@ -14,6 +14,7 @@ import { TabBar } from '../TabBar';
 import { EodHero, EodRow, firstName, greeting, HomeHeader, isDaytime, NextChecklistHero, PhaseRows, TimelineRow, useEod, useToday } from './shared';
 import { FoodSafetyRow } from '../FoodSafetyRow';
 import { Columns } from '../Columns';
+import { FirstWeek } from './FirstWeek';
 
 interface LastNight {
   net: Pence;
@@ -56,7 +57,7 @@ function LastNightHero({ n }: { n: LastNight }) {
   const { lastDate } = useTradingHistory();
   const [p, d] = splitPounds(n.net);
   return (
-    <Link className="hero" to="/close/done" aria-label={`Last night, ${formatPounds(n.net)} net. ${n.status.text}`}>
+    <Link className="hero" data-tour="hero-night" to="/close/done" aria-label={`Last night, ${formatPounds(n.net)} net. ${n.status.text}`}>
       <div className="hero-row"><span className="hl">Last night · {WEEKDAY_NAMES[weekday(lastDate)]}</span><span className={`hs-small ${n.status.cls}`} style={{ fontWeight: 600 }}>{n.status.text}</span></div>
       <div className="titleblock">
         <div className="big"><b>{p}</b><i>{d}</i></div>
@@ -109,8 +110,11 @@ export function ManagerHome() {
   const unreadHandover = handover.length > 0 && !handoverRead;
   // One main button: a late list, then last night's handover, then the next list, then the EOD.
   const readFirst = morning && unreadHandover && !urgent.length;
-  const lateChecks = tasks.filter((t) => (t.status === 'late' || t.status === 'missed') && t.key !== focus?.key).slice(0, 3);
-  const showNeeds = unreadHandover || open.length > 0 || missedYesterday.length > 0 || lateChecks.length > 0 || eod.issues.length > 0;
+  // Late lists can still be done, so each gets a row. Missed ones can't, so they fold into one calm row:
+  // only the thing to do now should shout.
+  const lateChecks = tasks.filter((t) => t.status === 'late' && t.key !== focus?.key).slice(0, 3);
+  const missedToday = tasks.filter((t) => t.status === 'missed' && t.key !== focus?.key);
+  const showNeeds = unreadHandover || open.length > 0 || missedYesterday.length > 0 || lateChecks.length > 0 || missedToday.length > 0 || eod.issues.length > 0;
 
   return (
     <main className="page tabs">
@@ -128,7 +132,7 @@ export function ManagerHome() {
         main={<>
 
         {showNeeds && (
-          <section className="grp">
+          <section className="grp" data-tour="needs">
             <div className="hd"><h2>Needs you</h2></div>
             <div className="sub">
               {unreadHandover && (
@@ -140,15 +144,20 @@ export function ManagerHome() {
                   title={r.title} sub={`Repair · ${reportedText(r.reportedAt, at)}`} right={<span className={`pill ${r.urgent ? 'p-bad' : 'p-warn'}`}>{r.urgent ? 'Urgent' : 'Open'}</span>} />
               ))}
               {open.length > 2 && <RowLink to="/repairs" lead={<span className="av"><Icon d={ICONS.wrench} /></span>} title={`${open.length - 2} more repairs`} />}
-              {missedYesterday.length > 0 && (
-                <RowLink to="/checklists" lead={<span className="av bad"><Icon d={ICONS.bang} size={15} /></span>}
-                  title={missedYesterday.length === 1 ? `${missedYesterday[0]!.title} was missed` : `${missedYesterday.length} checklists missed`}
-                  sub={missedYesterday.length === 1 ? 'Yesterday' : `Yesterday · ${missedYesterday.map((t) => t.title).join(', ')}`} right={<span className="pill p-bad">Missed</span>} />
-              )}
               {lateChecks.map((t) => (
-                <RowLink key={t.key} to={runPath(t.key)} lead={<span className="av bad"><Icon d={ICONS.bang} size={15} /></span>}
-                  title={t.title} sub="Checklist" right={<span className={`pill ${statusPill(t, at).cls}`}>{statusPill(t, at).text}</span>} />
+                <RowLink key={t.key} to={runPath(t.key)} lead={<span className="av warn"><Icon d={ICONS.clock} size={17} /></span>}
+                  title={t.title} sub="Checklist · can still be done" right={<span className="pill p-warn">{statusPill(t, at).text}</span>} />
               ))}
+              {missedToday.length > 0 && (
+                <RowLink to="/day" lead={<span className="av">{missedToday.length}</span>}
+                  title={missedToday.length === 1 ? `${missedToday[0]!.title} was missed` : `${missedToday.length} checklists missed earlier`}
+                  sub={`${missedToday.map((t) => t.title).join(', ')} · add a note`} />
+              )}
+              {missedYesterday.length > 0 && (
+                <RowLink to="/checklists" lead={<span className="av">{missedYesterday.length}</span>}
+                  title={missedYesterday.length === 1 ? `${missedYesterday[0]!.title} was missed` : `${missedYesterday.length} checklists missed`}
+                  sub={missedYesterday.length === 1 ? 'Yesterday' : `Yesterday · ${missedYesterday.map((t) => t.title).join(', ')}`} />
+              )}
               {eod.issues.map((i) => (
                 <RowLink key={i.code + i.section} to={`/close/${i.section}`} lead={<span className={`av ${i.level === 'block' ? 'bad' : 'warn'}`}><Icon d={ICONS.bang} size={15} /></span>} title={i.title} sub={i.detail} />
               ))}
@@ -156,6 +165,7 @@ export function ManagerHome() {
           </section>
         )}
 
+        <FirstWeek />
         {morning && <LastSevenDays />}
         </>}
         side={<>
@@ -178,13 +188,10 @@ export function ManagerHome() {
         {readFirst ? (
           <>
             <Link className="btn b1" to="/handover">Read {handoverBy ? `${firstName(handoverBy)}'s` : "last night's"} handover</Link>
-            {focus ? <Link className="btn b2" to={runPath(focus.key)}>Start: {focus.title}</Link> : <Link className="btn b2" to={eod.to}>{eod.label}</Link>}
           </>
         ) : focus ? (
-          <>
-            <Link className="btn b1" to={runPath(focus.key)}>{focus.status === 'late' ? 'Do now' : 'Start'}: {focus.title}</Link>
-            <Link className="btn b2" to={eod.to}>{eod.label}</Link>
-          </>
+          // One button. The EOD stays one tap away in "Today" and the tab bar.
+          <Link className="btn b1" to={runPath(focus.key)}>{focus.status === 'late' ? 'Do now' : 'Start'}: {focus.title}</Link>
         ) : (
           <Link className="btn b1" to={eod.to}>{eod.label}</Link>
         )}

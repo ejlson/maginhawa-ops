@@ -3,6 +3,7 @@
  * figures, then emails finance. Every outside service is passed in, so the handler is
  * fully testable and the real ones (SharePoint via Graph, Entra, mail) plug in later.
  */
+import type { DefinitionRecord } from '@maginhawa/core';
 import { eodKey, record, type VersionIndex } from './version-index';
 import { eodSummaryEmail, submitReport, type EmailMessage, type EodStore, type SiteSettings } from '@maginhawa/core';
 
@@ -24,6 +25,8 @@ export interface SubmitDeps {
   now?: () => Date;
   /** Netlify Blobs: so other devices' polls see the submit without asking SharePoint. */
   index?: VersionIndex;
+  /** The report builder's versions; the one approved for the report's trading day decides the figures. */
+  definitions?: () => Promise<DefinitionRecord | null>;
 }
 
 export const json = (status: number, body: unknown) =>
@@ -54,7 +57,8 @@ export function createSubmitHandler(deps: SubmitDeps) {
     const businessDate = (body as { businessDate?: string }).businessDate ?? '';
     const targetNet = deps.targetNetFor ? await deps.targetNetFor(siteCode, businessDate) : null;
 
-    const res = await submitReport(body, { store: deps.store, settings, submittedBy: caller.name, now: deps.now?.(), targetNet, ...condition });
+    const definitions = deps.definitions ? await deps.definitions() : null;
+    const res = await submitReport(body, { store: deps.store, settings, submittedBy: caller.name, now: deps.now?.(), targetNet, definitions, ...condition });
     // 409: someone else sent it first, or changed it since this person last looked. `current` is what is stored.
     const at = (deps.now?.() ?? new Date()).getTime();
     if (!res.ok && (res.code === 'already-submitted' || res.code === 'conflict')) {

@@ -6,14 +6,15 @@
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from 'react';
 import {
-  computeDay, DEFAULT_SETTINGS, EodSyncClient, newDraft, reviewIssues, sectionProgress, SITES, tradingDate,
-  type DayResult, type EodDraft, type EodSyncState, type Issue, type SectionKey, type SiteSettings, type StoredReport, type SubmitErrorCode,
+  computeDayWith, definitionIssues, liveVersion, DEFAULT_SETTINGS, EodSyncClient, newDraft, reviewIssues, sectionProgress, SITES, tradingDate,
+  type DayResult, type DefinitionVersion, type EodDraft, type EodSyncState, type Issue, type SectionKey, type SiteSettings, type StoredReport, type SubmitErrorCode,
 } from '@maginhawa/core';
 import { deviceStore } from './store';
 import { isConnected } from './config';
 import { useAuth } from './auth';
 import { now as clockNow } from './clock';
 import { storage } from './storage';
+import { useLiveDefinitions } from './definition';
 import { deviceId, eodRemote, presenceRemote, useLive, uuid } from './sync';
 
 export function settingsFor(siteCode: string): SiteSettings {
@@ -25,6 +26,8 @@ interface DraftValue {
   draft: EodDraft;
   settings: SiteSettings;
   result: DayResult;
+  /** The report builder's version this report uses (null = today's built-in rules). */
+  definition: DefinitionVersion | null;
   issues: Issue[];
   progress: { done: number; active: number; left: number };
   status: StoredReport['status'];
@@ -72,14 +75,17 @@ export function DraftProvider({ siteCode, now, children }: { siteCode: string; n
   const dismissNotice = useCallback(() => client.dismissNotice(), [client]);
   const setWhere = useCallback((where: string | null) => client.setWhere(where), [client]);
 
-  const result = useMemo(() => computeDay(draft, settings), [draft, settings]);
-  const issues = useMemo(() => reviewIssues(draft, result, settings), [draft, result, settings]);
+  // Figures come from the report builder's version approved for this trading day.
+  const definitions = useLiveDefinitions(draft.businessDate);
+  const definition = useMemo(() => liveVersion(definitions, draft.businessDate), [definitions, draft.businessDate]);
+  const result = useMemo(() => computeDayWith(draft, settings, undefined, definitions), [draft, settings, definitions]);
+  const issues = useMemo(() => [...reviewIssues(draft, result, settings), ...definitionIssues(draft, definitions)], [draft, result, settings, definitions]);
   const progress = useMemo(() => sectionProgress(draft), [draft]);
   const savedAt = useMemo(() => (sync.savedAt ? new Date(sync.savedAt) : null), [sync.savedAt]);
 
   const value = useMemo<DraftValue>(
-    () => ({ draft, settings, result, issues, progress, status, report, savedAt, sync, update, submit, resolve, dismissNotice, setWhere }),
-    [draft, settings, result, issues, progress, status, report, savedAt, sync, update, submit, resolve, dismissNotice, setWhere],
+    () => ({ draft, settings, result, definition, issues, progress, status, report, savedAt, sync, update, submit, resolve, dismissNotice, setWhere }),
+    [draft, settings, result, definition, issues, progress, status, report, savedAt, sync, update, submit, resolve, dismissNotice, setWhere],
   );
   return <DraftContext.Provider value={value}>{children}</DraftContext.Provider>;
 }

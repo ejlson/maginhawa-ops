@@ -8,6 +8,7 @@
  * Live updates come through a LiveTransport: polling every 10 s (30 s when idle) and on focus for now.
  * A push service (e.g. Azure Web PubSub) can replace it here without touching the screens.
  */
+import { demoDefinitions } from './definition';
 import { useEffect } from 'react';
 import {
   ManualTransport, PollingTransport, SyncError, storeRemote, submitReport,
@@ -42,6 +43,12 @@ async function call(path: string, init: RequestInit = {}): Promise<Response> {
   // 503 = server not connected yet; treat like no signal so the work stays on the device.
   if (res.status >= 500) throw new Error(`Server ${res.status}`);
   return res;
+}
+
+/** Reads JSON from a function. Null when it answers with an error the app can ignore. */
+export async function apiGet<T>(path: string): Promise<T | null> {
+  const res = await call(path);
+  return res.ok ? (await res.json()) as T : null;
 }
 
 const httpEod: EodRemote = {
@@ -93,7 +100,7 @@ export function eodRemote(settingsFor: (siteCode: string) => SiteSettings): EodR
   const store = deviceStore();
   return storeRemote(
     store,
-    (draft: EodDraft, o) => submitReport(draft, { store, settings: settingsFor(draft.siteCode), submittedBy: o.by, baseVersion: o.baseVersion, submitId: o.submitId, now: now() }),
+    (draft: EodDraft, o) => submitReport(draft, { store, settings: settingsFor(draft.siteCode), submittedBy: o.by, baseVersion: o.baseVersion, submitId: o.submitId, now: now(), definitions: demoDefinitions() }),
     now,
   );
 }

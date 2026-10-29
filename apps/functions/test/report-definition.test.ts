@@ -17,8 +17,8 @@ function setup(store: DefinitionStore = new MemoryDefinitionStore(seedDefinition
     groupSettings: async () => ({ dayCloseTime: '04:00', timezone: 'Europe/London' }),
     now: () => new Date('2026-11-02T11:00:00Z'),
   });
-  const call = (who: string, method: string, body?: unknown, etag?: string | null) =>
-    handler(new Request(URL_, {
+  const call = (who: string, method: string, body?: unknown, etag?: string | null, query = '') =>
+    handler(new Request(URL_ + query, {
       method,
       headers: { Authorization: `Bearer ${who}`, 'Content-Type': 'application/json', ...(etag ? { 'If-Match': etag } : {}) },
       body: body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body),
@@ -80,7 +80,7 @@ describe('report-definition', () => {
   it('only lets head office in', async () => {
     const s = setup();
     expect((await s.call('nobody', 'GET')).status).toBe(401);
-    expect((await s.call('mgr', 'GET')).status).toBe(403);
+    expect((await s.call('mgr', 'GET')).status).toBe(200); // read-only: the live version, see below
     expect((await s.send('mgr', 'PUT', { definition: withFees(), testDays: [] })).status).toBe(403);
   });
 
@@ -111,5 +111,33 @@ describe('report-definition', () => {
   it('answers 503 until the server is connected to SharePoint', async () => {
     const res = await netlifyFunction(new Request(URL_));
     expect(res.status).toBe(503);
+  });
+});
+
+describe('report-definition for managers’ apps', () => {
+  it('gives a manager only the version that’s live for a date, never drafts', async () => {
+    const s = setup();
+    await s.send('ana', 'PUT', { definition: withFees(), testDays: [VERIFIED_TEST_DAY] });
+    const res = await s.call('mgr', 'GET');
+    const body = await res.json();
+    expect(body.date).toBe('2026-11-02');
+    expect(body.version.version).toBe(1);
+    expect(body.record).toBeUndefined();
+    expect(JSON.stringify(body)).not.toContain('Card fees');
+  });
+  it('answers for the trading day asked about, and refuses a badly formed date', async () => {
+    const s = setup();
+    await s.send('ana', 'PUT', { definition: withFees(), testDays: [VERIFIED_TEST_DAY] });
+    await s.send('ana', 'POST', { action: 'submit', summary: 'Card fees' });
+    await s.send('ben', 'POST', { action: 'approve' }); // approved 2 Nov, live from 3 Nov
+    const on = async (q: string) => { const r = await s.call('mgr', 'GET', undefined, null, q); return { status: r.status, body: await r.json() }; };
+    expect((await on('?date=2026-11-02')).body.version.version).toBe(1);
+    expect((await on('?date=2026-11-03')).body.version.version).toBe(2);
+    expect((await on('?date=2026-11-03')).body.version.definition.figures.some((f: { name: string }) => f.name === 'Card fees')).toBe(true);
+    expect((await on('?date=tomorrow')).status).toBe(400);
+  });
+  it('refuses a manager trying to change anything', async () => {
+    const s = setup();
+    expect((await s.send('mgr', 'POST', { action: 'approve' })).status).toBe(403);
   });
 });

@@ -7,6 +7,7 @@ import { timeHM, useDraft } from '../../lib/draft';
 import { now } from '../../lib/clock';
 import { isUrgent, phaseSummaries, runPath, statusPill, useChecklists, type PhaseSummary, type TaskView } from '../../lib/checklists';
 import { WhoMenu } from './WhoMenu';
+import { SitePicker } from '../SitePicker';
 import { BigMoney, Chevron, Icon, ICONS, PHASE_ICONS, Pie, RowLink, Segments, StatusIcon } from '../ui';
 
 export function greeting(d: Date) {
@@ -75,12 +76,12 @@ export function useEod() {
 }
 
 export function HomeHeader({ right }: { right?: ReactNode }) {
-  const { settings, savedAt } = useDraft();
+  const { savedAt } = useDraft();
   return (
     <header className="nav homenav" style={{ paddingLeft: 20 }}>
-      <span className="title">{settings.siteName}</span>
+      <SitePicker place="top" />
       {right ?? <>
-        <span className="saved"><span className="dot" />{savedAt ? `Saved ${timeHM(savedAt)}` : 'On this device'}</span>
+        <span className="saved" data-tour="sync"><span className="dot" />{savedAt ? `Saved ${timeHM(savedAt)}` : 'On this device'}</span>
         <WhoMenu />
       </>}
     </header>
@@ -91,10 +92,10 @@ export function NextChecklistHero({ focus, label = 'Next checklist' }: { focus: 
   const { scheduled, checksDone, at } = useToday();
   const pill = statusPill(focus, at);
   return (
-    <Link className="hero" to={runPath(focus.key)} aria-label={`${label}: ${focus.title}, ${pill.text}`}>
+    <Link className="hero" data-tour="hero-check" to={runPath(focus.key)} aria-label={`${label}: ${focus.title}, ${pill.text}`}>
       <div className="hero-row">
         <span className="hl">{label}</span>
-        <span className={`hs-small ${focus.status === 'late' || focus.status === 'missed' ? 'h-bad' : focus.status === 'due' ? 'h-warn' : ''}`} style={{ fontWeight: 600 }}>{pill.text}</span>
+        <span className={`hs-small ${focus.status === 'missed' ? 'h-bad' : focus.status === 'late' || focus.status === 'due' ? 'h-warn' : ''}`} style={{ fontWeight: 600 }}>{pill.text}</span>
       </div>
       <div className="titleblock" style={{ gap: 6 }}>
         <span className="hero-title">{focus.title}</span>
@@ -111,7 +112,7 @@ export function NextChecklistHero({ focus, label = 'Next checklist' }: { focus: 
 export function AllDoneHero() {
   const { scheduled, checksDone } = useToday();
   return (
-    <Link className="hero" to="/checklists">
+    <Link className="hero" data-tour="hero-check" to="/checklists">
       <div className="hero-row"><span className="hl">Checklists</span><span className="hs-small h-ok" style={{ fontWeight: 600 }}>All done</span></div>
       <span className="hero-title">Nothing left today</span>
       <div className="hero-row hero-foot">
@@ -126,7 +127,7 @@ export function EodHero() {
   const eod = useEod();
   const due = eod.due();
   return (
-    <Link className="hero" to={eod.next.to} aria-label={`Today's EOD, ${formatPounds(eod.result.totalNet)} net. ${eod.soFar}. ${eod.next.text}`}>
+    <Link className="hero" data-tour="hero-eod" to={eod.next.to} aria-label={`Today's EOD, ${formatPounds(eod.result.totalNet)} net. ${eod.soFar}. ${eod.next.text}`}>
       <div className="hero-row"><span className="hl">Today's EOD</span>{due.text && <span className={`hs-small ${due.cls}`} style={{ fontWeight: due.cls ? 600 : undefined }}>{due.text}</span>}</div>
       <div className="titleblock">
         <BigMoney value={eod.result.totalNet} />

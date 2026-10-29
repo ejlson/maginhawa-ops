@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>iPad tour · kitchen staff</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="checks.css">
+<link rel="stylesheet" href="tour.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="tb scr {{theme}}">
+<nav class="side" aria-label="Kitchen">
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 0 12px 8px"><span style="font-size: 15px; color: var(--sec)">Tuesday 6 October</span><span style="font-size: 28px; font-weight: 700; letter-spacing: -0.035em">Bunso kitchen</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<a class="si on" href="#today" aria-current="page"><span style="color: var(--sec); display: flex"><svg width="20" height="20" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5h7M8 9h7M8 13h7M3 5l1 1 1.8-2M3 9l1 1 1.8-2M3 13l1 1 1.8-2"></path></svg></span>Today's checks<small>4 left</small></a>
+<a class="si" href="#temps"><span style="color: var(--sec); display: flex"><svg width="20" height="20" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 10.6V3.8a1.5 1.5 0 0 1 3 0v6.8a3 3 0 1 1-3 0zM9 12.5v-4"></path></svg></span>Temperatures</a>
+<a class="si" href="#handbook"><span style="color: var(--sec); display: flex"><svg width="20" height="20" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3.5h4.5A1.5 1.5 0 0 1 9 5v10a1.5 1.5 0 0 0-1.5-1.5H3zM15 3.5h-4.5A1.5 1.5 0 0 0 9 5v10a1.5 1.5 0 0 1 1.5-1.5H15z"></path></svg></span>Handbook<small>1 to sign</small></a>
+</div>
+<div class="{{a.lock}}" style="margin-top: auto">
+<div class="{{t.lock}}" style="display: flex; align-items: center; gap: 12px; padding: 4px 12px"><span class="av ink">RT</span><span class="tx"><span style="font-size: 15px">[CDP]</span><small>Locks after 2 min idle</small></span><button type="button" aria-label="Lock now" style="border: 0; background: var(--fill); color: var(--text); width: 44px; height: 44px; border-radius: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8h9v7.5h-9zM6 8V5.5a3 3 0 0 1 6 0V8"></path></svg></button></div>
+<sc-if value="{{show.lock}}" hint-placeholder-val="{{false}}">
+<div class="tip up" role="dialog" aria-label="Tip {{n}} of {{total}}">
+<div class="tiph"><span>{{n}} of {{total}}</span><span></span></div>
+<strong>Finished? Lock the iPad</strong>
+<p>Tap the lock so nobody signs things as you. It also locks itself after 2 minutes.</p>
+<div class="tipf"><span class="dots"><svg class="ring" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle class="rt0" cx="10" cy="10" r="8.6"></circle><circle class="rp" cx="10" cy="10" r="3" style="--a: {{ringFrom}}; --b: {{ringTo}}"></circle></svg></span><button type="button" class="lnk" onClick="{{back}}">Back</button><button type="button" class="go" onClick="{{next}}">Done</button></div>
+</div>
+</sc-if>
+</div>
+</nav>
+<main class="main" style="overflow: visible">
+<div class="top">
+<span style="font-size: 17px; font-weight: 600">Today's checks</span>
+<div style="display: flex; align-items: center; gap: 16px">
+<span style="font-size: 13px; color: var(--sec)"><span class="dot ok"></span>Saved on this iPad · 14:12</span>
+<div class="{{a.thermo}}">
+<button type="button" class="{{t.thermo}}" onClick="{{tapThermo}}" style="border: 0; background: var(--fill); color: var(--text); height: 48px; border-radius: 24px; padding: 0 18px; display: flex; align-items: center; gap: 8px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer"><svg width="20" height="20" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 10.6V3.8a1.5 1.5 0 0 1 3 0v6.8a3 3 0 1 1-3 0zM9 12.5v-4"></path></svg>Temperature</button>
+<sc-if value="{{show.thermo}}" hint-placeholder-val="{{false}}">
+<div class="tip end" role="dialog" aria-label="Tip {{n}} of {{total}}">
+<div class="tiph"><span>{{n}} of {{total}}</span><button type="button" class="lnk m" onClick="{{skip}}">Skip tour</button></div>
+<strong>Quick temperature</strong>
+<p>Type the number, press Enter, and the next one opens. Freezers have a ± button for minus. Tap Temperature to try it.</p>
+<div class="demo-temp" aria-hidden="true"><span class="fld"><span class="typed">3.8</span><span class="caret"></span>°C</span><span class="kbd">Enter</span></div>
+<div class="tipf"><span class="dots"><svg class="ring" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle class="rt0" cx="10" cy="10" r="8.6"></circle><circle class="rp" cx="10" cy="10" r="3" style="--a: {{ringFrom}}; --b: {{ringTo}}"></circle></svg></span><button type="button" class="lnk" onClick="{{back}}">Back</button><button type="button" class="go" onClick="{{next}}">Next</button></div>
+</div>
+</sc-if>
+</div>
+</div>
+</div>
+<div class="cont" style="overflow: visible">
+<div class="hero">
+<div style="display: flex; flex-direction: column; gap: 12px; min-width: 300px">
+<span class="hl">Checks done today</span>
+<div class="big"><b>6</b><i>&nbsp;of 10</i></div>
+<div class="segs" style="width: 300px"><span class="d"></span><span class="x"></span><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span><span></span><span></span><span></span><span></span></div>
+</div>
+<div style="display: flex; gap: 22px">
+<span class="hs" style="color: var(--heroBad)">1<small>Failed · walk-in fridge</small></span>
+<span class="hs">14:40<small>Re-check due</small></span>
+<span class="hs">15:00<small>Next · hot holding</small></span>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px; align-items: start">
+<div class="{{a.todo}}">
+<section class="grp {{t.todo}}" style="gap: 16px">
+<div class="hd"><h2>To do</h2><span>4 left</span></div>
+<div class="sub">
+<div class="li"><span class="pie"><svg width="24" height="24" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.6" style="fill: none; stroke: var(--bad)" stroke-width="1.6"></circle></svg></span><span class="tx"><span>Re-check walk-in fridge</span><small>From this morning's failed check · due 14:40</small></span><span class="rt"><span class="pill p-bad">Due in 28 min</span></span></div>
+<div class="li"><span class="pie"><svg width="24" height="24" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.6" style="fill: none; stroke: var(--sec); opacity: 0.45" stroke-width="1.6"></circle></svg></span><span class="tx"><span>Hot holding temperatures</span><small>Pass, bain-marie, soup well · due 15:00</small></span><span class="rt"><span class="pill p-mut">In 48 min</span></span></div>
+<div class="li"><span class="pie"><svg width="24" height="24" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.6" style="fill: none; stroke: var(--sec); opacity: 0.45" stroke-width="1.6"></circle></svg></span><span class="tx"><span>Closing checks</span><small>12 checks · due 23:00</small></span><span class="rt">23:00</span></div>
+</div>
+</section>
+<sc-if value="{{show.todo}}" hint-placeholder-val="{{false}}">
+<div class="tip side" role="dialog" aria-label="Tip {{n}} of {{total}}">
+<div class="tiph"><span>{{n}} of {{total}}</span><button type="button" class="lnk m" onClick="{{skip}}">Skip tour</button></div>
+<strong>Your checks for this shift</strong>
+<p>They're in time order. A red circle means it failed or is due soon.</p>
+<div class="tipf"><span class="dots"><svg class="ring" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle class="rt0" cx="10" cy="10" r="8.6"></circle><circle class="rp" cx="10" cy="10" r="3" style="--a: {{ringFrom}}; --b: {{ringTo}}"></circle></svg></span><button type="button" class="go" onClick="{{next}}">Next</button></div>
+</div>
+</sc-if>
+</div>
+<section class="grp" style="gap: 16px">
+<div class="hd"><h2>Done</h2><span>6</span></div>
+<div class="sub">
+<div class="li"><span class="pie"><svg width="24" height="24" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9.2" style="fill: var(--ok)"></circle><path d="M6 10.4l2.6 2.5L14 7.4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="tx"><span>Opening checks</span><small>09:14 · [CDP] · 1 failed, action taken</small></span></div>
+<div class="li"><span class="pie"><svg width="24" height="24" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9.2" style="fill: var(--ok)"></circle><path d="M6 10.4l2.6 2.5L14 7.4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="tx"><span>Fridge and freezer temperatures</span><small>11:02 · [Chef] · all passed</small></span></div>
+<div class="li"><span class="pie"><svg width="24" height="24" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9.2" style="fill: var(--ok)"></circle><path d="M6 10.4l2.6 2.5L14 7.4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="tx"><span>Deliveries</span><small>12:30 · [KP] · 2 items checked in</small></span></div>
+</div>
+</section>
+</div>
+</div>
+<div class="bar">
+<a class="btn b2" href="#extra">Do an extra check</a>
+<div class="{{a.next}}">
+<a class="btn b1 {{t.next}}" href="#next" style="border-radius: 999px">Re-check walk-in fridge</a>
+<sc-if value="{{show.next}}" hint-placeholder-val="{{false}}">
+<div class="tip up end" role="dialog" aria-label="Tip {{n}} of {{total}}">
+<div class="tiph"><span>{{n}} of {{total}}</span><button type="button" class="lnk m" onClick="{{skip}}">Skip tour</button></div>
+<strong>The black button is the next job</strong>
+<p>Not sure what to do? It always shows the next check that's due.</p>
+<div class="tipf"><span class="dots"><svg class="ring" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle class="rt0" cx="10" cy="10" r="8.6"></circle><circle class="rp" cx="10" cy="10" r="3" style="--a: {{ringFrom}}; --b: {{ringTo}}"></circle></svg></span><button type="button" class="lnk" onClick="{{back}}">Back</button><button type="button" class="go" onClick="{{next}}">Next</button></div>
+</div>
+</sc-if>
+</div>
+</div>
+</main>
+
+<sc-if value="{{isWelcome}}" hint-placeholder-val="{{true}}">
+<div class="veil c">
+<div class="sheet" role="dialog" aria-label="Welcome">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2>Hi [CDP], welcome</h2>
+<p>This is the Bunso kitchen iPad. Four quick things, then you're on.</p>
+</div>
+<div class="sub">
+<div class="li" style="min-height: 60px"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5h7M8 9h7M8 13h7M3 5l1 1 1.8-2M3 9l1 1 1.8-2M3 13l1 1 1.8-2"></path></svg></span><span class="tx"><span>Your checks for this shift</span><small>In time order</small></span></div>
+<div class="li" style="min-height: 60px"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 10.6V3.8a1.5 1.5 0 0 1 3 0v6.8a3 3 0 1 1-3 0zM9 12.5v-4"></path></svg></span><span class="tx"><span>Quick temperature</span><small>Type it, press Enter, next one</small></span></div>
+<div class="li" style="min-height: 60px"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4"></path></svg></span><span class="tx"><span>The next job</span><small>One black button, always</small></span></div>
+<div class="li" style="min-height: 60px"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 8h9v7.5h-9zM6 8V5.5a3 3 0 0 1 6 0V8"></path></svg></span><span class="tx"><span>Lock when you're done</span><small>So nobody signs as you</small></span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<button type="button" class="btn b1" onClick="{{start}}">Show me around</button>
+<button type="button" class="btn b2" style="height: 44px; font-size: 15px" onClick="{{skip}}">Skip for now</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isDone}}" hint-placeholder-val="{{false}}">
+<div class="veil c">
+<div class="sheet" role="dialog" aria-label="Tour finished" style="align-items: center; text-align: center">
+<svg class="tick" width="56" height="56" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9.2" style="fill: var(--ok)"></circle><path d="M6 10.4l2.6 2.5L14 7.4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2>You're on</h2>
+<p>Ask your manager if anything looks wrong. You can see this again from your name.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; width: 100%">
+<button type="button" class="btn b1" onClick="{{close}}">Re-check walk-in fridge</button>
+<button type="button" class="btn b2" style="height: 44px; font-size: 15px" onClick="{{again}}">Show me again</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isSkipped}}" hint-placeholder-val="{{false}}">
+<div class="toast" role="status" style="left: auto; right: 40px; bottom: 104px; width: 420px"><span>Tour hidden. Tap your name to see it again.</span><button type="button" onClick="{{again}}">Undo</button></div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1194,"height":834}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { stage: 'welcome', i: 0 };
+  }
+  renderVals() {
+    const steps = ['todo', 'thermo', 'next', 'lock'];
+    const { stage, i } = this.state;
+    const p = this.state.p ?? 0;
+    const cur = stage === 'tour' ? steps[i] : null;
+    const C = 18.85;
+    const arc = (k) => `${(k / steps.length * C).toFixed(2)} ${C}`;
+    const go = (to) => this.setState(to < steps.length ? { i: to, p: i } : { stage: 'done' });
+    const a = {}, t = {}, show = {};
+    for (const k of steps) {
+      a[k] = cur === k ? 'anc up' : 'anc';
+      t[k] = cur === k ? 'lit' : '';
+      show[k] = cur === k;
+    }
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      a, t, show,
+      n: i + 1,
+      total: steps.length,
+      dots: steps.map((s, j) => ({ cls: j === i ? 'on' : '' })),
+      isWelcome: stage === 'welcome',
+      isDone: stage === 'done',
+      isSkipped: stage === 'skipped',
+      ringFrom: arc(stage === 'tour' && p !== i ? p + 1 : 0),
+      ringTo: arc(i + 1),
+      start: () => this.setState({ stage: 'tour', i: 0, p: -1 }),
+      next: () => go(i + 1),
+      back: () => go(Math.max(0, i - 1)),
+      tapThermo: () => { if (cur === 'thermo') go(i + 1); },
+      skip: () => this.setState({ stage: 'skipped' }),
+      close: () => this.setState({ stage: 'off' }),
+      again: () => this.setState({ stage: 'welcome', i: 0, p: -1 })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -4,7 +4,8 @@
  * The store write is conditional, so when two people press Submit at once exactly one wins.
  */
 import { EodDraft } from './schema';
-import { computeDay } from './calc';
+import { computeDayWith, definitionIssues } from './report-live';
+import type { DefinitionRecord } from './report-versions';
 import { canSubmit, reviewIssues } from './checks';
 import type { SiteSettings } from './settings';
 import type { EodStore, StoredReport } from './store';
@@ -24,6 +25,8 @@ export async function submitReport(
     baseVersion?: string | null;
     /** One per press of Submit; a retry of the same press reuses it. */
     submitId?: string;
+    /** The report builder's versions. The one approved for this trading day decides the official figures. */
+    definitions?: DefinitionRecord | null;
   },
 ): Promise<SubmitResult> {
   const parsed = EodDraft.safeParse(input);
@@ -31,8 +34,8 @@ export async function submitReport(
   const draft = parsed.data;
   if (draft.siteCode !== deps.settings.siteCode) return { ok: false, code: 'invalid', error: 'This report is for a different site.' };
 
-  const official = computeDay(draft, deps.settings, { netSales: deps.targetNet ?? null });
-  const issues = reviewIssues(draft, official, deps.settings);
+  const official = computeDayWith(draft, deps.settings, { netSales: deps.targetNet ?? null }, deps.definitions);
+  const issues = [...reviewIssues(draft, official, deps.settings), ...definitionIssues(draft, deps.definitions)];
   if (!canSubmit(draft, issues)) {
     return { ok: false, code: 'blocked', error: draft.confirmed ? 'Fix the issues marked in red, then submit again.' : 'Tick the confirmation to submit.', issues };
   }

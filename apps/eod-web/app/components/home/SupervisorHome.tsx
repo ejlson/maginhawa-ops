@@ -10,6 +10,7 @@ import { TabBar } from '../TabBar';
 import { EodRow, TimelineRow, firstName, greeting, HomeHeader, isDone, useEod, useToday } from './shared';
 import { FoodSafetyRow } from '../FoodSafetyRow';
 import { Columns } from '../Columns';
+import { FirstWeek } from './FirstWeek';
 
 export function SupervisorHome() {
   const { user } = useAuth();
@@ -36,7 +37,7 @@ export function SupervisorHome() {
           </div>
         </>}
         hero={<>
-          <Link className="hero" to="/checklists" aria-label={`Today so far: ${checksDone} of ${scheduled.length} checklists done, ${late.length} late or missed`}>
+          <Link className="hero" data-tour="hero-today" to="/checklists" aria-label={`Today so far: ${checksDone} of ${scheduled.length} checklists done, ${late.length} late or missed`}>
             <div className="hero-row"><span className="hl">Today so far</span><span className="hs-small">{timeHM(at)}</span></div>
             <div className="big"><b>{checksDone}</b><i>&nbsp;of {scheduled.length} checklists done</i></div>
             <div className="segs" aria-hidden="true">
@@ -52,7 +53,7 @@ export function SupervisorHome() {
         main={<>
 
         {(needs.length > 0 || open.length > 0 || eod.issues.length > 0) && (
-          <section className="grp">
+          <section className="grp" data-tour="needs">
             <div className="hd"><h2>Needs you</h2><span>{needs.length + (open.length ? 1 : 0) + eod.issues.length}</span></div>
             <div className="sub">
               {needs.map((t) => {
@@ -75,6 +76,7 @@ export function SupervisorHome() {
             </div>
           </section>
         )}
+        <FirstWeek />
         </>}
         side={<>
         <section className="grp">

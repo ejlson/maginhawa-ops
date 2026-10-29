@@ -25,3 +25,4 @@ export * from './day-timeline';
 export * from './food-safety';
 export * from './report-definition';
 export * from './report-versions';
+export * from './report-live';

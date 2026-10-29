@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canEdit, findPerson, hasLeft, personProblem, rolesGivenBy, usesPin, type Person } from '../src/people';
+import { canEdit, findPerson, hasLeft, personProblem, rolesGivenBy, siteChoice, sitesOf, usesPin, worksAt, type Person } from '../src/people';
 
 const person = (p: Partial<Person>): Person => ({
   id: p.name ?? 'x', name: 'Sam', role: 'staff', siteCode: 'BUN', email: null, addedAt: '2026-10-01T09:00:00Z', addedBy: 'Jo', leftAt: null, ...p,
@@ -48,5 +48,25 @@ describe('roles and signing in', () => {
     expect(findPerson(team, 'BUN', 'chris')).toBeUndefined();
     expect(hasLeft(team, 'BUN', 'Chris')).toBe(true);
     expect(hasLeft(team, 'BUN', 'Sam')).toBe(false);
+  });
+});
+
+describe('working at more than one site', () => {
+  const jo = person({ name: 'Jo', role: 'manager', siteCode: 'BUN', otherSites: ['GUA', 'BUN'] });
+  it('lists the main site first, once', () => {
+    expect(sitesOf(jo)).toEqual(['BUN', 'GUA']);
+    expect(sitesOf(person({ name: 'Sam' }))).toEqual(['BUN']);
+  });
+  it('finds them at every site they work at', () => {
+    expect(worksAt(jo, 'GUA')).toBe(true);
+    expect(findPerson([jo], 'GUA', 'jo')?.name).toBe('Jo');
+    expect(findPerson([jo], 'BEL', 'Jo')).toBeUndefined();
+  });
+  it('keeps a main site that is still ticked, and moves it when unticked', () => {
+    expect(siteChoice(['GUA', 'BUN'], 'BUN')).toEqual({ siteCode: 'BUN', otherSites: ['GUA'] });
+    expect(siteChoice(['GUA', 'BEL'], 'BUN')).toEqual({ siteCode: 'GUA', otherSites: ['BEL'] });
+  });
+  it('never leaves someone with no site', () => {
+    expect(siteChoice([], 'BUN')).toEqual({ siteCode: 'BUN', otherSites: [] });
   });
 });

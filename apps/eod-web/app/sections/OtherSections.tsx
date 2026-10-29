@@ -3,6 +3,7 @@ import { formatPounds, SECTION_LABELS, type NoteItem, type SectionKey } from '@m
 import { useDraft } from '../lib/draft';
 import { BigMoney, Icon, ICONS, MoneyRow, Toggle } from '../components/ui';
 import { EodPage } from '../components/EodPage';
+import { AddedInputs } from './AddedInputs';
 
 function Shell({ section, hero, children }: { section: SectionKey; hero: ReactNode; children: ReactNode }) {
   return (
@@ -50,6 +51,7 @@ export function DeliverySection() {
         })}
         <p className="note" style={{ margin: 0 }}>Each platform's share is a site setting that head office keeps up to date. The real figure arrives with the weekly statement.</p>
       </section>
+      <AddedInputs section="delivery" />
     </Shell>
   );
 }
@@ -80,6 +82,7 @@ export function PromotionsSection() {
         <textarea className="ta" aria-label="Promotions and other notes" placeholder="e.g. 2-for-1 cocktails 17:00–19:00, birthday party of 14" value={draft.promotions.notes} onChange={(e) => update((d) => { d.promotions.notes = e.target.value; })} />
         <p className="note" style={{ margin: 0 }}>Nothing unusual today? Leave it blank. Saving still marks it done.</p>
       </section>
+      <AddedInputs section="promotions" />
     </Shell>
   );
 }
@@ -114,6 +117,7 @@ export function WagesSection() {
         <div className="gh"><h2>Wage cost</h2><p>Today's total from the rota, including employer NI and pension if you have them.</p></div>
         <div className="sub"><MoneyRow label="Wage cost" value={draft.wages.wageCost} onChange={(v) => update((d) => { d.wages.wageCost = v; })} /></div>
       </section>
+      <AddedInputs section="wages" />
       <section className="grp">
         <div className="gh"><h2>Against today's net</h2><p>Worked out from the other sections. It updates as they change.</p></div>
         <div className="sub">
@@ -159,6 +163,7 @@ export function TipsSection() {
           <div className="fr"><span className="tx"><span>Goes to the tronc</span><small>Shared by the troncmaster</small></span><Toggle label="Tips go to the tronc" checked={draft.tips.toTronc} onChange={(v) => update((d) => { d.tips.toTronc = v; })} /></div>
         </div>
       </section>
+      <AddedInputs section="tips" />
       <div className="lawnote">
         <span className="av ok"><Icon d={ICONS.check} size={17} /></span>
         <p><b>All of it goes to the team.</b> Tips and service charge are shared fairly under your written tipping policy, and this record is kept for 3 years, as the Tips Act requires.</p>

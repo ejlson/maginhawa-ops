@@ -1,0 +1,354 @@
+<title>Maginhawa UX Upgrade Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one dark hero card, then Monzo-style lists. Same tokens as the app (design/design-language.md). */
+:root{
+  --bg:#FFFFFF;--side:#F7F7F9;--hero:#1D1D1F;--onhero:#F5F5F7;--herosec:rgba(245,245,247,.62);--heroline:rgba(245,245,247,.14);
+  --fill:#F2F2F5;--text:#1D1D1F;--sec:#6E6E73;--sep:rgba(0,0,0,.08);--ink:#1D1D1F;--onink:#FFFFFF;--link:#0066CC;
+  --ok:#1F7A35;--okbg:rgba(52,199,89,.14);--warn:#B25000;--warnbg:rgba(255,149,0,.16);--bad:#D70015;--badbg:rgba(255,59,48,.12);
+  --font:-apple-system,BlinkMacSystemFont,"Geist","Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121214;--side:#1B1B1F;--hero:#232328;--onhero:#F5F5F7;--herosec:rgba(245,245,247,.66);--heroline:rgba(245,245,247,.12);
+  --fill:#2A2A2F;--text:#F2F2F4;--sec:#A3A3AB;--sep:rgba(255,255,255,.12);--ink:#F2F2F4;--onink:#121214;--link:#4AA3FF;
+  --ok:#4CD964;--okbg:rgba(76,217,100,.16);--warn:#FFB340;--warnbg:rgba(255,179,64,.16);--bad:#FF6B60;--badbg:rgba(255,107,96,.16);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121214;--side:#1B1B1F;--hero:#232328;--onhero:#F5F5F7;--herosec:rgba(245,245,247,.66);--heroline:rgba(245,245,247,.12);
+  --fill:#2A2A2F;--text:#F2F2F4;--sec:#A3A3AB;--sep:rgba(255,255,255,.12);--ink:#F2F2F4;--onink:#121214;--link:#4AA3FF;
+  --ok:#4CD964;--okbg:rgba(76,217,100,.16);--warn:#FFB340;--warnbg:rgba(255,179,64,.16);--bad:#FF6B60;--badbg:rgba(255,107,96,.16);color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.5;letter-spacing:-.012em;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px;
+  font-variant-numeric:tabular-nums}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+a:focus-visible,button:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:6px}
+.date{color:var(--sec);font-size:14px;margin:0}
+h1{font-size:clamp(30px,6vw,40px);font-weight:700;letter-spacing:-.035em;line-height:1.1;margin:4px 0 10px;text-wrap:balance}
+.lede{color:var(--sec);font-size:17px;max-width:62ch;margin:0}
+h2{font-size:22px;font-weight:700;letter-spacing:-.025em;margin:0;text-wrap:balance}
+.shead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+.shead .meta{color:var(--sec);font-size:14px;white-space:nowrap}
+.sub{color:var(--sec);font-size:15px;margin:0 0 14px;max-width:64ch}
+.label{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--sec);margin:22px 0 4px}
+
+/* Hero */
+.hero{background:var(--hero);color:var(--onhero);border-radius:26px;padding:26px;box-shadow:0 24px 48px -24px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06)}
+.hero .k{color:var(--herosec);font-size:14px}
+.hero .big{font-size:clamp(46px,10vw,60px);font-weight:600;letter-spacing:-.055em;line-height:1;margin:8px 0 6px}
+.hero .big small{font-size:.45em;color:var(--herosec);letter-spacing:-.02em;font-weight:500}
+.hero p{color:var(--herosec);margin:0 0 18px;max-width:58ch}
+.hmeta{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;border-top:1px solid var(--heroline);padding-top:16px}
+.hmeta b{display:block;font-size:22px;font-weight:600;letter-spacing:-.03em}
+.hmeta span{font-size:13px;color:var(--herosec)}
+@media (max-width:560px){.hmeta{grid-template-columns:repeat(2,1fr)}}
+
+/* Lists */
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:42px 1fr;gap:14px;padding:16px 0;border-bottom:1px solid var(--sep)}
+.row:last-child{border-bottom:0}
+.ico{width:42px;height:42px;border-radius:50%;background:var(--fill);display:grid;place-items:center;font-weight:700;font-size:15px}
+.row h3{font-size:17px;font-weight:600;margin:0;letter-spacing:-.015em;line-height:1.3}
+.row .why{color:var(--sec);font-size:14px;margin:3px 0 0}
+.row .body{min-width:0}
+.saw{margin:8px 0 0;font-size:15px}
+.saw b{font-weight:600}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pill{font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--fill);color:var(--sec);white-space:nowrap}
+.pill.ok{background:var(--okbg);color:var(--ok)}.pill.warn{background:var(--warnbg);color:var(--warn)}.pill.bad{background:var(--badbg);color:var(--bad)}
+
+/* Things-style circles for the "already right" list */
+.circ{width:24px;height:24px;border-radius:50%;background:var(--ok);display:grid;place-items:center;flex:none}
+.circ svg{width:13px;height:13px}
+.good{display:grid;grid-template-columns:1fr 1fr;gap:0 28px}
+.good div{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--sep);font-size:15px}
+@media (max-width:620px){.good{grid-template-columns:1fr}}
+
+/* Before / after */
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+@media (max-width:620px){.ba{grid-template-columns:1fr}}
+.phone{background:var(--side);border-radius:18px;padding:16px;min-width:0}
+.phone .cap{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--sec);margin-bottom:10px;display:flex;gap:8px;align-items:center}
+.f{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--sep);font-size:15px;gap:10px}
+.f:last-of-type{border-bottom:0}
+.in{background:var(--fill);border-radius:10px;height:38px;width:120px;display:flex;align-items:center;justify-content:flex-end;padding:0 12px;flex:none}
+.in.ph{color:var(--sec)}.in.ph2{color:var(--sec);opacity:.55}
+.in.val{font-weight:600}
+.anchor{font-size:12.5px;color:var(--sec)}
+.btn{margin-top:12px;height:46px;border-radius:999px;background:var(--ink);color:var(--onink);display:grid;place-items:center;font-weight:600;font-size:15px}
+.stat{font-size:12.5px;color:var(--sec);text-align:center;margin-top:8px}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:5px;vertical-align:1px}
+
+/* Principles table */
+.tw{overflow-x:auto;border-radius:14px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:620px}
+th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--sec);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--sep)}
+td{padding:12px;border-bottom:1px solid var(--sep);vertical-align:top}
+td:first-child{font-weight:600;white-space:nowrap}
+td .s{display:block;font-size:12.5px;margin-top:3px}
+tr:last-child td{border-bottom:0}
+
+.myth{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:620px){.myth{grid-template-columns:1fr}}
+.m{background:var(--side);border-radius:16px;padding:16px}
+.m h3{font-size:15px;margin:0 0 4px;font-weight:600}
+.m p{margin:0;color:var(--sec);font-size:14px}
+.sources{columns:2;column-gap:28px;font-size:13.5px;padding:0;list-style:none;margin:0}
+.sources li{break-inside:avoid;padding:5px 0;color:var(--sec)}
+@media (max-width:620px){.sources{columns:1}}
+.note{font-size:13.5px;color:var(--sec);border-top:1px solid var(--sep);padding-top:16px}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="date">28 October 2026 · research for the EOD app</p>
+  <h1>Maginhawa UX upgrade plan</h1>
+  <p class="lede">A review of the live app (phone and head office desktop) against design psychology and UX research. Each change keeps the approved look: one dark card, Monzo-style lists and Things 3 circles. It changes how the screens behave, not the style.</p>
+</header>
+
+<section class="hero" aria-label="Summary">
+  <div class="k">Improvements found</div>
+  <div class="big">17 <small>changes</small></div>
+  <p>The design system is in good shape. The gains come from three places: giving the phone screen back to the form, making status and colour mean exactly one thing, and designing the end of the night (resume, submit, done) with as much care as the start.</p>
+  <div class="hmeta">
+    <div><b>6</b><span>Do first · small</span></div>
+    <div><b>8</b><span>Next</span></div>
+    <div><b>3</b><span>Later</span></div>
+    <div><b>~45%</b><span>Phone screen taken by chrome today</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2>Already right</h2><span class="meta">Keep these</span></div>
+  <p class="sub">The audit confirmed these follow the research. Leave them alone.</p>
+  <div class="good">
+    <div><span class="circ"><svg viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.6 2.5L11 4.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Decimal keypad on money fields (<code>inputmode="decimal"</code>, not <code>type=number</code>)</div>
+    <div><span class="circ"><svg viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.6 2.5L11 4.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>16px inputs, so iOS doesn't zoom; the keyboard shows a "Next" key</div>
+    <div><span class="circ"><svg viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.6 2.5L11 4.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>A hub of sections in any order, not a wizard (right for nightly expert users)</div>
+    <div><span class="circ"><svg viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.6 2.5L11 4.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Warnings with "It's right"; only real errors block</div>
+    <div><span class="circ"><svg viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.6 2.5L11 4.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Words, not signs ("£20.00 short"); status shown with colour and words together</div>
+    <div><span class="circ"><svg viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.6 2.5L11 4.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>The Submit button names the day and amount; submit stays disabled with "Fix 4 issues"</div>
+    <div><span class="circ"><svg viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.6 2.5L11 4.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Reduced-motion styles exist; skeletons while loading</div>
+    <div><span class="circ"><svg viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.6 2.5L11 4.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>No streaks or leaderboards, only "On time 26 of 28 this month"</div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2>Do first</h2><span class="meta">6 · each about half a day</span></div>
+  <p class="sub">Small changes with the biggest effect on a tired manager at close.</p>
+  <div class="list">
+
+    <div class="row"><div class="ico">1</div><div class="body">
+      <h3>Give the phone screen back to the form</h3>
+      <p class="saw"><b>Seen:</b> on a 375×812 phone, the head office banner (4 lines), the sticky button pair and the tab bar take up about 45% of the height. On Today's EOD, only 1½ section rows show.</p>
+      <p class="saw"><b>Change:</b> shrink the "You're in Guanabana as head office" banner to one 32px line ("Viewing as head office · Exit"). Show one sticky primary button only; move the secondary text link into the page body. Hide the tab bar while the keyboard is open.</p>
+      <p class="why">Fitts's law and Hoober's grip research: what's on screen is what gets done. Under stress, attention narrows to the centre (Easterbrook), so banners at the edges cost space and are rarely read.</p>
+      <div class="pills"><span class="pill">Fitts</span><span class="pill">Cue utilisation</span><span class="pill">Signal over chrome</span></div>
+    </div></div>
+
+    <div class="row"><div class="ico">2</div><div class="body">
+      <h3>Make "empty" look different from "£0.00"</h3>
+      <p class="saw"><b>Seen:</b> every empty input shows "£0.00" in grey, and the hero reads "£0.00" before anything is typed. At midnight in dim light, empty and zero look the same.</p>
+      <p class="saw"><b>Change:</b> leave empty inputs blank, or show a faint "—". Show "—" in the hero until the first figure is entered. Show last week's figure underneath as a hint ("Last Wed £812.40"), never inside the box.</p>
+      <p class="why">Norman: slips happen on autopilot, and experts make the most. A value that looks entered gets skipped. Placeholders sit at about Lc 30 on APCA, which is too faint to read but loud enough to mislead.</p>
+      <div class="ba" aria-label="Example before and after, made-up figures">
+        <div class="phone"><div class="cap"><span class="pill bad">Now</span></div>
+          <div class="f">Gross sales<span class="in ph">£0.00</span></div>
+          <div class="f">Service charge<span class="in ph">£0.00</span></div>
+          <div class="f">VAT<span class="in val">£0.00</span></div>
+          <p class="stat">Which one was typed?</p>
+        </div>
+        <div class="phone"><div class="cap"><span class="pill ok">Proposed</span></div>
+          <div class="f"><span>Gross sales<br><span class="anchor">Last Wed £1,120.00</span></span><span class="in val">£1,060.00</span></div>
+          <div class="f"><span>Service charge<br><span class="anchor">Last Wed £112.00</span></span><span class="in ph2"></span></div>
+          <div class="f"><span>VAT<br><span class="anchor">Last Wed £186.67</span></span><span class="in val">£0.00</span></div>
+          <p class="stat">Blank means not done. £0.00 means typed. Example figures only.</p>
+        </div>
+      </div>
+      <div class="pills"><span class="pill">Slips</span><span class="pill">Recognition over recall</span><span class="pill">Signifiers</span></div>
+    </div></div>
+
+    <div class="row"><div class="ico">3</div><div class="body">
+      <h3>One way of saving, said once</h3>
+      <p class="saw"><b>Seen:</b> the Lunch screen shows "• Saved" at the top <i>and</i> a big "Save lunch" button. That's two ideas of how saving works. Does the button do something the autosave didn't?</p>
+      <p class="saw"><b>Change:</b> autosave stays. The button names where it goes: "Done · back to Today" (or "Continue to Dinner"). The status gets a time: "Saved 23:41", or "On this phone · sends when online".</p>
+      <div class="ba">
+        <div class="phone"><div class="cap"><span class="pill bad">Now</span></div>
+          <div class="f" style="border:0"><span>‹ Today</span><b>Lunch</b><span class="anchor"><span class="dot"></span>Saved</span></div>
+          <div class="btn">Save lunch</div>
+        </div>
+        <div class="phone"><div class="cap"><span class="pill ok">Proposed</span></div>
+          <div class="f" style="border:0"><span>‹ Today</span><b>Lunch</b><span class="anchor"><span class="dot"></span>Saved 23:41</span></div>
+          <div class="btn">Continue to Dinner</div>
+        </div>
+      </div>
+      <p class="why">Mental models and Nielsen's first heuristic, visibility of system status. NN/g: label buttons with where they go, not "Next" or "Save".</p>
+      <div class="pills"><span class="pill">Mental models</span><span class="pill">System status</span></div>
+    </div></div>
+
+    <div class="row"><div class="ico">4</div><div class="body">
+      <h3>Ask "What ran today" first</h3>
+      <p class="saw"><b>Seen:</b> the Lunch, Dinner and Delivery switches sit at the very bottom of Today's EOD, below the Submit row. They decide which sections exist, but managers see the full 8 first.</p>
+      <p class="saw"><b>Change:</b> show them as a compact row of three chips under the hero (on by default from the site's normal hours). The section count then reads honestly, e.g. "0 of 7".</p>
+      <p class="why">Tesler's law: the app takes on the complexity. Serial position: whatever decides scope goes first. Endowed progress: a smaller, honest total feels closer to done.</p>
+      <div class="pills"><span class="pill">Tesler</span><span class="pill">Serial position</span><span class="pill">Goal gradient</span></div>
+    </div></div>
+
+    <div class="row"><div class="ico">5</div><div class="body">
+      <h3>Make colour mean one thing everywhere</h3>
+      <p class="saw"><b>Seen:</b> "Not started" has a <span style="color:var(--ok)">green</span> dot. The head office sales line turns <span style="color:var(--bad)">red</span> on every quiet weekday dip, so it goes red every week. "Needs attention" uses coloured dots on their own.</p>
+      <p class="saw"><b>Change:</b> neutral grey for "Not started". Draw the sales line in ink, with red only where a day falls outside the forecast band. Every dot in Needs attention gets a word or icon ("Over", "Short", "Late").</p>
+      <p class="why">Von Restorff: a highlight only works when it's rare. GOV.UK: use red only for "there is a problem". WCAG 1.4.1: colour is never the only cue (about 1 in 22 people have a colour-vision deficiency).</p>
+      <div class="pills"><span class="pill">Von Restorff</span><span class="pill">WCAG 1.4.1</span><span class="pill">Alarm fatigue</span></div>
+    </div></div>
+
+    <div class="row"><div class="ico">6</div><div class="body">
+      <h3>Calm the "Needs you" list on Home</h3>
+      <p class="saw"><b>Seen:</b> at 23:09, Home shows "9 min late" in red plus three red "Missed" pills stacked. Nothing in the missed items can be done now, but they shout the loudest.</p>
+      <p class="saw"><b>Change:</b> one red item at a time: the thing to do now. Fold earlier misses into one neutral row ("3 missed earlier · add a note"). Show "late" in orange until there's a consequence.</p>
+      <p class="why">Peak-end: the end of a shift shouldn't open with guilt. NN/g on alert fatigue: if everything alarms, nothing does. The aim is a manager who feels in control, not watched (Norman's reflective level).</p>
+      <div class="pills"><span class="pill">Alarm fatigue</span><span class="pill">Emotional design</span></div>
+    </div></div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2>Next</h2><span class="meta">8 · a day or two each</span></div>
+  <div class="list">
+    <div class="row"><div class="ico">7</div><div class="body">
+      <h3>Put fields in the till report's order, with last week's figure as an anchor</h3>
+      <p class="saw">Managers copy straight down the Z-report. If the screen's order matches the paper, there's no searching. Each field shows the same weekday last week in small grey text. A wrong figure then looks wrong before any check runs.</p>
+      <p class="why">Mental models (the gulf of execution); recognition over recall; Cowan: working memory holds about 4 items, and fewer when tired.</p>
+    </div></div>
+    <div class="row"><div class="ico">8</div><div class="body">
+      <h3>Format on blur, accept anything sensible</h3>
+      <p class="saw">Accept "1234.5", "£1,234.50" and "1 234,50". Reformat to "1,234.50" when the field loses focus, never while typing (it moves the cursor). Errors use GOV.UK wording, e.g. "Gross sales must be an amount in pounds, like 850.00". No "invalid", no "please".</p>
+      <p class="why">Norman: prevent slips with forgiving formatting. GOV.UK validation pattern. Baymard: validate on blur and clear the error the moment it's fixed.</p>
+    </div></div>
+    <div class="row"><div class="ico">9</div><div class="body">
+      <h3>Plausibility checks in plain English</h3>
+      <p class="saw">Extend the "It's right" warnings with a comparison: "That's 4× a normal Wednesday lunch. Check, or It's right." Show it inline under the field, in the centre of view, never as a top banner.</p>
+      <p class="why">Slips are the main risk for experts. Under stress, peripheral warnings drop out (Easterbrook).</p>
+    </div></div>
+    <div class="row"><div class="ico">10</div><div class="body">
+      <h3>Resume exactly where they were pulled away</h3>
+      <p class="saw">Managers get interrupted by the safe, a guest or a staff question. Reopening the app should land on "Pick up where you left off: Cash, Lunch", with the field focused and the scroll position restored.</p>
+      <p class="why">Gloria Mark (CHI 2005/2008): interrupted work often isn't resumed for 20+ minutes, and people rush afterwards. Zeigarnik: a half-filled circle is a gentle pull.</p>
+    </div></div>
+    <div class="row"><div class="ico">11</div><div class="body">
+      <h3>Say how long it takes, and count what's already done</h3>
+      <p class="saw">Under the title: "About 6 minutes · saved as you go". Count honest pre-fills as done (site, date, who's reporting, staff from the rota), so the bar starts at 1 of 7, not 0. Never pre-fill counted money (cash, tips).</p>
+      <p class="why">NN/g transparency principle. Endowed progress (Nunes & Drèze: 34% vs 19% completion). Default effect, used honestly: a default on counted cash invites false confirmation.</p>
+    </div></div>
+    <div class="row"><div class="ico">12</div><div class="body">
+      <h3>Make "Day closed" the best moment of the night</h3>
+      <p class="saw">This is the one place for motion: the hero circle fills to a tick (a 450ms spring with no bounce), the total settles, and the copy reads "Received by head office 23:52". No confetti. Under reduced motion, use a simple cross-fade. Every other screen stays still.</p>
+      <p class="why">Peak-end rule: people remember the peak and the end. Emil Kowalski / NN/g: actions done 100 times a night don't animate; rare moments earn it. Nielsen: rationed celebrations stay meaningful.</p>
+    </div></div>
+    <div class="row"><div class="ico">13</div><div class="body">
+      <h3>Head office: one hero, bullet graphs, fewer range buttons</h3>
+      <p class="saw">The All sites page has three dark cards; that breaks the one-hero rule, and all three compete. Keep the group net as the hero. Show "vs forecast" as a bullet graph (actual bar, target tick, band). Cut the 8 range buttons (1D…All) to 1W, 1M and 1Y plus a "More" menu. Sort the sites table with exceptions first.</p>
+      <p class="why">Hick's law; Stephen Few: bullet graphs over gauges; NN/g: use position and length for amounts, colour only for exceptions.</p>
+    </div></div>
+    <div class="row"><div class="ico">14</div><div class="body">
+      <h3>Keep the focused field visible above the keyboard and sticky bar</h3>
+      <p class="saw">Add <code>scroll-padding-bottom</code> equal to the sticky bar's height, drop the safe-area padding while the keyboard is open (an iOS WebKit bug), and use <code>dvh</code> rather than <code>vh</code>. Test on a real iPhone and an older Android.</p>
+      <p class="why">WCAG 2.2 SC 2.4.11 (focus not hidden). WebKit bug 292603.</p>
+    </div></div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2>Later</h2><span class="meta">3</span></div>
+  <div class="list">
+    <div class="row"><div class="ico">15</div><div class="body">
+      <h3>One prompt at each site's own close time</h3>
+      <p class="saw">A single push notification when the site actually closes, e.g. "Till cashed up? Today's EOD takes about 6 minutes". Nothing else gets pushed; the rest goes in the 07:00 digest.</p>
+      <p class="why">Fogg behaviour model: behaviour happens when motivation, ability and a prompt line up. At midnight motivation is low, so the prompt has to land at the right moment and the task has to be easy.</p>
+    </div></div>
+    <div class="row"><div class="ico">16</div><div class="body">
+      <h3>A dark mode legibility pass</h3>
+      <p class="saw">NN/g finds light mode more legible, especially for small text and for people with astigmatism. Keep following the system setting, but check that every caption in dark mode reaches APCA Lc 60 or more and that no weight below 500 is used under 14px.</p>
+      <p class="why">NN/g dark mode study; APCA draft guidance; Material's rules for dark surfaces.</p>
+    </div></div>
+    <div class="row"><div class="ico">17</div><div class="body">
+      <h3>Test at a real close</h3>
+      <p class="saw">Sit with 3–5 managers at two sites at actual close time. Measure time to submit, slips caught on Review, and where they hesitate. A good look earns forgiveness for small problems but not for slow ones, and it can hide them in demos.</p>
+      <p class="why">Aesthetic-usability effect (Kurosu & Kashimura). Samsara / Toast: frontline tools need field research, not just remote tests.</p>
+    </div></div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2>The principles behind this</h2><span class="meta">What each means here</span></div>
+  <p class="sub">The user: a manager at close. Tired, often standing, one hand free, sometimes in poor light, doing a task they repeat every night.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Principle</th><th>What the research says</th><th>Rule for Maginhawa</th></tr></thead>
+    <tbody>
+      <tr><td>Hick's law</td><td>Decision time grows with the number of choices.</td><td>One obvious next step per screen; rare actions behind "More".</td></tr>
+      <tr><td>Fitts's law</td><td>Small or distant targets are slow and get missed.<span class="s"><a href="https://www.nngroup.com/articles/fitts-law/">NN/g</a></span></td><td>48px+ targets; primary action at the bottom, next to the last field.</td></tr>
+      <tr><td>Doherty / response time</td><td>Under 0.1s feels instant; under 0.4s keeps flow.<span class="s"><a href="https://www.nngroup.com/articles/response-times-3-important-limits/">NN/g</a></span></td><td>Taps react instantly; syncing never blocks typing.</td></tr>
+      <tr><td>Cognitive load</td><td>Cut the load that comes from presentation (Sweller 1988).<span class="s"><a href="https://www.nngroup.com/articles/minimize-cognitive-load/">NN/g</a></span></td><td>The app does every sum; managers type raw figures only.</td></tr>
+      <tr><td>Working memory</td><td>About 4 chunks (Cowan 2001), not 7±2.</td><td>Never make anyone carry a number between screens.</td></tr>
+      <tr><td>Recognition &gt; recall</td><td>Cues beat memory.<span class="s"><a href="https://www.nngroup.com/articles/recognition-and-recall/">NN/g</a></span></td><td>Last week's figures as anchors; rota names as chips.</td></tr>
+      <tr><td>Jakob's law</td><td>People expect your app to work like the others they use.</td><td>Native keypad, swipe-back, sheets; no invented gestures.</td></tr>
+      <tr><td>Slips vs mistakes</td><td>Experts on autopilot slip; fix with constraints and forgiveness.<span class="s"><a href="https://www.nngroup.com/articles/slips/">NN/g</a></span></td><td>Forgiving input, soft plausibility checks, undo over dialogs.</td></tr>
+      <tr><td>Signifiers</td><td>Weak cues raise time on task and uncertainty (Norman 2008).<span class="s"><a href="https://www.nngroup.com/articles/flat-ui-less-attention-cause-uncertainty/">NN/g</a></span></td><td>Visible input boxes and a chevron on every tappable row.</td></tr>
+      <tr><td>System status</td><td>Showing the current state builds trust and control.<span class="s"><a href="https://www.nngroup.com/articles/visibility-system-status/">NN/g</a></span></td><td>"Saved 23:41" / "Sends when online" / "Received 23:52".</td></tr>
+      <tr><td>Goal gradient</td><td>Effort speeds up near the goal (Kivetz 2006).</td><td>Things circles plus an honest, small total.</td></tr>
+      <tr><td>Endowed progress</td><td>Head-start cards: 34% vs 19% completion (Nunes &amp; Drèze 2006).</td><td>Count honest pre-fills as done; never fake progress.</td></tr>
+      <tr><td>Peak-end rule</td><td>People judge an experience by its peak and its end.<span class="s"><a href="https://www.nngroup.com/articles/peak-end-rule/">NN/g</a></span></td><td>Design "Day closed"; remove the worst peak (a failed submit).</td></tr>
+      <tr><td>Von Restorff</td><td>Distinct items stand out, but only when they're rare.</td><td>Colour means status only; one red thing at a time.</td></tr>
+      <tr><td>Aesthetic-usability</td><td>Attractive interfaces feel easier and earn forgiveness.<span class="s"><a href="https://www.nngroup.com/articles/aesthetic-usability-effect/">NN/g</a></span></td><td>Keep the premium look, but measure real speed.</td></tr>
+      <tr><td>Fogg (B = MAP)</td><td>Behaviour = motivation × ability × prompt.<span class="s"><a href="https://behaviormodel.org/">behaviormodel.org</a></span></td><td>Low motivation at midnight, so make the task as easy as possible and prompt once at close.</td></tr>
+      <tr><td>Interruptions</td><td>Resuming is slow and rushed (Mark, CHI 2008).</td><td>Autosave every field; resume to that exact field.</td></tr>
+      <tr><td>Motion frequency</td><td>Frequent actions shouldn't animate; rare ones can.</td><td>Still screens; one 450ms moment at Submit.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="shead"><h2>Popular ideas to avoid leaning on</h2><span class="meta">Weak evidence</span></div>
+  <div class="myth">
+    <div class="m"><h3>"7±2 items"</h3><p>Miller's number was partly rhetorical. Cowan puts working memory at about 4 chunks. Don't use 7 as a design limit.</p></div>
+    <div class="m"><h3>Decision fatigue and ego depletion</h3><p>A 23-lab replication found effectively no effect (d = 0.04). The robust point is simpler: tired people slip more.</p></div>
+    <div class="m"><h3>Choice overload</h3><p>A 2010 meta-analysis of 50 experiments found an average effect of about zero. Keep lists short because of Hick's law, not "paralysis".</p></div>
+    <div class="m"><h3>Thumb-zone heat maps</h3><p>Hoober later corrected his own drawings: people favour the centre, and corners are least accurate. Treat the maps as a guide, not a rule.</p></div>
+    <div class="m"><h3>Streaks and variable rewards</h3><p>Broken streaks demotivate (Silverman &amp; Barasch 2023), and "Hooked" mechanics feel like surveillance in a work duty. Keep "on time X of Y".</p></div>
+    <div class="m"><h3>Zeigarnik effect</h3><p>Replications are mixed. Use it for gentle resume cues, never for nagging.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2>Main sources</h2></div>
+  <ul class="sources">
+    <li><a href="https://www.nngroup.com/articles/minimize-cognitive-load/">NN/g · Minimise cognitive load</a></li>
+    <li><a href="https://www.nngroup.com/articles/slips/">NN/g · Preventing user errors: slips</a></li>
+    <li><a href="https://www.nngroup.com/articles/peak-end-rule/">NN/g · Peak-end rule</a></li>
+    <li><a href="https://www.nngroup.com/articles/confirmation-dialog/">NN/g · Confirmation dialogs</a></li>
+    <li><a href="https://www.nngroup.com/articles/dark-mode/">NN/g · Dark mode legibility</a></li>
+    <li><a href="https://www.nngroup.com/articles/dashboards-preattentive/">NN/g · Dashboards and pre-attentive attributes</a></li>
+    <li><a href="https://www.nngroup.com/articles/skeleton-screens/">NN/g · Skeleton screens</a></li>
+    <li><a href="https://baymard.com/blog/inline-form-validation">Baymard · Inline form validation</a></li>
+    <li><a href="https://baymard.com/labs/touch-keyboard-types">Baymard · Touch keyboard types</a></li>
+    <li><a href="https://design-system.service.gov.uk/patterns/validation/">GOV.UK · Validation</a></li>
+    <li><a href="https://design-system.service.gov.uk/components/error-message/">GOV.UK · Error messages</a></li>
+    <li><a href="https://design-system.service.gov.uk/patterns/complete-multiple-tasks/">GOV.UK · Complete multiple tasks</a></li>
+    <li><a href="https://design-system.service.gov.uk/patterns/check-answers/">GOV.UK · Check answers</a></li>
+    <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html">W3C · WCAG 2.2 target size</a></li>
+    <li><a href="https://www.uxmatters.com/mt/archives/2013/02/how-do-users-really-hold-mobile-devices.php">Hoober · How users hold phones</a></li>
+    <li><a href="https://jnd.org/signifiers-not-affordances/">Norman · Signifiers, not affordances</a></li>
+    <li><a href="https://alistapart.com/article/neveruseawarning/">Raskin · Never use a warning when you mean undo</a></li>
+    <li><a href="https://developer.apple.com/videos/play/wwdc2018/803/">Apple WWDC18 · Designing fluid interfaces</a></li>
+    <li><a href="https://linear.app/now/how-we-redesigned-the-linear-ui">Linear · How we redesigned the UI</a></li>
+    <li><a href="https://stripe.com/blog/accessible-color-systems">Stripe · Accessible colour systems</a></li>
+    <li><a href="https://behaviormodel.org/">Fogg · Behaviour model</a></li>
+    <li><a href="https://www.interruptions.net/literature/Mark-CHI08.pdf">Mark et al. · The cost of interrupted work (CHI 2008)</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4971805/">Hagger et al. · Ego-depletion replication</a></li>
+    <li><a href="https://github.com/Myndex/apca-introduction">APCA · Contrast guidance (draft)</a></li>
+  </ul>
+</section>
+
+<p class="note">Audit carried out on the local build (branch feat/calendar-timeline) at phone (375×812) and desktop sizes on 28 October 2026. All figures shown are made-up examples, not real trading data. Some numbers come from secondary sources and should be checked before being quoted outside the team; target sizes, APCA levels and motion timings are the main ones.</p>
+</div>

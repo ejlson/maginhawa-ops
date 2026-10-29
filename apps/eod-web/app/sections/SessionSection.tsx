@@ -4,6 +4,7 @@ import { CASH_REASONS, formatPounds, SECTION_LABELS, type AdjustmentLine, type S
 import { useDraft } from '../lib/draft';
 import { BigMoney, Chevron, CountInput, Icon, ICONS, MoneyInput, MoneyRow } from '../components/ui';
 import { EodPage } from '../components/EodPage';
+import { AddedInputs } from './AddedInputs';
 
 const ADJ_REASONS: Record<AdjustmentLine['kind'], string[]> = {
   discount: ['Staff meal 20%', 'Regulars 10%', 'Manager discount', 'Promotion'],
@@ -114,12 +115,15 @@ export function SessionSection({ session }: { session: SessionKey }) {
           </div>
         </section>
 
+        <AddedInputs section={session} />
+
         <section className="grp">
           <div className="gh"><h2>Covers</h2></div>
           <div className="sub">
             <div className="sl"><span>Guests</span><span>{r.covers} total</span></div>
             <label className="fr"><span>Booked</span><CountInput label="Booked covers" value={s.booked} onChange={(v) => set((x) => { x.booked = v; })} /></label>
             <label className="fr"><span>Walk-ins</span><CountInput label="Walk-in covers" value={s.walkins} onChange={(v) => set((x) => { x.walkins = v; })} /></label>
+            <div className="fr"><span className="muted">Gross a head</span><span>{r.perHeadGross !== null ? formatPounds(r.perHeadGross) : '—'}</span></div>
           </div>
         </section>
 

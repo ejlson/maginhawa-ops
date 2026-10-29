@@ -216,10 +216,40 @@ describe('review and submit', () => {
     const { user } = renderApp('/close/review');
     await user.click(screen.getByRole('checkbox'));
     await user.click(screen.getByRole('button', { name: 'Submit Monday · £2,687.50' }));
-    expect(await screen.findByRole('heading', { name: 'Day closed' })).toBeInTheDocument();
+    const heading = await screen.findByRole('heading', { name: 'Day closed' });
+    // Straight after sending, the one animated moment plays, with the day's key figures.
+    expect(heading.closest('main')).toHaveClass('celebrate');
+    expect(screen.getByText('29.8%')).toBeInTheDocument();
     const saved = await deviceStore().get('BUN', '2026-10-05');
     expect(saved?.status).toBe('submitted');
     expect(saved?.official?.totalNet).toBe(268750);
+  });
+
+  it('reopened later as a receipt, Day closed stays still', async () => {
+    await seedVerifiedDraft();
+    const { user } = renderApp('/close/review');
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: 'Submit Monday · £2,687.50' }));
+    await screen.findByRole('heading', { name: 'Day closed' });
+    await user.click(screen.getByRole('link', { name: 'Done' }));
+    renderApp('/close/done');
+    const headings = await screen.findAllByRole('heading', { name: 'Day closed' });
+    expect(headings.at(-1)!.closest('main')).not.toHaveClass('celebrate');
+  });
+});
+
+describe('pick up where you left off', () => {
+  it('after time away, the overview offers the exact field and goes back to it', async () => {
+    const { user } = renderApp('/close/lunch');
+    await user.click(screen.getByRole('textbox', { name: 'Service charge' }));
+    const key = Object.keys(localStorage).find((k) => k.startsWith('maginhawa.resume.'))!;
+    const place = JSON.parse(localStorage.getItem(key)!);
+    expect(place).toMatchObject({ section: 'lunch', field: 'Service charge' });
+    // Ten minutes away.
+    localStorage.setItem(key, JSON.stringify({ ...place, at: place.at - 10 * 60_000 }));
+    renderApp('/close');
+    expect(await screen.findByText('Lunch · Service charge')).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Carry on with Lunch' })[0]).toHaveAttribute('href', '/close/lunch?at=Service%20charge');
   });
 });
 

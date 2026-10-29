@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phone tour · manager</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="checks.css">
+<link rel="stylesheet" href="tour.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="ph scr {{theme}}" style="height: 844px">
+<div class="nav" style="padding: 0 16px 0 20px">
+<div class="{{a.site}}">
+<button type="button" class="{{t.site}}" onClick="{{tapSite}}" style="display: flex; align-items: center; gap: 4px; border: 0; background: transparent; font: inherit; font-weight: 600; color: var(--text); min-height: 44px; padding: 0 6px; margin-left: -6px; cursor: pointer">Bunso <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"></path></svg></button>
+<sc-if value="{{show.site}}" hint-placeholder-val="{{false}}">
+<div class="tip" role="dialog" aria-label="Tip {{n}} of {{total}}">
+<div class="tiph"><span>{{n}} of {{total}}</span><button type="button" class="lnk m" onClick="{{skip}}">Skip tour</button></div>
+<strong>More than one site?</strong>
+<p>Tap the site name to switch. Try it now: tap Bunso.</p>
+<div class="tipf"><span class="dots"><svg class="ring" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle class="rt0" cx="10" cy="10" r="8.6"></circle><circle class="rp" cx="10" cy="10" r="3" style="--a: {{ringFrom}}; --b: {{ringTo}}"></circle></svg></span><button type="button" class="lnk" onClick="{{back}}">Back</button><button type="button" class="go" onClick="{{next}}">Next</button></div>
+</div>
+</sc-if>
+</div>
+<div class="{{a.sync}}">
+<span class="{{t.sync}}" style="display: flex; align-items: center; font-size: 13px; color: var(--sec); padding: 6px 8px"><span class="dot ok"></span>Synced 22:41</span>
+<sc-if value="{{show.sync}}" hint-placeholder-val="{{false}}">
+<div class="tip mid" role="dialog" aria-label="Tip {{n}} of {{total}}">
+<div class="tiph"><span>{{n}} of {{total}}</span><button type="button" class="lnk m" onClick="{{skip}}">Skip tour</button></div>
+<strong>Saved, then sent</strong>
+<p>Everything saves on your phone first, so a bad signal never loses work. Green means head office has it.</p>
+<div class="demo-sync" aria-hidden="true"><span class="s s1"><span class="dot" style="color: var(--sec)"></span>Saved on this phone</span><span class="s s2"><span class="dot warn"></span>Sending…</span><span class="s s3"><span class="dot ok"></span>Head office has it</span></div>
+<div class="tipf"><span class="dots"><svg class="ring" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle class="rt0" cx="10" cy="10" r="8.6"></circle><circle class="rp" cx="10" cy="10" r="3" style="--a: {{ringFrom}}; --b: {{ringTo}}"></circle></svg></span><button type="button" class="lnk" onClick="{{back}}">Back</button><button type="button" class="go" onClick="{{next}}">Next</button></div>
+</div>
+</sc-if>
+</div>
+<span class="av ink" style="width: 32px; height: 32px; font-size: 12px">JM</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 28px; padding: 4px 20px 0">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; color: var(--sec)">Tuesday 6 October</span><h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.035em">Good evening, [Manager]</h1></div>
+<div class="{{a.hero}}">
+<div class="hero {{t.hero}}">
+<div style="display: flex; justify-content: space-between; align-items: center"><span class="hl">Today's close</span><span style="font-size: 13px; color: var(--herosec)">Due by 04:00</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><div class="big"><b>£850</b><i>.00</i></div><span style="font-size: 14px; color: var(--herosec)">Net so far · forecast £2,560 tonight</span></div>
+<div style="display: flex; flex-direction: column; gap: 10px"><div class="segs"><span class="d"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><span style="font-size: 13px; color: var(--herosec)">1 of 8 sections done · Dinner next</span></div>
+</div>
+<sc-if value="{{show.hero}}" hint-placeholder-val="{{false}}">
+<div class="tip" role="dialog" aria-label="Tip {{n}} of {{total}}">
+<div class="tiph"><span>{{n}} of {{total}}</span><button type="button" class="lnk m" onClick="{{skip}}">Skip tour</button></div>
+<strong>Close the day here</strong>
+<p>Your end-of-day report. Do the sections in any order; it's due by 04:00.</p>
+<div class="tipf"><span class="dots"><svg class="ring" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle class="rt0" cx="10" cy="10" r="8.6"></circle><circle class="rp" cx="10" cy="10" r="3" style="--a: {{ringFrom}}; --b: {{ringTo}}"></circle></svg></span><button type="button" class="go" onClick="{{next}}">Next</button></div>
+</div>
+</sc-if>
+</div>
+<div class="{{a.needs}}">
+<section class="grp {{t.needs}}" style="gap: 12px">
+<div class="hd"><h2>Needs you</h2><span>2</span></div>
+<div class="sub">
+<div class="li"><span class="av bad"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 10.6V3.8a1.5 1.5 0 0 1 3 0v6.8a3 3 0 1 1-3 0zM9 12.5v-4"></path></svg></span><span class="tx"><span>Walk-in fridge 9.2°C</span><small>Re-check passed 4.0°C · sign it off</small></span><span class="rt"><span class="pill p-bad">Sign off</span></span></div>
+<div class="li"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 2.5a3.5 3.5 0 0 0-3.3 4.6L2.8 12.5a1.4 1.4 0 0 0 2 2l5.4-5.4a3.5 3.5 0 0 0 4.6-4.6l-2 2-1.8-.3-.3-1.8z"></path></svg></span><span class="tx"><span>Fryer 2 repair</span><small>Engineer visit Thu 08:00</small></span><span class="rt"><svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5"></path></svg></span></div>
+</div>
+</section>
+<sc-if value="{{show.needs}}" hint-placeholder-val="{{false}}">
+<div class="tip up" role="dialog" aria-label="Tip {{n}} of {{total}}">
+<div class="tiph"><span>{{n}} of {{total}}</span><button type="button" class="lnk m" onClick="{{skip}}">Skip tour</button></div>
+<strong>Things that need you</strong>
+<p>Failed checks, repairs and sign-offs land here. Red means today.</p>
+<div class="tipf"><span class="dots"><svg class="ring" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle class="rt0" cx="10" cy="10" r="8.6"></circle><circle class="rp" cx="10" cy="10" r="3" style="--a: {{ringFrom}}; --b: {{ringTo}}"></circle></svg></span><button type="button" class="lnk" onClick="{{back}}">Back</button><button type="button" class="go" onClick="{{next}}">Next</button></div>
+</div>
+</sc-if>
+</div>
+</div>
+<div class="{{a.tabs}}" style="margin-top: auto">
+<nav class="tabbar {{t.tabs}}" aria-label="Main" style="margin-top: 0">
+<a class="on" href="#home"><svg width="22" height="22" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5L9 3.5l6 5V15a.5.5 0 0 1-.5.5h-3.5v-4h-4v4H3.5A.5.5 0 0 1 3 15z"></path></svg>Home</a>
+<a href="#checklists"><svg width="22" height="22" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5h7M8 9h7M8 13h7M3 5l1 1 1.8-2M3 9l1 1 1.8-2M3 13l1 1 1.8-2"></path></svg>Checklists</a>
+<a href="#eod"><svg width="22" height="22" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5h9M6.5 9h9M6.5 13.5h9M2.5 4.5h.01M2.5 9h.01M2.5 13.5h.01"></path></svg>EOD</a>
+</nav>
+<sc-if value="{{show.tabs}}" hint-placeholder-val="{{false}}">
+<div class="tip up mid" role="dialog" aria-label="Tip {{n}} of {{total}}">
+<div class="tiph"><span>{{n}} of {{total}}</span><span></span></div>
+<strong>Checklists and the EOD</strong>
+<p>They're always down here. Home brings you back to this screen.</p>
+<div class="tipf"><span class="dots"><svg class="ring" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle class="rt0" cx="10" cy="10" r="8.6"></circle><circle class="rp" cx="10" cy="10" r="3" style="--a: {{ringFrom}}; --b: {{ringTo}}"></circle></svg></span><button type="button" class="lnk" onClick="{{back}}">Back</button><button type="button" class="go" onClick="{{next}}">Done</button></div>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{isWelcome}}" hint-placeholder-val="{{true}}">
+<div class="veil">
+<div class="sheet" role="dialog" aria-label="Welcome">
+<span class="grab"></span>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2>Welcome, [Manager]</h2>
+<p>You're {{roleLine}} at Bunso. Here's what's where. It takes about a minute.</p>
+</div>
+<div class="sub">
+<div class="li" style="min-height: 60px"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4.5h9M6.5 9h9M6.5 13.5h9M2.5 4.5h.01M2.5 9h.01M2.5 13.5h.01"></path></svg></span><span class="tx"><span>Close the day</span><small>Your EOD report, due by 04:00</small></span></div>
+<div class="li" style="min-height: 60px"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5V8.5a4 4 0 0 1 8 0v4l1.5 1.5h-11zM7.5 16h3"></path></svg></span><span class="tx"><span>See what needs you</span><small>Failed checks, repairs and sign-offs</small></span></div>
+<div class="li" style="min-height: 60px"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 14a3.5 3.5 0 0 1-.5-7A4.5 4.5 0 0 1 13 6.5 3.5 3.5 0 0 1 13 14zM7 10.5l1.5 1.5 3-3"></path></svg></span><span class="tx"><span>Know it's sent</span><small>Green means head office has it</small></span></div>
+<sc-if value="{{isManager}}" hint-placeholder-val="{{true}}">
+<div class="li" style="min-height: 60px"><span class="av"><svg width="19" height="19" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 15.5h13M4 15.5V5.5l5-3 5 3v10M7.5 8h3M7.5 11h3"></path></svg></span><span class="tx"><span>Switch sites</span><small>If you work at more than one</small></span></div>
+</sc-if>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<button type="button" class="btn b1" onClick="{{start}}">Show me around</button>
+<button type="button" class="btn b2" style="height: 44px; font-size: 15px" onClick="{{skip}}">Skip for now</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isDone}}" hint-placeholder-val="{{false}}">
+<div class="veil">
+<div class="sheet" role="dialog" aria-label="Tour finished" style="align-items: center; text-align: center; padding-top: 32px">
+<svg class="tick" width="56" height="56" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9.2" style="fill: var(--ok)"></circle><path d="M6 10.4l2.6 2.5L14 7.4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2>You're all set</h2>
+<p>One thing to remember: the colours always mean the same.</p>
+</div>
+<div class="sub" style="width: 100%; padding: 4px 8px; box-sizing: border-box">
+<div class="li key"><i style="background: var(--ink)"></i><span><b>Black button</b> · the next thing to do</span></div>
+<div class="li key"><i style="background: var(--ok)"></i><span><b>Green</b> · done, or head office has it</span></div>
+<div class="li key"><i style="background: var(--warn)"></i><span><b>Orange</b> · needs a look</span></div>
+<div class="li key"><i style="background: var(--bad)"></i><span><b>Red</b> · today, or it failed</span></div>
+</div>
+<p style="font-size: 14px">See the tour again from Account, then Show me around.</p>
+<div style="display: flex; flex-direction: column; gap: 4px; width: 100%">
+<button type="button" class="btn b1" onClick="{{close}}">Start today's close</button>
+<button type="button" class="btn b2" style="height: 44px; font-size: 15px" onClick="{{again}}">Show me again</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isSkipped}}" hint-placeholder-val="{{false}}">
+<div class="toast" role="status"><span>Tour hidden. It's in Account.</span><button type="button" onClick="{{again}}">Undo</button></div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role":{"editor":"enum","options":["manager","supervisor"],"default":"manager"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { stage: 'welcome', i: 0 };
+  }
+  renderVals() {
+    const manager = (this.props.role ?? 'manager') === 'manager';
+    const steps = manager ? ['hero', 'needs', 'sync', 'site', 'tabs'] : ['hero', 'needs', 'sync', 'tabs'];
+    const { stage, i } = this.state;
+    const p = this.state.p ?? 0;
+    const cur = stage === 'tour' ? steps[i] : null;
+    const C = 18.85;
+    const arc = (k) => `${(k / steps.length * C).toFixed(2)} ${C}`;
+    const go = (to) => this.setState(to < steps.length ? { i: to, p: i } : { stage: 'done' });
+    const a = {}, t = {}, show = {};
+    for (const k of ['hero', 'needs', 'sync', 'site', 'tabs']) {
+      a[k] = cur === k ? 'anc up' : 'anc';
+      t[k] = cur === k ? 'lit' : '';
+      show[k] = cur === k;
+    }
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      a, t, show,
+      n: i + 1,
+      total: steps.length,
+      dots: steps.map((s, j) => ({ cls: j === i ? 'on' : '' })),
+      isManager: manager,
+      roleLine: manager ? 'a manager' : 'a supervisor',
+      isWelcome: stage === 'welcome',
+      isDone: stage === 'done',
+      isSkipped: stage === 'skipped',
+      ringFrom: arc(stage === 'tour' && p !== i ? p + 1 : 0),
+      ringTo: arc(i + 1),
+      start: () => this.setState({ stage: 'tour', i: 0, p: -1 }),
+      next: () => go(i + 1),
+      back: () => go(Math.max(0, i - 1)),
+      tapSite: () => { if (cur === 'site') go(i + 1); },
+      skip: () => this.setState({ stage: 'skipped' }),
+      close: () => this.setState({ stage: 'off' }),
+      again: () => this.setState({ stage: 'welcome', i: 0, p: -1 })
+    };
+  }
+}
+</script>
+</body>
+</html>

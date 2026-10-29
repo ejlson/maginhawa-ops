@@ -12,7 +12,9 @@ describe('checklists are available all day, separate from the end-of-day report'
     at('2026-10-05T09:00:00Z'); // 10:00 BST, opening was due 09:30
     renderApp('/');
     expect(screen.getByRole('link', { name: 'Do now: Opening checks' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: "Start today's EOD" })).toBeInTheDocument();
+    // One button only; the EOD stays one tap away as a row.
+    expect(screen.queryByRole('link', { name: "Start today's EOD" })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^End-of-day report/ })).toBeInTheDocument();
     // The top card shows it, once; it isn't repeated under Needs you.
     expect(screen.getByRole('link', { name: 'Next checklist: Opening checks, 30 min late' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Needs you' })).not.toBeInTheDocument();

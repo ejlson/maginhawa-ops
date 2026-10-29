@@ -42,6 +42,9 @@ export default [
     route('people', 'routes/people.tsx'),
     route('people/new', 'routes/people-new.tsx'),
     route('head-office/reports', 'routes/reports.tsx'),
+    route('head-office/days', 'routes/ho-days.tsx'),
+    route('head-office/:site/:date/eod', 'routes/ho-eod.tsx'),
+    route('head-office/:site/:date/checklists/:key', 'routes/ho-checklist.tsx'),
     route('head-office/:site', 'routes/head-office-site.tsx'),
   ]),
 ] satisfies RouteConfig;

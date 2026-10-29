@@ -51,12 +51,19 @@ export function createDefinitionHandler(deps: DefinitionDeps, key = 'eod') {
   return async (req: Request): Promise<Response> => {
     const caller = await deps.authenticate(req);
     if (!caller) return json(401, { error: 'Sign in again.' });
-    if (caller.role !== 'headoffice') return json(403, { error: 'Only head office can change the report.' });
+    const headOffice = caller.role === 'headoffice';
+    if (!headOffice && req.method !== 'GET') return json(403, { error: 'Only head office can change the report.' });
 
     const now = deps.now?.() ?? new Date();
     const today = tradingDate(now, await deps.groupSettings());
     const at = now.toISOString();
     const current = await deps.store.get(key);
+    // Managers' apps read only the version that's live for a trading day; never drafts or history.
+    if (!headOffice) {
+      const date = new URL(req.url).searchParams.get('date') ?? today;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return json(400, { error: 'Use a date like 2026-10-05.' });
+      return json(200, { date, version: current ? definitionOn(current.record, date) : null });
+    }
     if (!current) return json(404, { error: 'The report hasn’t been set up yet.' });
 
     const view = (record: DefinitionRecord, etag: string) => ({

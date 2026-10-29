@@ -192,7 +192,7 @@
       "group": "Reference",
       "name": "Targets",
       "purpose": "Daily targets per site (imported from finance Excel or edited in console)",
-      "written_by": "Flow F09 / Finance",
+      "written_by": "Nightly targets import (Netlify Scheduled Function) / Finance",
       "columns": [
         {
           "name": "Title",
@@ -595,8 +595,8 @@
     {
       "group": "Checklists",
       "name": "ChecklistRuns",
-      "purpose": "One instance of a checklist on a day (created each morning by flow F02)",
-      "written_by": "Flow F02 creates; app completes",
+      "purpose": "One instance of a checklist on a day (created each morning by a Netlify Scheduled Function)",
+      "written_by": "Scheduled function creates; app completes",
       "columns": [
         {
           "name": "Title",
@@ -661,7 +661,7 @@
         {
           "name": "FailedCount",
           "type": "Number",
-          "notes": "Set by flow F04",
+          "notes": "Set by the server when the run is completed",
           "flags": "F"
         }
       ]
@@ -717,7 +717,7 @@
         {
           "name": "Passed",
           "type": "Yes/No",
-          "notes": "App preview; confirmed by flow F04",
+          "notes": "App preview; confirmed by the server",
           "flags": "I"
         },
         {
@@ -792,7 +792,7 @@
       "group": "Checklists",
       "name": "CorrectiveActions",
       "purpose": "What was done about a failed check",
-      "written_by": "App + flows F04/F05",
+      "written_by": "App + Netlify Functions (checklist check, re-check and escalation)",
       "columns": [
         {
           "name": "Title",
@@ -854,7 +854,7 @@
       "group": "Checklists",
       "name": "DayClosures",
       "purpose": "Ops end-of-day sign-off per site",
-      "written_by": "App + flow F01",
+      "written_by": "App + submit-eod (Netlify Function)",
       "columns": [
         {
           "name": "Title",
@@ -1794,7 +1794,7 @@
       "group": "Maintenance",
       "name": "WorkOrders",
       "purpose": "Repairs: from fault report, failed check, statutory due or EOD note",
-      "written_by": "App + flows F05/F06",
+      "written_by": "App + Netlify Functions (escalation, contractor emails)",
       "columns": [
         {
           "name": "Title",
@@ -1898,7 +1898,7 @@
       "group": "Maintenance",
       "name": "ComplianceItems",
       "purpose": "Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest",
-      "written_by": "Admin / flow F07",
+      "written_by": "Admin / reminders (Netlify Scheduled Function)",
       "columns": [
         {
           "name": "Title",
@@ -2096,7 +2096,7 @@
       "group": "Trading (EOD)",
       "name": "TradingDays",
       "purpose": "One per site per service date — replaces the Netlify form's Excel row",
-      "written_by": "App creates; flow F01 writes official totals",
+      "written_by": "App creates; submit-eod (Netlify Function) writes official totals",
       "columns": [
         {
           "name": "Title",
@@ -2183,6 +2183,12 @@
           "flags": "F"
         },
         {
+          "name": "ASPHGross",
+          "type": "Currency",
+          "notes": "",
+          "flags": "F"
+        },
+        {
           "name": "FoodPct",
           "type": "Number",
           "notes": "",
@@ -2215,7 +2221,7 @@
         {
           "name": "CheckIssues",
           "type": "Multi-line text",
-          "notes": "Problems found by flow (e.g. discount lines ≠ EPOS total)",
+          "notes": "Problems found by the server (e.g. discount lines ≠ EPOS total)",
           "flags": "F"
         },
         {
@@ -2248,7 +2254,7 @@
       "group": "Trading (EOD)",
       "name": "TradingSessions",
       "purpose": "Lunch / dinner figures and cash",
-      "written_by": "App; flow F01 adds net & variance",
+      "written_by": "App; submit-eod adds net & variance",
       "columns": [
         {
           "name": "Title",
@@ -2462,7 +2468,7 @@
       "group": "Trading (EOD)",
       "name": "DeliverySales",
       "purpose": "Per platform per day",
-      "written_by": "App; flow F01 adds estimated net",
+      "written_by": "App; submit-eod adds estimated net",
       "columns": [
         {
           "name": "Title",
@@ -2600,7 +2606,7 @@
       "group": "Trading (EOD)",
       "name": "Feedback",
       "purpose": "Service, kitchen, staff, complaints, maintenance notes",
-      "written_by": "App; flow F01 links work orders",
+      "written_by": "App; submit-eod links work orders",
       "columns": [
         {
           "name": "Title",
@@ -2629,7 +2635,7 @@
         {
           "name": "WorkOrder",
           "type": "Lookup → WorkOrders",
-          "notes": "Created by F01 for urgent maintenance",
+          "notes": "Created by submit-eod for urgent maintenance",
           "flags": "F"
         }
       ]
@@ -2947,7 +2953,7 @@
     {
       "name": "Policies",
       "purpose": "Handbook and policies (Word/PDF) with metadata: Category, RequiresAck, AppliesToRoles",
-      "notes": "Major versions only; publishing a major version triggers flow F08"
+      "notes": "Major versions only; publishing a major version sends sign-off requests (Netlify Function)"
     },
     {
       "name": "Certificates",
@@ -2962,12 +2968,12 @@
     {
       "name": "Reports",
       "purpose": "Generated EOD, day-closure and EHO pack PDFs",
-      "notes": "Written by flows"
+      "notes": "Written by Netlify Functions"
     },
     {
       "name": "Archive",
       "purpose": "Yearly CSV/list exports for archived years",
-      "notes": "Created by flow F12"
+      "notes": "Created by the yearly archive (Netlify Scheduled Function)"
     }
   ]
 }

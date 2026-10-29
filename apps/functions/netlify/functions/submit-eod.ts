@@ -22,6 +22,7 @@ export default async (req: Request): Promise<Response> => {
   //   authenticate → verify the Entra ID access token and read the user's sites
   //   store        → a SharePoint EodStore (Graph $batch, Retry-After), using toSharePointFields()
   //   sendEmail    → Graph sendMail from MAIL_FROM to MAIL_TO
+  //   definitions  → the ReportDefinitions list (the report builder's approved versions)
   const handler = createSubmitHandler({
     authenticate: async () => null,
     store: { get: notReady, saveDraft: notReady, submit: notReady, listByDate: notReady, setStatus: notReady },

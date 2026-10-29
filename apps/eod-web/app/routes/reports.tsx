@@ -133,7 +133,7 @@ export default function Reports() {
             {attention.length ? (
               <div className="ho-list">
                 {attention.map((h) => (
-                  <Link key={h.row.siteCode + h.row.date} to={`/head-office/${h.row.siteCode.toLowerCase()}`}>
+                  <Link key={h.row.siteCode + h.row.date} to={`/head-office/${h.row.siteCode.toLowerCase()}/${h.row.date}/eod`}>
                     <span className={`dot ${h.wagesHigh && (h.wagePct ?? 0) > DEFAULT_SETTINGS.wageRedPct ? 'bad' : 'warn'}`} />
                     {h.siteName} · {formatDay(h.row.date, { day: 'numeric', month: 'short' })} · {h.wagesHigh ? `wages ${h.wagePct}%` : cashWords(h.row.cashDiff)}
                   </Link>
@@ -189,7 +189,7 @@ function ResultRow({ hit: h }: { hit: ReportHit }) {
     : r.source === 'workbook' ? <span className="pill p-mut">Workbook</span>
     : <span className="pill p-ok">All fine</span>;
   return (
-    <Link className="li" to={`/head-office/${r.siteCode.toLowerCase()}`} aria-label={`${h.siteName}, ${formatDay(r.date)}: ${formatPounds(h.net)}`}>
+    <Link className="li" to={`/head-office/${r.siteCode.toLowerCase()}/${r.date}/eod`} aria-label={`${h.siteName}, ${formatDay(r.date)}: ${formatPounds(h.net)}`}>
       <span className={`av ${h.wagesHigh || h.cashOff ? 'warn' : ''}`}>{r.siteCode.slice(0, 2)}</span>
       <span className="tx">
         <span>{h.siteName} · {formatDay(r.date, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>

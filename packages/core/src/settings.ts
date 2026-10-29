@@ -29,6 +29,8 @@ export interface SiteSettings {
   /** Warn when net differs from the same weekday last week by more than this. */
   netSwingWarnPct: number;
   platforms: DeliveryPlatform[];
+  /** Values for settings finance added in the report builder, by figure id (e.g. a card fee rate as 0.0175). */
+  definitionSettings?: Record<string, number>;
 }
 
 /** Example settings for local and demo use. Real values come from SharePoint (Sites, DeliveryPlatforms, RulesThresholds). */

@@ -4,7 +4,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { can, useAuth } from '../lib/auth';
+import { can, canDoEod, useAuth } from '../lib/auth';
 import { runPath, useChecklists } from '../lib/checklists';
 import { Icon, ICONS } from './ui';
 
@@ -45,7 +45,7 @@ export function CommandMenu({ onClose }: { onClose: () => void }) {
       { id: 'delivery', group: 'Food safety', label: 'Check in a delivery', icon: ICONS.box, to: '/food-safety/deliveries/new', words: 'supplier' },
       { id: 'allergens', group: 'Food safety', label: 'Allergen matrix', icon: ICONS.list, to: '/food-safety/allergens', words: 'dish' },
       { id: 'report', group: 'Actions', label: 'Report a problem', icon: ICONS.wrench, to: '/report', words: 'repair broken' },
-      ...(role && can.doEod(role) ? [{ id: 'eod', group: 'Actions', label: "Continue today's EOD", icon: ICONS.list, to: '/close', words: 'end of day report close' }] : []),
+      ...(user && canDoEod(user) ? [{ id: 'eod', group: 'Actions', label: "Continue today's EOD", icon: ICONS.list, to: '/close', words: 'end of day report close' }] : []),
       { id: 'go-home', group: 'Go to', label: 'Home', icon: ICONS.home, to: '/' },
       { id: 'go-day', group: 'Go to', label: 'Timeline', icon: ICONS.clock, to: '/day', words: 'hour' },
       { id: 'go-checklists', group: 'Go to', label: 'Checklists', icon: ICONS.check, to: '/checklists' },

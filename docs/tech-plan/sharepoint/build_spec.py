@@ -1,7 +1,7 @@
 """Single source of truth for the SharePoint site design.
 Generates sharepoint-lists.json (for provisioning) and lists.md (tables for the tech plan).
 Column notation: (InternalName, Type, Notes, flags) where flags may include
-  I = indexed, U = unique (enforce unique values; requires index), R = required, F = written by a flow (read-only in apps)
+  I = indexed, U = unique (enforce unique values; requires index), R = required, F = set by the server, our Netlify Functions (read-only in apps)
 """
 import json, os
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +43,7 @@ lst("Reference", "Devices", "Registered kiosk tablets and phones", "Admin", [
  ("LastSeen", "Date/Time", "Updated by app", ""),
  ("Revoked", "Yes/No", "Revoked devices are refused by the app", "I"),
 ])
-lst("Reference", "Targets", "Daily targets per site (imported from finance Excel or edited in console)", "Flow F09 / Finance", [
+lst("Reference", "Targets", "Daily targets per site (imported from finance Excel or edited in console)", "Nightly targets import (Netlify Scheduled Function) / Finance", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd", "IUR"),
  ("Site", "Lookup → Sites", "", "I"),
  ("TargetDate", "Date", "", "I"),
@@ -117,7 +117,7 @@ lst("Checklists", "Schedules", "When each checklist is due at each site", "Admin
  ("PausedFrom", "Date", "Closures / refurb", ""),
  ("PausedUntil", "Date", "", ""),
 ])
-lst("Checklists", "ChecklistRuns", "One instance of a checklist on a day (created each morning by flow F02)", "Flow F02 creates; app completes", [
+lst("Checklists", "ChecklistRuns", "One instance of a checklist on a day (created each morning by a Netlify Scheduled Function)", "Scheduled function creates; app completes", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|ScheduleId", "IUR"),
  ("Site", "Lookup → Sites", "", "I"),
  ("BusinessDate", "Date", "", "I"),
@@ -128,7 +128,7 @@ lst("Checklists", "ChecklistRuns", "One instance of a checklist on a day (create
  ("CompletedBy", "Lookup → Staff", "", ""),
  ("CompletedAt", "Date/Time", "", ""),
  ("DurationSeconds", "Number", "Pencil-whip signal", ""),
- ("FailedCount", "Number", "Set by flow F04", "F"),
+ ("FailedCount", "Number", "Set by the server when the run is completed", "F"),
 ])
 lst("Checklists", "Responses", "Every answer — the compliance record (largest list)", "App (append-only by convention + Purview record label)", [
  ("Title", "Text", "ClientId — UUID from the device; makes offline retries idempotent", "IUR"),
@@ -138,7 +138,7 @@ lst("Checklists", "Responses", "Every answer — the compliance record (largest 
  ("CheckpointId", "Number", "Checkpoint item id", ""),
  ("ValueNumber", "Number", "", ""),
  ("ValueText", "Multi-line text", "Text / select / signature JSON", ""),
- ("Passed", "Yes/No", "App preview; confirmed by flow F04", "I"),
+ ("Passed", "Yes/No", "App preview; confirmed by the server", "I"),
  ("ThresholdSnapshot", "Text", "Min/max/legal basis used, frozen", ""),
  ("Source", "Choice", "Manual / Bluetooth probe / Camera OCR", ""),
  ("PhotoUrl", "Hyperlink", "Photos library", ""),
@@ -151,7 +151,7 @@ lst("Checklists", "Responses", "Every answer — the compliance record (largest 
  ("CorrectionReason", "Text", "", ""),
  ("AnswerKey", "Text", "runKey|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who)", "I"),
 ])
-lst("Checklists", "CorrectiveActions", "What was done about a failed check", "App + flows F04/F05", [
+lst("Checklists", "CorrectiveActions", "What was done about a failed check", "App + Netlify Functions (checklist check, re-check and escalation)", [
  ("Title", "Text", "Short description", "R"),
  ("Response", "Lookup → Responses", "", "I"),
  ("Site", "Lookup → Sites", "", "I"),
@@ -162,7 +162,7 @@ lst("Checklists", "CorrectiveActions", "What was done about a failed check", "Ap
  ("WorkOrder", "Lookup → WorkOrders", "Set when escalated", ""),
  ("VerifiedBy", "Lookup → Staff", "", ""),
 ])
-lst("Checklists", "DayClosures", "Ops end-of-day sign-off per site", "App + flow F01", [
+lst("Checklists", "DayClosures", "Ops end-of-day sign-off per site", "App + submit-eod (Netlify Function)", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd", "IUR"),
  ("Site", "Lookup → Sites", "", "I"),
  ("BusinessDate", "Date", "", "I"),
@@ -334,7 +334,7 @@ lst("Maintenance", "Contractors", "Refrigeration, gas, electrical, extraction, p
  ("GasSafeNumber", "Text", "", ""),
  ("Accreditation", "Text", "e.g. BESA TR19", ""),
 ])
-lst("Maintenance", "WorkOrders", "Repairs: from fault report, failed check, statutory due or EOD note", "App + flows F05/F06", [
+lst("Maintenance", "WorkOrders", "Repairs: from fault report, failed check, statutory due or EOD note", "App + Netlify Functions (escalation, contractor emails)", [
  ("Title", "Text", "Reference WO-2026-00123", "IUR"),
  ("Site", "Lookup → Sites", "", "I"),
  ("Asset", "Lookup → Assets", "", "I"),
@@ -350,7 +350,7 @@ lst("Maintenance", "WorkOrders", "Repairs: from fault report, failed check, stat
  ("PhotoUrls", "Multi-line text", "", ""),
  ("History", "Multi-line text (append)", "Timeline notes (append changes on)", ""),
 ])
-lst("Maintenance", "ComplianceItems", "Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest", "Admin / flow F07", [
+lst("Maintenance", "ComplianceItems", "Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest", "Admin / reminders (Netlify Scheduled Function)", [
  ("Title", "Text", "Requirement name", "R"),
  ("Site", "Lookup → Sites", "", "I"),
  ("Asset", "Lookup → Assets", "Optional", ""),
@@ -383,7 +383,7 @@ lst("Maintenance", "VisitorLog", "Contractor and visitor sign-in", "App", [
 ])
 
 # ---------------- Trading / EOD ----------------
-lst("Trading (EOD)", "TradingDays", "One per site per service date — replaces the Netlify form's Excel row", "App creates; flow F01 writes official totals", [
+lst("Trading (EOD)", "TradingDays", "One per site per service date — replaces the Netlify form's Excel row", "App creates; submit-eod (Netlify Function) writes official totals", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd (blocks duplicates)", "IUR"),
  ("Site", "Lookup → Sites", "", "I"),
  ("BusinessDate", "Date", "", "I"),
@@ -395,16 +395,16 @@ lst("Trading (EOD)", "TradingDays", "One per site per service date — replaces 
  ("ApprovedBy", "Lookup → Staff", "Finance sign-off", ""),
  ("TotalGross", "Currency", "", "F"), ("TotalNet", "Currency", "", "F"),
  ("DineInNet", "Currency", "", "F"), ("Covers", "Number", "", "F"),
- ("ASPHNet", "Currency", "", "F"), ("FoodPct", "Number", "", "F"), ("DrinkPct", "Number", "", "F"),
+ ("ASPHNet", "Currency", "", "F"), ("ASPHGross", "Currency", "", "F"), ("FoodPct", "Number", "", "F"), ("DrinkPct", "Number", "", "F"),
  ("WagePct", "Number", "", "F"), ("WageRAG", "Choice", "Green / Amber / Red", "F"),
  ("NetVsTarget", "Currency", "", "F"),
- ("CheckIssues", "Multi-line text", "Problems found by flow (e.g. discount lines ≠ EPOS total)", "F"),
+ ("CheckIssues", "Multi-line text", "Problems found by the server (e.g. discount lines ≠ EPOS total)", "F"),
  ("CalcVersion", "Text", "Formula version used", "F"),
  ("DraftJson", "Multi-line text", "The whole report between saves. Every save is PATCH with If-Match: <item ETag>, so a stale save gets 412 and is merged by section", ""),
  ("SectionStamps", "Multi-line text", "JSON: who last changed each section, and when (e.g. Jo changed Dinner at 21:14)", ""),
  ("SubmitId", "Text", "The submit press that won; a retry of the same press is a no-op", ""),
 ])
-lst("Trading (EOD)", "TradingSessions", "Lunch / dinner figures and cash", "App; flow F01 adds net & variance", [
+lst("Trading (EOD)", "TradingSessions", "Lunch / dinner figures and cash", "App; submit-eod adds net & variance", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|Session", "IUR"),
  ("TradingDay", "Lookup → TradingDays", "", "I"),
  ("Site", "Lookup → Sites", "", "I"),
@@ -435,7 +435,7 @@ lst("Trading (EOD)", "Adjustments", "Discounts, comps and voids as rows (were te
  ("ApprovedBy", "Lookup → Staff", "Real user", ""),
  ("Notes", "Multi-line text", "", ""),
 ])
-lst("Trading (EOD)", "DeliverySales", "Per platform per day", "App; flow F01 adds estimated net", [
+lst("Trading (EOD)", "DeliverySales", "Per platform per day", "App; submit-eod adds estimated net", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|Platform", "IUR"),
  ("TradingDay", "Lookup → TradingDays", "", "I"),
  ("Platform", "Lookup → DeliveryPlatforms", "", ""),
@@ -460,12 +460,12 @@ lst("Trading (EOD)", "ShiftStaff", "Who worked each session (fixes lunch manager
  ("Position", "Choice", "", ""),
  ("Hours", "Number", "", ""),
 ])
-lst("Trading (EOD)", "Feedback", "Service, kitchen, staff, complaints, maintenance notes", "App; flow F01 links work orders", [
+lst("Trading (EOD)", "Feedback", "Service, kitchen, staff, complaints, maintenance notes", "App; submit-eod links work orders", [
  ("Title", "Text", "Category", ""),
  ("TradingDay", "Lookup → TradingDays", "", "I"),
  ("Category", "Choice", "Service / Kitchen / Staff / Complaints / Maintenance", "I"),
  ("Body", "Multi-line text", "", "R"),
- ("WorkOrder", "Lookup → WorkOrders", "Created by F01 for urgent maintenance", "F"),
+ ("WorkOrder", "Lookup → WorkOrders", "Created by submit-eod for urgent maintenance", "F"),
 ])
 
 # ---------------- Forecasting ----------------
@@ -527,11 +527,11 @@ lst("People & handbook", "FitnessToWork", "Illness exclusion / return to work �
 LIBS = [
  ("Photos", "Check, fault and work-order photos", "Folders Site/yyyy/mm; images compressed on device (~300 KB)"),
  ("HowToMedia", "Images and short videos attached to checkpoints", "Read-only for staff"),
- ("Policies", "Handbook and policies (Word/PDF) with metadata: Category, RequiresAck, AppliesToRoles", "Major versions only; publishing a major version triggers flow F08"),
+ ("Policies", "Handbook and policies (Word/PDF) with metadata: Category, RequiresAck, AppliesToRoles", "Major versions only; publishing a major version sends sign-off requests (Netlify Function)"),
  ("Certificates", "Staff and contractor certificates (gas CP42, TR19, EICR…)", "Linked from StaffCertificates / ComplianceItems"),
  ("Invoices", "Contractor invoice PDFs", "Finance + Admin only"),
- ("Reports", "Generated EOD, day-closure and EHO pack PDFs", "Written by flows"),
- ("Archive", "Yearly CSV/list exports for archived years", "Created by flow F12"),
+ ("Reports", "Generated EOD, day-closure and EHO pack PDFs", "Written by Netlify Functions"),
+ ("Archive", "Yearly CSV/list exports for archived years", "Created by the yearly archive (Netlify Scheduled Function)"),
 ]
 
 spec = dict(site="Maginhawa Ops", version="0.1", lists=L, libraries=[dict(name=a, purpose=b, notes=c) for a, b, c in LIBS])
@@ -553,7 +553,7 @@ for g in dict.fromkeys(x["group"] for x in L):
             if "U" in c["flags"]: tags.append("unique")
             if "I" in c["flags"] and "U" not in c["flags"]: tags.append("indexed")
             if "R" in c["flags"]: tags.append("required")
-            if "F" in c["flags"]: tags.append("set by flow")
+            if "F" in c["flags"]: tags.append("set by server")
             t = f" *({', '.join(tags)})*" if tags else ""
             out.append(f"| `{c['name']}`{t} | {esc(c['type'])} | {esc(c['notes'])} |")
         warn = f" ⚠ {len(idx)} indexes, over the 20 limit" if len(idx) > 20 else ""

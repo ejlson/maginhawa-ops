@@ -37,7 +37,7 @@ export function StaffHome() {
         main={<>
 
         {(left.length > 0 || done.length > 0) && (
-          <section className="grp">
+          <section className="grp" data-tour="todo">
             <div className="hd"><h2>Still to do</h2><span>{left.length ? `${left.length} left` : 'All done'}</span></div>
             <div className="sub">
               {left.map((t) => <TaskRow key={t.key} t={t} />)}
@@ -60,7 +60,7 @@ export function StaffHome() {
         )}
         </>}
         actions={<>
-        {focus && <Link className="btn b1" to={runPath(focus.key)}>{focus.status === 'late' || focus.status === 'missed' ? 'Do now' : 'Start'}: {focus.title}</Link>}
+        {focus && <Link className="btn b1" data-tour="next" to={runPath(focus.key)}>{focus.status === 'late' || focus.status === 'missed' ? 'Do now' : 'Start'}: {focus.title}</Link>}
         <Link className="btn b2" to="/report"><Icon d={ICONS.wrench} size={17} />Report a problem</Link>
         </>}
       />

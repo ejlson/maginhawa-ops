@@ -731,3 +731,190 @@ a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.
 .order-row { cursor: default; }
 .order-row .rt { gap: 8px; }
 .hd .linkbtn, .sl .linkbtn { font-size: 15px; text-transform: none; letter-spacing: -.01em; min-height: 32px; }
+
+/* ---- Switching site (components/SitePicker.tsx; design/eod-canvas/s01–s03, a05) ---- */
+.sitepick { position: relative; }
+.ho-brand.sitebtn { align-items: flex-start; width: 100%; margin: -6px 0 0; padding: 6px 12px 8px; border: 0; border-radius: 12px; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.ho-brand.sitebtn:hover, .ho-brand.sitebtn[aria-expanded="true"] { background: var(--sel); }
+.ho-brand.sitebtn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--link); }
+.ho-brand.sitebtn b { display: flex; align-items: center; gap: 8px; }
+.ho-brand.sitebtn b svg { color: var(--sec); flex: none; }
+.sitepop { position: fixed; z-index: 30; width: 340px; padding: 6px; border-radius: 18px; background: var(--bg);
+  box-shadow: 0 24px 60px -16px rgba(0,0,0,.3), 0 0 0 .5px var(--sep); }
+@media (prefers-color-scheme: dark) { .sitepop { background: var(--side); box-shadow: 0 24px 60px -16px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.08); } }
+.sitelist { display: flex; flex-direction: column; }
+.sitelist .menuitem { width: 100%; }
+.sitelist .menuitem .av { width: 40px; height: 40px; font-size: 13px; font-weight: 700; }
+.sitelist .tx small.ok { color: var(--ok); } .sitelist .tx small.warn { color: var(--warn); } .sitelist .tx small.bad { color: var(--bad); }
+.siteopts { display: flex; flex-direction: column; max-height: min(560px, 60vh); overflow-y: auto; scrollbar-width: thin; }
+.sitefind { display: flex; align-items: center; gap: 10px; height: 40px; margin: 4px 4px 6px; padding: 0 12px; border-radius: 10px; background: var(--fill); color: var(--sec); }
+.sitefind input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 15px; outline: none; }
+.sitefind:focus-within { box-shadow: 0 0 0 2px var(--link); }
+.sitefoot { margin: 6px 0 0; padding: 10px 10px 4px; border-top: .5px solid var(--sep); font-size: 13px; line-height: 1.4; color: var(--sec); }
+.sitenone { margin: 0; padding: 12px 10px; font-size: 14px; color: var(--sec); }
+.sitetitle { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: var(--text); font: inherit; font-weight: 600; font-size: 17px; padding: 0; min-height: 44px; cursor: pointer; }
+.sitetitle svg { color: var(--sec); }
+.ssheet { gap: 12px; max-height: calc(100dvh - 48px); }
+.ssheet .siteopts { max-height: none; }
+.ssheet .menuitem { min-height: 60px; }
+/* Head office inside a site: a quiet bar that says so, with the way back. */
+.insite { position: sticky; top: 0; z-index: 15; display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 2px max(20px, env(safe-area-inset-right)) 2px max(20px, env(safe-area-inset-left)); background: var(--side); border-bottom: .5px solid var(--sep); font-size: 13.5px; line-height: 1.3; }
+.insite > svg { color: var(--sec); flex: none; }
+.insite b { font-weight: 600; }
+.insite-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--sec); }
+.insite-t b { color: var(--text); }
+@media (max-width: 599px) { .insite-x { display: none; } }
+.insite .linkbtn { margin-left: auto; font-size: 14px; white-space: nowrap; min-height: 36px; padding: 0 4px; }
+@media (min-width: 900px) { .insite { padding: 0 28px; min-height: 52px; } }
+.opensite { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.opensite-go { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.opensite-go small { font-size: 13px; color: var(--sec); }
+.btn.sm { width: auto; height: 44px; padding: 0 20px; font-size: 15px; gap: 6px; }
+@media (max-width: 599px) { .opensite-go { align-items: stretch; width: 100%; } .opensite-go .btn.sm { width: 100%; height: 52px; } }
+/* A manager's sites on the People panel. */
+.site-opt { display: flex; align-items: center; gap: 12px; }
+.site-opt .role-opt { flex: 1; min-width: 0; min-height: 48px; }
+.site-opt .pill { flex: none; }
+.site-opt .linkbtn { flex: none; font-size: 14px; min-height: 36px; }
+.site-opt .pill { height: 24px; padding: 0 9px; font-size: 12px; background: var(--fill); color: var(--sec); }
+.ssheet .menuhead { display: none; }
+
+/* Head office · pick a day on a site page */
+.ho-daypick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ho-daypick .chip { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; }
+.ho-daypick .in { width: 170px; }
+.ho-daypick .muted { font-size: 14px; margin-left: 4px; }
+
+/* Head office · pick a day on a site page, and filter every checklist and EOD */
+.ho-daypick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ho-daypick .chip { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; }
+.ho-daypick .in { width: 170px; }
+.ho-daypick .muted { font-size: 14px; margin-left: 4px; }
+.ro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start; }
+
+/* ---- First-run tour (components/Tour.tsx, design: design/tour-canvas) ----
+   One light that glides from control to control, a tip that arrives from the side its arrow points to,
+   and small demos that show what a tip means. Nothing loops for ever except a demo while its tip is open. */
+.tour-block { position: fixed; inset: 0; z-index: 70; }
+.tour-spot { position: fixed; z-index: 71; pointer-events: none; box-shadow: 0 0 0 9999px rgba(0,0,0,.5);
+  transition: left .45s cubic-bezier(.32,.72,0,1), top .45s cubic-bezier(.32,.72,0,1), width .45s cubic-bezier(.32,.72,0,1), height .45s cubic-bezier(.32,.72,0,1), border-radius .45s; }
+.tour-spot::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 2px rgba(255,255,255,.9); opacity: 0; animation: tour-pulse 1.4s ease-out .5s 2; }
+.tour-try { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: transparent; border-radius: inherit; cursor: pointer; pointer-events: auto; }
+@keyframes tour-pulse { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(1.05); } }
+
+.tour-tip { position: fixed; z-index: 72; box-sizing: border-box; padding: 16px 18px 12px; border-radius: 20px; background: var(--bg); color: var(--text);
+  box-shadow: 0 24px 48px -16px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 6px; outline: none;
+  transition: left .45s cubic-bezier(.32,.72,0,1), top .45s cubic-bezier(.32,.72,0,1); }
+.tour-tip.below::before, .tour-tip.above::before { content: ''; position: absolute; left: calc(var(--ax) - 7px); width: 14px; height: 14px; background: inherit; transform: rotate(45deg); border-radius: 3px; transition: left .45s cubic-bezier(.32,.72,0,1); }
+.tour-tip.below::before { top: -6px; }
+.tour-tip.above::before { bottom: -6px; }
+@media (prefers-color-scheme: dark) { .tour-tip { background: #232328; box-shadow: 0 24px 48px -16px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.08); } }
+.tour-tiph { display: flex; justify-content: space-between; align-items: center; min-height: 28px; font-size: 13px; color: var(--sec); }
+.tour-tipc { display: flex; flex-direction: column; gap: 6px; animation: tour-in .38s cubic-bezier(.32,.72,0,1) both; }
+.tour-tipc.above { animation-name: tour-up; }
+.tour-tipc b { font-size: 17px; font-weight: 700; letter-spacing: -.02em; }
+.tour-tipc p { margin: 0; font-size: 15px; line-height: 1.4; color: var(--sec); }
+@keyframes tour-in { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes tour-up { from { opacity: 0; transform: translateY(8px); } }
+.tour-tipf { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.tour-pie { margin-right: auto; }
+.tour-pie circle { fill: none; stroke: var(--text); stroke-width: 1.6; }
+.tour-pie .p { stroke-width: 6; transform: rotate(-90deg); transform-origin: center; transform-box: fill-box; transition: stroke-dasharray .5s cubic-bezier(.32,.72,0,1); }
+.tour-link { border: 0; background: transparent; font: inherit; font-size: 15px; font-weight: 500; color: var(--link); cursor: pointer; min-height: 44px; padding: 0 8px; }
+.tour-link.m { color: var(--sec); font-size: 13px; min-height: 28px; padding: 0; }
+.tour-next { height: 40px; border-radius: 20px; border: 0; padding: 0 20px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; background: var(--ink); color: var(--onink); }
+
+/* Welcome and done */
+.tour-back { position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; animation: confirm-fade .2s ease-out; }
+@media (min-width: 700px) { .tour-back { align-items: center; } }
+.tour-sheet { width: 100%; max-width: 480px; max-height: 100%; overflow: auto; box-sizing: border-box; background: var(--bg); border-radius: 28px 28px 0 0; padding: 10px 24px max(24px, env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 18px; animation: tour-sheet .34s cubic-bezier(.32,.72,0,1) both; }
+@media (min-width: 700px) { .tour-sheet { border-radius: 28px; padding: 28px 28px 20px; } .tour-grab { display: none; } }
+@media (prefers-color-scheme: dark) { .tour-sheet { background: var(--side); } }
+@keyframes tour-sheet { from { opacity: 0; transform: translateY(40px); } }
+.tour-grab { width: 36px; height: 5px; border-radius: 3px; background: var(--sep); align-self: center; }
+.tour-head { display: flex; flex-direction: column; gap: 8px; }
+.tour-head h2 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -.035em; }
+.tour-head p { margin: 0; font-size: 16px; line-height: 1.45; color: var(--sec); }
+.tour-row { min-height: 56px; cursor: default; animation: tour-row .45s cubic-bezier(.32,.72,0,1) both; }
+.tour-row:nth-child(1) { animation-delay: .12s; } .tour-row:nth-child(2) { animation-delay: .19s; } .tour-row:nth-child(3) { animation-delay: .26s; } .tour-row:nth-child(4) { animation-delay: .33s; } .tour-row:nth-child(5) { animation-delay: .4s; }
+@keyframes tour-row { from { opacity: 0; transform: translateY(8px); } }
+.tour-acts { display: flex; flex-direction: column; gap: 4px; }
+.tour-acts .b2 { height: 44px; font-size: 15px; }
+.tour-sheet.done { align-items: center; text-align: center; }
+.tour-sheet.done .tour-acts { align-self: stretch; }
+.tour-tick circle { fill: var(--ok); transform-origin: center; transform-box: fill-box; animation: tour-pop .5s cubic-bezier(.34,1.56,.64,1) both; }
+.tour-tick path { fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 14; stroke-dashoffset: 14; animation: tour-draw .32s ease-out .28s forwards; }
+@keyframes tour-pop { from { transform: scale(.4); opacity: 0; } }
+@keyframes tour-draw { to { stroke-dashoffset: 0; } }
+.tour-key { list-style: none; margin: 0; padding: 0 8px; align-self: stretch; display: flex; flex-direction: column; text-align: left; }
+.tour-key li { display: flex; align-items: center; gap: 12px; min-height: 40px; font-size: 15px; animation: tour-row .45s cubic-bezier(.32,.72,0,1) both; }
+.tour-key li:nth-child(1) { animation-delay: .4s; } .tour-key li:nth-child(2) { animation-delay: .47s; } .tour-key li:nth-child(3) { animation-delay: .54s; } .tour-key li:nth-child(4) { animation-delay: .61s; }
+.tour-key i { width: 14px; height: 14px; border-radius: 7px; flex: none; }
+
+/* Demo: the dark card's bars fill one by one. */
+.tour-demo-segs .segs span { animation: tour-seg .3s ease both; }
+.tour-demo-segs .segs span:nth-child(2) { animation-delay: .5s; } .tour-demo-segs .segs span:nth-child(3) { animation-delay: .68s; } .tour-demo-segs .segs span:nth-child(4) { animation-delay: .86s; }
+.tour-demo-segs .segs span:nth-child(5) { animation-delay: 1.04s; } .tour-demo-segs .segs span:nth-child(6) { animation-delay: 1.22s; } .tour-demo-segs .segs span:nth-child(7) { animation-delay: 1.4s; }
+.tour-demo-segs .segs span:nth-child(8) { animation-delay: 1.58s; } .tour-demo-segs .segs span:nth-child(9) { animation-delay: 1.76s; }
+@keyframes tour-seg { to { background: var(--onhero); } }
+
+/* Demo: saved → sending → received. */
+.tour-sync { position: relative; height: 38px; margin-top: 4px; border-radius: 10px; background: var(--fill); font-size: 14px; font-weight: 500; overflow: hidden; }
+.tour-sync .s { position: absolute; inset: 0; display: flex; align-items: center; gap: 8px; padding: 0 12px; opacity: 0; animation: tour-cycle 4.5s infinite; }
+.tour-sync .s2 { animation-delay: 1.5s; } .tour-sync .s3 { animation-delay: 3s; }
+.tour-sync i { width: 7px; height: 7px; border-radius: 4px; background: var(--sec); }
+.tour-sync .s2 i { background: var(--warn); } .tour-sync .s3 i { background: var(--ok); }
+@keyframes tour-cycle { 0% { opacity: 0; transform: translateY(8px); } 7%, 30% { opacity: 1; transform: none; } 37%, 100% { opacity: 0; transform: translateY(-8px); } }
+
+/* Demo: a temperature is typed and Enter pressed. */
+.tour-temp { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.tour-temp .fld { flex: 1; height: 44px; border-radius: 10px; background: var(--fill); display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; font-size: 17px; font-weight: 600; animation: tour-okflash 3.2s infinite; }
+.tour-temp .typed { display: inline-block; overflow: hidden; white-space: nowrap; width: 0; animation: tour-type 3.2s steps(3) infinite; }
+.tour-temp .caret { width: 2px; height: 20px; margin: 0 1px; background: var(--link); animation: tour-blink 1s step-end infinite; }
+.tour-temp .kbd { height: 44px; min-width: 76px; border-radius: 10px; background: var(--fill); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; animation: tour-press 3.2s infinite; }
+@keyframes tour-type { 0%, 8% { width: 0; } 40%, 100% { width: 3ch; } }
+@keyframes tour-blink { 50% { opacity: 0; } }
+@keyframes tour-press { 0%, 52% { background: var(--fill); color: var(--text); transform: none; } 58% { background: var(--ink); color: var(--onink); transform: scale(.94); } 66%, 100% { background: var(--fill); color: var(--text); transform: none; } }
+@keyframes tour-okflash { 0%, 58% { box-shadow: none; } 64%, 92% { box-shadow: 0 0 0 2px var(--ok); } 100% { box-shadow: none; } }
+
+/* New-screen tip and the first-week card */
+.tour-hint { display: flex; gap: 12px; align-items: flex-start; padding: 14px 14px 6px; border-radius: 18px; background: var(--fill); }
+.tour-hint .av { width: 34px; height: 34px; background: var(--bg); }
+.tour-hint .tx > span:first-child { font-weight: 600; font-size: 15px; }
+.tour-hint .tx small { font-size: 14px; }
+.tour-hint .tour-link { align-self: flex-start; padding: 0; min-height: 36px; }
+.fw-pie.on svg { animation: tour-pop .45s cubic-bezier(.34,1.56,.64,1) both; }
+
+/* Reduced motion: the global rule stops every animation, so show each demo's end state. */
+@media (prefers-reduced-motion: reduce) {
+  .tour-spot::after { display: none; }
+  .tour-sync .s3 { opacity: 1; }
+  .tour-temp .typed { width: 3ch; }
+  .tour-tick path { stroke-dashoffset: 0; }
+}
+/* "Pick up where you left off" on the EOD hub, after being pulled away mid-section. */
+.resume { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: 18px; background: var(--side); border: .5px solid var(--sep); color: var(--text); text-decoration: none; }
+.resume:hover { background: var(--fill); }
+.resume:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.resume-k { font-size: 13px; color: var(--sec); }
+.resume-t { font-size: 18px; font-weight: 600; letter-spacing: -.02em; }
+.resume-s { font-size: 14px; color: var(--sec); }
+/* Day closed: the one animated moment. The resting state is the finished one, so with reduced motion
+   (which turns every animation off, above) the screen simply appears. */
+.closed-mark { width: 56px; height: 56px; }
+.closed-mark .disc { fill: var(--heroOk); }
+.closed-mark .ring { fill: none; stroke: var(--heroOk); stroke-width: 4; }
+.closed-mark .tick { fill: none; stroke: #000; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: no-preference) {
+  .celebrate .closed-mark .ring { stroke-dasharray: 176; animation: cm-draw 450ms cubic-bezier(.2, .9, .3, 1) 150ms both; }
+  .celebrate .closed-mark .disc { animation: cm-fade 200ms ease-out 520ms both; }
+  .celebrate .closed-mark .tick { stroke-dasharray: 40; animation: cm-tick 250ms ease-out 600ms both; }
+  .celebrate .rise { animation: cm-rise 220ms ease-out both; }
+  .celebrate .rise.r1 { animation-delay: 700ms; } .celebrate .rise.r2 { animation-delay: 760ms; }
+  .celebrate .rise.r3 { animation-delay: 820ms; } .celebrate .rise.r4 { animation-delay: 900ms; }
+}
+@keyframes cm-draw { from { stroke-dashoffset: 176; } to { stroke-dashoffset: 0; } }
+@keyframes cm-tick { from { stroke-dashoffset: 40; } to { stroke-dashoffset: 0; } }
+@keyframes cm-fade { from { opacity: 0; } }
+@keyframes cm-rise { from { opacity: 0; transform: translateY(8px); } }

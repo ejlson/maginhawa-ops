@@ -100,3 +100,28 @@ describe('the deployed function before SharePoint is connected', () => {
     expect(body.missing).toContain('SHAREPOINT_SITE_ID');
   });
 });
+
+describe('submit-eod with the report builder', () => {
+  it('works out the official figures with the version approved for that trading day', async () => {
+    const { approveDefinition, disconnect, EOD_DEFINITION, saveDefinitionDraft, seedDefinitionRecord, submitDefinition, VERIFIED_TEST_DAY, computeDayWith, DEFAULT_SETTINGS: S } = await import('@maginhawa/core');
+    const def = disconnect(disconnect(EOD_DEFINITION, 'Lunch service charge', 'lunchNet'), 'Dinner service charge', 'dinnerNet');
+    const base = seedDefinitionRecord({ startsOn: '2026-09-01', by: 'Finance', at: '2026-09-01T09:00:00Z' });
+    const expectNow = computeDayWith(verifiedDraft(), S, { netSales: 250000 }, { ...base, versions: [{ ...base.versions[0]!, definition: def }] }).definition!.figures;
+    const testDays = [{ ...VERIFIED_TEST_DAY, expect: Object.fromEntries(Object.keys(VERIFIED_TEST_DAY.expect).map((id) => [id, expectNow[id]!])) }];
+    let rec = saveDefinitionDraft(base, { definition: def, testDays, by: 'Ana', at: '2026-10-01T09:00:00Z' });
+    rec = submitDefinition(rec, { summary: 'Service charge in net', by: 'Ana', at: '2026-10-01T09:00:00Z' });
+    rec = approveDefinition(rec, { by: 'Ben', today: '2026-10-01', at: '2026-10-01T10:00:00Z' });
+    const { handler, store, sent } = setup({ definitions: async () => rec });
+    const res = await handler(post(verifiedDraft()));
+    expect(res.status).toBe(200);
+    const stored = await store.get('BUN', '2026-10-05');
+    expect(stored!.official!.calcVersion).toBe('definition-v2');
+    expect(stored!.official!.totalNet).toBe(304750);
+    expect(sent[0]!.subject).toContain('£3,047.50 net');
+  });
+  it('with no approved version, the figures are today’s', async () => {
+    const { handler, store } = setup({ definitions: async () => null });
+    await handler(post(verifiedDraft()));
+    expect((await store.get('BUN', '2026-10-05'))!.official!.totalNet).toBe(268750);
+  });
+});

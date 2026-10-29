@@ -18,8 +18,8 @@ It started as a "Check65-like" product idea (Food Alert's Check65 app; the compa
 |---|---|---|
 | Staff | Their site | Checklists |
 | Supervisor | Their site | Checklists and the EOD |
-| Manager (incl. assistant managers) | Their site | Checklists and the EOD; edit their site's checklists |
-| Head office (finance, admin, operations managers) | All sites | Thresholds, targets, people; edit checklists; receives the reports |
+| Manager (incl. assistant managers) | Their site, or each site head office gives them (switch from the site name) | Checklists and the EOD; edit their site's checklists |
+| Head office (finance, admin, operations managers) | All sites; can open any site to work in its own screens (EOD, checklists, repairs), saved under their name | Thresholds, targets, people (incl. which sites each manager works at); edit checklists; receives the reports |
 
 Permissions live in one place: `can` in `apps/eod-web/app/lib/auth.tsx`.
 

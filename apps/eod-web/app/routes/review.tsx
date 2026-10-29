@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
 import { canSubmit, formatPounds, SECTION_LABELS, sectionStatus, type Issue } from '@maginhawa/core';
-import { useAuth } from '../lib/auth';
+import { recordedAs, useAuth } from '../lib/auth';
+import { tour } from '../lib/tour';
 import { formatDay, useDraft, useWhere } from '../lib/draft';
 import { AlreadySent, EodSyncNotice, SyncState } from '../components/Sync';
 import { BigMoney, Foot, Icon, ICONS, Nav, RowLink } from '../components/ui';
+import { AddedFigures } from '../sections/AddedInputs';
 
 function IssueRow({ i }: { i: Issue }) {
   const cls = i.level === 'block' ? 'bad' : i.level === 'warn' ? 'warn' : 'ok';
@@ -42,9 +44,9 @@ export default function Review() {
   const send = async () => {
     setSending(true);
     setError(null);
-    const res = await submit(user?.name ?? 'Manager');
+    const res = await submit(user ? recordedAs(user) : 'Manager');
     setSending(false);
-    if (res.ok) navigate('/close/done');
+    if (res.ok) { if (user) tour.did(user, 'close'); navigate('/close/done', { state: { justSent: true } }); }
     else setError(res.error);
   };
 
@@ -98,6 +100,8 @@ export default function Review() {
             {sectionStatus(draft, 'promotions') !== 'todo' && <RowLink to="/close/promotions" lead={<span className="av"><Icon d={ICONS.star} /></span>} title="Promotions & other" sub={draft.promotions.notes} />}
           </div>
         </section>
+
+        <AddedFigures />
 
         <section className="grp quiet">
           <label className="check">

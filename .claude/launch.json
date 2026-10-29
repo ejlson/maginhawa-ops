@@ -40,6 +40,34 @@
         "--strictPort"
       ],
       "port": 5174
+    },
+    {
+      "name": "eod-canvas-4180",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4180",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "/Users/ethanjameslegson/Work/Maginhawa/MaginhawaApp/design/eod-canvas"
+      ],
+      "port": 4180
+    },
+    {
+      "name": "report-builder",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4190",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "/Users/ethanjameslegson/Work/Maginhawa/MaginhawaApp/design/report-builder"
+      ],
+      "port": 4190
     }
   ]
 }

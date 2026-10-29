@@ -15,6 +15,7 @@ const SITES_ICON = 'M3 17V8l7-4 7 4v9M8 17v-5h4v5';
 const LINKS = [
   { to: '/head-office', label: 'Today', icon: ICONS.home },
   { to: '/head-office#sites', label: 'Sites', icon: SITES_ICON },
+  { to: '/head-office/days', label: 'Days', icon: ICONS.cal },
   { to: '/head-office/reports', label: 'Reports', icon: SEARCH },
   { to: '/head-office#trends', label: 'Trends', icon: ICONS.chart },
   { to: '/food-safety', label: 'Food safety', icon: ICONS.thermo },
@@ -41,7 +42,7 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
 
   const isOn = (to: string) => {
     const [path, h] = to.split('#');
-    if (path === '/head-office' && h === 'sites' && /^\/head-office\/(?!reports)[^/]+$/.test(pathname)) return true;
+    if (path === '/head-office' && h === 'sites' && /^\/head-office\/(?!reports$|days$)[^/]+(\/|$)/.test(pathname)) return true;
     if (path !== pathname) return false;
     if (path === '/head-office/reports') return !saved;
     return h ? hash === `#${h}` : !hash;
@@ -53,8 +54,8 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
         <div className="ho-brand"><span>Maginhawa · {SITES.length} sites</span><b>Head office</b></div>
         <div className="ho-links">
           {LINKS.map((l) => (
-            <Link key={l.to} to={l.to} className={`si${isOn(l.to) ? ' on' : ''}`} aria-current={isOn(l.to) ? 'page' : undefined}>
-              <Icon d={l.icon} size={20} />{l.label === 'Trends' ? 'Trends & forecast' : l.label}
+            <Link key={l.to} to={l.to} className={`si${isOn(l.to) ? ' on' : ''}`} data-tour={l.label === 'Days' ? 'ho-days' : undefined} aria-current={isOn(l.to) ? 'page' : undefined}>
+              <Icon d={l.icon} size={20} />{l.label === 'Trends' ? 'Trends & forecast' : l.label === 'Days' ? 'Checklists & EODs' : l.label}
               {l.label === 'Today' && inToday && <small>{inToday}</small>}
             </Link>
           ))}
@@ -73,7 +74,7 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
       <div className="ho-main">{children}</div>
       {!wide && <nav className="tabbar ho-tabs" aria-label="Head office">
         {LINKS.map((l) => (
-          <NavLink key={l.to} to={l.to} end className={() => `tab${isOn(l.to) ? ' on' : ''}`}>
+          <NavLink key={l.to} to={l.to} end data-tour={l.label === 'Days' ? 'ho-days' : undefined} className={() => `tab${isOn(l.to) ? ' on' : ''}`}>
             <Icon d={l.icon} size={22} />
             <span>{l.label}</span>
           </NavLink>

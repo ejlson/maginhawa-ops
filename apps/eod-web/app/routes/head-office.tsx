@@ -121,7 +121,7 @@ export default function HeadOffice() {
       <div className="body" style={{ paddingTop: 24 }}>
         <div className="titleblock"><span className="eyebrow">{formatDay(date)}</span><h1>All sites</h1></div>
         <div className="ho-top">
-          <div className="hero">
+          <div className="hero" data-tour="ho-hero">
             <span className="hl">Tonight · group net · {sent.length} of {SITES.length} sites in</span>
             <div className="big"><b>{p}</b><i>{d}</i></div>
             <div className="segs" aria-hidden="true">{SITES.map((s) => <span key={s.code} className={sent.some((r) => r.draft.siteCode === s.code) ? 'd' : ''} />)}</div>
@@ -167,10 +167,10 @@ export default function HeadOffice() {
           </div>
         </div>
         <div id="trends" className="anchor"><TrendChart rows={history.rows} scope="all sites" /></div>
-        <section id="sites" className="grp anchor" style={{ gap: 12 }}>
+        <section id="sites" className="grp anchor" data-tour="ho-sites" style={{ gap: 12 }}>
           <div className="hd">
             <h2>Sites</h2>
-            <button type="button" className="chip" style={{ background: clean.length ? 'var(--ink)' : 'var(--fill)', color: clean.length ? 'var(--onink)' : 'var(--sec)' }} disabled={!clean.length} onClick={approveClean}>
+            <button type="button" className="chip" data-tour="ho-approve" style={{ background: clean.length ? 'var(--ink)' : 'var(--fill)', color: clean.length ? 'var(--onink)' : 'var(--sec)' }} disabled={!clean.length} onClick={approveClean}>
               {clean.length ? `Approve ${clean.length} clean ${clean.length === 1 ? 'close' : 'closes'}` : 'Nothing to approve'}
             </button>
           </div>

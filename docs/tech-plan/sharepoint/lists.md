@@ -48,7 +48,7 @@
 
 *Indexed (2):* Site, Revoked
 
-**Targets**: Daily targets per site (imported from finance Excel or edited in console). *Written by:* Flow F09 / Finance.
+**Targets**: Daily targets per site (imported from finance Excel or edited in console). *Written by:* Nightly targets import (Netlify Scheduled Function) / Finance.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -157,7 +157,7 @@
 
 *Indexed (2):* Template, Site
 
-**ChecklistRuns**: One instance of a checklist on a day (created each morning by flow F02). *Written by:* Flow F02 creates; app completes.
+**ChecklistRuns**: One instance of a checklist on a day (created each morning by a Netlify Scheduled Function). *Written by:* Scheduled function creates; app completes.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -171,7 +171,7 @@
 | `CompletedBy` | Lookup → Staff |  |
 | `CompletedAt` | Date/Time |  |
 | `DurationSeconds` | Number | Pencil-whip signal |
-| `FailedCount` *(set by flow)* | Number | Set by flow F04 |
+| `FailedCount` *(set by server)* | Number | Set by the server when the run is completed |
 
 *Indexed (4):* Title, Site, BusinessDate, Status
 
@@ -186,7 +186,7 @@
 | `CheckpointId` | Number | Checkpoint item id |
 | `ValueNumber` | Number |  |
 | `ValueText` | Multi-line text | Text / select / signature JSON |
-| `Passed` *(indexed)* | Yes/No | App preview; confirmed by flow F04 |
+| `Passed` *(indexed)* | Yes/No | App preview; confirmed by the server |
 | `ThresholdSnapshot` | Text | Min/max/legal basis used, frozen |
 | `Source` | Choice | Manual / Bluetooth probe / Camera OCR |
 | `PhotoUrl` | Hyperlink | Photos library |
@@ -201,7 +201,7 @@
 
 *Indexed (6):* Title, Run, Site, BusinessDate, Passed, AnswerKey
 
-**CorrectiveActions**: What was done about a failed check. *Written by:* App + flows F04/F05.
+**CorrectiveActions**: What was done about a failed check. *Written by:* App + Netlify Functions (checklist check, re-check and escalation).
 
 | Column | Type | Notes |
 |---|---|---|
@@ -217,7 +217,7 @@
 
 *Indexed (4):* Response, Site, Status, RecheckDue
 
-**DayClosures**: Ops end-of-day sign-off per site. *Written by:* App + flow F01.
+**DayClosures**: Ops end-of-day sign-off per site. *Written by:* App + submit-eod (Netlify Function).
 
 | Column | Type | Notes |
 |---|---|---|
@@ -225,8 +225,8 @@
 | `Site` *(indexed)* | Lookup → Sites |  |
 | `BusinessDate` *(indexed)* | Date |  |
 | `ClosedBy` | Lookup → Staff | Blank = auto-closed |
-| `Stats` *(set by flow)* | Multi-line text | JSON: completion %, failures, open CAs, faults |
-| `ReportLink` *(set by flow)* | Hyperlink | PDF in Reports library |
+| `Stats` *(set by server)* | Multi-line text | JSON: completion %, failures, open CAs, faults |
+| `ReportLink` *(set by server)* | Hyperlink | PDF in Reports library |
 
 *Indexed (3):* Title, Site, BusinessDate
 
@@ -491,7 +491,7 @@
 
 *Indexed (1):* Trade
 
-**WorkOrders**: Repairs: from fault report, failed check, statutory due or EOD note. *Written by:* App + flows F05/F06.
+**WorkOrders**: Repairs: from fault report, failed check, statutory due or EOD note. *Written by:* App + Netlify Functions (escalation, contractor emails).
 
 | Column | Type | Notes |
 |---|---|---|
@@ -514,7 +514,7 @@
 
 *Indexed (5):* Title, Site, Asset, Priority, Status
 
-**ComplianceItems**: Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest. *Written by:* Admin / flow F07.
+**ComplianceItems**: Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest. *Written by:* Admin / reminders (Netlify Scheduled Function).
 
 | Column | Type | Notes |
 |---|---|---|
@@ -566,7 +566,7 @@
 
 #### Trading (EOD)
 
-**TradingDays**: One per site per service date — replaces the Netlify form's Excel row. *Written by:* App creates; flow F01 writes official totals.
+**TradingDays**: One per site per service date — replaces the Netlify form's Excel row. *Written by:* App creates; submit-eod (Netlify Function) writes official totals.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -579,25 +579,26 @@
 | `SubmittedBy` | Lookup → Staff | Signed-in user, not typed |
 | `SubmittedAt` | Date/Time |  |
 | `ApprovedBy` | Lookup → Staff | Finance sign-off |
-| `TotalGross` *(set by flow)* | Currency |  |
-| `TotalNet` *(set by flow)* | Currency |  |
-| `DineInNet` *(set by flow)* | Currency |  |
-| `Covers` *(set by flow)* | Number |  |
-| `ASPHNet` *(set by flow)* | Currency |  |
-| `FoodPct` *(set by flow)* | Number |  |
-| `DrinkPct` *(set by flow)* | Number |  |
-| `WagePct` *(set by flow)* | Number |  |
-| `WageRAG` *(set by flow)* | Choice | Green / Amber / Red |
-| `NetVsTarget` *(set by flow)* | Currency |  |
-| `CheckIssues` *(set by flow)* | Multi-line text | Problems found by flow (e.g. discount lines ≠ EPOS total) |
-| `CalcVersion` *(set by flow)* | Text | Formula version used |
+| `TotalGross` *(set by server)* | Currency |  |
+| `TotalNet` *(set by server)* | Currency |  |
+| `DineInNet` *(set by server)* | Currency |  |
+| `Covers` *(set by server)* | Number |  |
+| `ASPHNet` *(set by server)* | Currency |  |
+| `ASPHGross` *(set by server)* | Currency |  |
+| `FoodPct` *(set by server)* | Number |  |
+| `DrinkPct` *(set by server)* | Number |  |
+| `WagePct` *(set by server)* | Number |  |
+| `WageRAG` *(set by server)* | Choice | Green / Amber / Red |
+| `NetVsTarget` *(set by server)* | Currency |  |
+| `CheckIssues` *(set by server)* | Multi-line text | Problems found by the server (e.g. discount lines ≠ EPOS total) |
+| `CalcVersion` *(set by server)* | Text | Formula version used |
 | `DraftJson` | Multi-line text | The whole report between saves. Every save is PATCH with If-Match: <item ETag>, so a stale save gets 412 and is merged by section |
 | `SectionStamps` | Multi-line text | JSON: who last changed each section, and when (e.g. Jo changed Dinner at 21:14) |
 | `SubmitId` | Text | The submit press that won; a retry of the same press is a no-op |
 
 *Indexed (4):* Title, Site, BusinessDate, Status
 
-**TradingSessions**: Lunch / dinner figures and cash. *Written by:* App; flow F01 adds net & variance.
+**TradingSessions**: Lunch / dinner figures and cash. *Written by:* App; submit-eod adds net & variance.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -617,9 +618,9 @@
 | `CashInEpos` | Currency |  |
 | `CashCollected` | Currency |  |
 | `CashExplanation` | Multi-line text | Required by app if variance > 1p |
-| `Net` *(set by flow)* | Currency | Gross − SC − tax − discounts |
-| `Covers` *(set by flow)* | Number |  |
-| `CashVariance` *(set by flow)* | Currency | Collected − EPOS |
+| `Net` *(set by server)* | Currency | Gross − SC − tax − discounts |
+| `Covers` *(set by server)* | Number |  |
+| `CashVariance` *(set by server)* | Currency | Collected − EPOS |
 
 *Indexed (4):* Title, TradingDay, Site, BusinessDate
 
@@ -644,7 +645,7 @@
 
 *Indexed (5):* Title, TradingSession, Site, BusinessDate, Kind
 
-**DeliverySales**: Per platform per day. *Written by:* App; flow F01 adds estimated net.
+**DeliverySales**: Per platform per day. *Written by:* App; submit-eod adds estimated net.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -652,7 +653,7 @@
 | `TradingDay` *(indexed)* | Lookup → TradingDays |  |
 | `Platform` | Lookup → DeliveryPlatforms |  |
 | `Gross` | Currency |  |
-| `EstimatedNet` *(set by flow)* | Currency |  |
+| `EstimatedNet` *(set by server)* | Currency |  |
 | `ActualPayout` | Currency | From platform statement (later) |
 | `CurrentPromotion` | Text |  |
 
@@ -684,7 +685,7 @@
 
 *Indexed (1):* TradingSession
 
-**Feedback**: Service, kitchen, staff, complaints, maintenance notes. *Written by:* App; flow F01 links work orders.
+**Feedback**: Service, kitchen, staff, complaints, maintenance notes. *Written by:* App; submit-eod links work orders.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -692,7 +693,7 @@
 | `TradingDay` *(indexed)* | Lookup → TradingDays |  |
 | `Category` *(indexed)* | Choice | Service / Kitchen / Staff / Complaints / Maintenance |
 | `Body` *(required)* | Multi-line text |  |
-| `WorkOrder` *(set by flow)* | Lookup → WorkOrders | Created by F01 for urgent maintenance |
+| `WorkOrder` *(set by server)* | Lookup → WorkOrders | Created by submit-eod for urgent maintenance |
 
 *Indexed (2):* TradingDay, Category
 

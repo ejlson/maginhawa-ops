@@ -20,9 +20,9 @@ export function sessionCovers(s: Pick<Session, 'booked' | 'walkins'>): number {
   return (s.booked ?? 0) + (s.walkins ?? 0);
 }
 
-/** Net a head (dine-in only). Null when there are no covers. */
-export function perHead(net: Pence, covers: number): Pence | null {
-  return covers > 0 ? roundPence(net / covers) : null;
+/** Spend a head (dine-in only): net or gross ÷ covers. Null when there are no covers. */
+export function perHead(amount: Pence, covers: number): Pence | null {
+  return covers > 0 ? roundPence(amount / covers) : null;
 }
 
 export interface FoodDrink {
@@ -123,6 +123,7 @@ export interface SessionResult {
   gross: Pence;
   covers: number;
   perHead: Pence | null;
+  perHeadGross: Pence | null;
   foodDrink: FoodDrink;
   cash: CashResult;
   adjustments: { listed: Pence; gap: Pence };
@@ -137,6 +138,18 @@ export interface DeliveryResult {
   refundPending: boolean;
 }
 
+/** The approved report-builder version the figures were worked out with (report-live.ts). */
+export interface DefinitionSummary {
+  version: number;
+  /** Every figure by id: money in pence, percentages as fractions, yes/no as 1/0. */
+  figures: Record<string, number>;
+  errors: Record<string, string>;
+  /** Calculations and checks finance added in the builder, for the review screen and the email. */
+  added: { id: string; name: string; type: 'money' | 'percent' | 'number' | 'yesno'; value: number | null }[];
+  /** What the summary email shows, in order. */
+  email: { name: string; type: 'money' | 'percent' | 'number' | 'yesno'; value: number | null }[];
+}
+
 export interface DayResult {
   sessions: Record<SessionKey, SessionResult>;
   delivery: DeliveryResult[];
@@ -146,12 +159,15 @@ export interface DayResult {
   totalGross: Pence;
   covers: number;
   perHeadDineIn: Pence | null;
+  perHeadGrossDineIn: Pence | null;
   wageCost: Pence | null;
   wagePct: number | null;
   wageRag: Rag | null;
   tips: Pence;
   netVsTarget: Pence | null;
   calcVersion: string;
+  /** Set when the figures came from an approved report-builder version. */
+  definition?: DefinitionSummary;
 }
 
 /** Works out the whole day from a draft. Sessions or delivery that didn't run count as zero. */
@@ -161,12 +177,14 @@ export function computeDay(d: EodDraft, settings: SiteSettings, target?: { netSa
     const ran = d.ran[key];
     const net = ran ? sessionNet(s) : 0;
     const covers = ran ? sessionCovers(s) : 0;
+    const gross = ran ? v(s.gross) : 0;
     return {
       ran,
       net,
-      gross: ran ? v(s.gross) : 0,
+      gross,
       covers,
       perHead: perHead(net, covers),
+      perHeadGross: perHead(gross, covers),
       foodDrink: foodDrink(s, net),
       cash: cash(s.cash, settings),
       adjustments: adjustmentGap(s),
@@ -203,6 +221,7 @@ export function computeDay(d: EodDraft, settings: SiteSettings, target?: { netSa
     totalGross: sessions.lunch.gross + sessions.dinner.gross + delivery.reduce((sum, x) => sum + x.gross, 0),
     covers,
     perHeadDineIn: perHead(dineInNet, covers),
+    perHeadGrossDineIn: perHead(sessions.lunch.gross + sessions.dinner.gross, covers),
     wageCost,
     wagePct,
     wageRag: wageRag(wagePct, settings),

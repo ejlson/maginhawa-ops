@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
-import { useAuth } from '../lib/auth';
+import { recordedAs, useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
 import { EodSyncNotice } from '../components/Sync';
 import { BigMoney, Icon, ICONS, Nav, RowLink, SectionIcon, SECTION_ICONS, Segments, Toggle } from '../components/ui';
 import { TabBar } from '../components/TabBar';
 import { Columns } from '../components/Columns';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { AWAY_MS, readResume, resumePath } from '../lib/resume';
+import { now } from '../lib/clock';
 
 const SALES: SectionKey[] = ['lunch', 'dinner', 'delivery', 'promotions'];
 const TEAM: SectionKey[] = ['wages', 'tips', 'feedback', 'handover'];
@@ -50,6 +52,10 @@ export default function Close() {
   };
   const next = [...SALES, ...TEAM].find((k) => { const st = sectionStatus(draft, k); return st !== 'done' && st !== 'skipped'; });
   const all = [...SALES, ...TEAM].map((k) => sectionStatus(draft, k)).filter((s) => s !== 'skipped');
+  // Back after being pulled away: offer the exact field they were in.
+  const [place] = useState(() => readResume(draft.siteCode, draft.businessDate));
+  const resume = !locked && place && now().getTime() - place.at >= AWAY_MS
+    && !['done', 'skipped'].includes(sectionStatus(draft, place.section)) ? place : null;
 
   return (
     <main className="page tabs">
@@ -62,6 +68,13 @@ export default function Close() {
             <h1>Today's EOD</h1>
             <p className="lead">Do the sections in any order. Everything saves on this device, even without signal.</p>
           </div>
+          {resume && (
+            <Link className="resume" to={resumePath(resume)}>
+              <span className="resume-k">Pick up where you left off · {timeHM(new Date(resume.at))}</span>
+              <span className="resume-t">{SECTION_LABELS[resume.section]} · {resume.field}</span>
+              <span className="resume-s">Everything you typed is saved.</span>
+            </Link>
+          )}
         </>}
         hero={<>
           <div className="hero" role="status">
@@ -103,7 +116,9 @@ export default function Close() {
         </section>
         </>}
         actions={<>
-        {locked ? <Link className="btn b1" to="/close/done">See today's report</Link> : next
+        {locked ? <Link className="btn b1" to="/close/done">See today's report</Link> : resume
+          ? <Link className="btn b1" to={resumePath(resume)}>Carry on with {SECTION_LABELS[resume.section]}</Link>
+          : next
           ? <Link className="btn b1" to={`/close/${next}`}>{progress.done === 0 ? 'Start with' : 'Continue with'} {SECTION_LABELS[next]}</Link>
           : <Link className="btn b1" to="/close/review">Review and submit</Link>}
         {!locked && next && <Link className="btn b2" to="/close/review">Review and submit · {progress.left} to go</Link>}
@@ -132,9 +147,9 @@ function SubmitEod() {
     setError(null);
     // Pressing Submit in the dialog is the same confirmation as the tick box on Review.
     update((d) => { d.confirmed = true; });
-    const res = await submit(user?.name ?? 'Manager');
+    const res = await submit(user ? recordedAs(user) : 'Manager');
     setBusy(false);
-    if (res.ok) navigate('/close/done');
+    if (res.ok) navigate('/close/done', { state: { justSent: true } });
     else { setAsking(false); setError(res.error); }
   };
 

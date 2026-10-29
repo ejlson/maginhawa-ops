@@ -11,7 +11,10 @@
     "dev": "npm run dev -w apps/eod-web",
     "build": "npm run build -w packages/core && npm run build -w apps/eod-web",
     "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build:report-builder": "node design/report-builder/build.mjs",
+    "test:report-builder": "npm run build:report-builder && vitest run --config design/report-builder/vitest.config.ts",
+    "test:all": "npm test && npm run test:report-builder"
   },
   "engines": {
     "node": ">=20"

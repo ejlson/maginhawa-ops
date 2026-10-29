@@ -36,10 +36,18 @@ export interface Action {
   when?: string;
 }
 
+/** A section of inputs (or the site settings), as finance see it on the map and managers see it in the form. */
+export interface Group {
+  id: string;
+  title: string;
+}
+
 export interface ReportDefinition {
   version: string;
   figures: Figure[];
   actions: Action[];
+  /** The sections, in order. Left out until finance first adds or renames one: then it's DEFAULT_GROUPS. */
+  groups?: Group[];
 }
 
 export class FormulaError extends Error {}
@@ -372,6 +380,60 @@ export function disconnect(def: ReportDefinition, source: string, targetId: stri
   }
   const target = find(def, targetId);
   return { ...def, figures: def.figures.map((f) => (f.id === targetId ? { ...f, formula: removeRef(f.formula ?? '', source) } : f)) };
+}
+
+/* ------------------------------------------------------------------ sections */
+
+/** Today's form sections, plus the site settings. */
+export const DEFAULT_GROUPS: readonly Group[] = [
+  { id: 'lunch', title: 'Lunch' }, { id: 'dinner', title: 'Dinner' }, { id: 'delivery', title: 'Delivery' },
+  { id: 'wages', title: 'Wages' }, { id: 'tips', title: 'Tips' }, { id: 'settings', title: 'Site settings' },
+];
+/** Settings live here. It can't be renamed or deleted. */
+export const SETTINGS_GROUP = 'settings';
+
+/** Every section, in order: the saved list (or today's), then any a figure names that the list doesn't. */
+export function definitionGroups(def: ReportDefinition): Group[] {
+  const out = [...(def.groups ?? DEFAULT_GROUPS)];
+  for (const f of def.figures) if (f.group && !out.some((g) => g.id === f.group)) out.push({ id: f.group, title: f.group });
+  return out;
+}
+
+function checkGroupTitle(def: ReportDefinition, title: string, exceptId?: string): string {
+  const t = title.trim();
+  if (!t) throw new EditError('Give the section a name');
+  if (t.length > 60) throw new EditError('Keep the name under 60 characters');
+  if (definitionGroups(def).some((g) => g.id !== exceptId && g.title.toLowerCase() === t.toLowerCase())) throw new EditError(`There is already a section called ${t}`);
+  return t;
+}
+
+export function addGroup(def: ReportDefinition, group: Group): ReportDefinition {
+  const groups = definitionGroups(def);
+  if (groups.some((g) => g.id === group.id)) throw new EditError('That id is already used');
+  const title = checkGroupTitle(def, group.title);
+  // New sections go before the site settings, which stay last.
+  const at = groups.findIndex((g) => g.id === SETTINGS_GROUP);
+  const next = [...groups];
+  next.splice(at < 0 ? next.length : at, 0, { id: group.id, title });
+  return { ...def, groups: next };
+}
+
+export function renameGroup(def: ReportDefinition, id: string, title: string): ReportDefinition {
+  if (id === SETTINGS_GROUP) throw new EditError('The site settings can’t be renamed');
+  const groups = definitionGroups(def);
+  if (!groups.some((g) => g.id === id)) throw new EditError('That section no longer exists');
+  const t = checkGroupTitle(def, title, id);
+  return { ...def, groups: groups.map((g) => (g.id === id ? { ...g, title: t } : g)) };
+}
+
+/** Deletes a section and its inputs. Refuses while anything still uses one of them, and says what. */
+export function deleteGroup(def: ReportDefinition, id: string): ReportDefinition {
+  if (id === SETTINGS_GROUP) throw new EditError('The site settings can’t be deleted');
+  const groups = definitionGroups(def);
+  if (!groups.some((g) => g.id === id)) throw new EditError('That section no longer exists');
+  let d = def;
+  for (const f of def.figures.filter((x) => x.group === id)) d = deleteFigure(d, f.id);
+  return { ...d, groups: groups.filter((g) => g.id !== id) };
 }
 
 /* ------------------------------------------------------------------ test days */

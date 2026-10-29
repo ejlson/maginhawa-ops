@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { computeDay } from '../src/calc';
 import {
+  addGroup, definitionGroups, deleteGroup, renameGroup, SETTINGS_GROUP,
   EOD_DEFINITION, VERIFIED_TEST_DAY, EditError, FormulaError, addFigure, addRef, connect, deleteFigure, dependsOn,
   disconnect, evaluateDefinition, formulaRefs, parseFormula, removeRef, renameFigure, renameRef, runTestDay, sameFigure,
   testDayInputs, tokenize, uniqueName, updateFigure, usedBy, validateName, wouldLoop, type ReportDefinition,
@@ -363,5 +364,36 @@ describe('test days', () => {
     expect(sameFigure('percent', 0.2977, 0.298)).toBe(true);
     expect(sameFigure('percent', 0.2977, 0.297)).toBe(false);
     expect(sameFigure('number', 1.234, 1.23)).toBe(true);
+  });
+});
+
+describe('sections', () => {
+  it('starts with today’s sections, settings last', () => {
+    expect(definitionGroups(EOD_DEFINITION).map((g) => g.title)).toEqual(['Lunch', 'Dinner', 'Delivery', 'Wages', 'Tips', 'Site settings']);
+  });
+  it('adds a section before the settings, and its title is kept with the definition', () => {
+    const d = addGroup(EOD_DEFINITION, { id: 'payments', title: ' Payments ' });
+    expect(definitionGroups(d).map((g) => g.id)).toEqual(['lunch', 'dinner', 'delivery', 'wages', 'tips', 'payments', 'settings']);
+    expect(d.groups?.find((g) => g.id === 'payments')?.title).toBe('Payments');
+    expect(EOD_DEFINITION.groups).toBeUndefined();
+  });
+  it('refuses an empty or taken title, and keeps the settings as they are', () => {
+    expect(() => addGroup(EOD_DEFINITION, { id: 'x', title: '  ' })).toThrow('Give the section a name');
+    expect(() => renameGroup(EOD_DEFINITION, 'tips', 'lunch')).toThrow('There is already a section called lunch');
+    expect(() => renameGroup(EOD_DEFINITION, SETTINGS_GROUP, 'Rates')).toThrow(EditError);
+    expect(() => deleteGroup(EOD_DEFINITION, SETTINGS_GROUP)).toThrow(EditError);
+    expect(renameGroup(EOD_DEFINITION, 'tips', 'Tips & service').groups?.find((g) => g.id === 'tips')?.title).toBe('Tips & service');
+  });
+  it('deletes a section with its inputs, unless one is still used', () => {
+    expect(() => deleteGroup(EOD_DEFINITION, 'tips')).toThrow('Card tips is used by Total tips');
+    let d = addGroup(EOD_DEFINITION, { id: 'events', title: 'Events' });
+    d = addFigure(d, { id: 'room', name: 'Room hire', kind: 'input', type: 'money', group: 'events' });
+    d = deleteGroup(d, 'events');
+    expect(d.figures.some((f) => f.id === 'room')).toBe(false);
+    expect(definitionGroups(d).some((g) => g.id === 'events')).toBe(false);
+  });
+  it('lists a section a figure names even if the list doesn’t have it', () => {
+    const d = addFigure(EOD_DEFINITION, { id: 'room', name: 'Room hire', kind: 'input', type: 'money', group: 'events' });
+    expect(definitionGroups(d).at(-1)).toEqual({ id: 'events', title: 'events' });
   });
 });

@@ -155,6 +155,7 @@ export function toSharePointFields(r: StoredReport) {
     DineInNet: pounds(o?.dineInNet),
     Covers: o?.covers ?? null,
     ASPHNet: pounds(o?.perHeadDineIn),
+    ASPHGross: pounds(o?.perHeadGrossDineIn),
     WagePct: o?.wagePct ?? null,
     WageRAG: o?.wageRag ? o.wageRag[0]!.toUpperCase() + o.wageRag.slice(1) : null,
     NetVsTarget: pounds(o?.netVsTarget),

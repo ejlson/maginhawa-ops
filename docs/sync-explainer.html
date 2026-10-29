@@ -1,0 +1,215 @@
+<title>How Maginhawa Ops Syncs</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one dark hero card, a diagram, then Monzo-style lists (Maginhawa design language). */
+:root {
+  --bg: #ffffff; --side: #f7f7f9; --text: #1d1d1f; --sec: #6e6e73; --sep: rgba(0,0,0,.08); --fill: #f2f2f5;
+  --hero: #1d1d1f; --onhero: #f5f5f7; --herosec: rgba(245,245,247,.62); --heroline: rgba(245,245,247,.16); --heroEdge: transparent;
+  --link: #0066cc; --ok: #1f7a35; --okbg: rgba(52,199,89,.14); --warn: #b25000; --warnbg: rgba(255,149,0,.16);
+  --box: #ffffff; --boxline: rgba(0,0,0,.14); --arrow: #6e6e73;
+  --font: -apple-system, BlinkMacSystemFont, "Geist", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121214; --side: #1b1b1f; --text: #f2f2f4; --sec: #a3a3ab; --sep: rgba(255,255,255,.12); --fill: #2a2a2f;
+  --hero: #232328; --heroEdge: rgba(255,255,255,.07);
+  --link: #4aa3ff; --ok: #4cd964; --okbg: rgba(76,217,100,.16); --warn: #ffb340; --warnbg: rgba(255,179,64,.16);
+  --box: #232328; --boxline: rgba(255,255,255,.16); --arrow: #a3a3ab; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #121214; --side: #1b1b1f; --text: #f2f2f4; --sec: #a3a3ab; --sep: rgba(255,255,255,.12); --fill: #2a2a2f;
+  --hero: #232328; --heroEdge: rgba(255,255,255,.07);
+  --link: #4aa3ff; --ok: #4cd964; --okbg: rgba(76,217,100,.16); --warn: #ffb340; --warnbg: rgba(255,179,64,.16);
+  --box: #232328; --boxline: rgba(255,255,255,.16); --arrow: #a3a3ab; color-scheme: dark; }
+
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 16px; line-height: 1.5;
+  letter-spacing: -.012em; -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 40px; }
+h1 { font-size: 34px; font-weight: 700; letter-spacing: -.035em; line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-size: 20px; font-weight: 700; letter-spacing: -.025em; margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 65ch; }
+.sec { color: var(--sec); }
+.small { font-size: 13px; }
+header { display: flex; flex-direction: column; gap: 8px; }
+.eyebrow { font-size: 13px; color: var(--sec); letter-spacing: .02em; }
+
+.hero { background: var(--hero); color: var(--onhero); border-radius: 24px; padding: 24px;
+  box-shadow: 0 24px 48px -24px rgba(0,0,0,.4), inset 0 0 0 1px var(--heroEdge); display: flex; flex-direction: column; gap: 18px; }
+.hero .big { font-size: 30px; font-weight: 600; letter-spacing: -.04em; line-height: 1.15; text-wrap: balance; }
+.hero p { color: var(--herosec); }
+.meta { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--heroline); padding-top: 16px; gap: 12px; }
+.meta div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.meta b { font-size: 22px; font-weight: 600; letter-spacing: -.03em; }
+.meta span { font-size: 13px; color: var(--herosec); }
+
+section { display: flex; flex-direction: column; gap: 14px; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+
+.diagram { background: var(--side); border-radius: 20px; padding: 16px; overflow-x: auto; }
+.diagram svg { display: block; width: 100%; min-width: 680px; height: auto; }
+svg text { font-family: var(--font); fill: var(--text); }
+svg .t { font-size: 14px; font-weight: 600; }
+svg .s { font-size: 12px; fill: var(--sec); }
+svg .lab { font-size: 11.5px; fill: var(--sec); }
+svg .box { fill: var(--box); stroke: var(--boxline); stroke-width: 1; }
+svg .core { fill: var(--hero); stroke: var(--heroEdge); }
+svg .core-t { fill: var(--onhero); font-size: 14px; font-weight: 600; }
+svg .core-s { fill: var(--herosec); font-size: 12px; }
+svg .ln { stroke: var(--arrow); stroke-width: 1.5; fill: none; }
+svg .dash { stroke-dasharray: 5 4; }
+svg .head-fill { fill: var(--arrow); }
+.key { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; color: var(--sec); padding: 4px 4px 0; }
+.key i { display: inline-block; width: 26px; border-top: 1.5px solid var(--arrow); vertical-align: middle; margin-right: 6px; }
+.key i.d { border-top-style: dashed; }
+
+.list { display: flex; flex-direction: column; }
+.row { display: grid; grid-template-columns: 42px 1fr auto; gap: 14px; align-items: center; padding: 12px 0; position: relative; }
+.row + .row::before { content: ""; position: absolute; top: 0; left: 56px; right: 0; border-top: 1px solid var(--sep); }
+.ic { width: 42px; height: 42px; border-radius: 50%; background: var(--fill); display: grid; place-items: center;
+  font-size: 15px; font-weight: 600; color: var(--text); }
+.row .txt { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.row .txt b { font-weight: 600; }
+.row .txt span { color: var(--sec); font-size: 14px; }
+.pill { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { color: var(--ok); background: var(--okbg); }
+.pill.warn { color: var(--warn); background: var(--warnbg); }
+.pill.n { color: var(--sec); background: var(--fill); }
+
+code { font-family: var(--mono); font-size: 13px; background: var(--fill); padding: 1px 6px; border-radius: 6px; }
+footer { font-size: 13px; color: var(--sec); border-top: 1px solid var(--sep); padding-top: 16px; }
+
+@media (max-width: 520px) {
+  h1 { font-size: 28px; }
+  .meta { grid-template-columns: 1fr; }
+  .row { grid-template-columns: 42px 1fr; }
+  .row .pill { grid-column: 2; justify-self: start; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Maginhawa Ops · Engineering note · 29 Oct 2026</div>
+    <h1>How syncing works between devices and accounts</h1>
+    <p class="sec">How the kitchen iPad, managers' phones and head office see the same end-of-day report and checklists, and what happens when two people edit at once.</p>
+  </header>
+
+  <div class="hero">
+    <div class="big">One shared copy per site and day. Every device keeps its own copy and keeps it in step.</div>
+    <p>A device saves to itself first, sends changes in the background, and checks for other people's changes. The copy belongs to the site, so accounts only decide who can reach it and whose name goes on each change.</p>
+    <div class="meta">
+      <div><b>~10 s</b><span>check while someone is using the screen</span></div>
+      <div><b>30 s</b><span>check when the screen has sat untouched for 2 min</span></div>
+      <div><b>~1 min</b><span>for a change typed straight into SharePoint to appear</span></div>
+    </div>
+  </div>
+
+  <section>
+    <div class="head"><h2>The picture</h2><span class="sec small">Connected mode</span></div>
+    <div class="diagram" role="img" aria-label="Three devices send saves to Netlify Functions and check for changes every 10 seconds. The functions read and write SharePoint, and keep each site's latest version in Netlify Blobs so most checks never reach SharePoint.">
+      <svg viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path class="head-fill" d="M0 0 L10 5 L0 10 z"/>
+          </marker>
+        </defs>
+
+        <!-- devices -->
+        <rect class="box" x="10" y="20" width="180" height="76" rx="14"/>
+        <text class="t" x="26" y="48">Kitchen iPad</text>
+        <text class="s" x="26" y="67">Jo and Sam, by PIN</text>
+        <text class="s" x="26" y="84">Copy saved on device</text>
+
+        <rect class="box" x="10" y="132" width="180" height="76" rx="14"/>
+        <text class="t" x="26" y="160">Manager's phone</text>
+        <text class="s" x="26" y="179">Signed in as the manager</text>
+        <text class="s" x="26" y="196">Copy saved on device</text>
+
+        <rect class="box" x="10" y="244" width="180" height="76" rx="14"/>
+        <text class="t" x="26" y="272">Head office laptop</text>
+        <text class="s" x="26" y="291">Can open any site</text>
+        <text class="s" x="26" y="308">Copy saved on device</text>
+
+        <!-- device ↔ functions -->
+        <path class="ln" d="M190 52 C 240 52, 240 150, 288 150" marker-end="url(#ah)"/>
+        <path class="ln" d="M190 164 L288 164" marker-end="url(#ah)"/>
+        <path class="ln" d="M190 276 C 240 276, 240 178, 288 178" marker-end="url(#ah)"/>
+        <path class="ln dash" d="M288 194 C 250 194, 250 196, 196 186" marker-end="url(#ah)"/>
+        <text class="lab" x="206" y="120">Save, with the</text>
+        <text class="lab" x="206" y="134">version it started from</text>
+        <text class="lab" x="200" y="222">Anything new?</text>
+
+        <!-- functions -->
+        <rect class="core" x="290" y="112" width="190" height="116" rx="18"/>
+        <text class="core-t" x="308" y="142">Netlify Functions</text>
+        <text class="core-s" x="308" y="164">Checks who you are</text>
+        <text class="core-s" x="308" y="181">and which sites you can open</text>
+        <text class="core-s" x="308" y="198">Refuses out-of-date saves</text>
+        <text class="core-s" x="308" y="215">Stamps changes with your name</text>
+
+        <!-- functions → sharepoint -->
+        <path class="ln" d="M480 140 C 515 140, 515 72, 548 72" marker-end="url(#ah)"/>
+        <text class="lab" x="492" y="98">Read and write</text>
+        <rect class="box" x="550" y="34" width="160" height="80" rx="14"/>
+        <text class="t" x="566" y="62">SharePoint</text>
+        <text class="s" x="566" y="81">The real record</text>
+        <text class="s" x="566" y="98">Reports, checklists</text>
+
+        <!-- functions → blobs -->
+        <path class="ln dash" d="M480 200 C 515 200, 515 268, 548 268" marker-end="url(#ah)"/>
+        <text class="lab" x="490" y="252">Version check</text>
+        <rect class="box" x="550" y="226" width="160" height="84" rx="14"/>
+        <text class="t" x="566" y="254">Netlify Blobs</text>
+        <text class="s" x="566" y="273">Latest version per site</text>
+        <text class="s" x="566" y="290">Trusted for 60 s</text>
+      </svg>
+    </div>
+    <div class="key"><span><i></i>Sends a change</span><span><i class="d"></i>Checks for changes</span></div>
+  </section>
+
+  <section>
+    <div class="head"><h2>How a change travels</h2><span class="sec small">In order</span></div>
+    <div class="list">
+      <div class="row"><div class="ic">1</div><div class="txt"><b>Saved on the device</b><span>Every edit is kept on the device straight away, so a reload or lost signal loses nothing.</span></div></div>
+      <div class="row"><div class="ic">2</div><div class="txt"><b>Sent in the background</b><span>The report goes up with the version it started from. Checklist ticks are sent in groups, about once a second.</span></div></div>
+      <div class="row"><div class="ic">3</div><div class="txt"><b>Other devices check in</b><span>About every 10 s while in use, every 30 s when idle, never while hidden, and at once when the app comes back into view or signal returns.</span></div></div>
+      <div class="row"><div class="ic">4</div><div class="txt"><b>Cheap answers when nothing changed</b><span>The server answers "no change" from Netlify Blobs without asking SharePoint, which limits how often we can call it.</span></div></div>
+      <div class="row"><div class="ic">5</div><div class="txt"><b>Edits made outside the app still arrive</b><span>A Blobs entry is only trusted for 60 s, so a change typed straight into the SharePoint list shows up within about a minute.</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><h2>When two people edit at once</h2><span class="sec small">7 cases</span></div>
+    <div class="list">
+      <div class="row"><div class="ic">R</div><div class="txt"><b>Report, different sections</b><span>Say, Dinner on the iPad and Wages on a phone. Both are kept; the eight sections merge one by one.</span></div><span class="pill ok">Automatic</span></div>
+      <div class="row"><div class="ic">R</div><div class="txt"><b>Report, same section, different figures</b><span>Both versions are shown and the person picks one. Each section shows "Jo changed Dinner at 21:14".</span></div><span class="pill warn">Person picks</span></div>
+      <div class="row"><div class="ic">R</div><div class="txt"><b>Report, Submit</b><span>Only one Submit goes through. Anyone else sees "Already sent by Jo at 23:48".</span></div><span class="pill n">First one wins</span></div>
+      <div class="row"><div class="ic">C</div><div class="txt"><b>Checklist, different items</b><span>Each answer is stored on its own, so these never clash.</span></div><span class="pill ok">Automatic</span></div>
+      <div class="row"><div class="ic">C</div><div class="txt"><b>Checklist, same item</b><span>The latest answer wins, and the screen shows who gave it.</span></div><span class="pill n">Latest wins</span></div>
+      <div class="row"><div class="ic">C</div><div class="txt"><b>Checklist, Finish</b><span>The second person to tap Finish sees who finished it.</span></div><span class="pill n">First one wins</span></div>
+      <div class="row"><div class="ic">–</div><div class="txt"><b>No signal</b><span>Changes wait on the device as "Saved on this device" and send when signal returns.</span></div><span class="pill warn">Waits</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><h2>How accounts fit in</h2><span class="sec small">Who can reach what</span></div>
+    <div class="list">
+      <div class="row"><div class="ic">JS</div><div class="txt"><b>Same site, different people</b><span>Everyone works on the same report and checklists for that site and day. The server takes your name from your sign-in, never from what the device sends.</span></div></div>
+      <div class="row"><div class="ic">iP</div><div class="txt"><b>Shared kitchen iPad</b><span>People sign in with PINs and switch from the name menu. The iPad's copy belongs to the site and day, so switching person doesn't split the report.</span></div></div>
+      <div class="row"><div class="ic">2+</div><div class="txt"><b>One person, more than one site</b><span>Each site keeps its own report and checklists. Switching site opens that site's copy.</span></div></div>
+      <div class="row"><div class="ic">HO</div><div class="txt"><b>Head office</b><span>Can open any site's screens. Changes are recorded as "Name (head office)".</span></div></div>
+      <div class="row"><div class="ic">!</div><div class="txt"><b>Permissions</b><span>The server refuses any site you aren't allowed into. Only supervisors and above can correct a finished checklist.</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><h2>What works today</h2><span class="sec small">As of 29 Oct 2026</span></div>
+    <div class="list">
+      <div class="row"><div class="ic">D</div><div class="txt"><b>Demo mode</b><span>The same rules run inside the browser, so two tabs act like two devices. Nothing reaches SharePoint, and separate phones can't see each other yet.</span></div><span class="pill ok">Working now</span></div>
+      <div class="row"><div class="ic">C</div><div class="txt"><b>Connected mode</b><span>The server side and its tests are built. It switches on once Entra ID sign-in is set up and SharePoint is connected.</span></div><span class="pill warn">Not connected</span></div>
+      <div class="row"><div class="ic">P</div><div class="txt"><b>Instant updates</b><span>The 10-second check can be swapped for a push service such as Azure Web PubSub without changing any screens.</span></div><span class="pill n">Later</span></div>
+    </div>
+  </section>
+
+  <footer>Code: <code>packages/core/src/sync.ts</code>, <code>live.ts</code>, <code>eod-client.ts</code>, <code>checklist-client.ts</code>; <code>apps/functions/src/sync-handlers.ts</code>, <code>version-index.ts</code>. Names and times are examples.</footer>
+</div>
