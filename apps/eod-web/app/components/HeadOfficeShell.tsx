@@ -11,6 +11,7 @@ import { WhoMenu } from './home/WhoMenu';
 
 const SEARCH = 'M8.5 3.5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12.2 12.2L16.5 16.5';
 const SITES_ICON = 'M3 17V8l7-4 7 4v9M8 17v-5h4v5';
+const BUILDER_ICON = 'M3 4h5v5H3zM12 11h5v5h-5zM8 6.5h2.5a1.5 1.5 0 0 1 1.5 1.5v3';
 
 const LINKS = [
   { to: '/head-office', label: 'Today', icon: ICONS.home },
@@ -42,7 +43,7 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
 
   const isOn = (to: string) => {
     const [path, h] = to.split('#');
-    if (path === '/head-office' && h === 'sites' && /^\/head-office\/(?!reports$|days$)[^/]+(\/|$)/.test(pathname)) return true;
+    if (path === '/head-office' && h === 'sites' && /^\/head-office\/(?!reports$|days$|report-builder$)[^/]+(\/|$)/.test(pathname)) return true;
     if (path !== pathname) return false;
     if (path === '/head-office/reports') return !saved;
     return h ? hash === `#${h}` : !hash;
@@ -61,6 +62,9 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
           ))}
           <Link to="/people" className={`si${pathname.startsWith('/people') ? ' on' : ''}`} aria-current={pathname.startsWith('/people') ? 'page' : undefined}>
             <Icon d={ICONS.people} size={20} />People
+          </Link>
+          <Link to="/head-office/report-builder" className="si">
+            <Icon d={BUILDER_ICON} size={20} />Report builder
           </Link>
         </div>
         <div className="ho-saved">

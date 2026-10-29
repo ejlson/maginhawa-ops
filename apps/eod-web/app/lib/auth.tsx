@@ -3,7 +3,7 @@
  * Connected mode will use Microsoft sign-in (MSAL, Entra ID) behind the same useUser() hook.
  */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
-import { findPerson, SITES, sitesOf } from '@maginhawa/core';
+import { accessOf, findPerson, isOpenSite, OPEN_SITE_CODES } from '@maginhawa/core';
 import { storage } from './storage';
 import { people, usePeople } from './people';
 
@@ -43,11 +43,18 @@ export const can = {
 /** Where each role lands after signing in. */
 export const homeFor = (r: Role) => (r === 'headoffice' ? '/head-office' : '/');
 
-/** Users saved before the roles changed were 'admin' or 'finance': both are head office now. */
+/**
+ * Users saved before the roles changed were 'admin' or 'finance': both are head office now.
+ * Someone saved in a site that has since closed moves to the first site they still have, or signs in again.
+ */
 function normalise(u: User | null): User | null {
   if (!u) return u;
   const role = (u.role as string) === 'admin' || (u.role as string) === 'finance' ? 'headoffice' : u.role;
-  return role in ROLE_LABELS ? { ...u, role } : null;
+  if (!(role in ROLE_LABELS)) return null;
+  if (isOpenSite(u.siteCode)) return { ...u, role };
+  const me = people.all().find((p) => findPerson([p], u.siteCode, u.name));
+  const next = role === 'headoffice' ? OPEN_SITE_CODES[0] : me ? accessOf(me)[0] : undefined;
+  return next ? { ...u, role, siteCode: next, inSite: false } : null;
 }
 
 export interface User {
@@ -123,17 +130,25 @@ export function useAuth(): AuthValue {
 }
 
 /**
- * The sites someone can switch between: every site for head office, otherwise the sites head office
- * has given them on the People list (main site first). Always includes the site they're in now.
+ * The open sites someone can switch between: every one for head office, otherwise the sites head
+ * office has given them on the People list (main site first, or every site for "all sites").
+ * Always includes the site they're in now.
  */
 export function useMySites(): string[] {
   const { user } = useAuth();
   const here = usePeople(user?.siteCode ?? '');
   if (!user) return [];
-  if (user.role === 'headoffice') return SITES.map((s) => s.code);
+  if (user.role === 'headoffice') return [...OPEN_SITE_CODES];
   const me = findPerson(here, user.siteCode, user.name);
-  const mine = me ? sitesOf(me) : [];
+  const mine = me ? accessOf(me) : [];
   return mine.includes(user.siteCode) ? mine : [user.siteCode, ...mine];
+}
+
+/** Managers with two or more sites get the "My sites" overview of just their sites. */
+export function useHasMySites(): boolean {
+  const { user } = useAuth();
+  const mine = useMySites();
+  return user?.role === 'manager' && mine.length > 1;
 }
 
 export function initialsOf(name: string): string {

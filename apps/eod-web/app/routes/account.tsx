@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { SITES } from '@maginhawa/core';
+import { siteName } from '@maginhawa/core';
 import { can, homeFor, homeOf, ROLE_LABELS, useAuth } from '../lib/auth';
 import { Foot, Icon, ICONS, Nav, RowLink, Toggle } from '../components/ui';
 import { tour, useTourState } from '../lib/tour';
@@ -14,7 +14,7 @@ export default function Account() {
   const { user, signOut } = useAuth();
   const t = useTourState(user);
   if (!user) return null;
-  const site = SITES.find((s) => s.code === user.siteCode)?.name ?? user.siteCode;
+  const site = siteName(user.siteCode);
   const back = homeFor(user.role);
 
   return (

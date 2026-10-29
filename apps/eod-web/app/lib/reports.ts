@@ -8,7 +8,7 @@ import { addDays, type ReportRow } from '@maginhawa/core';
 import { useTradingHistory } from './history';
 
 const MANAGERS: Record<string, string[]> = {
-  BIN: ['Tom', 'Lea'], GUA: ['Marco', 'Jo'], BEL: ['Sam', 'Nina'], RAM: ['Chris', 'Ivy'], HOO: ['Dan', 'Mei'],
+  BIN: ['Tom', 'Lea'], GUA: ['Marco', 'Jo'], BEL: ['Sam', 'Nina'], HOO: ['Dan', 'Mei'],
   BUN: ['Ana', 'Raf'], CAF: ['Bea'], MKT: ['Priya', 'Joel'], MCT: ['Kit', 'Lou'],
 };
 

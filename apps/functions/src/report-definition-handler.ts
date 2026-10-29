@@ -41,7 +41,8 @@ function isDefinition(x: unknown): x is ReportDefinition {
   const d = x as ReportDefinition;
   return !!d && typeof d === 'object' && Array.isArray(d.figures) && Array.isArray(d.actions) &&
     d.figures.every((f) => f && typeof f.id === 'string' && typeof f.name === 'string' && ['input', 'setting', 'calc', 'check'].includes(f.kind) && ['money', 'percent', 'number', 'yesno'].includes(f.type)) &&
-    d.actions.every((a) => a && typeof a.id === 'string' && typeof a.title === 'string' && Array.isArray(a.shows));
+    d.actions.every((a) => a && typeof a.id === 'string' && typeof a.title === 'string' && Array.isArray(a.shows)) &&
+    (d.groups === undefined || (Array.isArray(d.groups) && d.groups.every((g) => g && typeof g.id === 'string' && typeof g.title === 'string')));
 }
 function isTestDays(x: unknown): x is TestDay[] {
   return Array.isArray(x) && x.every((t) => t && typeof t.name === 'string' && typeof t.values === 'object' && typeof t.expect === 'object');

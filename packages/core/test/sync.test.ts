@@ -279,6 +279,27 @@ describe('offline', () => {
     expect(stored?.draft.sessions.lunch.walkins).toBe(16);
     expect(reopened.getState().status).toBe('saved');
   });
+
+  it('edits made offline while someone else submitted are named, not dropped quietly', async () => {
+    const b = backend();
+    await b.store.saveDraft(verifiedDraft(), { by: 'Jo', now: b.clock.now });
+    const phone = b.device('Phone');
+    const jo = b.device('Jo');
+    await phone.refresh();
+    await jo.refresh();
+
+    b.setOnline(false);
+    await phone.edit((d) => { d.tips.cash = 6000; });
+    expect((await jo.submit()).ok).toBe(true);
+    b.setOnline(true);
+    await phone.refresh();
+
+    const s = phone.getState();
+    expect(s.status).toBe('locked');
+    expect(s.draft.tips.cash).not.toBe(6000);
+    expect(s.alreadySent).toBe(true);
+    expect(s.notice).toMatch(/^Already sent by Jo at \d\d:\d\d\. Your changes to Tips & service charge were not included\. Ask finance to reopen it\.$/);
+  });
 });
 
 describe('presence', () => {
@@ -333,6 +354,7 @@ describe('shared checklists', () => {
   it('a second Finish is a no-op that says who finished', async () => {
     const { jo, sam } = twoOnOneChecklist();
     await jo.answer(run, 'fridge', 4);
+    await sam.refresh(); // Both have seen every answer.
     const [a, b] = await Promise.all([jo.finish(run), sam.finish(run)]);
     expect([a.already, b.already].sort()).toEqual([false, true]);
     const loser = a.already ? a : b;
@@ -342,12 +364,50 @@ describe('shared checklists', () => {
     expect(jo.getState().runs[run.key]?.completedBy).toBe(sam.getState().runs[run.key]?.completedBy);
   });
 
-  it('answers sent after someone finished are refused', async () => {
+  it('answers sent after someone finished are refused, and the person is told', async () => {
     const { jo, sam } = twoOnOneChecklist();
     await jo.finish(run);
     await sam.answer(run, 'fridge', 9);
     await sam.refresh();
     expect(sam.getState().runs[run.key]?.answers.fridge).toBeUndefined();
+    expect(sam.getState().refused).toEqual([
+      { runKey: run.key, checkpointId: 'fridge', message: expect.stringMatching(/^Not saved: submitted by Jo at \d\d:\d\d before your answer arrived/) },
+    ]);
+    sam.dismissRefused(run.key);
+    expect(sam.getState().refused).toEqual([]);
+  });
+
+  it("Finish stops if someone else answered since this person last looked", async () => {
+    const { jo, sam } = twoOnOneChecklist();
+    await jo.answer(run, 'fridge', 4);
+    await sam.refresh();
+    await jo.answer(run, 'fridge', 9); // A failing temperature Sam hasn't seen yet.
+    const out = await sam.finish(run);
+    expect(out).toMatchObject({ stale: true, already: false });
+    expect(sam.getState().runs[run.key]?.completedAt).toBeNull();
+    expect(sam.getState().runs[run.key]?.answers.fridge).toBe(9); // Now on Sam's screen.
+    expect((await sam.finish(run)).stale).toBe(false); // Seen it: the second press locks.
+  });
+
+  it('the server refuses a Finish that missed an answer, even if the device did not catch up first', async () => {
+    const backend = new MemoryChecklistStore();
+    const [first] = await backend.apply('BUN', [{ kind: 'answer', run, checkpointId: 'fridge', value: 4, by: 'Sam', at: '2026-10-05T20:00:00Z' }]);
+    const seen = first!.ok ? first!.answer!.seq : 0;
+    await backend.apply('BUN', [{ kind: 'answer', run, checkpointId: 'freezer', value: -5, by: 'Jo', at: '2026-10-05T20:01:00Z' }]);
+    const [stale] = await backend.apply('BUN', [{ kind: 'finish', run, by: 'Sam', at: '2026-10-05T20:02:00Z', seen }]);
+    expect(stale).toMatchObject({ ok: false, reason: 'stale', answers: [{ checkpointId: 'freezer', answeredBy: 'Jo' }] });
+    // Sam's own answers in the same batch as the Finish count as seen.
+    const out = await backend.apply('BUN', [
+      { kind: 'answer', run, checkpointId: 'doors', value: true, by: 'Sam', at: '2026-10-05T20:03:00Z' },
+      { kind: 'finish', run, by: 'Sam', at: '2026-10-05T20:03:00Z', seen: seen + 2 },
+    ]);
+    expect(out[1]).toMatchObject({ ok: true, run: { completedBy: 'Sam' } });
+  });
+
+  it('a device clock running fast cannot claim the future', async () => {
+    const backend = new MemoryChecklistStore(() => new Date('2026-10-05T20:00:00Z'));
+    const [fast] = await backend.apply('BUN', [{ kind: 'answer', run, checkpointId: 'fridge', value: 4, by: 'Jo', at: '2026-10-05T23:59:00Z' }]);
+    expect(fast).toMatchObject({ ok: true, answer: { answeredAt: '2026-10-05T20:00:00.000Z' } });
   });
 
   it('polling only fetches what changed', async () => {

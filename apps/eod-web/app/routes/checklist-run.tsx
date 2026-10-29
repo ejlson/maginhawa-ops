@@ -14,7 +14,7 @@ export default function ChecklistRun() {
   const { key: raw = '' } = useParams();
   const key = decodeURIComponent(raw);
   const { user } = useAuth();
-  const { templateFor, runFor, answer, businessDate, tasks, sync, setWhere } = useChecklists();
+  const { templateFor, runFor, answer, businessDate, tasks, sync, setWhere, dismissRefused } = useChecklists();
   const two = useTwoColumns();
   const touch = useTouch();
   // The big temperature entry, open for one check at a time.
@@ -32,6 +32,7 @@ export default function ChecklistRun() {
 
   const sections = [...new Set(template.checkpoints.map((c) => c.section ?? ''))];
   const here = sync.others.filter((p) => p.where === template.title);
+  const refused = sync.refused.filter((r) => r.runKey === key);
   // Answers save as you go. Lists are locked together by the Submit under the checklists.
   const after = nextAfter(tasks, key);
   const bigCheck = big ? template.checkpoints.find((c) => c.id === big) : undefined;
@@ -53,6 +54,15 @@ export default function ChecklistRun() {
           </div>
         </div>
         {here.length > 0 && <PresenceLine others={here} />}
+        {refused.length > 0 && (
+          <div className="sync-card" role="alert">
+            <span className="av warn"><Icon d={ICONS.people} size={16} /></span>
+            <span className="tx">{refused.map((r) => (
+              <span key={r.checkpointId ?? 'list'}>{r.checkpointId && <b>{template.checkpoints.find((c) => c.id === r.checkpointId)?.title ?? 'An item'}. </b>}{r.message}</span>
+            ))}</span>
+            <button type="button" className="sync-x" aria-label="Dismiss" onClick={() => dismissRefused(key)}><Icon d={ICONS.x} size={14} /></button>
+          </div>
+        )}
         {done && <div className="banner"><Icon d={ICONS.lock} size={16} /><span>Submitted at {new Date(run!.completedAt!).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} by {run!.completedBy}. Locked: {canCorrect ? 'a correction keeps the old answer and needs a reason.' : "answers can't be changed."}</span></div>}
 
         {sections.map((sec) => (

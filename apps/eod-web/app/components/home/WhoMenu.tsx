@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { hasLeft, SITES, tradingDate } from '@maginhawa/core';
+import { hasLeft, siteName, tradingDate } from '@maginhawa/core';
 import { can, homeFor, recentPeople, ROLE_LABELS, useAuth, type Role } from '../../lib/auth';
 import { isConnected, isSharedDev } from '../../lib/config';
 import { pins } from '../../lib/pins';
@@ -35,7 +35,7 @@ export function WhoMenu() {
   if (!user) return null;
   const shared = user.role === 'staff';
   const others = shared ? recentPeople(user.siteCode).filter((p) => p.name !== user.name && p.role === 'staff' && !hasLeft(people.at(user.siteCode), user.siteCode, p.name)).slice(0, 5) : [];
-  const site = SITES.find((s) => s.code === user.siteCode)?.name ?? user.siteCode;
+  const site = siteName(user.siteCode);
   const go = (to: string) => { setOpen(false); navigate(to); };
   const asRole = (r: Role) => { setOpen(false); if (r !== user.role) { signIn({ ...user, role: r, inSite: false }); navigate(homeFor(r)); } };
   // Demo mode: start today's checklists again, to try them from scratch.

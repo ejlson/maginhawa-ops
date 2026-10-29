@@ -1,4 +1,21 @@
 /* The report builder, scoped under .rb so it never clashes with the app. Generated from design/report-builder/src/page.html (the approved prototype); additions for the app are at the end. */
+/* The app's own stylesheet uses some of the same class names (.bar, .panel, .li, .btn…). Undo what it adds inside the builder.
+   These come first so the builder's own rules below, at the same weight, win. */
+.rb .bar{flex-direction:row;font-size:inherit;font-weight:inherit;color:inherit}
+.rb .panel{padding:0;gap:0;border-radius:0}
+.rb .acts{flex-direction:row;margin-top:0}
+.rb .li{width:auto;cursor:inherit;text-align:inherit;min-height:0}
+.rb .li+.li::before{height:0;background:none}
+.rb .in{height:auto;text-align:left;width:100%}
+.rb .btn{width:auto;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.rb .pill{height:auto}
+.rb .chip{height:auto;font-size:inherit;cursor:inherit;border:0}
+.rb button.chip{cursor:pointer}
+.rb .chev{opacity:1}
+.rb .banner{border-radius:0;align-items:center;color:var(--text);line-height:inherit}
+.rb .hero-foot{border-top:0;padding-top:0}
+.rb .addrow{display:block;width:100%}
+.rb .lyr.sub{flex-direction:row}
 .rb{
   --bg:#FFFFFF; --side:#F7F7F9; --hero:#1D1D1F; --onhero:#F5F5F7; --herosec:rgba(245,245,247,.6); --heroline:rgba(245,245,247,.14);
   --fill:#F2F2F5; --card:#FFFFFF; --text:#1D1D1F; --sec:#6E6E73; --sep:rgba(0,0,0,.08); --sep2:rgba(0,0,0,.16);
@@ -558,3 +575,33 @@ html.rb-full,html.rb-full body{overflow:hidden}
   .rb .k dt{border-bottom:0;padding-bottom:0}
 }
 @media (prefers-reduced-motion: reduce){.rb *{transition:none!important;animation:none!important}}
+/* ---------- In the app: saving, status and approval ---------- */
+.rb .bar-mid{display:flex;align-items:center;gap:10px;margin:0 auto;min-width:0}
+.rb .savestate{font-size:12.5px;color:var(--sec);white-space:nowrap}
+.rb .savestate.bad{color:var(--bad);font-weight:600}
+.rb .btn.ghost{background:var(--fill);color:var(--text)}
+.rb .banner{display:flex;align-items:center;gap:16px;padding:10px 16px;border-bottom:1px solid var(--sep);background:var(--linkbg);font-size:14px}
+.rb .banner .t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rb .banner small{color:var(--sec);font-size:13px}
+.rb .banner ul{margin:4px 0 0;padding-left:18px;font-size:13px;color:var(--sec)}
+.rb .banner.bad{background:var(--badbg)} .rb .banner.bad b{color:var(--bad)}
+.rb .banner.warn{background:var(--warnbg)} .rb .banner.warn b{color:var(--warn)}
+.rb .hero.side-hero{display:flex;flex-direction:column;gap:14px;padding:20px;border-radius:22px}
+.rb .hero.side-hero .fig{font-size:40px}
+.rb .hero.side-hero .meta{margin-top:4px}
+.rb .hero.side-hero .meta>div{min-width:0}
+.rb .hero-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.rb .hero-rows .row{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:7px 0;border-top:1px solid var(--heroline)}
+.rb .hero-rows .row span:first-child{color:var(--herosec)}
+.rb .danger-lnk{color:var(--bad);background:none;height:auto;padding:0;font-weight:500}
+.rb .clist{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:6px}
+.rb .clist small{display:block;color:var(--sec);font-size:12.5px}
+.rb textarea.in.plain{font-family:var(--font);font-size:14.5px;min-height:84px}
+.rb .lockednote{background:var(--warnbg);color:var(--warn);border-radius:10px;padding:8px 10px;margin:0 34px 4px 0}
+.rb .modal .panel-sec{gap:12px}
+.rb .lnk[disabled]{color:var(--sec);cursor:default}
+.rb-loading{position:fixed;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;background:var(--bg);text-align:center;padding:24px}
+.rb .fb-mark{text-decoration:none}
+.rb .fb-mark:hover{text-decoration:none;opacity:.85}
+.rb .bar-acts .danger{height:36px}
+@media (max-width:760px){.rb .bar-mid{order:2;margin:0}}

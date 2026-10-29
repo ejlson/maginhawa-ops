@@ -18,9 +18,8 @@ interface Example {
 
 const EXAMPLES: Example[] = [
   { site: 'BIN', status: 'approved', scale: 1.15, wages: 820 },
-  { site: 'GUA', status: 'submitted', scale: 0.9, wages: 690 },
+  { site: 'GUA', status: 'submitted', scale: 0.75, wages: 760 },
   { site: 'BEL', status: 'submitted', scale: 1.3, cashOff: -20, wages: 1010 },
-  { site: 'RAM', status: 'submitted', scale: 0.75, wages: 760 },
   { site: 'HOO', status: 'draft', scale: 1, wages: 800 },
   { site: 'CAF', status: 'submitted', scale: 0.55, wages: 360 },
   { site: 'MKT', status: 'approved', scale: 1.05, wages: 780 },

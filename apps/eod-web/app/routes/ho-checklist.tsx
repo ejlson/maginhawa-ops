@@ -1,5 +1,5 @@
 import { Navigate, useParams } from 'react-router';
-import { clockTime, evaluate, SITES, summariseRun } from '@maginhawa/core';
+import { clockTime, evaluate, findSite, summariseRun } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
 import { useSiteDay } from '../lib/site-timeline';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
@@ -11,7 +11,7 @@ import { taskStatusPill } from '../lib/day-status';
 export default function HeadOfficeChecklist() {
   const { site: code = '', date = '', key: raw = '' } = useParams();
   const key = decodeURIComponent(raw);
-  const site = SITES.find((s) => s.code === code.toUpperCase());
+  const site = findSite(code);
   const day = useSiteDay(site?.code ?? '', date);
   const task = day.tasks.find((t) => t.key === key);
   if (!site || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return <Navigate to="/head-office" replace />;

@@ -53,7 +53,9 @@ const headers = (): Record<string, string> => ({ 'Content-Type': 'application/js
 async function call(path: string, init: RequestInit = {}): Promise<Response> {
   const res = await fetch(`${config.apiBase}/${path}`, { ...init, headers: { ...headers(), ...(init.headers as Record<string, string> | undefined) } });
   // 503 = server not connected yet; treat like no signal so the work stays on the device.
-  if (res.status >= 500) throw new Error(`Server ${res.status}`);
+  if (res.status >= 500) { 
+    throw new Error(`Server ${res.status}`); 
+  }
   return res;
 }
 

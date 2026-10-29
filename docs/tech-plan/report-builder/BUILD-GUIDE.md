@@ -1,6 +1,6 @@
 # Report builder: build guide
 
-How to take the EOD report builder from the tested prototype to the live app, step by step. Steps 1 to 4 are **built and tested** in this repo. Steps 5 to 8 are **still to do**: the code below is a starting point that has not been run.
+How to take the EOD report builder from the tested prototype to the live app, step by step. Steps 1 to 4, 6 and 7 are **built and tested** in this repo. Steps 5 and 8 are **still to do**: the code for step 5 is a starting point that has not been run.
 
 All figures are examples (the verified test day in HANDOFF.md §5).
 
@@ -14,7 +14,8 @@ All figures are examples (the verified test day in HANDOFF.md §5).
 | Server endpoint (`/report-definition`) | `apps/functions/src/report-definition-handler.ts` | Built, 9 tests; not connected to SharePoint |
 | Prototype builder (map, pop-up editor, layers, history, comments, colours) | `design/report-builder/src/` → `index.html` | Built, 81 interaction tests |
 | Live EOD uses the approved version (app, server, email) | `packages/core/src/report-live.ts` and step 6 | Built, 30+ tests |
-| SharePoint store, builder route in `apps/eod-web` | (steps 5 and 7) | **Not started** |
+| The builder in the app, saving drafts, approval, roll back | `apps/eod-web/app/routes/report-builder.tsx` and step 7 | Built, 40 interaction tests |
+| SharePoint store | (step 5) | **Not started** |
 
 ## Step 0: set up
 
@@ -30,7 +31,7 @@ Node 20 or newer. Everything below runs from the repo root.
 npm run test:all
 ```
 
-This runs `packages/core` (326), `apps/eod-web` (134), `apps/functions` (32) and the prototype (81). All should pass before you change anything.
+This runs `packages/core` (360), `apps/eod-web` (184), `apps/functions` (52) and the prototype (154). All should pass before you change anything.
 
 ## Step 2: understand the engine
 
@@ -150,20 +151,40 @@ Tests: `packages/core/test/report-live.test.ts` (every field matches `computeDay
 
 **Still needed when SharePoint is connected:** fill the `definitions` connection point in `netlify/functions/submit-eod.ts`, store `extra` as a JSON column on the EOD reports list, and add a `DefinitionSettings` JSON column to the Sites list for settings finance add (e.g. a card fee rate).
 
-## Step 7 (to do): the builder in `apps/eod-web`
+## Step 7 (done): the builder in `apps/eod-web`
 
-1. Install the canvas library: `npm install @xyflow/react -w apps/eod-web`
-2. Add the route in `apps/eod-web/app/routes.ts`, inside the signed-in layout:
-   ```ts
-   route('head-office/report-builder', 'routes/report-builder.tsx'),
-   ```
-3. Port the prototype screen by screen. Keep the same pieces:
-   - `useReducer` holding the definition, with every change going through the engine (as `edit()` does in `design/report-builder/src/app.js`), each step kept for undo.
-   - React Flow for the map: one custom node per card type, with handles for the connector dots, and `onConnect` → `connect()`.
-   - The pop-up editor as a `<dialog>`; the layers panel and review panel as they are in the prototype.
-4. Port the prototype's tests to `apps/eod-web/test/report-builder.test.tsx` using the existing `harness.tsx`.
-5. Show the builder only to head office (finance) in `HeadOfficeShell.tsx`.
-6. Make the EOD form draw any extra inputs from the live definition, so new inputs reach managers' phones once approved.
+Built and tested. Head office opens it from **Report builder** in the sidebar (`/head-office/report-builder`); other roles are sent home. It is the approved prototype in React: full screen, layers panel with search, the map with folding section cards and calculation groups, lines drawn from the formulas, drag a dot to connect, the pop-up editor, list and pipeline views, the review panel, and undo for any single step.
+
+| Piece | File |
+|---|---|
+| The page (loads the record, starts again after send, approve, discard or reload) | `apps/eod-web/app/routes/report-builder.tsx` |
+| Workspace: state, every edit through the engine, keys, top bar, banners | `app/components/report-builder/Workspace.tsx` |
+| Map (ported from the prototype's own map, not React Flow, to keep the approved look) | `app/components/report-builder/MapView.tsx` |
+| Pop-up editor, review panel, layers, list, pipeline, approval dialogs | `app/components/report-builder/*.tsx` |
+| Sections, groups, tests, changes and the pipeline run, worked out from the definition | `app/lib/report-builder/model.ts` |
+| Undo for each step | `app/lib/report-builder/history.ts` |
+| Autosave and actions | `app/lib/report-builder/save.ts`, `app/lib/report-builder/backend.ts` |
+| Styles, scoped under `.rb` (generated from the prototype's `page.html`) | `app/report-builder.css` |
+| Section titles kept in the definition (`groups`, `addGroup`, `renameGroup`, `deleteGroup`) | `packages/core/src/report-definition.ts` |
+
+**Saving.** The draft saves itself 0.3 s (demo) or 1.2 s (connected) after the last change, with `PUT /report-definition` and `If-Match`. Leaving the page saves what's waiting. Then:
+
+| Button | Who | Does |
+|---|---|---|
+| Send for approval | Anyone in head office, when tests pass and something changed | Asks for a summary (prefilled from the changes), then `submit` |
+| Approve | A different person from the one who sent it | `approve`; live from the next trading day |
+| Turn down | A different person | Asks why, then `reject`; the drafter sees the reason |
+| Withdraw | The person who sent it | Back to their draft |
+| Discard the saved draft | Anyone, from the review panel | `discard` |
+| Roll back | Anyone, from Versions in the review panel | Asks why, then `rollback` |
+
+Status in the top bar: **Draft**, **Waiting for approval**, **Starts tomorrow**, **Live**. While a change waits, nothing can be edited. If someone else saved first (409), a banner says who, lists their changes, and **Reload their version** takes them.
+
+**Demo mode** (`isConnected()` false) keeps the `DefinitionRecord` on the device under `mgh.definitions`, the key the managers' EOD already reads, and runs the same core rules (`saveDefinitionDraft`, `submitDefinition`, `approveDefinition`…). A fingerprint of the record stands in for the ETag, so two tabs conflict just as two people would. An approved change reaches the managers' EOD on that device from the next trading day. Card positions and which panels are open stay on the device too (`mgh.builder.layout`); they aren't part of the draft.
+
+Tests: `apps/eod-web/test/report-builder.test.tsx` (the prototype's key interactions; autosave and reopen; discard; a conflict; send, withdraw, turn down, approve and roll back; and the whole journey from an edit to a manager's review screen on the next trading day).
+
+**Not ported yet** (in the prototype, but they save nothing or need other work first): the *What managers fill in* and *After submit* tabs, the assistant (needs the AI proxy), comments (need storing in SharePoint), the colour picker, the mini-map, drag-to-select and two-finger zoom. History of steps is for the current visit; the draft itself is saved. The builder link is in the desktop and iPad sidebar only; the phone tab bar has no room.
 
 ## Step 8 (to do): before going live
 

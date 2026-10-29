@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { PACK_LABELS, PACK_NOTES, PACK_PRESETS, PACK_SECTIONS, packRange, SITES, validRange, type PackPreset, type PackSection } from '@maginhawa/core';
+import { PACK_LABELS, PACK_NOTES, PACK_PRESETS, PACK_SECTIONS, packRange, siteName as nameOfSite, SITES, validRange, type PackPreset, type PackSection } from '@maginhawa/core';
 import { can, useAuth } from '../lib/auth';
 import { useChecklists } from '../lib/checklists';
 import { shortDate } from '../lib/food-safety';
@@ -21,7 +21,7 @@ export default function FsRecords() {
   const [sections, setSections] = useState<PackSection[]>([...PACK_SECTIONS]);
   const range = preset === 'custom' ? custom : packRange(preset, today);
   const problem = validRange(range, today) ?? (sections.length ? null : 'Pick at least one kind of record.');
-  const siteName = SITES.find((s) => s.code === site)?.name ?? site;
+  const siteName = nameOfSite(site);
 
   const open = () => {
     const q = new URLSearchParams({ site, from: range.from, to: range.to, s: sections.join(',') });

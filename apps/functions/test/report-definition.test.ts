@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EOD_DEFINITION, VERIFIED_TEST_DAY, addFigure, seedDefinitionRecord, updateFigure, type ReportDefinition } from '@maginhawa/core';
+import { EOD_DEFINITION, VERIFIED_TEST_DAY, addFigure, addGroup, seedDefinitionRecord, updateFigure, type ReportDefinition } from '@maginhawa/core';
 import { createDefinitionHandler, MemoryDefinitionStore, type DefinitionStore } from '../src/report-definition-handler';
 import netlifyFunction from '../netlify/functions/report-definition';
 
@@ -37,6 +37,16 @@ const withFees = (): ReportDefinition =>
     { id: 'cardFees', name: 'Card fees', kind: 'calc', type: 'money', formula: '[Card takings] × 1.75%' });
 
 describe('report-definition', () => {
+  it('keeps the sections finance name, and refuses ones it can’t read', async () => {
+    const s = setup();
+    const def = addGroup(withFees(), { id: 'events', title: 'Events' });
+    const ok = await s.send('ana', 'PUT', { definition: def, testDays: [VERIFIED_TEST_DAY] });
+    expect(ok.status).toBe(200);
+    expect(ok.body.record.draft.definition.groups.find((g: { id: string }) => g.id === 'events')).toEqual({ id: 'events', title: 'Events' });
+    const bad = await s.send('ana', 'PUT', { definition: { ...def, groups: [{ id: 'x' }] }, testDays: [VERIFIED_TEST_DAY] });
+    expect(bad.status).toBe(400);
+  });
+
   it('shows the live version and today’s trading day', async () => {
     const { status, body, etag } = await setup().get();
     expect(status).toBe(200);

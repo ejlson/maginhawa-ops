@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { canEdit, findPerson, hasLeft, personProblem, rolesGivenBy, siteChoice, sitesOf, usesPin, worksAt, type Person } from '../src/people';
+import { accessOf, canEdit, canGiveSites, findPerson, hasLeft, hasSeveralSites, personProblem, rolesGivenBy, siteChoice, sitesOf, usesPin, worksAt, type Person } from '../src/people';
+import { ALL_SITES, findSite, isOpenSite, siteName, SITES } from '../src/settings';
 
 const person = (p: Partial<Person>): Person => ({
   id: p.name ?? 'x', name: 'Sam', role: 'staff', siteCode: 'BUN', email: null, addedAt: '2026-10-01T09:00:00Z', addedBy: 'Jo', leftAt: null, ...p,
@@ -63,10 +64,59 @@ describe('working at more than one site', () => {
     expect(findPerson([jo], 'BEL', 'Jo')).toBeUndefined();
   });
   it('keeps a main site that is still ticked, and moves it when unticked', () => {
-    expect(siteChoice(['GUA', 'BUN'], 'BUN')).toEqual({ siteCode: 'BUN', otherSites: ['GUA'] });
-    expect(siteChoice(['GUA', 'BEL'], 'BUN')).toEqual({ siteCode: 'GUA', otherSites: ['BEL'] });
+    expect(siteChoice(['GUA', 'BUN'], 'BUN')).toEqual({ siteCode: 'BUN', otherSites: ['GUA'], allSites: false });
+    expect(siteChoice(['GUA', 'BEL'], 'BUN')).toEqual({ siteCode: 'GUA', otherSites: ['BEL'], allSites: false });
   });
   it('never leaves someone with no site', () => {
-    expect(siteChoice([], 'BUN')).toEqual({ siteCode: 'BUN', otherSites: [] });
+    expect(siteChoice([], 'BUN')).toEqual({ siteCode: 'BUN', otherSites: [], allSites: false });
+  });
+});
+
+describe('the sites', () => {
+  it('has the 8 open sites, with Ramo kept as closed', () => {
+    expect(SITES.map((s) => s.name)).toEqual([
+      'Bintang', 'Guanabana', 'Belly', 'Hoodwood', 'Bunso', 'Cafe Mama & Sons', 'Mamasons Kentish Town', 'Mamasons China Town',
+    ]);
+    expect(ALL_SITES).toHaveLength(9);
+    expect(isOpenSite('RAM')).toBe(false);
+    expect(isOpenSite('CAF')).toBe(true);
+  });
+  it("still names a closed site's old records", () => {
+    expect(siteName('RAM')).toBe('Ramo');
+    expect(findSite('ram')?.open).toBe(false);
+    expect(siteName('XYZ')).toBe('XYZ');
+  });
+});
+
+describe('who can open which sites', () => {
+  const open = SITES.map((s) => s.code);
+  it('gives head office every open site, whatever is ticked', () => {
+    expect(accessOf(person({ name: 'Ana', role: 'headoffice', siteCode: 'BIN' }))).toEqual(open);
+  });
+  it('gives "all sites" every open site, main site first', () => {
+    const mo = person({ name: 'Mo', role: 'manager', siteCode: 'HOO', allSites: true });
+    expect(accessOf(mo)[0]).toBe('HOO');
+    expect([...accessOf(mo)].sort()).toEqual([...open].sort());
+    expect(worksAt(mo, 'MCT')).toBe(true);
+  });
+  it('gives staff and managers only the sites ticked', () => {
+    const sam = person({ name: 'Sam', role: 'staff', siteCode: 'BIN', otherSites: ['GUA'] });
+    expect(accessOf(sam)).toEqual(['BIN', 'GUA']);
+    expect(hasSeveralSites(sam)).toBe(true);
+    expect(hasSeveralSites(person({ name: 'Lee', siteCode: 'BIN' }))).toBe(false);
+  });
+  it('leaves out closed sites, but keeps them for old records', () => {
+    const kim = person({ name: 'Kim', role: 'manager', siteCode: 'RAM', otherSites: ['BEL'] });
+    expect(accessOf(kim)).toEqual(['BEL']);
+    expect(worksAt(kim, 'RAM')).toBe(true);
+    expect(accessOf(person({ name: 'Ray', siteCode: 'RAM' }))).toEqual([]);
+  });
+  it('gives nobody who has left any site', () => {
+    expect(accessOf(person({ name: 'Ana', role: 'headoffice', leftAt: '2026-10-01T00:00:00Z' }))).toEqual([]);
+  });
+  it('lets only head office change sites', () => {
+    expect(canGiveSites('headoffice')).toBe(true);
+    expect(canGiveSites('manager')).toBe(false);
+    expect(canGiveSites('supervisor')).toBe(false);
   });
 });

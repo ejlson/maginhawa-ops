@@ -5,10 +5,7 @@
  * All figures come from @maginhawa/core.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from 'react';
-import {
-  computeDayWith, definitionIssues, liveVersion, DEFAULT_SETTINGS, EodSyncClient, newDraft, reviewIssues, sectionProgress, SITES, tradingDate,
-  type DayResult, type DefinitionVersion, type EodDraft, type EodSyncState, type Issue, type SectionKey, type SiteSettings, type StoredReport, type SubmitErrorCode,
-} from '@maginhawa/core';
+import { computeDayWith, DEFAULT_SETTINGS, definitionIssues, EodSyncClient, findSite, liveVersion, newDraft, reviewIssues, sectionProgress, tradingDate, type DayResult, type DefinitionVersion, type EodDraft, type EodSyncState, type Issue, type SectionKey, type SiteSettings, type StoredReport, type SubmitErrorCode } from '@maginhawa/core';
 import { deviceStore } from './store';
 import { usesServer } from './config';
 import { useAuth } from './auth';
@@ -18,7 +15,7 @@ import { useLiveDefinitions } from './definition';
 import { deviceId, eodRemote, presenceRemote, useLive, uuid } from './sync';
 
 export function settingsFor(siteCode: string): SiteSettings {
-  const site = SITES.find((s) => s.code === siteCode);
+  const site = findSite(siteCode);
   return { ...DEFAULT_SETTINGS, siteCode, siteName: site?.name ?? siteCode };
 }
 

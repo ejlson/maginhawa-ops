@@ -16,6 +16,7 @@ import {
   alreadySentMessage, changedByMessage, changedSections, copySection, isSyncError, mergeDrafts, sameSection,
 } from './sync';
 import type { KeyValue, Presence, PresenceRemote } from './live';
+import { SECTION_LABELS } from './checks';
 
 /** What the device talks to: the Netlify Functions in connected mode, a local store in demo mode. */
 export interface EodRemote {
@@ -74,6 +75,12 @@ export interface EodClientOptions {
   presence?: PresenceRemote;
   newId?: () => string;
   now?: () => Date;
+}
+
+/** "Wages", "Wages and Tips", "Lunch, Wages and Tips" */
+function listSections(keys: SectionKey[]) {
+  const names = keys.map((k) => SECTION_LABELS[k]);
+  return names.length === 1 ? names[0]! : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
 const differs = (a: EodDraft, b: EodDraft) => changedSections(a, b).length > 0 || a.confirmed !== b.confirmed;
@@ -195,12 +202,14 @@ export class EodSyncClient {
     this.epoch++;
     const before = this.base?.draft ?? null;
     if (!isEditable(incoming.status)) {
+      // Our edits that never reached the server and aren't in what was sent: say so, don't drop them quietly.
+      const lost = this.dirty ? changedSections(before, this.draft).filter((k) => !sameSection(this.draft, incoming.draft, k)) : [];
       this.base = incoming;
       this.draft = incoming.draft;
       this.dirty = false;
       this.clashes = [];
-      if (incoming.submittedBy && incoming.submittedBy !== this.o.user) {
-        this.notice = alreadySentMessage(incoming);
+      if ((incoming.submittedBy && incoming.submittedBy !== this.o.user) || lost.length) {
+        this.notice = alreadySentMessage(incoming) + (lost.length ? `. Your changes to ${listSections(lost)} were not included. Ask finance to reopen it.` : '');
         this.alreadySent = true;
       }
       return;

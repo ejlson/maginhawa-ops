@@ -6,12 +6,11 @@ import { addDays, SITES, weekday, type TradingDayRow } from '@maginhawa/core';
 
 const FIRST_DAY = '2023-03-01';
 
-/** Size, wage level and cash habits per site. Ramo is the one to watch; Bintang the one doing well. */
+/** Size, wage level and cash habits per site. Guanabana is the one to watch; Bintang the one doing well. */
 const PROFILE: Record<string, { scale: number; wages: number; shortRate: number; recent?: number }> = {
   BIN: { scale: 1.15, wages: 0.265, shortRate: 0.01, recent: 1.08 },
-  GUA: { scale: 0.9, wages: 0.285, shortRate: 0.02 },
+  GUA: { scale: 0.8, wages: 0.335, shortRate: 0.02, recent: 0.88 },
   BEL: { scale: 1.3, wages: 0.29, shortRate: 0.06 },
-  RAM: { scale: 0.8, wages: 0.335, shortRate: 0.02, recent: 0.88 },
   HOO: { scale: 1, wages: 0.28, shortRate: 0.02 },
   BUN: { scale: 1, wages: 0.29, shortRate: 0.02 },
   CAF: { scale: 0.55, wages: 0.245, shortRate: 0.01 },

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router';
-import { canManagePeople, personProblem, rolesGivenBy, SITES, usesPin, type PersonRole } from '@maginhawa/core';
+import { canManagePeople, personProblem, rolesGivenBy, siteName, usesPin, type PersonRole } from '@maginhawa/core';
 import { homeFor, ROLE_LABELS, useAuth } from '../lib/auth';
 import { people } from '../lib/people';
 import { Foot, Icon, ICONS, Nav } from '../components/ui';
@@ -25,7 +25,7 @@ function PeopleNewScreen() {
   if (!user) return null;
   if (!canManagePeople(user.role)) return <Navigate to={homeFor(user.role)} replace />;
   const siteCode = user.role === 'headoffice' ? params.get('site') ?? user.siteCode : user.siteCode;
-  const site = SITES.find((s) => s.code === siteCode)?.name ?? siteCode;
+  const site = siteName(siteCode);
   const list = `/people${user.role === 'headoffice' ? `?site=${siteCode}` : ''}`;
   const pin = usesPin(role);
   const problem = personProblem({ name, role, email: pin ? null : email, siteCode }, people.all(), user.role);

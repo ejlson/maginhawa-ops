@@ -47,6 +47,7 @@ import FsPeople from '../app/routes/fs-people';
 import FsFit from '../app/routes/fs-fit';
 import FsInspections from '../app/routes/fs-inspections';
 import FsReview from '../app/routes/fs-review';
+import ReportBuilder from '../app/routes/report-builder';
 import { deviceStore } from '../app/lib/store';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
 
@@ -100,6 +101,7 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="account" element={<Account />} />
             <Route path="people" element={<People />} />
             <Route path="people/new" element={<PeopleNew />} />
+            <Route path="head-office/report-builder" element={<ReportBuilder />} />
             <Route path="head-office/:site" element={<HeadOfficeSite />} />
           </Route>
         </Routes>

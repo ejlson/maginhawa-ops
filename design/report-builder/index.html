@@ -852,14 +852,19 @@ var RD = (() => {
   // packages/core/src/report-definition.ts
   var report_definition_exports = {};
   __export(report_definition_exports, {
+    DEFAULT_GROUPS: () => DEFAULT_GROUPS,
     EOD_DEFINITION: () => EOD_DEFINITION,
     EditError: () => EditError,
     FormulaError: () => FormulaError,
+    SETTINGS_GROUP: () => SETTINGS_GROUP,
     VERIFIED_TEST_DAY: () => VERIFIED_TEST_DAY,
     addFigure: () => addFigure,
+    addGroup: () => addGroup,
     addRef: () => addRef,
     connect: () => connect,
+    definitionGroups: () => definitionGroups,
     deleteFigure: () => deleteFigure,
+    deleteGroup: () => deleteGroup,
     dependsOn: () => dependsOn,
     disconnect: () => disconnect,
     evaluateDefinition: () => evaluateDefinition,
@@ -867,6 +872,7 @@ var RD = (() => {
     parseFormula: () => parseFormula,
     removeRef: () => removeRef,
     renameFigure: () => renameFigure,
+    renameGroup: () => renameGroup,
     renameRef: () => renameRef,
     runTestDay: () => runTestDay,
     sameFigure: () => sameFigure,
@@ -1213,6 +1219,51 @@ var RD = (() => {
     }
     const target = find(def, targetId);
     return { ...def, figures: def.figures.map((f) => f.id === targetId ? { ...f, formula: removeRef(f.formula ?? "", source) } : f) };
+  }
+  var DEFAULT_GROUPS = [
+    { id: "lunch", title: "Lunch" },
+    { id: "dinner", title: "Dinner" },
+    { id: "delivery", title: "Delivery" },
+    { id: "wages", title: "Wages" },
+    { id: "tips", title: "Tips" },
+    { id: "settings", title: "Site settings" }
+  ];
+  var SETTINGS_GROUP = "settings";
+  function definitionGroups(def) {
+    const out = [...def.groups ?? DEFAULT_GROUPS];
+    for (const f of def.figures) if (f.group && !out.some((g) => g.id === f.group)) out.push({ id: f.group, title: f.group });
+    return out;
+  }
+  function checkGroupTitle(def, title, exceptId) {
+    const t = title.trim();
+    if (!t) throw new EditError("Give the section a name");
+    if (t.length > 60) throw new EditError("Keep the name under 60 characters");
+    if (definitionGroups(def).some((g) => g.id !== exceptId && g.title.toLowerCase() === t.toLowerCase())) throw new EditError(`There is already a section called ${t}`);
+    return t;
+  }
+  function addGroup(def, group) {
+    const groups = definitionGroups(def);
+    if (groups.some((g) => g.id === group.id)) throw new EditError("That id is already used");
+    const title = checkGroupTitle(def, group.title);
+    const at = groups.findIndex((g) => g.id === SETTINGS_GROUP);
+    const next = [...groups];
+    next.splice(at < 0 ? next.length : at, 0, { id: group.id, title });
+    return { ...def, groups: next };
+  }
+  function renameGroup(def, id, title) {
+    if (id === SETTINGS_GROUP) throw new EditError("The site settings can\u2019t be renamed");
+    const groups = definitionGroups(def);
+    if (!groups.some((g) => g.id === id)) throw new EditError("That section no longer exists");
+    const t = checkGroupTitle(def, title, id);
+    return { ...def, groups: groups.map((g) => g.id === id ? { ...g, title: t } : g) };
+  }
+  function deleteGroup(def, id) {
+    if (id === SETTINGS_GROUP) throw new EditError("The site settings can\u2019t be deleted");
+    const groups = definitionGroups(def);
+    if (!groups.some((g) => g.id === id)) throw new EditError("That section no longer exists");
+    let d = def;
+    for (const f of def.figures.filter((x) => x.group === id)) d = deleteFigure(d, f.id);
+    return { ...d, groups: groups.filter((g) => g.id !== id) };
   }
   function sameFigure(type, a, b) {
     if (type === "money" || type === "yesno") return Math.round(a) === Math.round(b);

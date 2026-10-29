@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router';
-import { canEdit, canManagePeople, isActive, isWorkEmail, personProblem, rolesGivenBy, siteChoice, SITES, sitesOf, usesPin, type Person, type PersonRole } from '@maginhawa/core';
+import { canEdit, canManagePeople, isActive, isWorkEmail, personProblem, rolesGivenBy, siteChoice, siteName, SITES, sitesOf, usesPin, type Person, type PersonRole } from '@maginhawa/core';
 import { homeFor, initialsOf, ROLE_LABELS, useAuth } from '../lib/auth';
 import { people, usePeople } from '../lib/people';
 import { pins } from '../lib/pins';
@@ -67,7 +67,7 @@ function PeopleScreen() {
   if (!user) return null;
   if (!canManagePeople(user.role)) return <Navigate to={homeFor(user.role)} replace />;
 
-  const site = SITES.find((s) => s.code === siteCode)?.name ?? siteCode;
+  const site = siteName(siteCode);
   const here = list.filter(isActive);
   const q = query.trim().toLowerCase();
   const matches = (p: Person) => (filter === 'all' || p.role === filter || (filter === 'manager' && p.role === 'headoffice')) && (!q || p.name.toLowerCase().includes(q));
@@ -283,7 +283,7 @@ function PersonPanel({ person: p, all, by, me, onToast }: { person: Person; all:
  */
 function PersonSites({ person: p, by, onToast }: { person: Person; by: PersonRole; onToast: (t: Toast) => void }) {
   const mine = sitesOf(p);
-  const nameOf = (code: string) => SITES.find((s) => s.code === code)?.name ?? code;
+  const nameOf = siteName;
   if (by !== 'headoffice') {
     return (
       <div className="person-sec">

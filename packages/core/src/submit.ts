@@ -14,7 +14,11 @@ import { alreadySentMessage, describeChanges, isSyncError } from './sync';
 export type SubmitErrorCode = 'invalid' | 'blocked' | 'conflict' | 'already-submitted' | 'failed';
 
 export type SubmitResult =
-  | { ok: true; report: StoredReport }
+  | {
+    ok: true; report: StoredReport;
+    /** A retry of a press that had already gone through: nothing new was stored, so nothing should be sent again. */
+    replayed?: boolean;
+  }
   | { ok: false; error: string; code: SubmitErrorCode; issues?: StoredReport['issues']; current?: StoredReport };
 
 export async function submitReport(
@@ -49,8 +53,8 @@ export async function submitReport(
     issues,
   };
   try {
-    const stored = await deps.store.submit(report, { baseVersion: deps.baseVersion, submitId: deps.submitId, now });
-    return { ok: true, report: stored };
+    const { replayed, ...stored } = await deps.store.submit(report, { baseVersion: deps.baseVersion, submitId: deps.submitId, now });
+    return { ok: true, report: stored, replayed: Boolean(replayed) };
   } catch (e) {
     if (isSyncError(e)) {
       if (e.code === 'conflict') return { ok: false, code: 'conflict', error: `${describeChanges(draft, e.current)}. Check it, then submit again.`, current: e.current };

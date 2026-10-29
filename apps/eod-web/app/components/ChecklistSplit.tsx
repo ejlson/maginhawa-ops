@@ -8,6 +8,7 @@ import { can, useAuth } from '../lib/auth';
 import { formatDay } from '../lib/draft';
 import { ConfirmDialog } from './ConfirmDialog';
 import { runPath, statusPill, useChecklists, isUrgent, type TaskView } from '../lib/checklists';
+import type { FinishOutcome } from '@maginhawa/core';
 import { checklistIcon, RowLink, StatusIcon } from './ui';
 
 export function TaskRow({ t }: { t: TaskView }) {
@@ -43,10 +44,10 @@ export function SubmitLists() {
   const allDone = tasks.length > 0 && tasks.every((t) => t.run?.completedAt || t.status === 'anytime');
   const onSubmit = async () => {
     setBusy(true);
-    const n = await submitReady();
+    const results = await submitReady();
     setBusy(false);
     setAsking(false);
-    setSent(`${n} ${n === 1 ? 'checklist' : 'checklists'} submitted and locked.`);
+    setSent(submitSummary(results));
   };
 
   // Always under the lists, so people know where it is; greyed out until a list is ready.
@@ -70,6 +71,14 @@ export function SubmitLists() {
       </p>
     </div>
   );
+}
+
+/** "2 checklists submitted and locked. Close: items were just answered on another device…" */
+function submitSummary(results: { title: string; outcome: FinishOutcome }[]) {
+  const locked = results.filter((r) => !r.outcome.stale && !r.outcome.already && !r.outcome.queued).length;
+  const parts = [`${locked} ${locked === 1 ? 'checklist' : 'checklists'} submitted and locked.`];
+  for (const r of results) if (r.outcome.stale || r.outcome.already || r.outcome.queued) parts.push(`${r.title}: ${r.outcome.message}`);
+  return parts.join(' ');
 }
 
 /** The next list still to do after this one, for "finish and open the next". */

@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router';
-import { SITES, type StoredReport } from '@maginhawa/core';
+import { siteName, SITES, type StoredReport } from '@maginhawa/core';
 import { useAuth, useMySites } from '../lib/auth';
 import { formatDay, useDraft } from '../lib/draft';
 import { useChecklists } from '../lib/checklists';
@@ -17,7 +17,7 @@ import { demoReports } from '../lib/demo';
 import { Icon, ICONS } from './ui';
 import { tour } from '../lib/tour';
 
-const nameOf = (code: string) => SITES.find((s) => s.code === code)?.name ?? code;
+const nameOf = siteName;
 const HO_ICON = 'M3 17V8l7-4 7 4v9M8 17v-5h4v5';
 const UPDOWN = 'M6 7l3-3 3 3M6 11l3 3 3-3';
 

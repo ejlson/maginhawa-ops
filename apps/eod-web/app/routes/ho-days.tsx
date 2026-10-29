@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router';
-import { addDays, clockTime, SITES, tradingDate, type Repair } from '@maginhawa/core';
+import { addDays, clockTime, findSite, SITES, tradingDate, type Repair } from '@maginhawa/core';
 import { can, useAuth } from '../lib/auth';
 import { formatDay, settingsFor } from '../lib/draft';
 import { siteDay, type SiteDay } from '../lib/site-timeline';
@@ -45,7 +45,7 @@ interface Item {
 }
 
 function itemsFor(day: SiteDay, today: string): Item[] {
-  const site = SITES.find((s) => s.code === day.siteCode)!;
+  const site = findSite(day.siteCode)!;
   const base = `/head-office/${site.code.toLowerCase()}/${day.businessDate}`;
   const out: Item[] = day.tasks
     // Checklists not due yet aren't records yet.
@@ -155,7 +155,7 @@ export default function HeadOfficeDays() {
         </div>
 
         <div className="hero" role="status" aria-live="polite" style={{ maxWidth: 720 }}>
-          <span className="hl">{site === 'all' ? 'All sites' : SITES.find((s) => s.code === site)?.name} · {span === 1 ? formatDay(last) : `${formatDay(addDays(last, 1 - span), { day: 'numeric', month: 'short' })} to ${formatDay(last, { day: 'numeric', month: 'short' })}`}</span>
+          <span className="hl">{site === 'all' ? 'All sites' : findSite(site)?.name} · {span === 1 ? formatDay(last) : `${formatDay(addDays(last, 1 - span), { day: 'numeric', month: 'short' })} to ${formatDay(last, { day: 'numeric', month: 'short' })}`}</span>
           <div className="hm">
             <span>{done} of {checklists.length}<small>Checklists done</small></span>
             <span className={checklists.some((x) => x.missed) ? 'h-bad' : ''}>{checklists.filter((x) => x.missed).length}<small>Missed</small></span>

@@ -67,6 +67,8 @@ export function createSubmitHandler(deps: SubmitDeps) {
     }
     if (!res.ok) return json(422, { error: res.error, code: res.code, issues: res.issues ?? [] });
     await record(deps.index, eodKey(res.report.draft.siteCode, res.report.draft.businessDate), res.report.version, at);
+    // A retry after lost signal: finance already had the email from the first attempt.
+    if (res.replayed) return json(200, { report: res.report, replayed: true });
 
     // The report is safely stored; an email failure must not make the manager resubmit.
     let emailed = true;

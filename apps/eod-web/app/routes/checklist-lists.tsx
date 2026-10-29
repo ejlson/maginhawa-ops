@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { addOnFor, canCreateList, canEditList, editableTemplate, recordStatus, scheduleText, SITES, STATUS_LABELS, type TemplateRecord } from '@maginhawa/core';
+import { addOnFor, canCreateList, canEditList, editableTemplate, recordStatus, scheduleText, siteName as nameOfSite, SITES, STATUS_LABELS, type TemplateRecord } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { useChecklists } from '../lib/checklists';
 import { editPath, useTemplates } from '../lib/templates';
 import { Foot, Icon, ICONS, Nav, RowLink } from '../components/ui';
 
-const siteName = (code?: string) => SITES.find((s) => s.code === code)?.name ?? code ?? '';
+const siteName = (code?: string) => (code ? nameOfSite(code) : '');
 
 /** Every checklist this person can see, and which of them they can change. */
 export default function ChecklistLists() {

@@ -57,8 +57,8 @@ export interface SubmitOptions {
 export interface EodStore {
   get(siteCode: string, businessDate: string): Promise<StoredReport | null>;
   saveDraft(draft: EodDraft, opts?: SaveOptions): Promise<StoredReport>;
-  /** Returns what is stored: the new report, or the first one when this was a retry. */
-  submit(report: StoredReport, opts?: SubmitOptions): Promise<StoredReport>;
+  /** Returns what is stored: the new report, or the first one (marked `replayed`) when this was a retry. */
+  submit(report: StoredReport, opts?: SubmitOptions): Promise<StoredReport & { replayed?: true }>;
   listByDate(businessDate: string): Promise<StoredReport[]>;
   setStatus(siteCode: string, businessDate: string, status: ReportStatus): Promise<void>;
 }
@@ -109,7 +109,7 @@ export class MemoryStore implements EodStore {
     if (existing && !isEditable(existing.status)) {
       // The same press of Submit, retried: keep the first, never duplicate.
       const attempt = (r: StoredReport) => r.submitId ?? r.draft.clientId;
-      if (attempt(existing) === (opts.submitId ?? report.draft.clientId)) return structuredClone(existing);
+      if (attempt(existing) === (opts.submitId ?? report.draft.clientId)) return { ...structuredClone(existing), replayed: true as const };
       throw new SyncError('already-submitted', LOCKED_MESSAGE, structuredClone(existing));
     }
     if (opts.baseVersion !== undefined && existing && existing.version !== undefined && existing.version !== opts.baseVersion) {

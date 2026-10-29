@@ -4,7 +4,7 @@
  */
 import { addDays, weekday, WEEKDAY_NAMES } from './data-quality';
 import { formatPounds, type Pence } from './money';
-import { DEFAULT_SETTINGS, SITES } from './settings';
+import { DEFAULT_SETTINGS, siteName } from './settings';
 import { dayNet, type TradingDayRow } from './trends';
 
 export const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
@@ -68,7 +68,6 @@ export interface ReportResult {
   flagged: number;
 }
 
-const siteName = (code: string) => SITES.find((s) => s.code === code)?.name ?? code;
 
 /** "Monday 5 October 2026", which is what people type when they search by date. */
 export function longDate(date: string): string {

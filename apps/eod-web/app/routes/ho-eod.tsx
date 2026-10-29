@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Navigate, useParams } from 'react-router';
-import { clockTime, computeDayWith, denominationLabel, formatPounds, SECTION_LABELS, SESSION_KEYS, SITES, type Pence, type SessionKey } from '@maginhawa/core';
+import { clockTime, computeDayWith, denominationLabel, findSite, formatPounds, SECTION_LABELS, SESSION_KEYS, type Pence, type SessionKey } from '@maginhawa/core';
 import { previewDefinitions } from '../lib/definition';
 import { formatDay } from '../lib/draft';
 import { useSiteDay } from '../lib/site-timeline';
@@ -27,7 +27,7 @@ function Card({ title, icon, right, children }: { title: string; icon: string; r
 /** Head office · one site's EOD for one day, read-only: the results, then every figure the manager typed in. */
 export default function HeadOfficeEod() {
   const { site: code = '', date = '' } = useParams();
-  const site = SITES.find((s) => s.code === code.toUpperCase());
+  const site = findSite(code);
   const day = useSiteDay(site?.code ?? '', date);
   if (!site || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return <Navigate to="/head-office" replace />;
   const dayLink = `/head-office/${code.toLowerCase()}?tab=day&date=${date}`;

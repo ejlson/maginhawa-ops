@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import { useAuth } from '../lib/auth';
-import { addDays, breakdown, clockTime, computeDayWith, formatPounds, periodRange, periodStats, PERIOD_NAMES, SITES, type Period, type PeriodStats } from '@maginhawa/core';
+import { addDays, breakdown, clockTime, computeDayWith, findSite, formatPounds, PERIOD_NAMES, periodRange, periodStats, type Period, type PeriodStats } from '@maginhawa/core';
 import { previewDefinitions } from '../lib/definition';
 import { useTradingHistory } from '../lib/history';
 import { settingsFor } from '../lib/draft';
@@ -38,7 +38,7 @@ export default function HeadOfficeSite() {
   const { site: code = '' } = useParams();
   const { openSite } = useAuth();
   const navigate = useNavigate();
-  const site = SITES.find((s) => s.code === code.toUpperCase());
+  const site = findSite(code);
   const { rows: all, example, lastDate } = useTradingHistory();
   const [period, setPeriod] = useState<Period>('1W');
   const [params, setParams] = useSearchParams();

@@ -79,13 +79,14 @@ describe('submit-eod', () => {
     expect((await store.get('BUN', '2026-10-05'))?.status).toBe('submitted');
   });
 
-  it('a retried upload does not create a duplicate', async () => {
+  it('a retried upload does not create a duplicate, or email finance twice', async () => {
     const { handler, store, sent } = setup();
     await handler(post(verifiedDraft()));
     const again = await handler(post(verifiedDraft()));
     expect(again.status).toBe(200);
+    expect((await again.json()).replayed).toBe(true);
     expect(await store.listByDate('2026-10-05')).toHaveLength(1);
-    expect(sent).toHaveLength(2);
+    expect(sent).toHaveLength(1);
   });
 });
 

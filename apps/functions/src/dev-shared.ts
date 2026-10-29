@@ -7,7 +7,7 @@
  * it only switches on with DEV_SHARED_STORE=1, and refuses whenever anything says production
  * or a deployed Netlify Function.
  */
-import { DEFAULT_SETTINGS, DEV_USER_HEADER, MemoryChecklistStore, MemoryPresence, MemoryStore, SITES, type ChecklistBackend, type EmailMessage, type EodStore, type PresenceRemote, type SiteSettings } from '@maginhawa/core';
+import { DEFAULT_SETTINGS, DEV_USER_HEADER, findSite, MemoryChecklistStore, MemoryPresence, MemoryStore, SITES, type ChecklistBackend, type EmailMessage, type EodStore, type PresenceRemote, type SiteSettings } from '@maginhawa/core';
 import type { Caller } from './handler';
 import { MemoryVersionIndex, type VersionIndex } from './version-index';
 
@@ -78,7 +78,7 @@ export function sharedDev(env: Env = process.env): SharedDev | null {
 
 /** The same settings the web app uses in demo mode. */
 export async function devSettingsFor(siteCode: string): Promise<SiteSettings | null> {
-  const site = SITES.find((s) => s.code === siteCode);
+  const site = findSite(siteCode);
   return site ? { ...DEFAULT_SETTINGS, siteCode, siteName: site.name } : null;
 }
 

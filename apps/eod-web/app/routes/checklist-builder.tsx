@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
-import {
-  addOnFor, ANSWER_LABELS, ANSWER_TYPES, canAddChecks, latestVersion, moveCheckpoint, newCheckpoint, nextDay, PHASE_LABELS, PHASES,
-  recordIssues, recordStatus, ruleText, scheduleText, SITES, STATUS_LABELS, uniqueId, type AnswerType, type Checkpoint,
-} from '@maginhawa/core';
+import { addOnFor, ANSWER_LABELS, ANSWER_TYPES, canAddChecks, latestVersion, moveCheckpoint, newCheckpoint, nextDay, PHASE_LABELS, PHASES, recordIssues, recordStatus, ruleText, scheduleText, siteName as nameOfSite, SITES, STATUS_LABELS, uniqueId, type AnswerType, type Checkpoint } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
 import { checkPath, editPath, useListEditor } from '../lib/templates';
 import { ANSWER_ICONS, Foot, Icon, ICONS, Nav, RowLink, Toggle } from '../components/ui';
@@ -21,7 +18,7 @@ const TYPE_HINTS: Record<AnswerType, string> = {
 
 const WINDOWS = [15, 30, 45, 60, 90, 120];
 
-const siteName = (code?: string) => SITES.find((s) => s.code === code)?.name ?? code ?? '';
+const siteName = (code?: string) => (code ? nameOfSite(code) : '');
 const checkSub = (c: Checkpoint) => [ANSWER_LABELS[c.type], ruleText(c), c.required ? null : 'Optional', c.section].filter(Boolean).join(' · ');
 const checkLead = (c: Checkpoint) => <span className="av"><Icon d={ANSWER_ICONS[c.type]} /></span>;
 
