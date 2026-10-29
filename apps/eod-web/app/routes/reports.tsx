@@ -4,7 +4,8 @@ import { cashWords, DEFAULT_SETTINGS, formatPounds, MONTH_NAMES, REPORT_DATES, r
 import { can, useAuth } from '../lib/auth';
 import { formatDay } from '../lib/draft';
 import { useReportRows } from '../lib/reports';
-import { Icon, ICONS } from '../components/ui';
+import { Icon } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 import { WhoMenu } from '../components/home/WhoMenu';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 

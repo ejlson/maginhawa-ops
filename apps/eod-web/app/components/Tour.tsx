@@ -11,7 +11,9 @@ import { SITES } from '@maginhawa/core';
 import { homeOf, useAuth, type User } from '../lib/auth';
 import { useDraft } from '../lib/draft';
 import { showsTip, tour, tourAutoStarts, tourFor, useTourState, type TourStep } from '../lib/tour';
-import { Icon, ICONS } from './ui';
+import { Icon } from './ui';
+import { ICONS } from './ui-helpers';
+import { findTarget, type Phase, type Box } from './tour-helpers';
 
 const PAD = 8;
 const GUTTER = 16;
@@ -19,20 +21,10 @@ const GAP = 14;
 const PIE = 18.85; // circumference of the progress pie (r = 3)
 const HELP = 'M7 6.5a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.5M9 13h.01M9 16A7 7 0 1 0 9 2a7 7 0 0 0 0 14z';
 
-/** The visible element for a data-tour name. Without a layout engine (tests) the first match counts. */
-export function findTarget(name: string): HTMLElement | null {
-  const all = Array.from(document.querySelectorAll<HTMLElement>(`[data-tour="${name}"]`));
-  const shown = all.find((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; });
-  if (shown) return shown;
-  return document.documentElement.getBoundingClientRect().width === 0 ? all[0] ?? null : null;
-}
-
 const onScreen = (steps: TourStep[]) => steps.filter((s) => !s.target || findTarget(s.target));
 const reduced = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 const nextFrame = (f: () => void): number => (typeof globalThis.requestAnimationFrame === 'function' ? requestAnimationFrame(f) : (setTimeout(f, 16) as unknown as number));
 const cancelFrame = (id: number) => (typeof globalThis.cancelAnimationFrame === 'function' ? cancelAnimationFrame(id) : clearTimeout(id));
-
-type Phase = 'idle' | 'welcome' | 'tour' | 'done';
 
 /** Mounted once for signed-in screens. Only ever opens on the person's Home. */
 export function TourHost() {
@@ -123,8 +115,6 @@ function Welcome({ user, steps, onStart, onSkip }: { user: User; steps: TourStep
     </div>
   );
 }
-
-interface Box { x: number; y: number; w: number; h: number }
 
 function Spotlight({ steps, i, onGo, onSkip }: { steps: TourStep[]; i: number; onGo: (n: number) => void; onSkip: () => void }) {
   const step = steps[i]!;

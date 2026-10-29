@@ -14,22 +14,17 @@ import { useChecklists } from '../lib/checklists';
 import { deviceStore } from '../lib/store';
 import { showExampleData } from '../lib/config';
 import { demoReports } from '../lib/demo';
-import { Icon, ICONS } from './ui';
+import { Icon } from './ui';
+import { ICONS } from './ui-helpers';
 import { tour } from '../lib/tour';
 
+import { useCanSwitch } from './site-picker-helpers';
 const nameOf = siteName;
 const HO_ICON = 'M3 17V8l7-4 7 4v9M8 17v-5h4v5';
 const UPDOWN = 'M6 7l3-3 3 3M6 11l3 3 3-3';
 
 /** The last switch, so the next site's screens can offer a way back. Lives until it's shown once. */
 let lastSwitch: { from: string; to: string } | null = null;
-
-/** Can this person switch site from here? */
-export function useCanSwitch() {
-  const { user } = useAuth();
-  const mine = useMySites();
-  return Boolean(user && (user.inSite || (user.role !== 'headoffice' && mine.length > 1)));
-}
 
 /** Tonight's EOD at each site, for the line under each name. */
 function useTonight(date: string): Map<string, StoredReport> {

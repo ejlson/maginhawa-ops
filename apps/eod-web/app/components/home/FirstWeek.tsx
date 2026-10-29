@@ -5,7 +5,7 @@
 import { useAuth } from '../../lib/auth';
 import { FIRST_WEEK, firstWeekTasks, useTourState } from '../../lib/tour';
 import { Pie } from '../ui';
-import { useCanSwitch } from '../SitePicker';
+import { useCanSwitch } from '../site-picker-helpers';
 
 export function FirstWeek() {
   const { user } = useAuth();

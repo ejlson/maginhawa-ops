@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { CASH_REASONS, formatPounds, SECTION_LABELS, type AdjustmentLine, type SessionKey } from '@maginhawa/core';
 import { useDraft } from '../lib/draft';
-import { BigMoney, Chevron, CountInput, Icon, ICONS, MoneyInput, MoneyRow } from '../components/ui';
+import { BigMoney, Chevron, CountInput, Icon, MoneyInput, MoneyRow } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 import { EodPage } from '../components/EodPage';
 import { AddedInputs } from './AddedInputs';
 

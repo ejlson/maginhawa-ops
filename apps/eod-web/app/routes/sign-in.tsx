@@ -3,7 +3,8 @@ import { Navigate, useNavigate } from 'react-router';
 import { SITES } from '@maginhawa/core';
 import { homeFor, initialsOf, ROLE_LABELS, useAuth, type Role } from '../lib/auth';
 import { isConnected, isSharedDev } from '../lib/config';
-import { Icon, ICONS } from '../components/ui';
+import { Icon } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 export default function SignIn() {
   const { user, signIn } = useAuth();

@@ -3,10 +3,12 @@ import { Link, Navigate, useParams } from 'react-router';
 import { clockTime, evaluate, summariseRun } from '@maginhawa/core';
 import { can, useAuth } from '../lib/auth';
 import { runPath, useChecklists } from '../lib/checklists';
-import { Foot, Icon, ICONS, Nav } from '../components/ui';
+import { Foot, Icon, Nav } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 import { Answer } from '../components/Answer';
 import { PresenceLine } from '../components/Sync';
-import { nextAfter, SplitFrame } from '../components/ChecklistSplit';
+import { nextAfter } from '../components/checklist-split-helpers';
+import { SplitFrame } from '../components/ChecklistSplit';
 import { TempSheet } from '../components/TempSheet';
 import { useTouch, useTwoColumns } from '../lib/wide';
 

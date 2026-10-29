@@ -5,7 +5,8 @@ import { addDays, breakdown, clockTime, computeDayWith, findSite, formatPounds, 
 import { previewDefinitions } from '../lib/definition';
 import { useTradingHistory } from '../lib/history';
 import { settingsFor } from '../lib/draft';
-import { Icon, ICONS, Nav, RowLink, SECTION_ICONS } from '../components/ui';
+import { Icon, Nav, RowLink } from '../components/ui';
+import { ICONS, SECTION_ICONS } from '../components/ui-helpers';
 import { TrendChart } from '../components/TrendChart';
 import { DayTimeline } from '../components/DayTimeline';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';

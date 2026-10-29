@@ -3,7 +3,8 @@ import { Link, Navigate, useSearchParams } from 'react-router';
 import { canManagePeople, personProblem, rolesGivenBy, siteName, usesPin, type PersonRole } from '@maginhawa/core';
 import { homeFor, ROLE_LABELS, useAuth } from '../lib/auth';
 import { people } from '../lib/people';
-import { Foot, Icon, ICONS, Nav } from '../components/ui';
+import { Foot, Icon, Nav } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 import { ROLE_DOES } from './people';
 

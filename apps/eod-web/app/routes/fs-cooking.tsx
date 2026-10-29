@@ -4,7 +4,8 @@ import { useAuth } from '../lib/auth';
 import { degrees, hm, useFoodSafety, type CookBatch } from '../lib/food-safety';
 import { useChecklists } from '../lib/checklists';
 import { now } from '../lib/clock';
-import { Foot, Icon, ICONS, Nav, TempInput, Toggle } from '../components/ui';
+import { Foot, Icon, Nav, TempInput, Toggle } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 const parse = (t: string) => { const n = parseFloat(t.replace('−', '-')); return Number.isFinite(n) ? n : null; };
 

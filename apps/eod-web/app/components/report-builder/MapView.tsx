@@ -9,7 +9,7 @@ import {
   CARD_W, CLUSTERS, KIND_LABEL, LANES, LANEX, LANE_ROLE, ROLE_OF, TYPE_CHIP, boxName, clusterKeys, clusterOf, clusterRole,
   fmt, ownerOf, roleOfName, shortName, targetsFor, testDay, typeOfName, type Box, type ClusterId, type Section,
 } from '../../lib/report-builder/model';
-import { focusOf, useWs } from './Workspace';
+import { focusOf, useWs } from './workspace-helpers';
 import { Ic } from './icons';
 
 const ZMIN = 0.35, ZMAX = 1.6, DOCK_H = 76;

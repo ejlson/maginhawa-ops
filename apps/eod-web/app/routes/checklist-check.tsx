@@ -3,7 +3,8 @@ import { Navigate, useNavigate, useParams } from 'react-router';
 import { ANSWER_LABELS, ANSWER_TYPES, canFail, changeType, checkpointIssues, type AnswerValue, type Checkpoint } from '@maginhawa/core';
 import { editPath, useListEditor } from '../lib/templates';
 import { Answer } from '../components/Answer';
-import { Foot, Icon, ICONS, Nav, TempInput, Toggle } from '../components/ui';
+import { Foot, Icon, Nav, TempInput, Toggle } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 /** Common limits to start from. Example values: each site checks its own. */
 const TEMP_PRESETS: { label: string; min?: number; max?: number }[] = [

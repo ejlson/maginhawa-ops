@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router';
 import { siteName } from '@maginhawa/core';
 import { can, homeFor, homeOf, ROLE_LABELS, useAuth } from '../lib/auth';
-import { Foot, Icon, ICONS, Nav, RowLink, Toggle } from '../components/ui';
+import { Foot, Icon, Nav, RowLink, Toggle } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 import { tour, useTourState } from '../lib/tour';
 import { RolePicker } from '../components/RolePicker';
 

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { DEFAULT_KEEP, keepText, RECORD_LABELS, RECORD_TYPES, type KeepPolicy, type RecordType } from '@maginhawa/core';
 import { useFoodSafety } from '../lib/food-safety';
-import { Foot, Icon, ICONS, Nav } from '../components/ui';
+import { Foot, Icon, Nav } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 const CHOICES = [6, 12, 24, 36, 72];
 

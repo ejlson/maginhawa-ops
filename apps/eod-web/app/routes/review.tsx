@@ -5,7 +5,8 @@ import { recordedAs, useAuth } from '../lib/auth';
 import { tour } from '../lib/tour';
 import { formatDay, useDraft, useWhere } from '../lib/draft';
 import { AlreadySent, EodSyncNotice, SyncState } from '../components/Sync';
-import { BigMoney, Foot, Icon, ICONS, Nav, RowLink } from '../components/ui';
+import { BigMoney, Foot, Icon, Nav, RowLink } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 import { AddedFigures } from '../sections/AddedInputs';
 
 function IssueRow({ i }: { i: Issue }) {

@@ -4,9 +4,11 @@ import { useAuth } from '../../lib/auth';
 import { formatDay } from '../../lib/draft';
 import { runPath, useChecklists } from '../../lib/checklists';
 import { useSite } from '../../lib/site';
-import { Icon, ICONS } from '../ui';
+import { Icon } from '../ui';
+import { ICONS } from '../ui-helpers';
 import { TabBar } from '../TabBar';
-import { AllDoneHero, firstName, HomeHeader, isDone, NextChecklistHero, TaskRow, TimelineRow, useToday } from './shared';
+import { AllDoneHero, HomeHeader, NextChecklistHero, TaskRow, TimelineRow } from './shared';
+import { firstName, isDone, useToday } from './shared-helpers';
 import { FoodSafetyRow } from '../FoodSafetyRow';
 import { Columns } from '../Columns';
 

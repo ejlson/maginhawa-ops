@@ -11,12 +11,14 @@ import { formatDay, useDraft } from '../lib/draft';
 import { deviceStore } from '../lib/store';
 import { showExampleData } from '../lib/config';
 import { demoReports } from '../lib/demo';
-import { Icon, ICONS, Nav, RowLink } from './ui';
+import { Icon, Nav, RowLink } from './ui';
+import { ICONS } from './ui-helpers';
 import { TrendChart } from './TrendChart';
 import { WhoMenu } from './home/WhoMenu';
 import { HeadOfficeShell } from './HeadOfficeShell';
 import { useTradingHistory } from '../lib/history';
-import { PageSkeleton, useDelayed } from './Skeleton';
+import { PageSkeleton } from './Skeleton';
+import { useDelayed } from './skeleton-helpers';
 
 type SortKey = 'site' | 'net' | 'covers' | 'wages' | 'cash';
 const SORT_COLS: { key: SortKey; label: string }[] = [

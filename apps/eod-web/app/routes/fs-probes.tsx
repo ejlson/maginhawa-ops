@@ -3,7 +3,8 @@ import { BOIL_RANGE, calibrationResult, ICE_RANGE, probeStatus } from '@maginhaw
 import { useAuth } from '../lib/auth';
 import { degrees, shortDate, useFoodSafety } from '../lib/food-safety';
 import { useChecklists } from '../lib/checklists';
-import { Foot, Icon, ICONS, Nav, TempInput } from '../components/ui';
+import { Foot, Icon, Nav, TempInput } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 const parse = (t: string) => { const n = parseFloat(t.replace('−', '-')); return Number.isFinite(n) ? n : null; };
 const STATE = { ok: { cls: 'p-ok', av: 'ok', text: 'In date' }, due: { cls: 'p-warn', av: 'warn', text: 'Due' }, never: { cls: 'p-warn', av: 'warn', text: 'Never checked' }, failed: { cls: 'p-bad', av: 'bad', text: 'Not in use' } } as const;

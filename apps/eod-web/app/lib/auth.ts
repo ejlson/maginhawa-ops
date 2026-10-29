@@ -2,10 +2,10 @@
  * Who is signed in. Demo mode: pick a name and site on this device.
  * Connected mode will use Microsoft sign-in (MSAL, Entra ID) behind the same useUser() hook.
  */
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
-import { accessOf, findPerson, isOpenSite, OPEN_SITE_CODES } from '@maginhawa/core';
+import { createContext, useContext } from 'react';
+import { accessOf, findPerson, OPEN_SITE_CODES } from '@maginhawa/core';
 import { storage } from './storage';
-import { people, usePeople } from './people';
+import { usePeople } from './people';
 
 /** Staff, supervisors and managers see their own site; head office sees every site. */
 export type Role = 'staff' | 'supervisor' | 'manager' | 'headoffice';
@@ -43,20 +43,6 @@ export const can = {
 /** Where each role lands after signing in. */
 export const homeFor = (r: Role) => (r === 'headoffice' ? '/head-office' : '/');
 
-/**
- * Users saved before the roles changed were 'admin' or 'finance': both are head office now.
- * Someone saved in a site that has since closed moves to the first site they still have, or signs in again.
- */
-function normalise(u: User | null): User | null {
-  if (!u) return u;
-  const role = (u.role as string) === 'admin' || (u.role as string) === 'finance' ? 'headoffice' : u.role;
-  if (!(role in ROLE_LABELS)) return null;
-  if (isOpenSite(u.siteCode)) return { ...u, role };
-  const me = people.all().find((p) => findPerson([p], u.siteCode, u.name));
-  const next = role === 'headoffice' ? OPEN_SITE_CODES[0] : me ? accessOf(me)[0] : undefined;
-  return next ? { ...u, role, siteCode: next, inSite: false } : null;
-}
-
 export interface User {
   name: string;
   initials: string;
@@ -76,7 +62,6 @@ export const homeOf = (u: User) => (u.role === 'headoffice' && !u.inSite ? '/hea
 /** The name saved on records someone fills in, so a report shows when head office did it. */
 export const recordedAs = (u: User) => (u.role === 'headoffice' ? `${u.name} (head office)` : u.name);
 
-const KEY = 'mgh.user';
 const peopleKey = (siteCode: string) => `mgh.people.v1.${siteCode}`;
 
 /** People who have used this device at a site, most recent first: the shared kitchen iPad's quick switch. */
@@ -99,29 +84,7 @@ interface AuthValue {
   leaveSite: () => void;
 }
 
-const AuthContext = createContext<AuthValue | null>(null);
-
-export function AuthProvider({ children, initialUser }: { children: ReactNode; initialUser?: User | null }) {
-  const [user, setUser] = useState<User | null>(() => (initialUser !== undefined ? initialUser : normalise(storage.get<User | null>(KEY, null))));
-  const signIn = useCallback((u: User) => {
-    storage.set(KEY, u);
-    remember(u);
-    if (u.role !== 'headoffice') people.ensure(u.siteCode, u.name, u.role, '');
-    setUser(u);
-  }, []);
-  const signOut = useCallback(() => { storage.remove(KEY); setUser(null); }, []);
-  const save = useCallback((patch: Partial<User>) => setUser((u) => {
-    if (!u) return u;
-    const next = { ...u, ...patch };
-    storage.set(KEY, next);
-    return next;
-  }), []);
-  const switchSite = useCallback((siteCode: string) => save({ siteCode }), [save]);
-  const openSite = useCallback((siteCode: string) => save({ siteCode, inSite: true }), [save]);
-  const leaveSite = useCallback(() => save({ inSite: false }), [save]);
-  const value = useMemo(() => ({ user, signIn, signOut, switchSite, openSite, leaveSite }), [user, signIn, signOut, switchSite, openSite, leaveSite]);
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+export const AuthContext = createContext<AuthValue | null>(null);
 
 export function useAuth(): AuthValue {
   const v = useContext(AuthContext);

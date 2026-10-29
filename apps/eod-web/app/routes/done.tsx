@@ -2,7 +2,8 @@ import { Link, Navigate, useLocation } from 'react-router';
 import { formatPounds, splitPounds } from '@maginhawa/core';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
 import { isConnected, isSharedDev } from '../lib/config';
-import { Foot, Icon, ICONS } from '../components/ui';
+import { Foot, Icon } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 export default function Done() {
   const { report, settings } = useDraft();

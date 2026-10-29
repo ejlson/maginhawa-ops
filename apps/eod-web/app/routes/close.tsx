@@ -4,7 +4,8 @@ import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@m
 import { recordedAs, useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
 import { EodSyncNotice } from '../components/Sync';
-import { BigMoney, Icon, ICONS, Nav, RowLink, SectionIcon, SECTION_ICONS, Segments, Toggle } from '../components/ui';
+import { BigMoney, Icon, Nav, RowLink, SectionIcon, Segments, Toggle } from '../components/ui';
+import { ICONS, SECTION_ICONS } from '../components/ui-helpers';
 import { TabBar } from '../components/TabBar';
 import { Columns } from '../components/Columns';
 import { ConfirmDialog } from '../components/ConfirmDialog';

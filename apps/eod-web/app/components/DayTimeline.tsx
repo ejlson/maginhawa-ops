@@ -2,8 +2,9 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { buildTimeline, DAY_FILTERS, type DayEvent, type DayFilter, type TimelineHour } from '@maginhawa/core';
 import { now } from '../lib/clock';
-import { useMinuteTick } from './home/shared';
-import { Icon, ICONS } from './ui';
+import { useMinuteTick } from './home/shared-helpers';
+import { Icon } from './ui';
+import { ICONS } from './ui-helpers';
 
 const KIND_ICON: Record<DayEvent['kind'], string> = {
   checklist: ICONS.check, missed: ICONS.bang, due: ICONS.clock, fix: ICONS.wrench, repair: ICONS.wrench, fixed: ICONS.check, eod: ICONS.list,

@@ -1,7 +1,8 @@
 /** One checklist question and its answer control: used when doing a list and in the builder's preview. */
 import { useEffect, useRef, useState } from 'react';
 import { evaluate, ruleText, type AnswerValue, type Checkpoint } from '@maginhawa/core';
-import { Icon, ICONS, TempInput, nextOnEnter } from './ui';
+import { Icon, TempInput } from './ui';
+import { ICONS, nextOnEnter } from './ui-helpers';
 
 /** Downscales a photo to keep it small enough to store on the device. */
 async function shrinkPhoto(file: File): Promise<string> {

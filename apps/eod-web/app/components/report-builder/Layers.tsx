@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { CLUSTERS, LANES, LANE_ROLE, ROLE_OF, boxName, clusterOf, clusterRole, search, type SearchHit } from '../../lib/report-builder/model';
 import { Ic } from './icons';
-import { useWs } from './Workspace';
+import { useWs } from './workspace-helpers';
 
 export function Layers() {
   const ws = useWs();

@@ -11,7 +11,8 @@ import { storage } from '../lib/storage';
 import { now } from '../lib/clock';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 import { WhoMenu } from '../components/home/WhoMenu';
-import { Icon, ICONS } from '../components/ui';
+import { Icon } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 type Kind = 'all' | 'checklists' | 'eod';
 type Show = 'all' | 'problems' | 'missed' | 'notsent';

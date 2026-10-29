@@ -2,7 +2,7 @@
 import { Fragment, type ReactNode } from 'react';
 import { ACTION_ICON, ACTION_SUB, LANES, ROLE_OF, fmt, roleOfName, testDay, worked, type Box, type Section } from '../../lib/report-builder/model';
 import { Ic } from './icons';
-import { focusOf, useWs } from './Workspace';
+import { focusOf, useWs } from './workspace-helpers';
 
 /** A formula with each name as a coloured chip, and red when it names something that doesn't exist. */
 export function Formula({ text }: { text: string }) {

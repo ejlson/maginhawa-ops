@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { latestDefinition, nextDay } from '@maginhawa/core';
 import { formatDay } from '../../lib/draft';
 import type { DefinitionAction } from '../../lib/report-builder/backend';
-import { Popup, useWs } from './Workspace';
+import { Popup } from './Workspace';
+import { useWs } from './workspace-helpers';
 
 export type DialogKind = 'submit' | 'approve' | 'reject' | 'withdraw' | 'discard' | { rollback: number };
 

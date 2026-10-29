@@ -3,7 +3,8 @@ import { Navigate, useNavigate, useParams } from 'react-router';
 import { addOnFor, ANSWER_LABELS, ANSWER_TYPES, canAddChecks, latestVersion, moveCheckpoint, newCheckpoint, nextDay, PHASE_LABELS, PHASES, recordIssues, recordStatus, ruleText, scheduleText, siteName as nameOfSite, SITES, STATUS_LABELS, uniqueId, type AnswerType, type Checkpoint } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
 import { checkPath, editPath, useListEditor } from '../lib/templates';
-import { ANSWER_ICONS, Foot, Icon, ICONS, Nav, RowLink, Toggle } from '../components/ui';
+import { ANSWER_ICONS, ICONS } from '../components/ui-helpers';
+import { Foot, Icon, Nav, RowLink, Toggle } from '../components/ui';
 
 const TYPE_HINTS: Record<AnswerType, string> = {
   yesno: 'A quick tick, e.g. "Ice machine cleaned?"',

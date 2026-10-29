@@ -2,7 +2,7 @@
  * Skeleton loading: grey shapes where the screen's content will be, so the layout doesn't jump when it
  * arrives. Same structure as a real screen (one dark hero card, then list groups), with a soft shimmer.
  */
-import { createContext, useContext, useEffect, useState, type CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 
 /** One placeholder bar. `on="hero"` for use inside the dark hero card. */
 export function Sk({ w = '100%', h = 14, r = 6, on, style }: { w?: number | string; h?: number; r?: number; on?: 'hero'; style?: CSSProperties }) {
@@ -50,21 +50,3 @@ export function PageSkeleton({ wide, nav = true }: { wide?: boolean; nav?: boole
     </main>
   );
 }
-
-/** True once `when` has stayed true for `ms`, so quick loads never flash a skeleton. */
-export function useDelayed(when: boolean, ms = 150): boolean {
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    if (!when) { setShow(false); return; }
-    const t = setTimeout(() => setShow(true), ms);
-    return () => clearTimeout(t);
-  }, [when, ms]);
-  return show;
-}
-
-/**
- * The path of the next screen while its code is still downloading (after a short delay), or null.
- * The app root fills this in from React Router's navigation state.
- */
-export const ComingScreen = createContext<string | null>(null);
-export const useComingScreen = () => useContext(ComingScreen);

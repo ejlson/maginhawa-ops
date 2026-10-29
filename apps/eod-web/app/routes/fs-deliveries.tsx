@@ -2,7 +2,8 @@ import { alertMatches, ALERT_ACTIONS, deliveryProblems, type AlertAction } from 
 import { useAuth } from '../lib/auth';
 import { degrees, hm, shortDate, useFoodSafety } from '../lib/food-safety';
 import { useChecklists } from '../lib/checklists';
-import { Foot, Icon, ICONS, Nav } from '../components/ui';
+import { Foot, Icon, Nav } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 import { Link } from 'react-router';
 
 /** Deliveries with batch codes, and FSA food alerts matched against what we received (HANDOFF.md §8a, item 7). */

@@ -8,7 +8,7 @@ import { useSyncExternalStore } from 'react';
 import type { Role, User } from './auth';
 import { storage } from './storage';
 import { now } from './clock';
-import type { ICONS } from '../components/ui';
+import type { ICONS } from '../components/ui-helpers';
 
 export type TourDemo = 'segs' | 'sync' | 'temp';
 

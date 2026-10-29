@@ -6,7 +6,8 @@ import { formatDay } from '../lib/draft';
 import { useSiteDay } from '../lib/site-timeline';
 import { eodPill } from '../lib/day-status';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
-import { BigMoney, Icon, ICONS, Nav, SECTION_ICONS } from '../components/ui';
+import { BigMoney, Icon, Nav } from '../components/ui';
+import { ICONS, SECTION_ICONS } from '../components/ui-helpers';
 
 const money = (p: Pence | null | undefined) => (p === null || p === undefined ? '—' : formatPounds(p));
 const num = (n: number | null | undefined) => (n === null || n === undefined ? '—' : n.toLocaleString('en-GB'));

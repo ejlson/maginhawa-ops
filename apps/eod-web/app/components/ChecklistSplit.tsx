@@ -7,9 +7,11 @@ import { Link, useNavigate } from 'react-router';
 import { can, useAuth } from '../lib/auth';
 import { formatDay } from '../lib/draft';
 import { ConfirmDialog } from './ConfirmDialog';
-import { runPath, statusPill, useChecklists, isUrgent, type TaskView } from '../lib/checklists';
+import { runPath, statusPill, useChecklists, type TaskView } from '../lib/checklists';
 import type { FinishOutcome } from '@maginhawa/core';
-import { checklistIcon, RowLink, StatusIcon } from './ui';
+import { checklistIcon } from './ui-helpers';
+import { RowLink, StatusIcon } from './ui';
+import { groupTasks } from './checklist-split-helpers';
 
 export function TaskRow({ t }: { t: TaskView }) {
   const pill = statusPill(t);
@@ -18,18 +20,6 @@ export function TaskRow({ t }: { t: TaskView }) {
     ? `${t.run?.completedAt ? new Date(t.run.completedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''} · ${t.run?.completedBy ?? ''}${t.status === 'failed' ? ' · problem fixed' : ''}`
     : `${t.total} ${t.total === 1 ? 'check' : 'checks'} · ${t.template.who}`;
   return <RowLink to={runPath(t.key)} lead={<StatusIcon d={checklistIcon(t.template.id, t.template.phase)} status={pie} />} title={t.title} sub={sub} right={<span className={`pill ${pill.cls}`}>{pill.text}</span>} />;
-}
-
-/** Today's lists in the order people work through them. */
-export function groupTasks(tasks: TaskView[]) {
-  const open = tasks.filter((t) => !t.ready);
-  const now = open.filter((t) => isUrgent(t.status));
-  const missed = open.filter((t) => t.status === 'missed');
-  const later = open.filter((t) => t.status === 'upcoming');
-  const anytime = open.filter((t) => t.status === 'anytime');
-  const ready = tasks.filter((t) => t.ready);
-  const done = tasks.filter((t) => t.status === 'done' || t.status === 'failed');
-  return { now, missed, later, anytime, ready, done, next: now[0] ?? later[0], order: [...now, ...missed, ...later, ...anytime, ...ready, ...done] };
 }
 
 /** The one Submit under all the lists. Lists save as you go; this locks every one that's ready. */
@@ -79,13 +69,6 @@ function submitSummary(results: { title: string; outcome: FinishOutcome }[]) {
   const parts = [`${locked} ${locked === 1 ? 'checklist' : 'checklists'} submitted and locked.`];
   for (const r of results) if (r.outcome.stale || r.outcome.already || r.outcome.queued) parts.push(`${r.title}: ${r.outcome.message}`);
   return parts.join(' ');
-}
-
-/** The next list still to do after this one, for "finish and open the next". */
-export function nextAfter(tasks: TaskView[], key: string): TaskView | undefined {
-  const g = groupTasks(tasks);
-  const open = [...g.now, ...g.missed, ...g.later].filter((t) => t.key !== key);
-  return open[0];
 }
 
 export function SplitFrame({ selected, children }: { selected: string | null; children: ReactNode }) {

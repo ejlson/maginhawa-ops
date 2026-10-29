@@ -1,7 +1,8 @@
 /** The bottom tab bar on the three main screens, so you always know where you are. */
 import { NavLink } from 'react-router';
 import { canDoEod, useAuth } from '../lib/auth';
-import { Icon, ICONS } from './ui';
+import { Icon } from './ui';
+import { ICONS } from './ui-helpers';
 
 const TABS = [
   { to: '/', label: 'Home', icon: ICONS.home, end: true },

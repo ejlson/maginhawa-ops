@@ -6,7 +6,8 @@ import { useChecklists } from '../lib/checklists';
 import { useDraft } from '../lib/draft';
 import { isConnected } from '../lib/config';
 import { now } from '../lib/clock';
-import { Icon, ICONS, Nav, RowLink } from '../components/ui';
+import { Icon, Nav, RowLink } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 /** The food-safety records that show "due diligence" (HANDOFF.md §8a): what needs doing, then every log. */
 export default function FoodSafety() {

@@ -4,7 +4,8 @@ import { addOnFor, canCreateList, canEditList, editableTemplate, recordStatus, s
 import { useAuth } from '../lib/auth';
 import { useChecklists } from '../lib/checklists';
 import { editPath, useTemplates } from '../lib/templates';
-import { Foot, Icon, ICONS, Nav, RowLink } from '../components/ui';
+import { Foot, Icon, Nav, RowLink } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 const siteName = (code?: string) => (code ? nameOfSite(code) : '');
 

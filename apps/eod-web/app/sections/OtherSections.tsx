@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { formatPounds, SECTION_LABELS, type NoteItem, type SectionKey } from '@maginhawa/core';
 import { useDraft } from '../lib/draft';
-import { BigMoney, Icon, ICONS, MoneyRow, Toggle } from '../components/ui';
+import { BigMoney, Icon, MoneyRow, Toggle } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 import { EodPage } from '../components/EodPage';
 import { AddedInputs } from './AddedInputs';
 

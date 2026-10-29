@@ -3,7 +3,8 @@ import { backToWorkAt, EXCLUSION_HOURS } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { useFoodSafety } from '../lib/food-safety';
 import { now } from '../lib/clock';
-import { Foot, Icon, ICONS, Nav, Toggle } from '../components/ui';
+import { Foot, Icon, Nav, Toggle } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 /** The question before a shift (HANDOFF.md §8a, item 9). Only managers see the answers. */
 export default function FsFit() {

@@ -2,7 +2,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { STAGES, STATUS_WORD, pipelineRun } from '../../lib/report-builder/model';
 import { StatusIcon } from './icons';
-import { useWs } from './Workspace';
+import { useWs } from './workspace-helpers';
 
 export function Pipeline({ draftLabel }: { draftLabel: string }) {
   const ws = useWs();

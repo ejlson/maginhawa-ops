@@ -4,7 +4,8 @@ import { SETTINGS_GROUP, updateFigure, usedBy, validateName, type Figure, type F
 import {
   KIND_LABEL, TYPE_LABEL, allNames, fmt, parseValue, roleOfName, targetsFor, testDay, valueText, worked, type Section,
 } from '../../lib/report-builder/model';
-import { Popup, useWs } from './Workspace';
+import { Popup } from './Workspace';
+import { useWs } from './workspace-helpers';
 
 export function Editor() {
   const ws = useWs();

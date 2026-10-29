@@ -5,7 +5,8 @@ import { can, useAuth } from '../lib/auth';
 import { shortDate, useFoodSafety } from '../lib/food-safety';
 import { useChecklists } from '../lib/checklists';
 import { now } from '../lib/clock';
-import { Foot, Icon, ICONS, Nav, RowLink } from '../components/ui';
+import { Foot, Icon, Nav, RowLink } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 /** One dish: its 14-allergen grid, every version kept, and "I've read the change". */
 export default function FsDish() {

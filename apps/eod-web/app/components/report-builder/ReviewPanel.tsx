@@ -3,7 +3,7 @@ import { definitionOn, latestDefinition } from '@maginhawa/core';
 import { formatDay } from '../../lib/draft';
 import { fmt, money } from '../../lib/report-builder/model';
 import { Ic } from './icons';
-import { useWs } from './Workspace';
+import { useWs } from './workspace-helpers';
 
 const when = (t: number | string) => new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 const shortDay = (d: string) => formatDay(d, { weekday: 'short', day: 'numeric', month: 'short' });

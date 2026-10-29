@@ -6,7 +6,8 @@ import { people, usePeople } from '../lib/people';
 import { pins } from '../lib/pins';
 import { now } from '../lib/clock';
 import { useTwoColumns } from '../lib/wide';
-import { Foot, Icon, ICONS, Nav } from '../components/ui';
+import { Foot, Icon, Nav } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 
 /** What each role can do, in a line (HANDOFF.md §1). */

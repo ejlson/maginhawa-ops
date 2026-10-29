@@ -1,16 +1,18 @@
 import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { can, canDoEod, homeOf, useAuth } from '../lib/auth';
-import { DraftProvider, settingsFor } from '../lib/draft';
+import { DraftProvider } from '../lib/draft-provider';
+import { settingsFor } from '../lib/draft';
 import { now } from '../lib/clock';
-import { ChecklistsProvider } from '../lib/checklists';
-import { TemplatesProvider } from '../lib/templates';
-import { SiteProvider } from '../lib/site';
-import { FoodSafetyProvider } from '../lib/food-safety';
+import { ChecklistsProvider } from '../lib/checklists-provider';
+import { TemplatesProvider } from '../lib/templates-provider';
+import { SiteProvider } from '../lib/site-provider';
+import { FoodSafetyProvider } from '../lib/food-safety-provider';
 import { tradingDate } from '@maginhawa/core';
 import { SiteShell } from '../components/SiteShell';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
-import { PageSkeleton, useComingScreen } from '../components/Skeleton';
+import { PageSkeleton } from '../components/Skeleton';
+import { useComingScreen } from '../components/skeleton-helpers';
 import { TourHost } from '../components/Tour';
 
 /** Every screen after sign-in works on today's report and checklists for the manager's site. */

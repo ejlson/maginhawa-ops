@@ -8,7 +8,8 @@ import { Link, useLocation } from 'react-router';
 import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
 import { can, canDoEod, useAuth } from '../lib/auth';
 import { useDraft } from '../lib/draft';
-import { Icon, ICONS, Pie } from './ui';
+import { Icon, Pie } from './ui';
+import { ICONS } from './ui-helpers';
 import { useWide } from '../lib/wide';
 import { useChecklists } from '../lib/checklists';
 import { useSite } from '../lib/site';
@@ -16,11 +17,11 @@ import { useFoodSafety } from '../lib/food-safety';
 import { attentionFor } from '../lib/food-safety-attention';
 import { now } from '../lib/clock';
 import { WhoMenu } from './home/WhoMenu';
-import { CommandMenu, useCommandMenu } from './CommandMenu';
+import { CommandMenu } from './CommandMenu';
+import { useCommandMenu } from './command-menu-helpers';
+import { EOD_SALES, EOD_TEAM } from './site-shell-helpers';
 import { InSiteBar, SitePicker, SwitchToast } from './SitePicker';
 
-export const EOD_SALES: SectionKey[] = ['lunch', 'dinner', 'delivery', 'promotions'];
-export const EOD_TEAM: SectionKey[] = ['wages', 'tips', 'feedback', 'handover'];
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();

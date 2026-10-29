@@ -4,7 +4,8 @@ import { formatDay } from '../lib/draft';
 import { useSiteDay } from '../lib/site-timeline';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 import { Answer } from '../components/Answer';
-import { Icon, ICONS, Nav } from '../components/ui';
+import { Icon, Nav } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 import { taskStatusPill } from '../lib/day-status';
 
 /** Head office · one site's checklist on one day, read-only: every answer, who gave it, fixes and corrections. */

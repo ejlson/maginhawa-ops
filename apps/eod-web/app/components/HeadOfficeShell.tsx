@@ -5,7 +5,8 @@
 import { useEffect, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { SITES } from '@maginhawa/core';
-import { Icon, ICONS } from './ui';
+import { Icon } from './ui';
+import { ICONS } from './ui-helpers';
 import { useWide } from '../lib/wide';
 import { WhoMenu } from './home/WhoMenu';
 
@@ -23,7 +24,7 @@ const LINKS = [
 ] as const;
 
 /** Fixed presets for now. Each person's own saved searches need storing in SharePoint first. */
-export const SAVED_SEARCHES = [
+const SAVED_SEARCHES = [
   { id: 'wages', label: 'Wages 30% or more, last 30 days' },
   { id: 'cash', label: 'Cash short or over, last 30 days' },
   { id: 'refund', label: 'Refunds, any date' },

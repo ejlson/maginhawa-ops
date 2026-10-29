@@ -13,7 +13,8 @@ import { resetDemoChecklists, resetDemoEod } from '../../lib/store';
 import { people } from '../../lib/people';
 import { settingsFor } from '../../lib/draft';
 import { now } from '../../lib/clock';
-import { Icon, ICONS } from '../ui';
+import { Icon } from '../ui';
+import { ICONS } from '../ui-helpers';
 
 export function WhoMenu() {
   const navigate = useNavigate();
