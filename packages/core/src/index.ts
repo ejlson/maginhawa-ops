@@ -23,3 +23,5 @@ export * from './people';
 export * from './reports';
 export * from './day-timeline';
 export * from './food-safety';
+export * from './report-definition';
+export * from './report-versions';
