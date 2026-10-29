@@ -1,6 +1,7 @@
 /**
  * Switching site. Managers who work at more than one site pick between theirs; head office, once
- * they've opened a site, can jump to any of the nine or go back to head office. In the sidebar it's
+ * they've opened a site, can jump to any open site or go back to head office. Managers with two or
+ * more sites also get "My sites", tonight at all of theirs. In the sidebar it's
  * a menu under the site name; on phones the site name at the top opens a sheet. Someone with one
  * site just sees the name. Design: design/eod-canvas/s01–s03 and a05.
  */
@@ -8,7 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router';
 import { siteName, SITES, type StoredReport } from '@maginhawa/core';
-import { useAuth, useMySites } from '../lib/auth';
+import { useAuth, useHasMySites, useMySites } from '../lib/auth';
 import { formatDay, useDraft } from '../lib/draft';
 import { useChecklists } from '../lib/checklists';
 import { deviceStore } from '../lib/store';
@@ -17,8 +18,8 @@ import { demoReports } from '../lib/demo';
 import { Icon } from './ui';
 import { ICONS } from './ui-helpers';
 import { tour } from '../lib/tour';
-
 import { useCanSwitch } from './site-picker-helpers';
+
 const nameOf = siteName;
 const HO_ICON = 'M3 17V8l7-4 7 4v9M8 17v-5h4v5';
 const UPDOWN = 'M6 7l3-3 3 3M6 11l3 3 3-3';
@@ -104,6 +105,7 @@ function SiteList({ onDone }: { onDone: () => void }) {
   const { draft, progress } = useDraft();
   const { tasks } = useChecklists();
   const mine = useMySites();
+  const overview = useHasMySites();
   const tonight = useTonight(draft.businessDate);
   const [q, setQ] = useState('');
   const first = useRef<HTMLButtonElement>(null);
@@ -147,13 +149,20 @@ function SiteList({ onDone }: { onDone: () => void }) {
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a site" aria-label="Find a site" />
         </label>
       </>}
+      {overview && <>
+        <button ref={first} type="button" className="menuitem" onClick={() => { onDone(); navigate('/my-sites'); }}>
+          <span className="av"><Icon d={HO_ICON} size={18} /></span>
+          <span className="tx"><span>My sites</span><small>Tonight at all {mine.length}</small></span>
+        </button>
+        <div className="menusep" role="separator" />
+      </>}
       {!ho && <div className="menuhead">Your sites</div>}
       <div className="siteopts" role="listbox" aria-label="Sites">
         {shown.map((code, i) => {
           const st = status(code);
           const on = code === user.siteCode;
           return (
-            <button key={code} ref={!ho && i === 0 ? first : undefined} type="button" role="option" aria-selected={on} className="menuitem" onClick={() => pick(code)}>
+            <button key={code} ref={!ho && !overview && i === 0 ? first : undefined} type="button" role="option" aria-selected={on} className="menuitem" onClick={() => pick(code)}>
               <span className="av">{code.slice(0, 2)}</span>
               <span className="tx"><span>{nameOf(code)}</span><small className={st.tone}>{st.text}</small></span>
               {on && <Icon d={ICONS.check} size={18} />}

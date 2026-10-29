@@ -1,6 +1,6 @@
 /** The pop-up editor over the darkened map: one for an input or setting, a section, a calculation or check, and an action. */
 import { useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { SETTINGS_GROUP, definitionGroups, figurePicker, updateFigure, usedBy, validateName, type Figure, type FigureType } from '@maginhawa/core';
+import { FLOW_SCHEMA, SETTINGS_GROUP, definitionGroups, figurePicker, updateFigure, usedBy, validateName, type Figure, type FigureType } from '@maginhawa/core';
 import {
   KIND_LABEL, TYPE_LABEL, allNames, fmt, parseValue, roleOfName, targetsFor, testDay, valueText, worked, type Section,
 } from '../../lib/report-builder/model';
@@ -293,7 +293,23 @@ function OutputEditor({ id }: { id: string }) {
                 </label>
               ))}
             </div>
+            {a.id === 'flow' && <FlowPreview shows={a.shows} />}
           </>}
+    </>
+  );
+}
+
+/** What the "EOD submitted" flow receives, worked out with the test day, so finance can see the message they're shaping. */
+function FlowPreview({ shows }: { shows: string[] }) {
+  const ws = useWs();
+  const figures = shows.map((n) => ws.def.figures.find((f) => f.name === n)).filter((f): f is Figure => !!f)
+    .map((f) => ({ name: f.name, text: fmt(ws.R.vals[f.name], f.type) }));
+  const sample = { schema: FLOW_SCHEMA, site: { code: 'BUN', name: 'Bunso' }, businessDate: '2026-10-05', figures };
+  return (
+    <>
+      <div className="cap small">What Power Automate receives, with the test day</div>
+      <pre className="rb-json" aria-label="Example message">{JSON.stringify(sample, null, 2)}</pre>
+      <p className="cap small">The message waits in the FlowOutbox list in SharePoint. The “EOD submitted” flow posts it to the ops Teams channel, and emails the ops manager when wages are red or there’s something to look at. The main figures (net, covers, wages, target) are always included.</p>
     </>
   );
 }

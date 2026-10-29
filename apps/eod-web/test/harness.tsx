@@ -18,6 +18,7 @@ import Section from '../app/routes/section';
 import CashCount from '../app/routes/cash';
 import HeadOffice from '../app/routes/head-office';
 import HeadOfficeSite from '../app/routes/head-office-site';
+import MySites from '../app/routes/my-sites';
 import Checklists from '../app/routes/checklists';
 import ChecklistRun from '../app/routes/checklist-run';
 import ChecklistFix from '../app/routes/checklist-fix';
@@ -95,6 +96,7 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="food-safety/inspections" element={<FsInspections />} />
             <Route path="food-safety/review" element={<FsReview />} />
             <Route path="head-office" element={<HeadOffice />} />
+            <Route path="my-sites" element={<MySites />} />
             <Route path="report" element={<Report />} />
             <Route path="repairs" element={<Repairs />} />
             <Route path="handover" element={<Handover />} />

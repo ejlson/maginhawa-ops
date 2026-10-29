@@ -12,3 +12,7 @@ coverage
 
 # Original handoff archive: same files as this folder
 Maginhawa handoff.zip
+
+# Power Automate: the filled-in copy holds one environment's connection ids
+flows/**/deployment-settings.json
+flows/**/*.zip

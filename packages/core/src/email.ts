@@ -54,7 +54,7 @@ export function eodSummaryEmail(r: StoredReport, settings: Pick<SiteSettings, 's
   return { subject, text: lines.join('\n') };
 }
 
-function figureText(type: 'money' | 'percent' | 'number' | 'yesno', v: number | null): string {
+export function figureText(type: 'money' | 'percent' | 'number' | 'yesno', v: number | null): string {
   if (v === null) return '—';
   if (type === 'money') return formatPounds(v);
   if (type === 'percent') return `${Math.round(v * 1000) / 10}%`;

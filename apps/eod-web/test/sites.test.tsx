@@ -55,7 +55,7 @@ describe('head office in a site', () => {
     expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'EOD' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /^Guanabana/ }));
     const sheet = screen.getByRole('dialog', { name: 'Sites' });
-    expect(within(sheet).getAllByRole('option')).toHaveLength(9);
+    expect(within(sheet).getAllByRole('option')).toHaveLength(8);
     await user.type(within(sheet).getByLabelText('Find a site'), 'bel');
     await user.click(within(sheet).getByRole('option', { name: /Belly/ }));
     expect(screen.getByText(/as head office/)).toHaveTextContent('Viewing Belly as head office');
@@ -76,7 +76,7 @@ describe("a manager's sites on People", () => {
     const sites = screen.getByRole('group', { name: 'Sites' });
     expect(within(sites).getByRole('checkbox', { name: 'Bunso' })).toBeDisabled();
     await user.click(within(sites).getByRole('checkbox', { name: 'Guanabana' }));
-    expect(screen.getByText('Jo can now switch to Guanabana.')).toBeInTheDocument();
+    expect(screen.getByText('Jo can now work at Guanabana.')).toBeInTheDocument();
     expect(people.all().find((p) => p.id === jo.id)?.otherSites).toEqual(['GUA']);
     await user.click(within(screen.getByRole('group', { name: 'Sites' })).getByRole('button', { name: 'Make main' }));
     expect(people.all().find((p) => p.id === jo.id)).toMatchObject({ siteCode: 'GUA', otherSites: ['BUN'] });
@@ -87,5 +87,64 @@ describe("a manager's sites on People", () => {
     renderApp(`/people?p=${jo.id}`, manager);
     expect(screen.getByText('Bunso, Guanabana')).toBeInTheDocument();
     expect(screen.queryByRole('checkbox', { name: 'Guanabana' })).not.toBeInTheDocument();
+  });
+});
+
+describe('My sites', () => {
+  it('a manager with two sites sees tonight at just theirs, and opens one', async () => {
+    joAt('BUN', ['GUA']);
+    const { user } = renderApp('/', manager);
+    await user.click(screen.getByRole('button', { name: /^Bunso/ }));
+    await user.click(screen.getByRole('button', { name: /^My sites/ }));
+    expect(await screen.findByRole('heading', { name: 'My sites' })).toBeInTheDocument();
+    const table = screen.getByRole('table', { name: 'Sites' });
+    expect(within(table).getAllByRole('row').slice(1).map((r) => r.getAttribute('aria-label'))).toEqual(['Bunso: open', 'Guanabana: open']);
+    expect(screen.queryByRole('button', { name: /^Approve \d|^Nothing to approve/ })).not.toBeInTheDocument();
+    await user.click(within(table).getByRole('row', { name: 'Guanabana: open' }));
+    expect(await screen.findByRole('button', { name: /^Guanabana/ })).toBeInTheDocument();
+  });
+
+  it('a manager with one site goes home instead', () => {
+    joAt('BUN');
+    renderApp('/my-sites', manager);
+    expect(screen.queryByRole('heading', { name: 'My sites' })).not.toBeInTheDocument();
+  });
+
+  it('a manager with every site gets all of the open ones', async () => {
+    people.add({ name: 'Jo', role: 'manager', siteCode: 'BUN', allSites: true, email: 'jo@example.com', addedBy: 'Ana' });
+    renderApp('/my-sites', manager);
+    const table = await screen.findByRole('table', { name: 'Sites' });
+    expect(within(table).getAllByRole('row')).toHaveLength(9);
+    expect(within(table).queryByText('Ramo')).not.toBeInTheDocument();
+  });
+});
+
+describe('sites for staff and "all sites"', () => {
+  it('head office puts a staff member on a second site, and they show on that iPad', async () => {
+    const sam = people.add({ name: 'Sam', role: 'staff', siteCode: 'BUN', email: null, addedBy: 'Ana' });
+    const { user } = renderApp(`/people?site=BUN&p=${sam.id}`, admin);
+    await user.click(within(screen.getByRole('group', { name: 'Sites' })).getByRole('checkbox', { name: 'Belly' }));
+    expect(screen.getByText('Sam can now work at Belly.')).toBeInTheDocument();
+    expect(people.at('BEL').map((p) => p.name)).toContain('Sam');
+  });
+
+  it('a manager can see a staff member\'s sites but not change them', () => {
+    const sam = people.add({ name: 'Sam', role: 'staff', siteCode: 'BUN', otherSites: ['BEL'], email: null, addedBy: 'Ana' });
+    joAt('BUN');
+    renderApp(`/people?p=${sam.id}`, manager);
+    expect(screen.getByText('Bunso, Belly')).toBeInTheDocument();
+    expect(screen.queryByRole('switch', { name: 'All sites' })).not.toBeInTheDocument();
+  });
+
+  it('head office gives a manager every site, and can undo it', async () => {
+    const jo = joAt('BUN');
+    const { user } = renderApp(`/people?site=BUN&p=${jo.id}`, admin);
+    await user.click(screen.getByRole('switch', { name: 'All sites' }));
+    expect(screen.getByText('Jo now works at every site.')).toBeInTheDocument();
+    const ticks = within(screen.getByRole('group', { name: 'Sites' })).getAllByRole('checkbox');
+    expect(ticks).toHaveLength(8);
+    ticks.forEach((t) => { expect(t).toBeChecked(); expect(t).toBeDisabled(); });
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(people.all().find((p) => p.id === jo.id)?.allSites).toBeFalsy();
   });
 });

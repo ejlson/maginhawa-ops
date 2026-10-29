@@ -1,0 +1,14 @@
+{
+  "EnvironmentVariables": [
+    { "SchemaName": "mgn_OpsSiteUrl", "Value": "" },
+    { "SchemaName": "mgn_FlowOutboxList", "Value": "FlowOutbox" },
+    { "SchemaName": "mgn_OpsTeamId", "Value": "" },
+    { "SchemaName": "mgn_OpsChannelId", "Value": "" },
+    { "SchemaName": "mgn_OpsManagerEmail", "Value": "" }
+  ],
+  "ConnectionReferences": [
+    { "LogicalName": "mgn_SharePointOps", "ConnectionId": "", "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline" },
+    { "LogicalName": "mgn_TeamsOps", "ConnectionId": "", "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_teams" },
+    { "LogicalName": "mgn_OutlookOps", "ConnectionId": "", "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_office365" }
+  ]
+}

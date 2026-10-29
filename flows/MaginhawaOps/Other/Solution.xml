@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImportExportXml version="9.2.0.0" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SolutionManifest>
+    <UniqueName>MaginhawaOps</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="Maginhawa Ops" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Power Automate flows for the Maginhawa Ops app. Kept in git: edit here, then pack and import." languagecode="1033" />
+    </Descriptions>
+    <Version>1.0.0.0</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>maginhawa</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="Maginhawa" languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions />
+      <EMailAddress xsi:nil="true"></EMailAddress>
+      <SupportingWebsiteUrl xsi:nil="true"></SupportingWebsiteUrl>
+      <CustomizationPrefix>mgn</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>10650</CustomizationOptionValuePrefix>
+      <Addresses />
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="29" id="{3f6c2a71-8d4e-4b9a-a5c2-7e1f0b9d4c11}" behavior="0" />
+      <RootComponent type="380" schemaName="mgn_OpsSiteUrl" behavior="0" />
+      <RootComponent type="380" schemaName="mgn_FlowOutboxList" behavior="0" />
+      <RootComponent type="380" schemaName="mgn_OpsTeamId" behavior="0" />
+      <RootComponent type="380" schemaName="mgn_OpsChannelId" behavior="0" />
+      <RootComponent type="380" schemaName="mgn_OpsManagerEmail" behavior="0" />
+    </RootComponents>
+    <MissingDependencies />
+  </SolutionManifest>
+</ImportExportXml>

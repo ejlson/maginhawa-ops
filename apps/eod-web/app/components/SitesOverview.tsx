@@ -37,7 +37,7 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
   const { user, switchSite } = useAuth();
   const { draft } = useDraft();
   const date = draft.businessDate;
-  const codes = useMemo(() => new Set(sites.map((s) => s.code)), [sites]);
+  const codes = useMemo(() => new Set<string>(sites.map((s) => s.code)), [sites]);
   const Shell = mine ? Plain : HeadOfficeShell;
   // Head office opens a site's trends; a manager goes and works in it.
   const siteLink = (code: string) => (mine

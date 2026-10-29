@@ -84,7 +84,7 @@ describe('first-run tour', () => {
   it('shows head office its own tips', async () => {
     const { user } = renderApp('/head-office', admin);
     const welcome = await screen.findByRole('dialog', { name: 'Welcome, Ana' });
-    expect(within(welcome).getByText(/You're head office, so you see all 9 sites/)).toBeInTheDocument();
+    expect(within(welcome).getByText(/You're head office, so you see all 8 sites/)).toBeInTheDocument();
     await screen.findByRole('heading', { name: 'All sites' });
     await user.click(within(welcome).getByRole('button', { name: 'Show me around' }));
     expect(await screen.findByRole('dialog', { name: 'Every site, tonight' })).toBeInTheDocument();

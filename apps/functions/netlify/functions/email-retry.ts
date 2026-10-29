@@ -18,6 +18,7 @@ export default async (): Promise<void> => {
   //   sites     → Sites list (active sites, with their settings)
   //   store     → the SharePoint EodStore
   //   sendEmail → Graph sendMail from MAIL_FROM to MAIL_TO
+  //   flow      → only when FLOW_OUTBOX=1: the FlowOutbox list (see submit-eod)
   const job = createEmailRetryJob({
     sites: async () => [],
     store: { get: notReady, saveDraft: notReady, submit: notReady, listByDate: notReady, setStatus: notReady, markEmailed: notReady },

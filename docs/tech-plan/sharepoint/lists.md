@@ -15,20 +15,22 @@
 | `WageAmberPct` | Number | Amber above (default 30) |
 | `NetSalesRule` | Choice | GrossMinusSCTaxDiscounts (default) / GrossMinusSCTax — confirm with finance |
 | `DayCloseTime` | Text | e.g. 23:30 — when EOD/missed-check jobs run |
-| `Active` *(indexed)* | Yes/No |  |
+| `Active` *(indexed)* | Yes/No | Open and trading. A closed site (e.g. Ramo) stays for its old records but drops out of pickers, counts and access |
 
 *Indexed (2):* SiteCode, Active
 
-**Staff**: Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts. *Written by:* Admin / Manager.
+**Staff**: Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts. Role and sites decide what the server lets them open. *Written by:* Head office (sites, roles) / Manager (own site's people).
 
 | Column | Type | Notes |
 |---|---|---|
 | `Title` *(required)* | Text | Full name |
 | `Email` *(indexed)* | Text | Microsoft account (blank for kiosk-only staff) |
-| `HomeSite` *(indexed)* | Lookup → Sites |  |
+| `HomeSite` *(indexed)* | Lookup → Sites | Main site: where they land after signing in |
+| `OtherSites` | Lookup → Sites (multi) | Other sites they work at. Head office only |
+| `AllSites` | Yes/No | Every open site, including ones opened later. Head office only |
 | `Department` | Choice | Kitchen / FOH / Management / Finance / Admin |
 | `Position` | Choice | Head chef, Sous chef, CDP, Commis, KP, Floor manager, Senior waiter, Waiter, Runner, Host, Bartender, RM, GM, AM, Duty manager, Supervisor |
-| `AppRole` *(required)* | Choice | Staff / Manager / Admin / Finance / Owner |
+| `AppRole` *(required)* | Choice | Staff / Supervisor / Manager / Head office (head office always has every site) |
 | `PinHash` | Text | argon2 hash of 4-digit kiosk PIN (never the PIN) |
 | `PreferredLanguage` | Text | en-GB default |
 | `Active` *(indexed)* | Yes/No |  |
@@ -608,6 +610,23 @@
 | `SentAt` *(required, set by server)* | Date/Time | Server time |
 
 *Indexed (2):* Title, TradingDay
+
+**FlowOutbox**: One message per submitted EOD for the Power Automate flow "EOD submitted" (flows/MaginhawaOps). The server never calls a flow: the flow starts on a new row, so there is no trigger URL and no Premium licence. *Written by:* submit-eod and the email-retry job add rows; the flow sets Status, ProcessedAt, RunId and Error.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | Key = SiteCode\|yyyy-mm-dd\|SubmitId: one message per submit, a second insert fails (unique) |
+| `SiteCode` *(set by server)* | Text |  |
+| `BusinessDate` *(set by server)* | Date |  |
+| `Schema` *(set by server)* | Text | e.g. maginhawa.eod.submitted/1; the flow refuses one it doesn't know |
+| `Payload` *(set by server)* | Multi-line text | The message as JSON (flowMessage in packages/core/src/flow.ts). No handover notes. Not required in SharePoint, so the flow's Update item only sends Title and Status |
+| `Status` *(indexed, required)* | Choice | Queued / Done / Failed. The flow's trigger only takes Queued |
+| `QueuedAt` *(set by server)* | Date/Time | Server time |
+| `ProcessedAt` | Date/Time | Set by the flow |
+| `RunId` | Text | The flow run, to find it in run history |
+| `Error` | Multi-line text | Set by the flow when it fails; fix, then set Status back to Queued to run it again |
+
+*Indexed (2):* Title, Status
 
 **TradingSessions**: Lunch / dinner figures and cash. *Written by:* App; submit-eod adds net & variance.
 

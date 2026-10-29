@@ -625,3 +625,5 @@ html.rb-full,html.rb-full body{overflow:hidden}
 .rb .pick #insList{display:flex;flex-direction:column;gap:12px}
 .rb .pick-row{display:flex;flex-direction:column;gap:6px}
 .rb .pick-h{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--sec)}
+
+.rb .rb-json{font-family:var(--mono);font-size:12px;line-height:1.5;background:var(--fill);color:var(--text);border-radius:10px;padding:10px 12px;margin:6px 0 8px;max-height:220px;overflow:auto;white-space:pre}

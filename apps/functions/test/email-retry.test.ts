@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SETTINGS, MemoryStore, submitReport, type EmailMessage, type SiteSettings } from '@maginhawa/core';
+import { DEFAULT_SETTINGS, MemoryFlowOutbox, MemoryStore, submitReport, type EmailMessage, type SiteSettings } from '@maginhawa/core';
 import { createEmailRetryJob, EMAIL_GRACE_MS } from '../src/email-retry';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
 
@@ -45,5 +45,18 @@ describe('email-retry', () => {
     const { store, job } = await setup();
     expect(await job(later(EMAIL_GRACE_MS + 1), async () => { throw new Error('mail down'); })).toEqual({ sent: [], failed: ['BUN|2026-10-05'] });
     expect((await store.get('BUN', '2026-10-05'))?.emailedAt).toBeNull();
+  });
+});
+
+describe('email-retry with Power Automate', () => {
+  it('adds a flow message the submit never got to, once, without emailing finance again', async () => {
+    const { store, sent } = await setup();
+    await store.markEmailed('BUN', '2026-10-05', submittedAt);
+    const flow = new MemoryFlowOutbox();
+    const job = (at: Date) => createEmailRetryJob({ sites: async () => [bun], store, sendEmail: async (m) => { sent.push(m); }, now: () => at, flow })();
+    expect(await job(later(EMAIL_GRACE_MS + 1))).toEqual({ sent: [], failed: [], queued: ['BUN|2026-10-05'], queueFailed: [] });
+    expect(await job(later(EMAIL_GRACE_MS + 60_000))).toMatchObject({ queued: [] });
+    expect(flow.items.size).toBe(1);
+    expect(sent).toHaveLength(0);
   });
 });

@@ -245,6 +245,19 @@ describe('connecting', () => {
     expect(changes()).toContain('Changed Send the summary email');
   });
 
+  it('shows what Power Automate receives, and updates it when a figure is ticked', async () => {
+    const { user } = await openByNameReady('Send to Power Automate');
+    const preview = () => within(editor()).getByLabelText('Example message').textContent ?? '';
+    expect(preview()).toContain('"name": "Day total net"');
+    expect(preview()).toContain('"text": "£2,687.50"');
+    expect(preview()).not.toContain('Gross sales');
+    await user.click(within(editor()).getByRole('checkbox', { name: /Gross sales/ }));
+    expect(preview()).toContain('"name": "Gross sales"');
+    expect(changes()).toContain('Changed Send to Power Automate');
+    await waitSaved();
+    expect(stored().draft!.definition.actions.find((a) => a.id === 'flow')?.shows).toContain('Gross sales');
+  });
+
   it('removes a link from the line’s menu', async () => {
     const { user } = await openBuilder();
     await user.click(screen.getByRole('button', { name: 'Expand all' }));

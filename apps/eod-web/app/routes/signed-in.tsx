@@ -36,6 +36,11 @@ export default function SignedIn() {
     || (pathname.startsWith('/food-safety/review') && !can.doReview(user.role))
     || (/^\/checklists\/[^/]+\/correct\//.test(pathname) && !can.correctRecords(user.role));
   if (blocked) return <Navigate to={homeOf(user)} replace />;
+  const outsideSite = user.role === 'headoffice' && !user.inSite;
+  // Head office's home is the head office page until they open a site.
+  if (outsideSite && pathname === '/') return <Navigate to="/head-office" replace />;
+  // Head office screens and People draw their own frame; other screens head office reaches without a site open get it here.
+  const ownFrame = pathname.startsWith('/head-office') || pathname.startsWith('/people');
   return (
     <DraftProvider key={user.siteCode} siteCode={user.siteCode} now={now()}>
       <TemplatesProvider>
@@ -43,7 +48,9 @@ export default function SignedIn() {
           <SiteProvider siteCode={user.siteCode} businessDate={tradingDate(now(), settingsFor(user.siteCode))}>
             <FoodSafetyProvider siteCode={user.siteCode} businessDate={tradingDate(now(), settingsFor(user.siteCode))}>
               {/* Head office has its own frame, until they open a site; everyone else gets the site sidebar on desktop. */}
-              {(user.role === 'headoffice' && !user.inSite) || pathname.startsWith('/head-office') ? <Screen headOffice /> : <SiteShell><Screen /></SiteShell>}
+              {ownFrame && (outsideSite || pathname.startsWith('/head-office')) ? <Screen headOffice />
+                : outsideSite ? <HeadOfficeShell><Screen /></HeadOfficeShell>
+                : <SiteShell><Screen /></SiteShell>}
               <TourHost />
             </FoodSafetyProvider>
           </SiteProvider>

@@ -22,15 +22,17 @@ lst("Reference", "Sites", "One row per restaurant; drives rules, targets and set
  ("WageAmberPct", "Number", "Amber above (default 30)", ""),
  ("NetSalesRule", "Choice", "GrossMinusSCTaxDiscounts (default) / GrossMinusSCTax — confirm with finance", ""),
  ("DayCloseTime", "Text", "e.g. 23:30 — when EOD/missed-check jobs run", ""),
- ("Active", "Yes/No", "", "I"),
+ ("Active", "Yes/No", "Open and trading. A closed site (e.g. Ramo) stays for its old records but drops out of pickers, counts and access", "I"),
 ])
-lst("Reference", "Staff", "Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts", "Admin / Manager", [
+lst("Reference", "Staff", "Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts. Role and sites decide what the server lets them open", "Head office (sites, roles) / Manager (own site's people)", [
  ("Title", "Text", "Full name", "R"),
  ("Email", "Text", "Microsoft account (blank for kiosk-only staff)", "I"),
- ("HomeSite", "Lookup → Sites", "", "I"),
+ ("HomeSite", "Lookup → Sites", "Main site: where they land after signing in", "I"),
+ ("OtherSites", "Lookup → Sites (multi)", "Other sites they work at. Head office only", ""),
+ ("AllSites", "Yes/No", "Every open site, including ones opened later. Head office only", ""),
  ("Department", "Choice", "Kitchen / FOH / Management / Finance / Admin", ""),
  ("Position", "Choice", "Head chef, Sous chef, CDP, Commis, KP, Floor manager, Senior waiter, Waiter, Runner, Host, Bartender, RM, GM, AM, Duty manager, Supervisor", ""),
- ("AppRole", "Choice", "Staff / Manager / Admin / Finance / Owner", "R"),
+ ("AppRole", "Choice", "Staff / Supervisor / Manager / Head office (head office always has every site)", "R"),
  ("PinHash", "Text", "argon2 hash of 4-digit kiosk PIN (never the PIN)", ""),
  ("PreferredLanguage", "Text", "en-GB default", ""),
  ("Active", "Yes/No", "", "I"),
@@ -409,6 +411,18 @@ lst("Trading (EOD)", "EmailLog", "One row per EOD summary emailed to finance. Se
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|SubmitId: one email per submit, a second insert fails (unique)", "IUR"),
  ("TradingDay", "Lookup → TradingDays", "", "I"),
  ("SentAt", "Date/Time", "Server time", "FR"),
+])
+lst("Trading (EOD)", "FlowOutbox", "One message per submitted EOD for the Power Automate flow \"EOD submitted\" (flows/MaginhawaOps). The server never calls a flow: the flow starts on a new row, so there is no trigger URL and no Premium licence", "submit-eod and the email-retry job add rows; the flow sets Status, ProcessedAt, RunId and Error", [
+ ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|SubmitId: one message per submit, a second insert fails (unique)", "IUR"),
+ ("SiteCode", "Text", "", "F"),
+ ("BusinessDate", "Date", "", "F"),
+ ("Schema", "Text", "e.g. maginhawa.eod.submitted/1; the flow refuses one it doesn't know", "F"),
+ ("Payload", "Multi-line text", "The message as JSON (flowMessage in packages/core/src/flow.ts). No handover notes. Not required in SharePoint, so the flow's Update item only sends Title and Status", "F"),
+ ("Status", "Choice", "Queued / Done / Failed. The flow's trigger only takes Queued", "IR"),
+ ("QueuedAt", "Date/Time", "Server time", "F"),
+ ("ProcessedAt", "Date/Time", "Set by the flow", ""),
+ ("RunId", "Text", "The flow run, to find it in run history", ""),
+ ("Error", "Multi-line text", "Set by the flow when it fails; fix, then set Status back to Queued to run it again", ""),
 ])
 lst("Trading (EOD)", "TradingSessions", "Lunch / dinner figures and cash", "App; submit-eod adds net & variance", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|Session", "IUR"),

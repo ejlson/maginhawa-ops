@@ -14,7 +14,7 @@ const required = ['ENTRA_TENANT_ID', 'ENTRA_CLIENT_ID', 'ENTRA_CLIENT_SECRET', '
 export default async (req: Request): Promise<Response> => {
   // Shared test mode (local only, never deployed): see README.
   const dev = sharedDev();
-  if (dev) return createSubmitHandler({ authenticate: dev.authenticate, store: dev.eod, settingsFor: devSettingsFor, sendEmail: devSendEmail, index: dev.index })(req);
+  if (dev) return createSubmitHandler({ authenticate: dev.authenticate, store: dev.eod, settingsFor: devSettingsFor, sendEmail: devSendEmail, index: dev.index, flow: dev.flow })(req);
   const missing = required.filter((k) => !process.env[k]);
   if (missing.length) {
     return new Response(JSON.stringify({ error: 'The server is not connected to SharePoint yet. Your report is saved on this device.', missing }), {
@@ -27,6 +27,8 @@ export default async (req: Request): Promise<Response> => {
   //   store        → a SharePoint EodStore (Graph $batch, Retry-After), using toSharePointFields()
   //   sendEmail    → Graph sendMail from MAIL_FROM to MAIL_TO
   //   definitions  → the ReportDefinitions list (the report builder's approved versions)
+  //   flow         → only when FLOW_OUTBOX=1: the FlowOutbox list, one row per message using
+  //                  toFlowOutboxFields(); a 409 on the unique Title means 'exists'
   const handler = createSubmitHandler({
     authenticate: async () => null,
     store: { get: notReady, saveDraft: notReady, submit: notReady, listByDate: notReady, setStatus: notReady, markEmailed: notReady },

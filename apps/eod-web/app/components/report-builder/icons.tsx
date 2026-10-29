@@ -8,6 +8,7 @@ const P: Record<string, ReactNode> = {
   check: <path d="M8 2.5l5.5 5.5L8 13.5 2.5 8z" />,
   output: <><path d="M2.5 4.5h11v7h-11z" /><path d="M2.5 4.5l5.5 4 5.5-4" /></>,
   save: <><ellipse cx="8" cy="4" rx="5" ry="1.8" /><path d="M3 4v8c0 1 2.2 1.8 5 1.8s5-.8 5-1.8V4" /></>,
+  flow: <><circle cx="4" cy="4.5" r="1.8" /><circle cx="12" cy="11.5" r="1.8" /><path d="M5.8 4.5H9a2 2 0 012 2v3.2" /></>,
   bell: <><path d="M4 11V7a4 4 0 018 0v4l1 1.5H3z" /><path d="M6.5 14h3" /></>,
   tap: <path d="M3 8.5l3 3 7-7" />,
   trash: <path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.7 8.5h5.6l.7-8.5" />,

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router';
-import { canEdit, canManagePeople, isActive, isWorkEmail, personProblem, rolesGivenBy, siteChoice, siteName, SITES, sitesOf, usesPin, type Person, type PersonRole } from '@maginhawa/core';
+import { canEdit, canGiveSites, canManagePeople, isActive, isWorkEmail, personProblem, rolesGivenBy, siteChoice, siteName, SITES, sitesOf, usesPin, type Person, type PersonRole } from '@maginhawa/core';
 import { homeFor, initialsOf, ROLE_LABELS, useAuth } from '../lib/auth';
 import { people, usePeople } from '../lib/people';
 import { pins } from '../lib/pins';
 import { now } from '../lib/clock';
 import { useTwoColumns } from '../lib/wide';
-import { Foot, Icon, Nav } from '../components/ui';
+import { Foot, Icon, Nav, Toggle } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 
@@ -246,7 +246,7 @@ function PersonPanel({ person: p, all, by, me, onToast }: { person: Person; all:
         {problem && <p className="note" role="alert" style={{ margin: 0, color: 'var(--bad)' }}>{problem}</p>}
       </div>
 
-      {p.role === 'manager' && isActive(p) && <PersonSites person={p} by={by} onToast={onToast} />}
+      {p.role !== 'headoffice' && isActive(p) && <PersonSites person={p} by={by} onToast={onToast} />}
 
       <div className="person-sec">
         <span className="sl"><span>Signing in</span></span>
@@ -279,45 +279,56 @@ function PersonPanel({ person: p, all, by, me, onToast }: { person: Person; all:
 }
 
 /**
- * The sites a manager works at. Head office ticks them and picks the main one (where they land after
- * signing in); the manager can then switch between them. Managers only: staff PINs belong to one site.
+ * The sites someone works at. Head office ticks them (or "All sites", which includes sites opened later)
+ * and picks the main one, where they land after signing in. Staff and supervisors appear on the iPad at
+ * each of their sites; managers can switch between theirs. Everyone else just sees the list.
  */
 function PersonSites({ person: p, by, onToast }: { person: Person; by: PersonRole; onToast: (t: Toast) => void }) {
-  const mine = sitesOf(p);
+  const mine = sitesOf(p).filter((c) => SITES.some((s) => s.code === c));
   const nameOf = siteName;
-  if (by !== 'headoffice') {
+  if (!canGiveSites(by)) {
     return (
       <div className="person-sec">
         <span className="sl"><span>Sites</span><span>Head office changes these</span></span>
-        <p className="note" style={{ margin: 0 }}>{mine.map(nameOf).join(', ')}</p>
+        <p className="note" style={{ margin: 0 }}>{p.allSites ? `All sites · main site ${nameOf(p.siteCode)}` : mine.map(nameOf).join(', ')}</p>
       </div>
     );
   }
-  const save = (ticked: string[], main: string, text: string) => {
+  const change = (patch: Partial<Person>, text: string) => {
     const before = p;
-    people.update(p.id, siteChoice(ticked, main));
+    people.update(p.id, patch);
     onToast({ text, undo: () => people.restore(before) });
   };
   const toggle = (code: string) => {
     const on = mine.includes(code);
     if (on && mine.length === 1) return;
     const ticked = on ? mine.filter((c) => c !== code) : [...mine, code];
-    save(ticked, p.siteCode, on ? `${p.name} no longer works at ${nameOf(code)}.` : `${p.name} can now switch to ${nameOf(code)}.`);
+    change(siteChoice(ticked, p.siteCode), on ? `${p.name} no longer works at ${nameOf(code)}.` : `${p.name} can now work at ${nameOf(code)}.`);
   };
+  // With "All sites" on, only the main site changes; the ticks stay as they were for if it's turned off.
+  const makeMain = (code: string) => change(
+    p.allSites ? { siteCode: code, otherSites: (p.otherSites ?? []).filter((c) => c !== code) } : siteChoice(mine, code),
+    `${nameOf(code)} is now ${p.name}'s main site.`,
+  );
+  const allOn = Boolean(p.allSites);
   return (
     <div className="person-sec" role="group" aria-label="Sites">
-      <span className="sl"><span>Sites</span><span>{mine.length === 1 ? 'One site' : `${mine.length} sites · they can switch between them`}</span></span>
+      <span className="sl"><span>Sites</span><span>{allOn ? 'Every site, including new ones' : mine.length === 1 ? 'One site' : `${mine.length} sites${p.role === 'manager' ? ' · they can switch between them' : ''}`}</span></span>
+      <div className="fr">
+        <span className="tx"><span>All sites</span><small>Includes any site that opens later</small></span>
+        <Toggle label="All sites" checked={allOn} onChange={(v) => change({ allSites: v }, v ? `${p.name} now works at every site.` : `${p.name} is back to their ticked sites.`)} />
+      </div>
       {SITES.map((s) => {
-        const on = mine.includes(s.code);
+        const on = allOn || mine.includes(s.code);
         const main = s.code === p.siteCode;
         return (
           <div key={s.code} className="site-opt">
-            <button type="button" className="role-opt" role="checkbox" aria-checked={on} disabled={on && mine.length === 1} onClick={() => toggle(s.code)}>
+            <button type="button" className="role-opt" role="checkbox" aria-checked={on} disabled={allOn || (on && mine.length === 1)} onClick={() => toggle(s.code)}>
               <span className={`ring${on ? ' on' : ''}`}>{on && <Icon d={ICONS.check} size={13} />}</span>
               <span className="tx"><span>{s.name}</span></span>
             </button>
             {main && <span className="pill">Main site</span>}
-            {on && !main && <button type="button" className="linkbtn" onClick={() => save(mine, s.code, `${s.name} is now ${p.name}'s main site.`)}>Make main</button>}
+            {on && !main && <button type="button" className="linkbtn" onClick={() => makeMain(s.code)}>Make main</button>}
           </div>
         );
       })}

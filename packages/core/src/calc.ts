@@ -148,6 +148,8 @@ export interface DefinitionSummary {
   added: { id: string; name: string; type: 'money' | 'percent' | 'number' | 'yesno'; value: number | null }[];
   /** What the summary email shows, in order. */
   email: { name: string; type: 'money' | 'percent' | 'number' | 'yesno'; value: number | null }[];
+  /** What the Power Automate message carries, in order. Missing on reports worked out before the flow action existed. */
+  flow?: { name: string; type: 'money' | 'percent' | 'number' | 'yesno'; value: number | null }[];
 }
 
 export interface DayResult {

@@ -1,11 +1,12 @@
 /**
  * POST /submit-eod. Re-checks the report with @maginhawa/core, stores the official
- * figures, then emails finance. Every outside service is passed in, so the handler is
- * fully testable and the real ones (SharePoint via Graph, Entra, mail) plug in later.
+ * figures, hands the Power Automate flow its message (FlowOutbox), then emails finance.
+ * Every outside service is passed in, so the handler is fully testable and the real
+ * ones (SharePoint via Graph, Entra, mail) plug in later.
  */
 import type { DefinitionRecord } from '@maginhawa/core';
 import { eodKey, record, type VersionIndex } from './version-index';
-import { eodSummaryEmail, submitReport, type EmailMessage, type EodStore, type SiteSettings, type StoredReport } from '@maginhawa/core';
+import { eodSummaryEmail, flowMessage, submitReport, type EmailMessage, type EodStore, type FlowOutbox, type SiteSettings, type StoredReport } from '@maginhawa/core';
 
 export interface Caller {
   name: string;
@@ -27,6 +28,8 @@ export interface SubmitDeps {
   index?: VersionIndex;
   /** The report builder's versions; the one approved for the report's trading day decides the figures. */
   definitions?: () => Promise<DefinitionRecord | null>;
+  /** The FlowOutbox list the "EOD submitted" flow starts from. Left out = Power Automate isn't switched on. */
+  flow?: FlowOutbox;
 }
 
 export const json = (status: number, body: unknown) =>
@@ -67,6 +70,8 @@ export function createSubmitHandler(deps: SubmitDeps) {
     }
     if (!res.ok) return json(422, { error: res.error, code: res.code, issues: res.issues ?? [] });
     await record(deps.index, eodKey(res.report.draft.siteCode, res.report.draft.businessDate), res.report.version, at);
+    // Before the replay shortcut: a retry may be the first attempt that got this far. Adding twice is a no-op.
+    await queueFlow(deps, res.report, settings);
     // A retry after lost signal: finance already has the email, unless the first attempt never got that far.
     if (res.replayed && res.report.emailedAt) return json(200, { report: res.report, replayed: true, emailed: true });
 
@@ -89,4 +94,16 @@ export async function emailFinance(deps: Pick<SubmitDeps, 'store' | 'sendEmail' 
     // Sent but not stamped: the retry job may send it once more. A duplicate beats a missing one.
   }
   return true;
+}
+
+/** Gives the flow its message. Never fails the submit: the email retry job adds anything missing later. */
+export async function queueFlow(deps: Pick<SubmitDeps, 'flow'>, report: StoredReport, settings: SiteSettings): Promise<'added' | 'exists' | 'failed' | 'off'> {
+  if (!deps.flow) return 'off';
+  const message = flowMessage(report, settings);
+  if (!message) return 'failed';
+  try {
+    return await deps.flow.add(message);
+  } catch {
+    return 'failed';
+  }
 }

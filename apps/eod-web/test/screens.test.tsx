@@ -324,8 +324,8 @@ describe('head office', () => {
   it('opens a restaurant\'s page from the sites table, and back', async () => {
     const { user } = renderApp('/head-office', admin);
     const table = await screen.findByRole('table', { name: 'Sites' });
-    await user.click(within(table).getByRole('row', { name: 'Ramo: see trends' }));
-    expect(await screen.findByRole('heading', { name: 'Ramo' })).toBeInTheDocument();
+    await user.click(within(table).getByRole('row', { name: 'Guanabana: see trends' }));
+    expect(await screen.findByRole('heading', { name: 'Guanabana' })).toBeInTheDocument();
     // Tests run without example data, so there's no history to chart yet.
     expect(screen.getByText('Not enough history yet. Trends appear after a few days of closes.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Week' })).toBeInTheDocument();
@@ -334,7 +334,7 @@ describe('head office', () => {
   });
 
   it('managers can\'t open a restaurant page', () => {
-    renderApp('/head-office/ram');
-    expect(screen.queryByRole('heading', { name: 'Ramo' })).not.toBeInTheDocument();
+    renderApp('/head-office/gua');
+    expect(screen.queryByRole('heading', { name: 'Guanabana' })).not.toBeInTheDocument();
   });
 });

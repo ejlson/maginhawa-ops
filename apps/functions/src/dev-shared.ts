@@ -7,7 +7,7 @@
  * it only switches on with DEV_SHARED_STORE=1, and refuses whenever anything says production
  * or a deployed Netlify Function.
  */
-import { DEFAULT_SETTINGS, DEV_USER_HEADER, findSite, MemoryChecklistStore, MemoryPresence, MemoryStore, SITES, type ChecklistBackend, type EmailMessage, type EodStore, type PresenceRemote, type SiteSettings } from '@maginhawa/core';
+import { DEFAULT_SETTINGS, DEV_USER_HEADER, findSite, MemoryChecklistStore, MemoryPresence, MemoryStore, SITES, type ChecklistBackend, type EmailMessage, type EodStore, type FlowMessage, type FlowOutbox, type PresenceRemote, type SiteSettings } from '@maginhawa/core';
 import type { Caller } from './handler';
 import { MemoryVersionIndex, type VersionIndex } from './version-index';
 
@@ -49,6 +49,7 @@ export interface SharedDev {
   checklists: ChecklistBackend;
   presence: PresenceRemote;
   index: VersionIndex;
+  flow: FlowOutbox;
 }
 
 export function createSharedDev(clock: () => Date = () => new Date()): SharedDev {
@@ -58,6 +59,7 @@ export function createSharedDev(clock: () => Date = () => new Date()): SharedDev
     checklists: new MemoryChecklistStore(clock),
     presence: new MemoryPresence(),
     index: new MemoryVersionIndex(),
+    flow: devFlowOutbox(),
   };
 }
 
@@ -85,4 +87,17 @@ export async function devSettingsFor(siteCode: string): Promise<SiteSettings | n
 /** Shared test mode has no mailbox: the summary goes to the server log instead. */
 export async function devSendEmail(msg: EmailMessage) {
   console.log(`[shared test mode] Email not sent: ${msg.subject}`);
+}
+
+/** Shared test mode has no Power Automate: the message goes to the server log instead, once per submit. */
+export function devFlowOutbox(): FlowOutbox {
+  const seen = new Set<string>();
+  return {
+    async add(m: FlowMessage) {
+      if (seen.has(m.key)) return 'exists';
+      seen.add(m.key);
+      console.log(`[shared test mode] Flow message not sent: ${m.key} · ${m.summary.netText} net · ${m.figures.length} figures`);
+      return 'added';
+    },
+  };
 }

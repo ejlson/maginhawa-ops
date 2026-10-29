@@ -77,7 +77,7 @@
         {
           "name": "Active",
           "type": "Yes/No",
-          "notes": "",
+          "notes": "Open and trading. A closed site (e.g. Ramo) stays for its old records but drops out of pickers, counts and access",
           "flags": "I"
         }
       ]
@@ -85,8 +85,8 @@
     {
       "group": "Reference",
       "name": "Staff",
-      "purpose": "Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts",
-      "written_by": "Admin / Manager",
+      "purpose": "Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts. Role and sites decide what the server lets them open",
+      "written_by": "Head office (sites, roles) / Manager (own site's people)",
       "columns": [
         {
           "name": "Title",
@@ -103,8 +103,20 @@
         {
           "name": "HomeSite",
           "type": "Lookup → Sites",
-          "notes": "",
+          "notes": "Main site: where they land after signing in",
           "flags": "I"
+        },
+        {
+          "name": "OtherSites",
+          "type": "Lookup → Sites (multi)",
+          "notes": "Other sites they work at. Head office only",
+          "flags": ""
+        },
+        {
+          "name": "AllSites",
+          "type": "Yes/No",
+          "notes": "Every open site, including ones opened later. Head office only",
+          "flags": ""
         },
         {
           "name": "Department",
@@ -121,7 +133,7 @@
         {
           "name": "AppRole",
           "type": "Choice",
-          "notes": "Staff / Manager / Admin / Finance / Owner",
+          "notes": "Staff / Supervisor / Manager / Head office (head office always has every site)",
           "flags": "R"
         },
         {
@@ -2279,6 +2291,74 @@
           "type": "Date/Time",
           "notes": "Server time",
           "flags": "FR"
+        }
+      ]
+    },
+    {
+      "group": "Trading (EOD)",
+      "name": "FlowOutbox",
+      "purpose": "One message per submitted EOD for the Power Automate flow \"EOD submitted\" (flows/MaginhawaOps). The server never calls a flow: the flow starts on a new row, so there is no trigger URL and no Premium licence",
+      "written_by": "submit-eod and the email-retry job add rows; the flow sets Status, ProcessedAt, RunId and Error",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = SiteCode|yyyy-mm-dd|SubmitId: one message per submit, a second insert fails (unique)",
+          "flags": "IUR"
+        },
+        {
+          "name": "SiteCode",
+          "type": "Text",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "BusinessDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "Schema",
+          "type": "Text",
+          "notes": "e.g. maginhawa.eod.submitted/1; the flow refuses one it doesn't know",
+          "flags": "F"
+        },
+        {
+          "name": "Payload",
+          "type": "Multi-line text",
+          "notes": "The message as JSON (flowMessage in packages/core/src/flow.ts). No handover notes. Not required in SharePoint, so the flow's Update item only sends Title and Status",
+          "flags": "F"
+        },
+        {
+          "name": "Status",
+          "type": "Choice",
+          "notes": "Queued / Done / Failed. The flow's trigger only takes Queued",
+          "flags": "IR"
+        },
+        {
+          "name": "QueuedAt",
+          "type": "Date/Time",
+          "notes": "Server time",
+          "flags": "F"
+        },
+        {
+          "name": "ProcessedAt",
+          "type": "Date/Time",
+          "notes": "Set by the flow",
+          "flags": ""
+        },
+        {
+          "name": "RunId",
+          "type": "Text",
+          "notes": "The flow run, to find it in run history",
+          "flags": ""
+        },
+        {
+          "name": "Error",
+          "type": "Multi-line text",
+          "notes": "Set by the flow when it fails; fix, then set Status back to Queued to run it again",
+          "flags": ""
         }
       ]
     },

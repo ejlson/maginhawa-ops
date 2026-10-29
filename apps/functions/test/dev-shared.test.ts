@@ -92,7 +92,7 @@ describe('shared test mode guard', () => {
   it('reads the demo sign-in from the header, and nothing else', async () => {
     const req = (v?: string) => new Request('http://x/', { headers: v ? { [DEV_USER_HEADER]: v } : {} });
     expect(await devAuthenticate(req(encodeURIComponent(JSON.stringify(jo))))).toEqual({ name: 'Jo', role: 'manager', siteCodes: ['BUN'] });
-    expect((await devAuthenticate(req(encodeURIComponent(JSON.stringify({ name: 'Ana', role: 'headoffice' })))))?.siteCodes).toHaveLength(9);
+    expect((await devAuthenticate(req(encodeURIComponent(JSON.stringify({ name: 'Ana', role: 'headoffice' })))))?.siteCodes).toHaveLength(8);
     expect(await devAuthenticate(req())).toBeNull();
     expect(await devAuthenticate(req('not json'))).toBeNull();
     expect(await devAuthenticate(req(encodeURIComponent(JSON.stringify({ name: 'Jo', role: 'owner', siteCodes: ['BUN'] }))))).toBeNull();

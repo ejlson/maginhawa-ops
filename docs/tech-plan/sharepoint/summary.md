@@ -1,7 +1,7 @@
 | Group | List | Purpose | Written by | Unique key |
 |---|---|---|---|---|
 | Reference | **Sites** | One row per restaurant; drives rules, targets and settings | Admin (console) | SiteCode |
-| Reference | **Staff** | Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts | Admin / Manager | – |
+| Reference | **Staff** | Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts. Role and sites decide what the server lets them open | Head office (sites, roles) / Manager (own site's people) | – |
 | Reference | **Devices** | Registered kiosk tablets and phones | Admin | – |
 | Reference | **Targets** | Daily targets per site (imported from finance Excel or edited in console) | Nightly targets import (Netlify Scheduled Function) / Finance | SiteCode\|yyyy-mm-dd |
 | Reference | **ReasonCodes** | Discount / comp / void reasons (23 discount/comp + 15 void codes from the current form) | Finance / Admin | – |
@@ -39,6 +39,7 @@
 | Maintenance | **VisitorLog** | Contractor and visitor sign-in | App | – |
 | Trading (EOD) | **TradingDays** | One per site per service date — replaces the Netlify form's Excel row | App creates; submit-eod (Netlify Function) writes official totals | SiteCode\|yyyy-mm-dd |
 | Trading (EOD) | **EmailLog** | One row per EOD summary emailed to finance. Separate from TradingDays so stamping it never changes the report's ETag | submit-eod and the email-retry job (Netlify Functions) | SiteCode\|yyyy-mm-dd\|SubmitId: one email per submit, a second insert fails |
+| Trading (EOD) | **FlowOutbox** | One message per submitted EOD for the Power Automate flow "EOD submitted" (flows/MaginhawaOps). The server never calls a flow: the flow starts on a new row, so there is no trigger URL and no Premium licence | submit-eod and the email-retry job add rows; the flow sets Status, ProcessedAt, RunId and Error | SiteCode\|yyyy-mm-dd\|SubmitId: one message per submit, a second insert fails |
 | Trading (EOD) | **TradingSessions** | Lunch / dinner figures and cash | App; submit-eod adds net & variance | SiteCode\|yyyy-mm-dd\|Session |
 | Trading (EOD) | **Adjustments** | Discounts, comps and voids as rows (were text blobs) | App | ClientId (UUID) |
 | Trading (EOD) | **DeliverySales** | Per platform per day | App; submit-eod adds estimated net | SiteCode\|yyyy-mm-dd\|Platform |

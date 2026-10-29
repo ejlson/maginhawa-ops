@@ -547,6 +547,7 @@ export const EOD_DEFINITION: ReportDefinition = {
   actions: [
     { id: 'email', title: 'Send the summary email', shows: ['Day total net', 'Dine-in net', 'Delivery net', 'Total covers', 'Net per head', 'Wage %', 'Total tips', 'Net against target'] },
     { id: 'sp', title: 'Save to SharePoint', shows: ['Day total net', 'Gross sales', 'Total covers', 'Wage %', 'Total tips', 'Net against target'] },
+    { id: 'flow', title: 'Send to Power Automate', shows: ['Day total net', 'Total covers', 'Net per head', 'Wage %', 'Net against target'] },
     { id: 'cashReason', title: 'Ask the manager to explain the cash', shows: ['Cash doesn’t balance?'], when: 'Cash doesn’t balance?' },
     { id: 'alert', title: 'Alert the ops manager', shows: ['Wages over red?'], when: 'Wages over red?' },
     { id: 'digest', title: 'Flag in the 07:00 digest', shows: ['Discounts over limit?'], when: 'Discounts over limit?' },

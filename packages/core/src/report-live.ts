@@ -87,15 +87,17 @@ export function computeDayWith(d: EodDraft, settings: SiteSettings, target?: { n
   out.calcVersion = `definition-v${version.version}`;
 
   const byName = new Map(version.definition.figures.map((x) => [x.name, x]));
+  const shown = (actionId: string) => (version.definition.actions.find((a) => a.id === actionId)?.shows ?? [])
+    .map((name) => byName.get(name)).filter((x): x is Figure => !!x)
+    .map((x) => ({ name: x.name, type: x.type, value: has(x.id) ? f[x.id]! : x.kind === 'input' || x.kind === 'setting' ? (extra[x.id] ?? null) : null }));
   const summary: DefinitionSummary = {
     version: version.version,
     figures: f,
     errors: of.errors,
     added: version.definition.figures.filter((x) => (x.kind === 'calc' || x.kind === 'check') && !BUILT_IN_IDS.has(x.id))
       .map((x) => ({ id: x.id, name: x.name, type: x.type, value: has(x.id) ? f[x.id]! : null })),
-    email: (version.definition.actions.find((a) => a.id === 'email')?.shows ?? [])
-      .map((name) => byName.get(name)).filter((x): x is Figure => !!x)
-      .map((x) => ({ name: x.name, type: x.type, value: has(x.id) ? f[x.id]! : x.kind === 'input' || x.kind === 'setting' ? (extra[x.id] ?? null) : null })),
+    email: shown('email'),
+    flow: shown('flow'),
   };
   out.definition = summary;
   return out;

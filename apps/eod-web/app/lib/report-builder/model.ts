@@ -30,8 +30,9 @@ export const CARD_W = 290;
 export const ACTION_SUB: Record<string, string> = {
   email: 'Finance and the site manager', sp: 'EOD Reports list', cashReason: 'Before the report can be sent',
   alert: 'Only runs when the check says yes', digest: 'Head office sees it at 07:00',
+  flow: 'Ops Teams channel and alerts',
 };
-export const ACTION_ICON: Record<string, string> = { sp: 'save', cashReason: 'tap', alert: 'bell', digest: 'bell' };
+export const ACTION_ICON: Record<string, string> = { sp: 'save', cashReason: 'tap', alert: 'bell', digest: 'bell', flow: 'flow' };
 
 /** Calculation groups on the map. They start folded to a summary, so the map shows a dozen cards, not 45. */
 export const CLUSTERS = [
