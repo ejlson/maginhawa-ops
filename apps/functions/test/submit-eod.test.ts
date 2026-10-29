@@ -79,6 +79,24 @@ describe('submit-eod', () => {
     expect((await store.get('BUN', '2026-10-05'))?.status).toBe('submitted');
   });
 
+  it('stamps when finance was emailed', async () => {
+    const { handler, store } = setup();
+    await handler(post(verifiedDraft()));
+    expect((await store.get('BUN', '2026-10-05'))?.emailedAt).toBe('2026-10-05T23:31:00.000Z');
+  });
+
+  it('a retry sends the email the first attempt could not', async () => {
+    let down = true;
+    const sent: EmailMessage[] = [];
+    const { handler, store } = setup({ sendEmail: async (m) => { if (down) throw new Error('mail down'); sent.push(m); } });
+    expect((await (await handler(post(verifiedDraft()))).json()).emailed).toBe(false);
+    expect((await store.get('BUN', '2026-10-05'))?.emailedAt).toBeNull();
+    down = false;
+    const again = await (await handler(post(verifiedDraft()))).json();
+    expect(again).toMatchObject({ replayed: true, emailed: true });
+    expect(sent).toHaveLength(1);
+  });
+
   it('a retried upload does not create a duplicate, or email finance twice', async () => {
     const { handler, store, sent } = setup();
     await handler(post(verifiedDraft()));

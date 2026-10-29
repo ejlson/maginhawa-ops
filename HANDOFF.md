@@ -84,7 +84,7 @@ The finance team's current EOD form is a **single static page on Netlify**. It p
 | Back end | **Netlify Functions** (TypeScript) replace Power Automate. `submit-eod` runs on submit: re-checks with `packages/core`, writes the official totals (*set by server* columns) and sends the summary email. **Netlify Scheduled Functions** run the 07:00 digest, late-report reminders and the nightly targets import |
 | Server sign-in | `@azure/msal-node`, app-only (client credentials). Secret or certificate kept in Netlify environment variables, never in the repo |
 | Identity | Microsoft Entra ID. Users sign in with MSAL (delegated access to the one site). The server uses app-only **`Sites.Selected`** granted on the "Maginhawa Ops" site, plus **`Mail.Send`** restricted to one shared mailbox (e.g. `ops@…`) |
-| Data | **SharePoint site "Maginhawa Ops"**: 49 lists (16 of them food safety, §8a) and 7 document libraries, accessed only through the **Microsoft Graph API**. Use `$batch` (up to 20 requests per call) and honour `Retry-After` |
+| Data | **SharePoint site "Maginhawa Ops"**: 50 lists (16 of them food safety, §8a) and 7 document libraries, accessed only through the **Microsoft Graph API**. Use `$batch` (up to 20 requests per call) and honour `Retry-After` |
 | Email | Graph `sendMail` from a shared mailbox (no licence needed). Resend is the fallback |
 | Reporting | Head-office views and CSV export in our app; finance can also use Excel Power Query on the SharePoint lists. Power BI later, if wanted |
 | Quality | Vitest (unit), Playwright (end-to-end), ESLint + Prettier, pnpm workspaces. Sentry optional for error alerts |
@@ -111,6 +111,14 @@ packages/core    calculations, zod schemas, Graph data module (shared, unit-test
 7. Honour `Retry-After`.
 8. Reporting from scheduled exports, never live per-view queries over large lists.
 9. All data access in one module.
+
+**Several people, one record (sync rules).** Polling only decides how fast a screen *shows* a change; it never keeps data safe. The server does, with conditional writes:
+1. Every shared write says which version it started from (EOD drafts, submit, approve/send back: the SharePoint ETag via `If-Match`; checklist Finish: the change cursor it had seen). A stale write is refused with what is stored now, and the device merges or says who changed what.
+2. Exactly one submit wins; a retry of the same press (same `submitId`) is a no-op and never emails finance twice. Sending is logged in `EmailLog` (beside the report, so it never changes the report's version), and the `email-retry` job sends anything left unsent.
+3. Nothing a person typed disappears quietly: a refused edit or answer is named on screen ("Not saved: submitted by Jo at 22:04…").
+4. Checklist answers are last-write-wins by when they were answered, capped at the server's clock.
+5. Unique `Title` keys (e.g. `SiteCode|date`) stop two devices creating the same record.
+Any new shared data (food safety, templates, people once they sync) follows the same rules. The SharePoint store's obligations are listed at the top of `packages/core/src/store.ts`.
 
 **Limits to remember:**
 - 5,000-item list view threshold.

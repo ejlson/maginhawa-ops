@@ -197,7 +197,7 @@
 | `ClientRecordedAt` | Date/Time | Device clock (Created = server time) |
 | `Supersedes` | Number | Id of the response this corrects (never edit in place) |
 | `CorrectionReason` | Text |  |
-| `AnswerKey` *(indexed)* | Text | runKey\|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who) |
+| `AnswerKey` *(indexed)* | Text | runKey\|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who). The server caps ClientRecordedAt at its own time, so a fast device clock can't win |
 
 *Indexed (6):* Title, Run, Site, BusinessDate, Passed, AnswerKey
 
@@ -573,12 +573,13 @@
 | `Title` *(unique, required)* | Text | Key = SiteCode\|yyyy-mm-dd (blocks duplicates) |
 | `Site` *(indexed)* | Lookup → Sites |  |
 | `BusinessDate` *(indexed)* | Date |  |
-| `Status` *(indexed)* | Choice | Draft / Submitted / Checked / Approved / Reopened |
+| `Status` *(indexed)* | Choice | Draft / Submitted / Checked / Approved / SentBack / Reopened. The app writes Draft, Submitted, Approved and SentBack |
 | `WageCost` | Currency |  |
 | `NextShiftNotes` | Multi-line text |  |
 | `SubmittedBy` | Lookup → Staff | Signed-in user, not typed |
 | `SubmittedAt` | Date/Time |  |
-| `ApprovedBy` | Lookup → Staff | Finance sign-off |
+| `ApprovedBy` | Lookup → Staff | Who last approved or sent it back. Set only with If-Match, so two reviewers can't both win |
+| `ReviewedAt` *(set by server)* | Date/Time | When it was approved or sent back |
 | `TotalGross` *(set by server)* | Currency |  |
 | `TotalNet` *(set by server)* | Currency |  |
 | `DineInNet` *(set by server)* | Currency |  |
@@ -597,6 +598,16 @@
 | `SubmitId` | Text | The submit press that won; a retry of the same press is a no-op |
 
 *Indexed (4):* Title, Site, BusinessDate, Status
+
+**EmailLog**: One row per EOD summary emailed to finance. Separate from TradingDays so stamping it never changes the report's ETag. *Written by:* submit-eod and the email-retry job (Netlify Functions).
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | Key = SiteCode\|yyyy-mm-dd\|SubmitId: one email per submit, a second insert fails (unique) |
+| `TradingDay` *(indexed)* | Lookup → TradingDays |  |
+| `SentAt` *(required, set by server)* | Date/Time | Server time |
+
+*Indexed (2):* Title, TradingDay
 
 **TradingSessions**: Lunch / dinner figures and cash. *Written by:* App; submit-eod adds net & variance.
 

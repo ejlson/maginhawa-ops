@@ -783,7 +783,7 @@
         {
           "name": "AnswerKey",
           "type": "Text",
-          "notes": "runKey|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who)",
+          "notes": "runKey|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who). The server caps ClientRecordedAt at its own time, so a fast device clock can't win",
           "flags": "I"
         }
       ]
@@ -2119,7 +2119,7 @@
         {
           "name": "Status",
           "type": "Choice",
-          "notes": "Draft / Submitted / Checked / Approved / Reopened",
+          "notes": "Draft / Submitted / Checked / Approved / SentBack / Reopened. The app writes Draft, Submitted, Approved and SentBack",
           "flags": "I"
         },
         {
@@ -2149,8 +2149,14 @@
         {
           "name": "ApprovedBy",
           "type": "Lookup → Staff",
-          "notes": "Finance sign-off",
+          "notes": "Who last approved or sent it back. Set only with If-Match, so two reviewers can't both win",
           "flags": ""
+        },
+        {
+          "name": "ReviewedAt",
+          "type": "Date/Time",
+          "notes": "When it was approved or sent back",
+          "flags": "F"
         },
         {
           "name": "TotalGross",
@@ -2247,6 +2253,32 @@
           "type": "Text",
           "notes": "The submit press that won; a retry of the same press is a no-op",
           "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Trading (EOD)",
+      "name": "EmailLog",
+      "purpose": "One row per EOD summary emailed to finance. Separate from TradingDays so stamping it never changes the report's ETag",
+      "written_by": "submit-eod and the email-retry job (Netlify Functions)",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = SiteCode|yyyy-mm-dd|SubmitId: one email per submit, a second insert fails (unique)",
+          "flags": "IUR"
+        },
+        {
+          "name": "TradingDay",
+          "type": "Lookup → TradingDays",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "SentAt",
+          "type": "Date/Time",
+          "notes": "Server time",
+          "flags": "FR"
         }
       ]
     },

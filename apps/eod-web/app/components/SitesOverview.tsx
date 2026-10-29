@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
-import { dailyNet, forecastNet, formatPounds, siteName, splitPounds, type Site, type StoredReport } from '@maginhawa/core';
+import { dailyNet, forecastNet, formatPounds, isSyncError, siteName, splitPounds, type Site, type StoredReport } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { formatDay, useDraft } from '../lib/draft';
 import { deviceStore } from '../lib/store';
@@ -47,6 +47,7 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
   // Demo mode fills the other sites with example closes. Approving those only changes this screen.
   const demo = showExampleData();
   const [demoApproved, setDemoApproved] = useState<Set<string>>(new Set());
+  const [approveNote, setApproveNote] = useState<string | null>(null);
   const load = () => void deviceStore().listByDate(date).then((real) => {
     const examples = demo ? demoReports(date, new Set(real.map((r) => r.draft.siteCode))) : [];
     const all = [...real, ...examples.map((r) => (demoApproved.has(r.draft.siteCode) ? { ...r, status: 'approved' as const } : r))];
@@ -93,7 +94,18 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
   const notStarted = sites.filter((s) => !bySite.has(s.code));
 
   const approveClean = async () => {
-    for (const r of clean.filter((r) => !isExample(r))) await deviceStore().setStatus(r.draft.siteCode, r.draft.businessDate, 'approved');
+    // Each approval is conditional on the version on this screen: if the manager re-sent it or someone else
+    // reviewed it since, it is skipped and the screen says who.
+    const skipped: string[] = [];
+    for (const r of clean.filter((r) => !isExample(r))) {
+      try {
+        await deviceStore().setStatus(r.draft.siteCode, r.draft.businessDate, 'approved', { baseVersion: r.version ?? null, by: user?.name ?? 'Head office' });
+      } catch (e) {
+        if (!isSyncError(e)) throw e;
+        skipped.push(`${siteName(r.draft.siteCode)}: ${e.message}`);
+      }
+    }
+    setApproveNote(skipped.length ? `Not approved, it changed since you looked. ${skipped.join(' · ')}` : null);
     const examples = clean.filter(isExample).map((r) => r.draft.siteCode);
     if (examples.length) setDemoApproved((s) => new Set([...s, ...examples]));
     else load();
@@ -190,6 +202,7 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
               {clean.length ? `Approve ${clean.length} clean ${clean.length === 1 ? 'close' : 'closes'}` : 'Nothing to approve'}
             </button>}
           </div>
+          {approveNote && <p className="note" role="status">{approveNote}</p>}
           <div className="chips" role="group" aria-label="Show">
             {SITE_FILTERS.map((f) => {
               const n = siteRows.filter((x) => f.test(x)).length;

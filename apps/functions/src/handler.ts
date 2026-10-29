@@ -5,7 +5,7 @@
  */
 import type { DefinitionRecord } from '@maginhawa/core';
 import { eodKey, record, type VersionIndex } from './version-index';
-import { eodSummaryEmail, submitReport, type EmailMessage, type EodStore, type SiteSettings } from '@maginhawa/core';
+import { eodSummaryEmail, submitReport, type EmailMessage, type EodStore, type SiteSettings, type StoredReport } from '@maginhawa/core';
 
 export interface Caller {
   name: string;
@@ -67,16 +67,26 @@ export function createSubmitHandler(deps: SubmitDeps) {
     }
     if (!res.ok) return json(422, { error: res.error, code: res.code, issues: res.issues ?? [] });
     await record(deps.index, eodKey(res.report.draft.siteCode, res.report.draft.businessDate), res.report.version, at);
-    // A retry after lost signal: finance already had the email from the first attempt.
-    if (res.replayed) return json(200, { report: res.report, replayed: true });
+    // A retry after lost signal: finance already has the email, unless the first attempt never got that far.
+    if (res.replayed && res.report.emailedAt) return json(200, { report: res.report, replayed: true, emailed: true });
 
-    // The report is safely stored; an email failure must not make the manager resubmit.
-    let emailed = true;
-    try {
-      await deps.sendEmail(eodSummaryEmail(res.report, settings));
-    } catch {
-      emailed = false;
-    }
-    return json(200, { report: res.report, emailed });
+    // The report is safely stored; an email failure must not make the manager resubmit (the email retry job sends it later).
+    const emailed = await emailFinance(deps, res.report, settings);
+    return json(200, { report: res.report, emailed, ...(res.replayed ? { replayed: true } : {}) });
   };
+}
+
+/** Sends finance the summary and stamps it, so it is never sent twice. False = not sent; try again later. */
+export async function emailFinance(deps: Pick<SubmitDeps, 'store' | 'sendEmail' | 'now'>, report: StoredReport, settings: SiteSettings): Promise<boolean> {
+  try {
+    await deps.sendEmail(eodSummaryEmail(report, settings));
+  } catch {
+    return false;
+  }
+  try {
+    await deps.store.markEmailed(report.draft.siteCode, report.draft.businessDate, deps.now?.() ?? new Date());
+  } catch {
+    // Sent but not stamped: the retry job may send it once more. A duplicate beats a missing one.
+  }
+  return true;
 }

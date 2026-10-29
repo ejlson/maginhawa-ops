@@ -149,7 +149,7 @@ lst("Checklists", "Responses", "Every answer — the compliance record (largest 
  ("ClientRecordedAt", "Date/Time", "Device clock (Created = server time)", ""),
  ("Supersedes", "Number", "Id of the response this corrects (never edit in place)", ""),
  ("CorrectionReason", "Text", "", ""),
- ("AnswerKey", "Text", "runKey|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who)", "I"),
+ ("AnswerKey", "Text", "runKey|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who). The server caps ClientRecordedAt at its own time, so a fast device clock can't win", "I"),
 ])
 lst("Checklists", "CorrectiveActions", "What was done about a failed check", "App + Netlify Functions (checklist check, re-check and escalation)", [
  ("Title", "Text", "Short description", "R"),
@@ -387,12 +387,13 @@ lst("Trading (EOD)", "TradingDays", "One per site per service date — replaces 
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd (blocks duplicates)", "IUR"),
  ("Site", "Lookup → Sites", "", "I"),
  ("BusinessDate", "Date", "", "I"),
- ("Status", "Choice", "Draft / Submitted / Checked / Approved / Reopened", "I"),
+ ("Status", "Choice", "Draft / Submitted / Checked / Approved / SentBack / Reopened. The app writes Draft, Submitted, Approved and SentBack", "I"),
  ("WageCost", "Currency", "", ""),
  ("NextShiftNotes", "Multi-line text", "", ""),
  ("SubmittedBy", "Lookup → Staff", "Signed-in user, not typed", ""),
  ("SubmittedAt", "Date/Time", "", ""),
- ("ApprovedBy", "Lookup → Staff", "Finance sign-off", ""),
+ ("ApprovedBy", "Lookup → Staff", "Who last approved or sent it back. Set only with If-Match, so two reviewers can't both win", ""),
+ ("ReviewedAt", "Date/Time", "When it was approved or sent back", "F"),
  ("TotalGross", "Currency", "", "F"), ("TotalNet", "Currency", "", "F"),
  ("DineInNet", "Currency", "", "F"), ("Covers", "Number", "", "F"),
  ("ASPHNet", "Currency", "", "F"), ("ASPHGross", "Currency", "", "F"), ("FoodPct", "Number", "", "F"), ("DrinkPct", "Number", "", "F"),
@@ -403,6 +404,11 @@ lst("Trading (EOD)", "TradingDays", "One per site per service date — replaces 
  ("DraftJson", "Multi-line text", "The whole report between saves. Every save is PATCH with If-Match: <item ETag>, so a stale save gets 412 and is merged by section", ""),
  ("SectionStamps", "Multi-line text", "JSON: who last changed each section, and when (e.g. Jo changed Dinner at 21:14)", ""),
  ("SubmitId", "Text", "The submit press that won; a retry of the same press is a no-op", ""),
+])
+lst("Trading (EOD)", "EmailLog", "One row per EOD summary emailed to finance. Separate from TradingDays so stamping it never changes the report's ETag", "submit-eod and the email-retry job (Netlify Functions)", [
+ ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|SubmitId: one email per submit, a second insert fails (unique)", "IUR"),
+ ("TradingDay", "Lookup → TradingDays", "", "I"),
+ ("SentAt", "Date/Time", "Server time", "FR"),
 ])
 lst("Trading (EOD)", "TradingSessions", "Lunch / dinner figures and cash", "App; submit-eod adds net & variance", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|Session", "IUR"),

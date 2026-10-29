@@ -38,6 +38,7 @@
 | Maintenance | **Invoices** | Contractor invoices for the Finance role | Finance | – |
 | Maintenance | **VisitorLog** | Contractor and visitor sign-in | App | – |
 | Trading (EOD) | **TradingDays** | One per site per service date — replaces the Netlify form's Excel row | App creates; submit-eod (Netlify Function) writes official totals | SiteCode\|yyyy-mm-dd |
+| Trading (EOD) | **EmailLog** | One row per EOD summary emailed to finance. Separate from TradingDays so stamping it never changes the report's ETag | submit-eod and the email-retry job (Netlify Functions) | SiteCode\|yyyy-mm-dd\|SubmitId: one email per submit, a second insert fails |
 | Trading (EOD) | **TradingSessions** | Lunch / dinner figures and cash | App; submit-eod adds net & variance | SiteCode\|yyyy-mm-dd\|Session |
 | Trading (EOD) | **Adjustments** | Discounts, comps and voids as rows (were text blobs) | App | ClientId (UUID) |
 | Trading (EOD) | **DeliverySales** | Per platform per day | App; submit-eod adds estimated net | SiteCode\|yyyy-mm-dd\|Platform |

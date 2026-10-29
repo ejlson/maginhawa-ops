@@ -16,7 +16,7 @@ export default async (req: Request): Promise<Response> => {
   // Connection point: authenticate → Entra ID token; store → the SharePoint EodStore (PATCH with If-Match: <ETag>).
   return createEodDraftHandler({
     authenticate: async () => null,
-    store: { get: notReady, saveDraft: notReady, submit: notReady, listByDate: notReady, setStatus: notReady },
+    store: { get: notReady, saveDraft: notReady, submit: notReady, listByDate: notReady, setStatus: notReady, markEmailed: notReady },
     index: blobsVersionIndex(),
   })(req);
 };

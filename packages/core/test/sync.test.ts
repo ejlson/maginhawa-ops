@@ -4,7 +4,7 @@
  * Times: 5 October 2026 is BST, so 20:14Z shows as 21:14.
  */
 import { describe, expect, it } from 'vitest';
-import { MemoryStore } from '../src/store';
+import { MemoryStore, reviewedMessage } from '../src/store';
 import { submitReport } from '../src/submit';
 import { newDraft } from '../src/schema';
 import { changedSections, mergeDrafts, SyncError } from '../src/sync';
@@ -250,6 +250,57 @@ describe('submit', () => {
     expect(sam.getState().status).toBe('locked');
     await sam.edit((d) => { d.wages.wageCost = 1; });
     expect(sam.getState().draft.wages.wageCost).toBe(80000);
+  });
+});
+
+describe('head office review', () => {
+  async function sent() {
+    const store = new MemoryStore();
+    const now = new Date('2026-10-06T08:12:00Z');
+    const res = await submitReport(verifiedDraft(), { store, settings, submittedBy: 'Jo', now });
+    if (!res.ok) throw new Error(res.error);
+    return { store, now, report: res.report };
+  }
+
+  it('two reviewers at once: exactly one wins, the other is told who', async () => {
+    const { store, now, report } = await sent();
+    const results = await Promise.allSettled([
+      store.setStatus('BUN', '2026-10-05', 'approved', { baseVersion: report.version, by: 'Sam', now }),
+      store.setStatus('BUN', '2026-10-05', 'sent-back', { baseVersion: report.version, by: 'Alex', now }),
+    ]);
+    expect(results.map((r) => r.status)).toEqual(['fulfilled', 'rejected']);
+    const lost = (results[1] as PromiseRejectedResult).reason as SyncError;
+    expect(lost.code).toBe('conflict');
+    expect(lost.message).toBe('Approved by Sam at 09:12');
+    expect((await store.get('BUN', '2026-10-05'))?.status).toBe('approved');
+  });
+
+  it('cannot approve a report that was re-sent since the reviewer looked', async () => {
+    const { store, now, report } = await sent();
+    await store.setStatus('BUN', '2026-10-05', 'sent-back', { baseVersion: report.version, by: 'Sam', now });
+    // Still on the old screen: approving the figures Sam just sent back is refused.
+    await expect(store.setStatus('BUN', '2026-10-05', 'approved', { baseVersion: report.version, by: 'Alex', now })).rejects.toThrow('Sent back by Sam at 09:12');
+  });
+
+  it('cannot approve a report the manager is fixing, even with its current version', async () => {
+    const { store, now, report } = await sent();
+    const back = await store.setStatus('BUN', '2026-10-05', 'sent-back', { baseVersion: report.version, by: 'Sam', now });
+    await expect(store.setStatus('BUN', '2026-10-05', 'approved', { baseVersion: back.version, by: 'Sam', now })).rejects.toBeInstanceOf(SyncError);
+  });
+
+  it('"sent back by" stays while the manager edits, and a resubmit starts a fresh review and email', async () => {
+    const { store, now, report } = await sent();
+    await store.markEmailed('BUN', '2026-10-05', now);
+    const back = await store.setStatus('BUN', '2026-10-05', 'sent-back', { baseVersion: report.version, by: 'Sam', now });
+    const draft = { ...back.draft, confirmed: true };
+    const edited = await store.saveDraft(draft, { baseVersion: back.version, by: 'Jo', now });
+    expect(edited.reviewedBy).toBe('Sam');
+    const again = await submitReport(edited.draft, { store, settings, submittedBy: 'Jo', now, baseVersion: edited.version, submitId: 'second-press' });
+    expect(again.ok && again.report).toMatchObject({ status: 'submitted', reviewedBy: null, emailedAt: null });
+  });
+
+  it('says what happened in words', () => {
+    expect(reviewedMessage({ status: 'sent-back', reviewedBy: 'Sam', reviewedAt: '2026-10-06T08:12:00Z', submittedBy: 'Jo', submittedAt: null })).toBe('Sent back by Sam at 09:12');
   });
 });
 

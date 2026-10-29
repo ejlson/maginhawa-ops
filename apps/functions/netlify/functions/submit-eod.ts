@@ -29,7 +29,7 @@ export default async (req: Request): Promise<Response> => {
   //   definitions  → the ReportDefinitions list (the report builder's approved versions)
   const handler = createSubmitHandler({
     authenticate: async () => null,
-    store: { get: notReady, saveDraft: notReady, submit: notReady, listByDate: notReady, setStatus: notReady },
+    store: { get: notReady, saveDraft: notReady, submit: notReady, listByDate: notReady, setStatus: notReady, markEmailed: notReady },
     settingsFor: async () => null,
     sendEmail: notReady,
     index: blobsVersionIndex(),
