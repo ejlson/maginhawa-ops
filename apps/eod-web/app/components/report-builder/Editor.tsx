@@ -283,6 +283,7 @@ function OutputEditor({ id }: { id: string }) {
       {a.when
         ? <p className="cap small">Runs only when <span className="chip r-act">{a.when}</span> is yes.</p>
         : <>
+            {a.id === 'flow' && <FlowPreview shows={a.shows} />}
             <div className="cap small">Figures it shows</div>
             <div className="list">
               {figs.map((c, i) => (
@@ -293,7 +294,6 @@ function OutputEditor({ id }: { id: string }) {
                 </label>
               ))}
             </div>
-            {a.id === 'flow' && <FlowPreview shows={a.shows} />}
           </>}
     </>
   );

@@ -61,7 +61,7 @@ describe('loading', () => {
   it('draws every box in four labelled columns', () => {
     expect($$('.lane-h').map((e) => e.textContent?.replace(/^\d/, ''))).toEqual(['Inputs', 'Calculations', 'Day totals', 'Checks & actions']);
     expect($$('.node')).toHaveLength(12); // 6 input sections + 6 calculation groups; figures are rows inside them
-    expect($$('.mrow')).toHaveLength(39);
+    expect($$('.mrow')).toHaveLength(40);
     expect($$('.frow')).toHaveLength(34);
   });
   it('shows the working for a formula', () => {
@@ -323,7 +323,7 @@ describe('assistant suggestions', () => {
 describe('other views', () => {
   it('list view shows every box', () => {
     $<HTMLButtonElement>('[data-view="list"]')!.click();
-    expect($$('.lrow')).toHaveLength(45);
+    expect($$('.lrow')).toHaveLength(46);
     expect(text('.lrow[data-id="lunchNet"] .worked')).toBe('£1,200.00 − £120.00 − £180.00 − £50.00 = £850.00');
   });
   it('the form tab edits the same inputs', () => {
@@ -660,7 +660,7 @@ describe('editing on the card', () => {
 
 describe('workspace', () => {
   it('lists everything in the layers panel, and clicking a layer opens it', () => {
-    expect($$('#layerList .lyr')).toHaveLength(12 + 34 + 39); // 12 cards, 34 inputs and settings, 39 figures in groups
+    expect($$('#layerList .lyr')).toHaveLength(12 + 34 + 40); // 12 cards, 34 inputs and settings, 40 figures in groups
     $$('#layerList .lyr').find((b) => b.textContent === 'Wage %')!.click();
     expect(S().sel).toBe('wagePct');
     expect($('#modal')!.hidden).toBe(false);
@@ -677,7 +677,7 @@ describe('workspace', () => {
     press(doc.body, 't'); renameInline('E');
     expect($$('.node').length).toBe(n + 1); // only the section is a new card; the rest are rows
     expect($$('.frow').length).toBe(f + 3);
-    expect($$('.mrow').length).toBe(41);
+    expect($$('.mrow').length).toBe(42);
   });
   it('zooms with + and −, and Shift 0 goes back to 100%', () => {
     press(doc.body, '=');
@@ -825,7 +825,7 @@ describe('the simple map', () => {
     expect(text('.node[data-id="c-lunch"] .nb')).toMatch(/^Net£850\.00Covers40/);
     expect(text('.node[data-id="c-totals"] .nb')).toMatch(/^Day total net£2,687\.50Wage %29\.8%/);
     expect(text('.node[data-id="c-checks"] .nb')).toMatch(/All clear/);
-    expect(text('.node[data-id="c-actions"] .nb')).toMatch(/Run on the test day2 of 5/);
+    expect(text('.node[data-id="c-actions"] .nb')).toMatch(/Run on the test day3 of 6/);
   });
   it('flags a group when one of its figures goes wrong', () => {
     load();
