@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { evaluate, ruleText, type AnswerValue, type Checkpoint } from '@maginhawa/core';
 import { Icon, TempInput } from './ui';
-import { ICONS, nextOnEnter } from './ui-helpers';
+import { ICONS, nextOnEnter, parseNumber, toggled } from './ui-helpers';
 
 /** Downscales a photo to keep it small enough to store on the device. */
 async function shrinkPhoto(file: File): Promise<string> {
@@ -18,11 +18,6 @@ async function shrinkPhoto(file: File): Promise<string> {
     URL.revokeObjectURL(url);
   }
 }
-
-const parseNumber = (t: string) => {
-  const n = parseFloat(t.replace('−', '-').replace(/[^0-9.\-]/g, ''));
-  return Number.isFinite(n) ? n : null;
-};
 
 function NumberAnswer({ c, value, onChange, invalid, disabled }: { c: Checkpoint; value: AnswerValue | undefined; onChange: (v: AnswerValue) => void; invalid: boolean; disabled: boolean }) {
   const [text, setText] = useState(typeof value === 'number' ? String(value) : '');
@@ -113,7 +108,7 @@ export function Answer({ c, value, set, today, disabled, onBig }: { c: Checkpoin
           <div className="chips" role={c.multi ? 'group' : 'radiogroup'} aria-label={c.title}>
             {(c.options ?? []).map((o, i) => (
               <button key={`${i}:${o}`} type="button" className="chip" disabled={disabled} aria-pressed={picked.includes(o)}
-                onClick={() => set(c.multi ? (picked.includes(o) ? picked.filter((x) => x !== o) : [...picked, o]) : [o])}>{o}</button>
+                onClick={() => set(c.multi ? toggled(picked, o) : [o])}>{o}</button>
             ))}
           </div>
         </div>

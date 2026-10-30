@@ -10,6 +10,7 @@
  * (someone editing the SharePoint list by hand) still shows up within about a minute.
  */
 import { getStore } from '@netlify/blobs';
+import type { StoredReport } from '@maginhawa/core';
 
 export interface IndexEntry {
   value: string;
@@ -29,12 +30,12 @@ export const NO_REPORT = 'none';
 export const eodKey = (site: string, date: string) => `eod|${site}|${date}`;
 export const checklistKey = (site: string) => `checklists|${site}`;
 
-/** The entry, if it is recent enough to answer a poll without asking SharePoint. */
-export async function trusted(index: VersionIndex | undefined, key: string, now: number): Promise<string | null> {
+/** The entry, if it is recent enough (within `trustMs`) to answer without asking SharePoint. */
+export async function trusted(index: VersionIndex | undefined, key: string, now: number, trustMs = INDEX_TRUST_MS): Promise<string | null> {
   if (!index) return null;
   try {
     const e = await index.get(key);
-    return e && now - e.at < INDEX_TRUST_MS ? e.value : null;
+    return e && now - e.at < trustMs ? e.value : null;
   } catch {
     return null; // Blobs unavailable: fall through to SharePoint.
   }
@@ -49,6 +50,10 @@ export async function record(index: VersionIndex | undefined, key: string, value
     /* ignore */
   }
 }
+
+/** Records a stored report's version under its site and trading day. */
+export const recordReport = (index: VersionIndex | undefined, report: Pick<StoredReport, 'draft' | 'version'>, now: number) =>
+  record(index, eodKey(report.draft.siteCode, report.draft.businessDate), report.version, now);
 
 export class MemoryVersionIndex implements VersionIndex {
   entries = new Map<string, IndexEntry>();

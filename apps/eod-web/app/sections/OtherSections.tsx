@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { formatPounds, SECTION_LABELS, type NoteItem, type SectionKey } from '@maginhawa/core';
 import { useDraft } from '../lib/draft';
-import { BigMoney, Icon, MoneyRow, Toggle } from '../components/ui';
-import { ICONS } from '../components/ui-helpers';
+import { BigMoney, ChipRadio, Icon, MoneyRow, Toggle } from '../components/ui';
+import { ICONS, toggled } from '../components/ui-helpers';
 import { EodPage } from '../components/EodPage';
 import { AddedInputs } from './AddedInputs';
 
@@ -58,7 +58,7 @@ export function DeliverySection() {
 }
 
 /** Quick tags for what shaped the day; head office sees them next to the numbers. */
-export const PROMOTION_TAGS = ['Offer', 'Event', 'Big party', 'Weather', 'Football on', 'Short-staffed', 'Closed early', 'Kitchen issue'];
+const PROMOTION_TAGS = ['Offer', 'Event', 'Big party', 'Weather', 'Football on', 'Short-staffed', 'Closed early', 'Kitchen issue'];
 
 export function PromotionsSection() {
   const { draft, update } = useDraft();
@@ -74,7 +74,7 @@ export function PromotionsSection() {
         <div className="chips" role="group" aria-label="What happened today">
           {PROMOTION_TAGS.map((t) => (
             <button key={t} type="button" className="chip" aria-pressed={tags.includes(t)}
-              onClick={() => update((d) => { const was = d.promotions.tags ?? []; d.promotions.tags = was.includes(t) ? was.filter((x) => x !== t) : [...was, t]; })}>{t}</button>
+              onClick={() => update((d) => { d.promotions.tags = toggled(d.promotions.tags ?? [], t); })}>{t}</button>
           ))}
         </div>
       </section>
@@ -204,7 +204,7 @@ function NotesSection({ section, field, cats, intro, hero }: { section: 'feedbac
       <section className="grp">
         <div className="gh"><h2>Add a note</h2><p>{intro}</p></div>
         <div className="chips" role="radiogroup" aria-label="Category">
-          {cats.map((c) => <button key={c} type="button" className="chip" role="radio" aria-checked={cat === c} aria-pressed={cat === c} onClick={() => setCat(c)}>{c}</button>)}
+          {cats.map((c) => <ChipRadio key={c} checked={cat === c} onClick={() => setCat(c)}>{c}</ChipRadio>)}
         </div>
         <textarea className="ta" aria-label="Note" placeholder={PLACEHOLDERS[cat]} value={body} onChange={(e) => setBody(e.target.value)} />
         {section === 'feedback' && cat === 'Maintenance' && (

@@ -4,7 +4,7 @@ import { addOnFor, ANSWER_LABELS, ANSWER_TYPES, canAddChecks, latestVersion, mov
 import { formatDay } from '../lib/draft';
 import { checkPath, editPath, useListEditor } from '../lib/templates';
 import { ANSWER_ICONS, ICONS } from '../components/ui-helpers';
-import { Foot, Icon, Nav, RowLink, Toggle } from '../components/ui';
+import { ChipRadio, Foot, Icon, Nav, RowLink, Toggle } from '../components/ui';
 
 const TYPE_HINTS: Record<AnswerType, string> = {
   yesno: 'A quick tick, e.g. "Ice machine cleaned?"',
@@ -198,7 +198,7 @@ export default function ChecklistBuilder() {
           )}
           <div className="field"><span id="phase">Part of the day</span>
             <div className="chips" role="radiogroup" aria-labelledby="phase">
-              {PHASES.map((p) => <button key={p} type="button" className="chip" role="radio" aria-checked={t.phase === p} aria-pressed={t.phase === p} disabled={!editable} onClick={() => edit((d) => ({ ...d, phase: p }))}>{PHASE_LABELS[p]}</button>)}
+              {PHASES.map((p) => <ChipRadio key={p} checked={t.phase === p} disabled={!editable} onClick={() => edit((d) => ({ ...d, phase: p }))}>{PHASE_LABELS[p]}</ChipRadio>)}
             </div>
           </div>
           <div className="fr"><span className="tx"><span>Set times each day</span><small>Turn off for lists done when needed, like a delivery</small></span>
@@ -228,7 +228,7 @@ export default function ChecklistBuilder() {
             </div>
             <div className="field"><span id="window">Counts as missed after</span>
               <div className="chips" role="radiogroup" aria-labelledby="window">
-                {WINDOWS.map((m) => <button key={m} type="button" className="chip" role="radio" aria-checked={t.windowMinutes === m} aria-pressed={t.windowMinutes === m} disabled={!editable} onClick={() => edit((d) => ({ ...d, windowMinutes: m }))}>{m < 60 ? `${m} min` : `${m / 60} hr`}</button>)}
+                {WINDOWS.map((m) => <ChipRadio key={m} checked={t.windowMinutes === m} disabled={!editable} onClick={() => edit((d) => ({ ...d, windowMinutes: m }))}>{m < 60 ? `${m} min` : `${m / 60} hr`}</ChipRadio>)}
               </div>
             </div>
           </>}

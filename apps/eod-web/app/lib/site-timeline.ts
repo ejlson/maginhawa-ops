@@ -17,15 +17,11 @@ import { storage } from './storage';
 import { useTemplates } from './templates';
 import { showExampleData } from './config';
 import { demoReportFromHistory, demoReports } from './demo';
-import { demoHistory } from './demo-history';
+import { demoHash, demoHistory } from './demo-history';
 import { now } from './clock';
 
 const PEOPLE = ['Jo', 'Sam', 'Ali', 'Mei', 'Tom', 'Bea'];
 const ACTIONS = ['Reheated to 75°C', 'Moved stock to the back-up fridge', 'Re-cleaned and re-checked', 'Called the supplier'];
-
-function hash(s: string) {
-  return [...s].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 2166136261);
-}
 
 export interface SiteTask {
   key: string;
@@ -90,7 +86,7 @@ export function siteDay(records: TemplateRecord[], siteCode: string, businessDat
     const template = templates.find((t) => t.id === task.templateId);
     let run: ChecklistRun | undefined = realRuns[task.key];
     if (fake && task.dueAt && task.dueAt < at) {
-      const h = hash(siteCode + task.key);
+      const h = demoHash(siteCode + task.key);
       if (h % 7 !== 0) {
         const doneAt = new Date(task.dueAt.getTime() + ((h >>> 3) % 40) * 60_000);
         if (doneAt < at) {

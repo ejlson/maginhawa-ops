@@ -6,7 +6,7 @@ import { people, usePeople } from '../lib/people';
 import { pins } from '../lib/pins';
 import { now } from '../lib/clock';
 import { useTwoColumns } from '../lib/wide';
-import { Foot, Icon, Nav, Toggle } from '../components/ui';
+import { Foot, Icon, Nav, SiteOptions, Toggle } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 
@@ -31,10 +31,10 @@ function subFor(p: Person): string {
   return p.email ? `Work account · ${p.email}` : 'Work account';
 }
 
-export interface Toast { text: string; undo?: () => void }
+interface Toast { text: string; undo?: () => void }
 
 /** A short message at the bottom with Undo, instead of asking "are you sure?" (HANDOFF.md §7). */
-export function UndoToast({ toast, onClose }: { toast: Toast | null; onClose: () => void }) {
+function UndoToast({ toast, onClose }: { toast: Toast | null; onClose: () => void }) {
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(onClose, 6000);
@@ -118,7 +118,7 @@ function PeopleScreen() {
       {user.role === 'headoffice' && (
         <label className="field"><span>Site</span>
           <select className="in" value={siteCode} onChange={(e) => setParams({ site: e.target.value })}>
-            {SITES.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
+            <SiteOptions />
           </select>
         </label>
       )}

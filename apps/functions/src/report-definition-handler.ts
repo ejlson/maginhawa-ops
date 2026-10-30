@@ -15,7 +15,7 @@ import {
   rollbackDefinition, saveDefinitionDraft, submitDefinition, tradingDate, withdrawDefinition,
   type DefinitionRecord, type ReportDefinition, type SiteSettings, type TestDay,
 } from '@maginhawa/core';
-import { json, type Caller } from './handler';
+import { json, type Authenticate } from './handler';
 
 export interface DefinitionStore {
   /** The record and its ETag (SharePoint's item version), or null before the first save. */
@@ -27,7 +27,7 @@ export interface DefinitionStore {
 export class ConflictError extends Error {}
 
 export interface DefinitionDeps {
-  authenticate: (req: Request) => Promise<Caller | null>;
+  authenticate: Authenticate;
   store: DefinitionStore;
   /** For the trading day (day-close time and time zone). */
   groupSettings: () => Promise<Pick<SiteSettings, 'dayCloseTime' | 'timezone'>>;
@@ -56,9 +56,9 @@ export function createDefinitionHandler(deps: DefinitionDeps, key = 'eod') {
     if (!headOffice && req.method !== 'GET') return json(403, { error: 'Only head office can change the report.' });
 
     const now = deps.now?.() ?? new Date();
-    const today = tradingDate(now, await deps.groupSettings());
+    const [settings, current] = await Promise.all([deps.groupSettings(), deps.store.get(key)]);
+    const today = tradingDate(now, settings);
     const at = now.toISOString();
-    const current = await deps.store.get(key);
     // Managers' apps read only the version that's live for a trading day; never drafts or history.
     if (!headOffice) {
       const date = new URL(req.url).searchParams.get('date') ?? today;
@@ -70,12 +70,13 @@ export function createDefinitionHandler(deps: DefinitionDeps, key = 'eod') {
     const view = (record: DefinitionRecord, etag: string) => ({
       record, etag, today, status: definitionStatus(record, today), live: definitionOn(record, today)?.version ?? null,
     });
-
-    if (req.method === 'GET') {
-      const res = json(200, view(current.record, current.etag));
-      res.headers.set('ETag', current.etag);
+    const viewResponse = (record: DefinitionRecord, etag: string) => {
+      const res = json(200, view(record, etag));
+      res.headers.set('ETag', etag);
       return res;
-    }
+    };
+
+    if (req.method === 'GET') return viewResponse(current.record, current.etag);
     if (req.method !== 'PUT' && req.method !== 'POST') return json(405, { error: 'Use GET, PUT or POST.' });
 
     const ifMatch = req.headers.get('If-Match');
@@ -111,10 +112,7 @@ export function createDefinitionHandler(deps: DefinitionDeps, key = 'eod') {
     }
 
     try {
-      const etag = await deps.store.save(next, current.etag);
-      const res = json(200, view(next, etag));
-      res.headers.set('ETag', etag);
-      return res;
+      return viewResponse(next, await deps.store.save(next, current.etag));
     } catch (e) {
       if (e instanceof ConflictError) return json(409, { error: 'Someone else changed the report. Reload to see their changes.' });
       throw e;

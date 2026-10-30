@@ -5,13 +5,13 @@
  */
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
-import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
+import { formatPounds, isEditable, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
 import { can, canDoEod, useAuth } from '../lib/auth';
 import { useDraft } from '../lib/draft';
 import { Icon, Pie } from './ui';
 import { ICONS } from './ui-helpers';
 import { useWide } from '../lib/wide';
-import { useChecklists } from '../lib/checklists';
+import { isOverdue, useChecklists } from '../lib/checklists';
 import { useSite } from '../lib/site';
 import { useFoodSafety } from '../lib/food-safety';
 import { attentionFor } from '../lib/food-safety-attention';
@@ -79,7 +79,7 @@ function useCounts(): Record<'checklists' | 'repairs' | 'handover' | 'foodSafety
   const { tasks, businessDate } = useChecklists();
   const { open, handover, handoverRead } = useSite();
   const { site, data, siteCode } = useFoodSafety();
-  const late = tasks.filter((t) => t.status === 'late' || t.status === 'missed').length;
+  const late = tasks.filter(isOverdue).length;
   const due = tasks.filter((t) => t.status === 'due').length;
   const urgent = open.filter((r) => r.urgent).length;
   const fs = user ? attentionFor(site, data, siteCode, { today: businessDate, now: now(), role: user.role, person: user.name }) : [];
@@ -101,7 +101,7 @@ function Badge({ b }: { b: Count }) {
 function EodSections() {
   const { pathname } = useLocation();
   const { draft, result, status } = useDraft();
-  const locked = status === 'submitted' || status === 'approved';
+  const locked = !isEditable(status);
   const amount = (k: SectionKey) => {
     if (sectionStatus(draft, k) !== 'done') return null;
     if (k === 'lunch' || k === 'dinner') return formatPounds(result.sessions[k].net);

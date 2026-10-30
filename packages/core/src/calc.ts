@@ -5,6 +5,7 @@
 import { percent, roundPence, type Pence } from './money';
 import type { DeliveryPlatform, SiteSettings } from './settings';
 import type { CashCount, DeliveryEntry, EodDraft, Session, SessionKey } from './schema';
+import type { FigureType } from './report-definition';
 
 export const CALC_VERSION = 'core-1.0.0';
 
@@ -138,6 +139,13 @@ export interface DeliveryResult {
   refundPending: boolean;
 }
 
+/** One figure as the review screen, the email and the flow show it. */
+export interface ShownFigure {
+  name: string;
+  type: FigureType;
+  value: number | null;
+}
+
 /** The approved report-builder version the figures were worked out with (report-live.ts). */
 export interface DefinitionSummary {
   version: number;
@@ -145,11 +153,11 @@ export interface DefinitionSummary {
   figures: Record<string, number>;
   errors: Record<string, string>;
   /** Calculations and checks finance added in the builder, for the review screen and the email. */
-  added: { id: string; name: string; type: 'money' | 'percent' | 'number' | 'yesno'; value: number | null }[];
+  added: (ShownFigure & { id: string })[];
   /** What the summary email shows, in order. */
-  email: { name: string; type: 'money' | 'percent' | 'number' | 'yesno'; value: number | null }[];
+  email: ShownFigure[];
   /** What the Power Automate message carries, in order. Missing on reports worked out before the flow action existed. */
-  flow?: { name: string; type: 'money' | 'percent' | 'number' | 'yesno'; value: number | null }[];
+  flow?: ShownFigure[];
 }
 
 export interface DayResult {

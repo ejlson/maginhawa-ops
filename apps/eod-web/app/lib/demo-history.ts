@@ -29,6 +29,11 @@ function rng(seed: string) {
   return () => ((s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 2 ** 32);
 }
 
+/** A stable number from a string, to pick made-up names, notes and outcomes the same way every time. */
+export function demoHash(s: string) {
+  return [...s].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 2166136261);
+}
+
 const cache = new Map<string, TradingDayRow[]>();
 
 /** Every site's example days from March 2023 up to and including `lastDate`. Christmas Day is closed. */

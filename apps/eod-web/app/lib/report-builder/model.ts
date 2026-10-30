@@ -6,7 +6,7 @@
  * Units are the engine's: money in pence, percentages as fractions (0.2 = 20%).
  */
 import {
-  SETTINGS_GROUP, definitionGroups, evaluateDefinition, formulaRefs, renameRef, runTestDay, testDayInputs, wouldLoop,
+  SETTINGS_GROUP, definitionGroups, evaluateDefinition, formatPounds, formulaRefs, renameRef, runTestDay, testDayInputs, wouldLoop,
   type Action, type Figure, type FigureType, type ReportDefinition, type TestDay, type TestResult,
 } from '@maginhawa/core';
 
@@ -110,16 +110,12 @@ export function ownerOf(def: ReportDefinition, name: string): string | null {
 
 /* ------------------------------------------------------------------ format */
 
-export function money(pence: number): string {
-  const s = Math.abs(pence / 100).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return `${pence < 0 ? '−' : ''}£${s}`;
-}
 export function fmt(v: number | null | undefined, type: FigureType): string {
   if (v === undefined || v === null || Number.isNaN(v)) return '—';
   if (type === 'percent') return `${(Math.round(v * 1000) / 10).toLocaleString('en-GB', { minimumFractionDigits: 1, maximumFractionDigits: 2 })}%`;
   if (type === 'yesno') return v ? 'Yes' : 'No';
   if (type === 'number') return String(Math.round(v * 100) / 100);
-  return money(v);
+  return formatPounds(v);
 }
 /** What someone types in a value box → engine units. Null when it isn't a number. */
 export function parseValue(text: string, type: FigureType): number | null {

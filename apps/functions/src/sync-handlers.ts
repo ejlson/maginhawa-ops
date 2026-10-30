@@ -4,10 +4,10 @@
  * Who did what always comes from the signed-in caller, never from the request body.
  */
 import { isSyncError, type ChecklistBackend, type ChecklistOp, type EodDraft, type EodStore, type PresenceRemote } from '@maginhawa/core';
-import { json, type Caller } from './handler';
-import { checklistKey, eodKey, NO_REPORT, raise, record, trusted, type VersionIndex } from './version-index';
+import { json, type Authenticate } from './handler';
+import { checklistKey, eodKey, NO_REPORT, raise, record, recordReport, trusted, type VersionIndex } from './version-index';
 
-type Authenticate = (req: Request) => Promise<Caller | null>;
+const notModified = (etag: string) => new Response(null, { status: 304, headers: { ETag: etag } });
 
 async function readJson(req: Request): Promise<Record<string, unknown> | null> {
   try {
@@ -38,12 +38,12 @@ export function createEodDraftHandler(deps: { authenticate: Authenticate; store:
       if (!caller.siteCodes.includes(site)) return json(403, { error: 'You can only open your own site.' });
       const asked = req.headers.get('If-None-Match');
       const known = await trusted(deps.index, eodKey(site, date), now());
-      if (known && asked === `"${known}"`) return new Response(null, { status: 304, headers: { ETag: asked } });
+      if (known && asked === `"${known}"`) return notModified(asked);
       if (known === NO_REPORT && !asked) return json(200, { report: null });
       const report = await deps.store.get(site, date);
       await record(deps.index, eodKey(site, date), report ? report.version : NO_REPORT, now());
       const etag = report?.version ? `"${report.version}"` : null;
-      if (etag && asked === etag) return new Response(null, { status: 304, headers: { ETag: etag } });
+      if (etag && asked === etag) return notModified(etag);
       const res = json(200, { report });
       if (etag) res.headers.set('ETag', etag);
       return res;
@@ -56,13 +56,12 @@ export function createEodDraftHandler(deps: { authenticate: Authenticate; store:
       if (!caller.siteCodes.includes(draft.siteCode)) return json(403, { error: 'You can only edit your own site.' });
       try {
         const report = await deps.store.saveDraft(draft, { baseVersion: (body?.baseVersion as string | null | undefined) ?? null, by: caller.name });
-        await record(deps.index, eodKey(report.draft.siteCode, report.draft.businessDate), report.version, now());
+        await recordReport(deps.index, report, now());
         return json(200, { report });
       } catch (e) {
         if (isSyncError(e)) {
-          const current = e.current;
-          if (current) await record(deps.index, eodKey(current.draft.siteCode, current.draft.businessDate), current.version, now());
-          return json(409, { error: e.message, code: e.code, current });
+          if (e.current) await recordReport(deps.index, e.current, now());
+          return json(409, { error: e.message, code: e.code, current: e.current });
         }
         throw e;
       }

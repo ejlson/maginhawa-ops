@@ -1,14 +1,14 @@
 /** Pieces the staff, supervisor and manager home screens share. */
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import { formatPounds } from '@maginhawa/core';
+import { formatPounds, type Issue } from '@maginhawa/core';
 import { timeHM, useDraft } from '../../lib/draft';
-import { phaseSummaries, runPath, statusPill, type PhaseSummary, type TaskView } from '../../lib/checklists';
+import { checksText, doneAt, isDone, phaseSummaries, runPath, statusPill, taskPie, type PhaseSummary, type TaskView } from '../../lib/checklists';
 import { WhoMenu } from './WhoMenu';
 import { SitePicker } from '../SitePicker';
 import { BigMoney, Chevron, Icon, Pie, RowLink, Segments, StatusIcon } from '../ui';
 import { ICONS, PHASE_ICONS } from '../ui-helpers';
-import { isDone, useToday, useEod } from './shared-helpers';
+import { useToday, useEod } from './shared-helpers';
 
 export function HomeHeader({ right }: { right?: ReactNode }) {
   const { savedAt } = useDraft();
@@ -77,27 +77,27 @@ export function EodHero() {
   );
 }
 
-const doneAt = (t: TaskView) => (t.run?.completedAt ? timeHM(new Date(t.run.completedAt)) : '');
+/** The list finished most recently. */
+const lastDone = (list: TaskView[]) => [...list].sort((a, b) => (b.run?.completedAt ?? '').localeCompare(a.run?.completedAt ?? ''))[0];
 
 /** One checklist as a row: its circle, who it's for, and when it's due or who did it. */
 export function TaskRow({ t, me }: { t: TaskView; me?: string }) {
   const { at } = useToday();
   const pill = statusPill(t, at);
-  const pie = t.status === 'done' ? 'done' : t.status === 'failed' ? 'fail' : t.done > 0 ? 'started' : 'todo';
   const by = t.run?.completedBy === me ? 'you' : t.run?.completedBy;
   const sub = isDone(t)
     ? `Done ${doneAt(t)} by ${by}${t.status === 'failed' ? ' · problem fixed' : ''}`
-    : `${t.total} ${t.total === 1 ? 'check' : 'checks'} · ${t.template.who}`;
+    : checksText(t);
   const right = isDone(t) ? undefined
     : t.status === 'upcoming' ? <span>{t.dueTime ?? pill.text}</span>
     : <span className={`pill ${pill.cls}`}>{pill.text}</span>;
-  return <RowLink to={runPath(t.key)} lead={<Pie status={pie} />} title={t.title} sub={sub} right={right} />;
+  return <RowLink to={runPath(t.key)} lead={<Pie status={taskPie(t)} />} title={t.title} sub={sub} right={right} />;
 }
 
 /** "Hot holding ×3 · Bar opening", or "Opening checks · 09:30" for a single list. */
 function phaseSub(p: PhaseSummary): string {
   if (p.scheduled.length > 0 && p.done === p.scheduled.length) {
-    const last = [...p.scheduled].sort((a, b) => (b.run?.completedAt ?? '').localeCompare(a.run?.completedAt ?? ''))[0];
+    const last = lastDone(p.scheduled);
     return last?.run?.completedBy ? `Done · last at ${doneAt(last)} by ${last.run.completedBy}` : 'All done';
   }
   const counts = new Map<string, number>();
@@ -114,7 +114,7 @@ function phaseSub(p: PhaseSummary): string {
 export function PhaseRows() {
   const { tasks, scheduled, checksDone, at } = useToday();
   if (scheduled.length > 0 && checksDone === scheduled.length) {
-    const last = [...scheduled].sort((a, b) => (b.run?.completedAt ?? '').localeCompare(a.run?.completedAt ?? ''))[0];
+    const last = lastDone(scheduled);
     return (
       <RowLink to="/checklists" lead={<Pie status="done" />} title={`All ${scheduled.length} checklists done`}
         sub={last?.run?.completedBy ? `Last at ${doneAt(last)} by ${last.run.completedBy}` : undefined} />
@@ -131,6 +131,13 @@ export function PhaseRows() {
       })}
     </>
   );
+}
+
+/** What's stopping the EOD from going, one row each. */
+export function EodIssueRows({ issues }: { issues: Issue[] }) {
+  return issues.map((i) => (
+    <RowLink key={i.code + i.section} to={`/close/${i.section}`} lead={<span className={`av ${i.level === 'block' ? 'bad' : 'warn'}`}><Icon d={ICONS.bang} size={15} /></span>} title={i.title} sub={i.detail} />
+  ));
 }
 
 /** The EOD as one row, with the net so far. */

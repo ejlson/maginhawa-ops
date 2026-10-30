@@ -24,7 +24,7 @@ export function SkRows({ count = 3, label = 'Loading' }: { count?: number; label
 }
 
 /** The dark hero card with its figure and three small stats. */
-export function SkHero() {
+function SkHero() {
   return (
     <div className="hero" aria-hidden="true">
       <Sk on="hero" w="45%" h={13} />

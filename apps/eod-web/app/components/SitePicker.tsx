@@ -11,7 +11,7 @@ import { useLocation, useNavigate } from 'react-router';
 import { siteName, SITES, type StoredReport } from '@maginhawa/core';
 import { useAuth, useHasMySites, useMySites } from '../lib/auth';
 import { formatDay, useDraft } from '../lib/draft';
-import { useChecklists } from '../lib/checklists';
+import { isOverdue, useChecklists } from '../lib/checklists';
 import { deviceStore } from '../lib/store';
 import { showExampleData } from '../lib/config';
 import { demoReports } from '../lib/demo';
@@ -113,7 +113,7 @@ function SiteList({ onDone }: { onDone: () => void }) {
   if (!user) return null;
 
   const ho = user.role === 'headoffice';
-  const late = tasks.filter((t) => t.status === 'late' || t.status === 'missed').length;
+  const late = tasks.filter(isOverdue).length;
   const status = (code: string): { text: string; tone: string } => {
     if (code === user.siteCode) {
       const eod = progress.left === 0 && progress.active > 0 ? 'EOD ready' : `EOD ${progress.done} of ${progress.active}`;

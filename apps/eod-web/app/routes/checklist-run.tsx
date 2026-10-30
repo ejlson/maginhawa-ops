@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from 'react-router';
 import { clockTime, evaluate, summariseRun } from '@maginhawa/core';
 import { can, useAuth } from '../lib/auth';
 import { runPath, useChecklists } from '../lib/checklists';
+import { timeHM } from '../lib/draft';
 import { Foot, Icon, Nav } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 import { Answer } from '../components/Answer';
@@ -50,7 +51,7 @@ export default function ChecklistRun() {
           <span className="hl">{task?.title ?? template.title}</span>
           <div className="big"><b>{s.answered}</b><i>&nbsp;of {s.total} done</i></div>
           <div className="hm">
-            <span>{task?.dueTime ?? (task?.dueAt ? task.dueAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : 'Any time')}<small>{done ? 'Was due' : 'Due'}</small></span>
+            <span>{task?.dueTime ?? (task?.dueAt ? timeHM(task.dueAt) : 'Any time')}<small>{done ? 'Was due' : 'Due'}</small></span>
             <span className={s.failures.length ? 'h-bad' : ''}>{s.failures.length}<small>Failed</small></span>
             <span>{template.who}<small>Who does it</small></span>
           </div>
@@ -65,7 +66,7 @@ export default function ChecklistRun() {
             <button type="button" className="sync-x" aria-label="Dismiss" onClick={() => dismissRefused(key)}><Icon d={ICONS.x} size={14} /></button>
           </div>
         )}
-        {done && <div className="banner"><Icon d={ICONS.lock} size={16} /><span>Submitted at {new Date(run!.completedAt!).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} by {run!.completedBy}. Locked: {canCorrect ? 'a correction keeps the old answer and needs a reason.' : "answers can't be changed."}</span></div>}
+        {done && <div className="banner"><Icon d={ICONS.lock} size={16} /><span>Submitted at {timeHM(new Date(run!.completedAt!))} by {run!.completedBy}. Locked: {canCorrect ? 'a correction keeps the old answer and needs a reason.' : "answers can't be changed."}</span></div>}
 
         {sections.map((sec) => (
           <section className="grp" key={sec || 'all'}>

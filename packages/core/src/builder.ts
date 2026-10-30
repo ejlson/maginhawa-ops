@@ -5,6 +5,7 @@
  * and every past run still matches the list it was done against.
  */
 import { ANSWER_TYPES, type AnswerType, type Checkpoint, type ChecklistTemplate } from './checklists';
+import { addDays } from './data-quality';
 
 export interface TemplateVersion {
   version: number;
@@ -59,9 +60,7 @@ export function canCreateList(who: Editor, scope: 'group' | 'site'): boolean {
 }
 
 export function nextDay(date: string): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + 1);
-  return d.toISOString().slice(0, 10);
+  return addDays(date, 1);
 }
 
 /** The example lists, as if they had always been published. */

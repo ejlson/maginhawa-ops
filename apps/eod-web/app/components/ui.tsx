@@ -2,8 +2,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useWide } from '../lib/wide';
-import { formatPounds, parseCount, parsePounds, splitPounds, type Pence, type SectionKey, type SectionStatus } from '@maginhawa/core';
-import { SECTION_ICONS, plainPounds, nextOnEnter, flipSign } from './ui-helpers';
+import { formatPounds, parseCount, parsePounds, SITES, splitPounds, type Pence, type SectionKey, type SectionStatus } from '@maginhawa/core';
+import { SECTION_ICONS, plainPounds, nextOnEnter, flipSign, toggled } from './ui-helpers';
 
 export function Chevron() {
   return (
@@ -174,12 +174,32 @@ export function CountInput({ value, onChange, label, className = 'in' }: { value
   );
 }
 
-export function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+export function Toggle({ checked, onChange, label, disabled }: { checked: boolean; onChange: (v: boolean) => void; label: string; disabled?: boolean }) {
   return (
-    <button type="button" role="switch" aria-checked={checked} aria-label={label} className="tg" onClick={() => onChange(!checked)}>
+    <button type="button" role="switch" aria-checked={checked} aria-label={label} className="tg" disabled={disabled} onClick={() => onChange(!checked)}>
       <span />
     </button>
   );
+}
+
+/** One choice in a row of chips; the row is the role="radiogroup". */
+export function ChipRadio({ checked, onClick, disabled, children }: { checked: boolean; onClick: () => void; disabled?: boolean; children: ReactNode }) {
+  return <button type="button" role="radio" className="chip" aria-checked={checked} aria-pressed={checked} disabled={disabled} onClick={onClick}>{children}</button>;
+}
+
+/** Chips where any number can be on. */
+export function ChipPicker<T extends string>({ options, picked, onChange }: { options: readonly T[]; picked: T[]; onChange: (next: T[]) => void }) {
+  return <div className="chips">{options.map((o) => <button key={o} type="button" className="chip" aria-pressed={picked.includes(o)} onClick={() => onChange(toggled(picked, o))}>{o}</button>)}</div>;
+}
+
+/** The <option> for every site, for a site <select>. */
+export function SiteOptions() {
+  return SITES.map((s) => <option key={s.code} value={s.code}>{s.name}</option>);
+}
+
+/** The button under a long list that shows the next page of it. */
+export function ShowMore({ left, page, onMore }: { left: number; page: number; onMore: () => void }) {
+  return <button type="button" className="btn b2" onClick={onMore}>Show {Math.min(page, left)} more of {left.toLocaleString('en-GB')}</button>;
 }
 
 export function MoneyRow({ label, value, onChange, sub, invalid }: { label: string; value: Pence | null; onChange: (p: Pence | null) => void; sub?: string; invalid?: boolean }) {

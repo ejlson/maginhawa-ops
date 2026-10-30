@@ -69,18 +69,11 @@ function sessionIssues(d: EodDraft, r: DayResult, key: SessionKey, settings: Sit
   const res = r.sessions[key];
   const label = SECTION_LABELS[key];
 
-  if (res.cash.needsReason && res.cash.difference !== null) {
-    out.push({
-      level: 'block', code: 'cash-unexplained', section: key,
-      title: `${label} cash ${formatPounds(Math.abs(res.cash.difference))} ${res.cash.status}`,
-      detail: 'Add a reason to submit.',
-    });
-  } else if (res.cash.difference !== null && res.cash.status !== 'balanced') {
-    out.push({
-      level: 'ok', code: 'cash-explained', section: key,
-      title: `${label} cash ${formatPounds(Math.abs(res.cash.difference))} ${res.cash.status}`,
-      detail: `Reason: ${s.cash.reason}${s.cash.note ? ` · "${s.cash.note}"` : ''}`,
-    });
+  if (res.cash.difference !== null && (res.cash.needsReason || res.cash.status !== 'balanced')) {
+    const title = `${label} cash ${formatPounds(Math.abs(res.cash.difference))} ${res.cash.status}`;
+    out.push(res.cash.needsReason
+      ? { level: 'block', code: 'cash-unexplained', section: key, title, detail: 'Add a reason to submit.' }
+      : { level: 'ok', code: 'cash-explained', section: key, title, detail: `Reason: ${s.cash.reason}${s.cash.note ? ` · "${s.cash.note}"` : ''}` });
   }
 
   if (res.foodDrink.needsCheck) {

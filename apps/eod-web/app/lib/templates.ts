@@ -4,7 +4,7 @@
  * through the functions, behind the same useTemplates() hook.
  */
 import { createContext, useContext } from 'react';
-import { canEditList, editableTemplate, recordStatus, tradingDate, publish, type ChecklistTemplate, type TemplateRecord } from '@maginhawa/core';
+import { canEditList, editableTemplate, recordStatus, tradingDate, type ChecklistTemplate, type TemplateRecord } from '@maginhawa/core';
 import { now } from './clock';
 import { useAuth } from './auth';
 import { settingsFor } from './draft';

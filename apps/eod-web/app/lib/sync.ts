@@ -53,10 +53,14 @@ const headers = (): Record<string, string> => ({ 'Content-Type': 'application/js
 async function call(path: string, init: RequestInit = {}): Promise<Response> {
   const res = await fetch(`${config.apiBase}/${path}`, { ...init, headers: { ...headers(), ...(init.headers as Record<string, string> | undefined) } });
   // 503 = server not connected yet; treat like no signal so the work stays on the device.
-  if (res.status >= 500) { 
-    throw new Error(`Server ${res.status}`); 
-  }
+  if (res.status >= 500) throw new Error(`Server ${res.status}`);
   return res;
+}
+
+/** The body of a good answer. Anything else throws. */
+async function json(res: Response) {
+  if (!res.ok) throw new Error(`Server ${res.status}`);
+  return res.json();
 }
 
 /** Reads JSON from a function. Null when it answers with an error the app can ignore. */
@@ -65,12 +69,17 @@ export async function apiGet<T>(path: string): Promise<T | null> {
   return res.ok ? (await res.json()) as T : null;
 }
 
+/** Sends JSON to a function. Throws if it says no. */
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const res = await call(path, { method: 'POST', body: JSON.stringify(body) });
+  return (await json(res)) as T;
+}
+
 const httpEod: EodRemote = {
   async get(siteCode, businessDate, ifNoneMatch) {
     const res = await call(`eod-draft?site=${encodeURIComponent(siteCode)}&date=${businessDate}`, { headers: ifNoneMatch ? { 'If-None-Match': `"${ifNoneMatch}"` } : {} });
     if (res.status === 304) return 'not-modified';
-    if (!res.ok) throw new Error(`Server ${res.status}`);
-    return (await res.json()).report;
+    return (await json(res)).report;
   },
   async saveDraft(draft, opts) {
     const res = await call('eod-draft', { method: 'PUT', body: JSON.stringify({ draft, baseVersion: opts.baseVersion }) });
@@ -90,13 +99,11 @@ const httpEod: EodRemote = {
 const httpChecklists: ChecklistBackend = {
   async apply(siteCode, ops: ChecklistOp[]) {
     const res = await call('checklist-sync', { method: 'POST', body: JSON.stringify({ siteCode, ops }) });
-    if (!res.ok) throw new Error(`Server ${res.status}`);
-    return (await res.json()).outcomes;
+    return (await json(res)).outcomes;
   },
   async changes(siteCode, businessDate, since) {
     const res = await call(`checklist-sync?site=${encodeURIComponent(siteCode)}&date=${businessDate}&since=${since}`);
-    if (!res.ok) throw new Error(`Server ${res.status}`);
-    return res.json();
+    return json(res);
   },
 };
 

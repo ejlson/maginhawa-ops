@@ -12,7 +12,7 @@ import { useTradingHistory } from '../../lib/history';
 import { Icon, RowLink } from '../ui';
 import { ICONS } from '../ui-helpers';
 import { TabBar } from '../TabBar';
-import { EodHero, EodRow, HomeHeader, NextChecklistHero, PhaseRows, TimelineRow } from './shared';
+import { EodHero, EodIssueRows, EodRow, HomeHeader, NextChecklistHero, PhaseRows, TimelineRow } from './shared';
 import { firstName, greeting, isDaytime, useEod, useToday } from './shared-helpers';
 import { FoodSafetyRow } from '../FoodSafetyRow';
 import { Columns } from '../Columns';
@@ -160,9 +160,7 @@ export function ManagerHome() {
                   title={missedYesterday.length === 1 ? `${missedYesterday[0]!.title} was missed` : `${missedYesterday.length} checklists missed`}
                   sub={missedYesterday.length === 1 ? 'Yesterday' : `Yesterday · ${missedYesterday.map((t) => t.title).join(', ')}`} />
               )}
-              {eod.issues.map((i) => (
-                <RowLink key={i.code + i.section} to={`/close/${i.section}`} lead={<span className={`av ${i.level === 'block' ? 'bad' : 'warn'}`}><Icon d={ICONS.bang} size={15} /></span>} title={i.title} sub={i.detail} />
-              ))}
+              <EodIssueRows issues={eod.issues} />
             </div>
           </section>
         )}

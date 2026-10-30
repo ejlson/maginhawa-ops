@@ -1,11 +1,11 @@
 /** The review panel: where the draft stands, its test days, what it changes, each step (undo any), and the versions. */
-import { definitionOn, latestDefinition } from '@maginhawa/core';
-import { formatDay } from '../../lib/draft';
-import { fmt, money } from '../../lib/report-builder/model';
+import { definitionOn, formatPounds, latestDefinition } from '@maginhawa/core';
+import { formatDay, timeHM } from '../../lib/draft';
+import { fmt } from '../../lib/report-builder/model';
 import { Ic } from './icons';
 import { useWs } from './workspace-helpers';
 
-const when = (t: number | string) => new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+const when = (t: number | string) => timeHM(new Date(t));
 const shortDay = (d: string) => formatDay(d, { weekday: 'short', day: 'numeric', month: 'short' });
 
 export function ReviewPanel({ draftLabel, ready }: { draftLabel: string; ready: boolean }) {
@@ -14,7 +14,7 @@ export function ReviewPanel({ draftLabel, ready }: { draftLabel: string; ready: 
   const pass = T.filter((t) => t.pass).length, errs = Object.keys(R.errs).length;
   const day = R.vals[def.figures.find((f) => f.id === 'dayNet')?.name ?? 'Day total net'];
   const wage = R.vals[def.figures.find((f) => f.id === 'wagePct')?.name ?? 'Wage %'];
-  const dayText = day === undefined ? '—' : money(day), dot = dayText.lastIndexOf('.');
+  const dayText = day === undefined ? '—' : formatPounds(day), dot = dayText.lastIndexOf('.');
   const latest = latestDefinition(rec);
   const liveNow = definitionOn(rec, view.today);
   const lvl = view.status === 'starts-tomorrow' ? 3 : rec.pending ? 2 : !C.length ? 0 : pass < T.length || errs ? 1 : 2;

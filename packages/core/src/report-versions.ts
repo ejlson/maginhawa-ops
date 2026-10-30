@@ -126,11 +126,13 @@ export function submitDefinition(rec: DefinitionRecord, o: { summary: string; by
   return { ...rec, draft: null, pending: { ...rec.draft, by: o.by, summary: o.summary.trim(), submittedAt: o.at }, rejected: null };
 }
 
+/** A waiting change back as a draft, without its summary and send time. */
+const backToDraft = ({ summary: _s, submittedAt: _t, ...draft }: PendingApproval): DefinitionDraft => draft;
+
 export function withdrawDefinition(rec: DefinitionRecord, o: { by: string }): DefinitionRecord {
   if (!rec.pending) throw new ReviewError('Nothing is waiting for approval');
   if (rec.pending.by !== o.by) throw new ReviewError(`Only ${rec.pending.by} can withdraw this change`);
-  const { summary: _s, submittedAt: _t, ...draft } = rec.pending;
-  return { ...rec, pending: null, draft };
+  return { ...rec, pending: null, draft: backToDraft(rec.pending) };
 }
 
 /** Approves the waiting change. It goes live on the next trading day. */
@@ -161,8 +163,7 @@ export function rejectDefinition(rec: DefinitionRecord, o: { by: string; reason:
   if (!p) throw new ReviewError('Nothing is waiting for approval');
   if (p.by === o.by) throw new ReviewError('Withdraw your own change instead of turning it down');
   if (!o.reason.trim()) throw new ReviewError('Say why, so it can be fixed');
-  const { summary: _s, submittedAt: _t, ...draft } = p;
-  return { ...rec, pending: null, draft, rejected: { by: o.by, reason: o.reason.trim(), at: o.at } };
+  return { ...rec, pending: null, draft: backToDraft(p), rejected: { by: o.by, reason: o.reason.trim(), at: o.at } };
 }
 
 /** Goes back to an earlier version, as a new version from the next trading day. History is kept. */

@@ -7,7 +7,6 @@ import { tour, useTourState } from '../lib/tour';
 import { RolePicker } from '../components/RolePicker';
 
 const REPLAY = 'M3 9a6 6 0 1 0 1.8-4.3M3 3v3h3';
-const HELP = 'M7 6.5a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.5M9 13h.01M9 16A7 7 0 1 0 9 2a7 7 0 0 0 0 14z';
 
 /** Who's signed in. Demo mode can switch role on the spot; connected mode takes roles from Microsoft sign-in. */
 export default function Account() {
@@ -43,7 +42,7 @@ export default function Account() {
             <RowLink onClick={() => { tour.replay(user); navigate(homeOf(user)); }} lead={<span className="av"><Icon d={REPLAY} size={18} /></span>}
               title="Show me around" sub={`The one-minute tour for ${user.role === 'headoffice' ? 'head office' : `${ROLE_LABELS[user.role].toLowerCase()}s`}`} />
             <div className="li">
-              <span className="av"><Icon d={HELP} size={18} /></span>
+              <span className="av"><Icon d={ICONS.help} size={18} /></span>
               <span className="tx"><span>Tips on new screens</span><small>One tip the first time you open something</small></span>
               <Toggle checked={!t.tipsOff} onChange={(on) => tour.setTips(user, on)} label="Tips on new screens" />
             </div>

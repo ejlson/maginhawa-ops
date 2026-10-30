@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import { evaluate, FIX_ACTIONS, ruleText, validFix } from '@maginhawa/core';
 import { runPath, useChecklists } from '../lib/checklists';
+import { timeHM } from '../lib/draft';
 import { useAuth } from '../lib/auth';
 import { useSite } from '../lib/site';
 import { now } from '../lib/clock';
-import { Foot, Nav, Toggle } from '../components/ui';
+import { ChipPicker, Foot, Nav, Toggle } from '../components/ui';
 
 /** Fix a failed check: what was done, any food thrown away, when to re-check, and a fault report. */
 export default function ChecklistFix() {
@@ -24,7 +25,7 @@ export default function ChecklistFix() {
   const [fault, setFault] = useState(Boolean(c?.faultOnFail));
   if (!c) return <Navigate to={runPath(key)} replace />;
   const e = evaluate(c, value, businessDate);
-  const dueAt = new Date(now().getTime() + mins * 60_000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const dueAt = timeHM(new Date(now().getTime() + mins * 60_000));
   const ok = validFix({ actions, recheckInMinutes: mins });
 
   return (
@@ -38,11 +39,7 @@ export default function ChecklistFix() {
         </div>
         <section className="grp">
           <div className="gh"><h2>What did you do?</h2><p>Pick everything that applies.</p></div>
-          <div className="chips">
-            {FIX_ACTIONS.map((a) => (
-              <button key={a} type="button" className="chip" aria-pressed={actions.includes(a)} onClick={() => setActions((x) => (x.includes(a) ? x.filter((y) => y !== a) : [...x, a]))}>{a}</button>
-            ))}
-          </div>
+          <ChipPicker options={FIX_ACTIONS} picked={actions} onChange={setActions} />
           <textarea className="ta" aria-label="Anything else" placeholder="Anything else? e.g. door was propped open during delivery" value={note} onChange={(ev) => setNote(ev.target.value)} />
         </section>
         <section className="grp">

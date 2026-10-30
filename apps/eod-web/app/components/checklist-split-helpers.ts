@@ -1,4 +1,4 @@
-import { isUrgent, type TaskView } from '../lib/checklists';
+import { isDone, isUrgent, type TaskView } from '../lib/checklists';
 
 /** Today's lists in the order people work through them. */
 export function groupTasks(tasks: TaskView[]) {
@@ -8,7 +8,7 @@ export function groupTasks(tasks: TaskView[]) {
   const later = open.filter((t) => t.status === 'upcoming');
   const anytime = open.filter((t) => t.status === 'anytime');
   const ready = tasks.filter((t) => t.ready);
-  const done = tasks.filter((t) => t.status === 'done' || t.status === 'failed');
+  const done = tasks.filter(isDone);
   return { now, missed, later, anytime, ready, done, next: now[0] ?? later[0], order: [...now, ...missed, ...later, ...anytime, ...ready, ...done] };
 }
 

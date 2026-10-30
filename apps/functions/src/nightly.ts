@@ -8,7 +8,7 @@
  *                    logs every forecast so accuracy can be measured on what was really shown.
  */
 import {
-  cleanSeries, FORECAST_VERSION, forecastV1, groupWeekdayIndex, holtWinters, pickupHistory, profileSeries,
+  addDays, cleanSeries, FORECAST_VERSION, forecastV1, groupWeekdayIndex, holtWinters, pickupHistory, profileSeries,
   seasonalNaive, toSnapshots, tradingDate, type BookedDay, type CleanDay, type DayValue, type ForecastLogEntry,
   type ForecastMethodName, type ForecastPoint, type ForecastStore, type Metric, type ResidualBank, type Service,
   type SiteSettings,
@@ -35,7 +35,7 @@ export function createSnapshotJob(deps: SnapshotDeps) {
       const takenOn = previousTradingDay(deps.now?.() ?? new Date(), site);
       result.takenOn[site.siteCode] = takenOn;
       try {
-        const res = await deps.bookingsFor(site.siteCode, addDaysIso(takenOn, 1), addDaysIso(takenOn, 14));
+        const res = await deps.bookingsFor(site.siteCode, addDays(takenOn, 1), addDays(takenOn, 14));
         if (!res) { result.notConnected.push(site.siteCode); continue; }
         const rows = toSnapshots(site.siteCode, takenOn, res.days, res.source);
         await deps.store.saveSnapshots(rows);
@@ -82,8 +82,7 @@ export function createForecastJob(deps: ForecastDeps) {
 
     for (const site of sites) {
       const madeOn = previousTradingDay(deps.now?.() ?? new Date(), site);
-      const snapshots = await deps.store.listSnapshots(site.siteCode);
-      const past = await deps.store.listForecasts(site.siteCode);
+      const [snapshots, past] = await Promise.all([deps.store.listSnapshots(site.siteCode), deps.store.listForecasts(site.siteCode)]);
       const rows: ForecastLogEntry[] = [];
 
       for (const s of SERIES) {
@@ -117,15 +116,9 @@ export function createForecastJob(deps: ForecastDeps) {
 
 const key = (siteCode: string, service: Service, metric: Metric) => `${siteCode}|${service}|${metric}`;
 
-function addDaysIso(date: string, n: number): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-}
-
 /** The jobs run after the day-close time, when a new trading day has begun: the one that just finished is the day before. */
 function previousTradingDay(now: Date, site: SiteSettings): string {
-  return addDaysIso(tradingDate(now, site), -1);
+  return addDays(tradingDate(now, site), -1);
 }
 
 /** Pads the cleaned history with empty days up to the forecast origin. */
@@ -133,7 +126,7 @@ function extendTo(clean: CleanDay[], origin: string): CleanDay[] {
   const out = [...clean];
   let last = out[out.length - 1]?.date;
   while (last && last < origin) {
-    last = addDaysIso(last, 1);
+    last = addDays(last, 1);
     out.push({ date: last, raw: null, value: null, flags: ['missing'] });
   }
   return out;

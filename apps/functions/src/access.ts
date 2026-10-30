@@ -11,8 +11,8 @@
  * SharePoint. Taking a site away therefore applies within that time.
  */
 import { accessOf, isActive, type Person } from '@maginhawa/core';
-import type { Caller } from './handler';
-import type { VersionIndex } from './version-index';
+import type { Authenticate, Caller } from './handler';
+import { record, trusted, type VersionIndex } from './version-index';
 
 export const ACCESS_TRUST_MS = 5 * 60_000;
 
@@ -46,25 +46,21 @@ export interface AccessDeps {
  * handler answers 5xx and the app keeps the work on the device, rather than telling someone with
  * access that they've been signed out.
  */
-export function createAuthenticate(deps: AccessDeps) {
+export function createAuthenticate(deps: AccessDeps): Authenticate {
   const now = deps.now ?? Date.now;
-  return async (req: Request): Promise<Caller | null> => {
+  return async (req) => {
     const who = await deps.identify(req);
     if (!who?.email) return null;
     const key = accessKey(who.email);
-    try {
-      const hit = await deps.cache?.get(key);
-      if (hit && now() - hit.at < ACCESS_TRUST_MS) return JSON.parse(hit.value) as Caller | null;
-    } catch {
-      /* Blobs unavailable: ask SharePoint. */
+    // Blobs unavailable or unreadable: ask SharePoint.
+    const hit = await trusted(deps.cache, key, now(), ACCESS_TRUST_MS);
+    if (hit !== null) {
+      try { return JSON.parse(hit) as Caller | null; } catch { /* ask SharePoint */ }
     }
     const person = await deps.directory.byEmail(who.email);
     const caller = person ? callerFor(person) : null;
-    try {
-      await deps.cache?.set(key, { value: JSON.stringify(caller), at: now() });
-    } catch {
-      /* ignore: costs one extra Graph call next time */
-    }
+    // A failure here only costs one extra Graph call next time.
+    await record(deps.cache, key, JSON.stringify(caller), now());
     return caller;
   };
 }

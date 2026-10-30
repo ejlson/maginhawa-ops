@@ -5,7 +5,7 @@ import { Ic } from './icons';
 import { focusOf, useWs } from './workspace-helpers';
 
 /** A formula with each name as a coloured chip, and red when it names something that doesn't exist. */
-export function Formula({ text }: { text: string }) {
+function Formula({ text }: { text: string }) {
   const ws = useWs();
   const known = new Set(ws.def.figures.map((f) => f.name));
   const parts: ReactNode[] = [];

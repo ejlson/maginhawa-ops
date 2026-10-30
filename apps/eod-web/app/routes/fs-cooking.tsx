@@ -4,10 +4,8 @@ import { useAuth } from '../lib/auth';
 import { degrees, hm, useFoodSafety, type CookBatch } from '../lib/food-safety';
 import { useChecklists } from '../lib/checklists';
 import { now } from '../lib/clock';
-import { Foot, Icon, Nav, TempInput, Toggle } from '../components/ui';
-import { ICONS } from '../components/ui-helpers';
-
-const parse = (t: string) => { const n = parseFloat(t.replace('−', '-')); return Number.isFinite(n) ? n : null; };
+import { ChipRadio, Foot, Icon, Nav, TempInput, Toggle } from '../components/ui';
+import { ICONS, parseTemp } from '../components/ui-helpers';
 
 /** Core temperatures on cooking and reheating, then the 90-minute cooling timer (HANDOFF.md §8a, item 5). */
 export default function FsCooking() {
@@ -22,7 +20,7 @@ export default function FsCooking() {
   const [cooling, setCooling] = useState(false);
   const [checkText, setCheckText] = useState<Record<string, string>>({});
   const at = now();
-  const t = parse(temp);
+  const t = parseTemp(temp);
   const result = t === null ? null : coreTempResult(t);
   const todays = site.cooks.filter((c) => c.at.slice(0, 10) === today || (c.coolingStartedAt && !c.inFridgeAt)).sort((a, b) => b.at.localeCompare(a.at));
   const coolingNow = todays.filter((c) => c.coolingStartedAt && !c.inFridgeAt);
@@ -33,12 +31,13 @@ export default function FsCooking() {
     setDish(''); setTemp(''); setCooling(false);
   };
 
-  const CoolingRow = ({ c }: { c: CookBatch }) => {
+  // A render function, not a component: a component made here would remount on every keystroke and drop focus.
+  const coolingRow = (c: CookBatch) => {
     const s = coolingStatus(c.coolingStartedAt!, at, c.inFridgeAt);
     const last = c.checks[c.checks.length - 1];
-    const typed = parse(checkText[c.id] ?? '');
+    const typed = parseTemp(checkText[c.id] ?? '');
     return (
-      <div className="cool">
+      <div className="cool" key={c.id}>
         <div className="li">
           <span className={`av ${s.state === 'late' ? 'bad' : 'warn'}`}><Icon d={ICONS.clock} /></span>
           <span className="tx"><span>{c.dish}</span><small>Off the heat {hm(c.coolingStartedAt!)} · fridge by {hm(s.dueAt)}{last ? ` · ${degrees(last.tempC)} at ${hm(last.at)}` : ''}</small></span>
@@ -72,21 +71,21 @@ export default function FsCooking() {
         {coolingNow.length > 0 && (
           <section className="grp">
             <div className="hd"><h2>Cooling</h2><span>Into the fridge within {COOLING_MINUTES} min</span></div>
-            <div className="sub">{coolingNow.map((c) => <CoolingRow key={c.id} c={c} />)}</div>
+            <div className="sub">{coolingNow.map(coolingRow)}</div>
           </section>
         )}
 
         <section className="grp">
           <div className="gh"><h2>New reading</h2><p>Probe the thickest part, away from the bone.</p></div>
           <div className="chips" role="radiogroup" aria-label="Cooked or reheated">
-            <button type="button" role="radio" className="chip" aria-checked={kind === 'cook'} aria-pressed={kind === 'cook'} onClick={() => setKind('cook')}>Cooked</button>
-            <button type="button" role="radio" className="chip" aria-checked={kind === 'reheat'} aria-pressed={kind === 'reheat'} onClick={() => setKind('reheat')}>Reheated</button>
+            <ChipRadio checked={kind === 'cook'} onClick={() => setKind('cook')}>Cooked</ChipRadio>
+            <ChipRadio checked={kind === 'reheat'} onClick={() => setKind('reheat')}>Reheated</ChipRadio>
           </div>
           <div className="sub">
             <label className="fr"><span>Dish or batch</span><input className="in" style={{ width: 190, textAlign: 'left' }} aria-label="Dish or batch" placeholder="e.g. Chicken adobo, batch 3" value={dish} onChange={(e) => setDish(e.target.value)} /></label>
             <label className="fr"><span className="tx"><span>Core temperature</span><small>{COOK_MIN_C}°C or above</small></span><TempInput label="Core temperature" negative={false} invalid={!!result && !result.safe} value={temp} onChange={setTemp} /></label>
             <div className="fr"><span className="tx"><span>Probe</span>{!probes.length && <small className="bad">No probe has passed calibration</small>}</span>
-              <span className="chips" role="radiogroup" aria-label="Probe">{probes.map((p) => <button key={p.id} type="button" role="radio" className="chip" aria-checked={probe === p.id} aria-pressed={probe === p.id} onClick={() => setProbe(p.id)}>{p.name.split(' · ')[0]}{probeStatus(p, today).state === 'due' ? ' · due' : ''}</button>)}</span>
+              <span className="chips" role="radiogroup" aria-label="Probe">{probes.map((p) => <ChipRadio key={p.id} checked={probe === p.id} onClick={() => setProbe(p.id)}>{p.name.split(' · ')[0]}{probeStatus(p, today).state === 'due' ? ' · due' : ''}</ChipRadio>)}</span>
             </div>
             {kind === 'cook' && <div className="fr"><span className="tx"><span>Cooling it for the fridge</span><small>Starts the {COOLING_MINUTES}-minute timer</small></span><Toggle label="Cooling it for the fridge" checked={cooling} onChange={setCooling} /></div>}
           </div>

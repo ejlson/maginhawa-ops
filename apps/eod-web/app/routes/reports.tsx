@@ -4,8 +4,8 @@ import { cashWords, DEFAULT_SETTINGS, formatPounds, MONTH_NAMES, REPORT_DATES, r
 import { can, useAuth } from '../lib/auth';
 import { formatDay } from '../lib/draft';
 import { useReportRows } from '../lib/reports';
-import { Icon } from '../components/ui';
-import { ICONS } from '../components/ui-helpers';
+import { Icon, ShowMore, SiteOptions } from '../components/ui';
+import { ICONS, toggled } from '../components/ui-helpers';
 import { WhoMenu } from '../components/home/WhoMenu';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 
@@ -44,7 +44,7 @@ export default function Reports() {
   if (user && !can.seeAllSites(user.role)) return <Navigate to="/" replace />;
 
   const filter = <T,>(set: (v: T) => void) => (v: T) => { set(v); setShown(PAGE); };
-  const toggle = (f: ReportFlag) => filter(setFlags)(flags.includes(f) ? flags.filter((x) => x !== f) : [...flags, f]);
+  const toggle = (f: ReportFlag) => filter(setFlags)(toggled(flags, f));
   const reset = () => { setText(''); setSite('all'); setDates('All'); setFlags([]); setShown(PAGE); };
 
   const [p, d] = splitPounds(result.net);
@@ -94,7 +94,7 @@ export default function Reports() {
             <label><span className="vh">Site</span>
               <select className="in rs-sel" value={site} onChange={(e) => filter(setSite)(e.target.value)}>
                 <option value="all">All {SITES.length} sites</option>
-                {SITES.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
+                <SiteOptions />
               </select>
             </label>
             <label><span className="vh">Dates</span>
@@ -167,9 +167,7 @@ export default function Reports() {
             </div>
           ))}
 
-          {count > shown && (
-            <button type="button" className="btn b2" onClick={() => setShown(shown + PAGE)}>Show {Math.min(PAGE, count - shown)} more of {(count - shown).toLocaleString('en-GB')}</button>
-          )}
+          {count > shown && <ShowMore left={count - shown} page={PAGE} onMore={() => setShown(shown + PAGE)} />}
 
           {example && (
             <div className="banner" role="note"><Icon d={ICONS.bang} size={16} /><span>Example data. Every figure, name and note is made up. Days older than eight weeks stand in for the old Excel workbook, which is imported once the app is connected.</span></div>

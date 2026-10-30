@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
-import { canSubmit, formatPounds, SECTION_LABELS, sectionStatus, type Issue } from '@maginhawa/core';
+import { canSubmit, formatPounds, isEditable, SECTION_LABELS, sectionStatus, type Issue } from '@maginhawa/core';
 import { recordedAs, useAuth } from '../lib/auth';
 import { tour } from '../lib/tour';
 import { formatDay, useDraft, useWhere } from '../lib/draft';
@@ -32,7 +32,7 @@ export default function Review() {
   useWhere('Review');
   // Someone else sent it first: say so, with a link, instead of jumping away.
   if (sync.alreadySent && sync.notice) return <Sent text={sync.notice} />;
-  if (status === 'submitted' || status === 'approved') return <Navigate to="/close/done" replace />;
+  if (!isEditable(status)) return <Navigate to="/close/done" replace />;
 
   const blocks = issues.filter((i) => i.level === 'block');
   const warns = issues.filter((i) => i.level === 'warn');

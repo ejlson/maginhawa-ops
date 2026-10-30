@@ -16,6 +16,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   manager: 'Manager',
   headoffice: 'Head office',
 };
+export const ROLE_ENTRIES = Object.entries(ROLE_LABELS) as [Role, string][];
 
 /** What each role can do. Managers include assistant managers; head office includes finance, admin and operations managers. */
 export const can = {

@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { hasLeft, siteName, tradingDate } from '@maginhawa/core';
-import { can, homeFor, recentPeople, ROLE_LABELS, useAuth, type Role } from '../../lib/auth';
+import { can, homeFor, recentPeople, ROLE_ENTRIES, ROLE_LABELS, useAuth, type Role } from '../../lib/auth';
 import { isConnected, isSharedDev } from '../../lib/config';
 import { pins } from '../../lib/pins';
 import { resetDemoChecklists, resetDemoEod } from '../../lib/store';
@@ -83,7 +83,7 @@ export function WhoMenu() {
           {!isConnected() && <>
             <div className="menusep" role="separator" />
             <div className="menuhead">See the app as</div>
-            {(Object.entries(ROLE_LABELS) as [Role, string][]).map(([r, label]) => (
+            {ROLE_ENTRIES.map(([r, label]) => (
               <button key={r} type="button" role="menuitemradio" aria-checked={user.role === r} className="menuitem small plain" onClick={() => asRole(r)}>
                 {label}{user.role === r && <Icon d={ICONS.check} size={18} />}
               </button>

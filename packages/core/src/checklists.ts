@@ -3,6 +3,7 @@
  * Available all day, separate from the end-of-day report. Pure rules, no storage.
  * All limits are example values until the real rules are verified (HANDOFF.md).
  */
+import { addDays } from './data-quality';
 
 export const ANSWER_TYPES = ['yesno', 'temp', 'number', 'text', 'photo', 'choice', 'date', 'sign'] as const;
 export type AnswerType = (typeof ANSWER_TYPES)[number];
@@ -176,18 +177,14 @@ export function validFix(a: Partial<CorrectiveAction>): boolean {
 export function dueDate(businessDate: string, hhmm: string, dayCloseTime: string, timezone: string): Date {
   const [h, m] = hhmm.split(':').map(Number);
   const [ch, cm] = dayCloseTime.split(':').map(Number);
-  const day = new Date(`${businessDate}T00:00:00Z`);
-  if ((h ?? 0) * 60 + (m ?? 0) < (ch ?? 4) * 60 + (cm ?? 0)) day.setUTCDate(day.getUTCDate() + 1);
-  const ymd = day.toISOString().slice(0, 10);
+  const ymd = (h ?? 0) * 60 + (m ?? 0) < (ch ?? 4) * 60 + (cm ?? 0) ? addDays(businessDate, 1) : businessDate;
   return zonedTime(ymd, h ?? 0, m ?? 0, timezone);
 }
 
 /** When the trading day closes: the day-close time on the next calendar day. */
 export function dayCloseAt(businessDate: string, dayCloseTime: string, timezone: string): Date {
   const [h, m] = dayCloseTime.split(':').map(Number);
-  const day = new Date(`${businessDate}T00:00:00Z`);
-  day.setUTCDate(day.getUTCDate() + 1);
-  return zonedTime(day.toISOString().slice(0, 10), h ?? 4, m ?? 0, timezone);
+  return zonedTime(addDays(businessDate, 1), h ?? 4, m ?? 0, timezone);
 }
 
 /** The UTC instant for a wall-clock time in a timezone (handles BST/GMT). */

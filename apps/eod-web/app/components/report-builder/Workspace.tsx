@@ -22,7 +22,7 @@ import { type Toast, STATUS_LABEL, useWorkspace, WsContext, useWs } from './work
 export function Workspace({ save, user, notice, onNotice }: { save: DefinitionSave; user: User; notice: string | null; onNotice: (msg: string) => void }) {
   const ws = useWorkspace(save, user, onNotice);
   useEffect(() => { if (notice) ws.toast(notice); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const { view, rec, C, T, R, locked } = ws;
+  const { view, rec, C, T, R } = ws;
   const pass = T.filter((t) => t.pass).length, errs = Object.keys(R.errs).length;
   const ready = C.length > 0 && pass === T.length && errs === 0;
   const pending = rec.pending;

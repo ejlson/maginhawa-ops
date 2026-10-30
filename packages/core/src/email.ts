@@ -2,6 +2,7 @@
 import { formatPounds } from './money';
 import type { StoredReport } from './store';
 import type { SiteSettings } from './settings';
+import type { FigureType } from './report-definition';
 
 export interface EmailMessage {
   subject: string;
@@ -54,7 +55,7 @@ export function eodSummaryEmail(r: StoredReport, settings: Pick<SiteSettings, 's
   return { subject, text: lines.join('\n') };
 }
 
-export function figureText(type: 'money' | 'percent' | 'number' | 'yesno', v: number | null): string {
+export function figureText(type: FigureType, v: number | null): string {
   if (v === null) return '—';
   if (type === 'money') return formatPounds(v);
   if (type === 'percent') return `${Math.round(v * 1000) / 10}%`;

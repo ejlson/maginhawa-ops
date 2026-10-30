@@ -1,7 +1,7 @@
-import { useNavigate } from 'react-router';
 import type { Pence, Phase, SectionKey } from '@maginhawa/core';
 
 export const ICONS = {
+  help: 'M7 6.5a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.5M9 13h.01M9 16A7 7 0 1 0 9 2a7 7 0 0 0 0 14z',
   sun: 'M9 2.5v1.5M9 14v1.5M2.5 9H4M14 9h1.5M4.4 4.4l1 1M12.6 12.6l1 1M4.4 13.6l1-1M12.6 5.4l1-1M12 9a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
   moon: 'M14.5 10.5A6 6 0 0 1 7.5 3.5a6 6 0 1 0 7 7z',
   bag: 'M3.5 6h11l-1 9h-9zM6.5 6V5a2.5 2.5 0 0 1 5 0v1',
@@ -77,7 +77,6 @@ export function plainPounds(p: Pence): string {
   return s.endsWith('.00') ? s.slice(0, -3) : s;
 }
 
-/** A pounds field. Keeps what the manager typed while editing; stores whole pence. */
 const NUMBER_FIELDS = 'input[inputmode="decimal"]:not(:disabled), input[inputmode="numeric"]:not(:disabled)';
 
 /** Enter on a number field moves to the next one, so a run of readings can be typed without tapping each field. */
@@ -92,7 +91,14 @@ export function nextOnEnter(e: React.KeyboardEvent<HTMLInputElement>) {
 /** Turns "5" into "-5" and back. The iPhone decimal keypad has no minus key, so freezer readings need this. */
 export const flipSign = (t: string) => (/^\s*[-−]/.test(t) ? t.replace(/^\s*[-−]/, '') : `-${t.trim()}`);
 
-export function useGo() {
-  const navigate = useNavigate();
-  return (to: string) => navigate(to);
-}
+/** The list with `item` added, or taken out if it was already there. */
+export const toggled = <T>(list: T[], item: T) => (list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
+
+/** A typed reading ("4.5", "−18") as a number, or null. */
+export const parseTemp = (t: string) => { const n = parseFloat(t.replace('−', '-')); return Number.isFinite(n) ? n : null; };
+
+/** Like parseTemp, but ignores anything that isn't part of a number ("8°C" → 8). */
+export const parseNumber = (t: string) => {
+  const n = parseFloat(t.replace('−', '-').replace(/[^0-9.\-]/g, ''));
+  return Number.isFinite(n) ? n : null;
+};

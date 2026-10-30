@@ -5,9 +5,10 @@
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
-import { dailyNet, forecastNet, formatPounds, isSyncError, siteName, splitPounds, type Site, type StoredReport } from '@maginhawa/core';
+import { cashWords, dailyNet, forecastNet, formatPounds, isSyncError, siteName, splitPounds, type Site, type StoredReport } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { formatDay, useDraft } from '../lib/draft';
+import { dayCashDiff } from '../lib/day-status';
 import { deviceStore } from '../lib/store';
 import { showExampleData } from '../lib/config';
 import { demoReports } from '../lib/demo';
@@ -117,7 +118,7 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
     const o = r?.official;
     const warn = r?.issues.filter((i) => i.level === 'warn').length ?? 0;
     const statusText = !r ? 'Not started' : r.status === 'draft' ? 'In progress' : r.status === 'approved' ? 'Approved' : warn ? `Submitted · ${warn} to check` : 'Submitted';
-    const cashDiff = o ? (o.sessions.lunch.cash.difference ?? 0) + (o.sessions.dinner.cash.difference ?? 0) : null;
+    const cashDiff = o ? dayCashDiff(o) : null;
     return { s, r, o, warn, statusText, cashDiff };
   });
   const sortValue = (x: SiteRow): number | string | null => {
@@ -220,7 +221,7 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
                 </span>
               ))}
             </div>
-            {shownRows.map(({ s, r, o, warn, statusText, cashDiff }) => (
+            {shownRows.map(({ s, o, warn, statusText, cashDiff }) => (
                 <Link className="sr link" role="row" key={s.code} {...siteLink(s.code)} aria-label={`${s.name}: ${mine ? 'open' : 'see trends'}`}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                     <span className={`av ${warn ? 'warn' : ''}`}>{s.code.slice(0, 2)}</span>
@@ -229,7 +230,7 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
                   <span style={{ fontWeight: 600 }}>{o ? formatPounds(o.totalNet) : '—'}</span>
                   <span>{o ? o.covers : '—'}</span>
                   <span className={o?.wageRag === 'red' ? 'bad' : o?.wageRag === 'amber' ? 'warn' : ''}>{o?.wagePct != null ? `${o.wagePct}%` : '—'}</span>
-                  <span className={cashDiff ? 'warn' : ''}>{cashDiff === null ? '—' : cashDiff === 0 ? 'Balanced' : `${formatPounds(Math.abs(cashDiff))} ${cashDiff < 0 ? 'short' : 'over'}`}</span>
+                  <span className={cashDiff ? 'warn' : ''}>{cashDiff === null ? '—' : cashWords(cashDiff)}</span>
                 </Link>
             ))}
             {!shownRows.length && <div className="sr" role="row"><span className="muted" style={{ paddingLeft: 54 }}>No sites here right now.</span></div>}

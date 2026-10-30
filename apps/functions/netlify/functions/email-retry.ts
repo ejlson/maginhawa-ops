@@ -6,6 +6,7 @@
  * ran and sends nothing, so switching it on is only a matter of filling in the deps.
  */
 import { createEmailRetryJob } from '../../src/email-retry';
+import { eodStoreNotReady, notReady } from '../../src/not-connected';
 
 export const config = { schedule: '*/15 * * * *' };
 
@@ -21,12 +22,8 @@ export default async (): Promise<void> => {
   //   flow      → only when FLOW_OUTBOX=1: the FlowOutbox list (see submit-eod)
   const job = createEmailRetryJob({
     sites: async () => [],
-    store: { get: notReady, saveDraft: notReady, submit: notReady, listByDate: notReady, setStatus: notReady, markEmailed: notReady },
+    store: eodStoreNotReady,
     sendEmail: notReady,
   });
   console.log('email-retry', JSON.stringify(await job()));
 };
-
-async function notReady(): Promise<never> {
-  throw new Error('SharePoint store not connected yet.');
-}

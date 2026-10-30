@@ -3,7 +3,7 @@
  * searched by words and filtered by site, dates and flags. Also writes the Excel (CSV) export.
  */
 import { addDays, weekday, WEEKDAY_NAMES } from './data-quality';
-import { formatPounds, type Pence } from './money';
+import { formatPounds, percent, type Pence } from './money';
 import { DEFAULT_SETTINGS, siteName } from './settings';
 import { dayNet, type TradingDayRow } from './trends';
 
@@ -89,7 +89,7 @@ export function dateRange(dates: ReportDates, today: string): [string, string] {
 
 const wagePctOf = (r: TradingDayRow): number | null => {
   const net = dayNet(r);
-  return r.wages === null || net <= 0 ? null : Math.round((r.wages / net) * 1000) / 10;
+  return r.wages === null || net <= 0 ? null : percent(r.wages, net);
 };
 
 function snippet(field: ReportMatch['field'], text: string, at: number, len: number): ReportMatch {
@@ -154,7 +154,7 @@ export function searchReports(rows: ReportRow[], q: ReportQuery, today: string, 
     hits,
     net,
     covers: hits.reduce((s, h) => s + h.covers, 0),
-    wagePct: wageNet > 0 ? Math.round((wages / wageNet) * 1000) / 10 : null,
+    wagePct: wageNet > 0 ? percent(wages, wageNet) : null,
     cashDiff: hits.reduce((s, h) => s + h.row.cashDiff, 0),
     flagged: hits.filter((h) => h.wagesHigh || h.cashOff).length,
   };

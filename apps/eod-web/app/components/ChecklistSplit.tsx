@@ -7,7 +7,7 @@ import { Link, useNavigate } from 'react-router';
 import { can, useAuth } from '../lib/auth';
 import { formatDay } from '../lib/draft';
 import { ConfirmDialog } from './ConfirmDialog';
-import { runPath, statusPill, useChecklists, type TaskView } from '../lib/checklists';
+import { checksText, doneAt, isDone, isOverdue, isScheduled, runPath, statusPill, taskPie, useChecklists, type TaskView } from '../lib/checklists';
 import type { FinishOutcome } from '@maginhawa/core';
 import { checklistIcon } from './ui-helpers';
 import { RowLink, StatusIcon } from './ui';
@@ -15,11 +15,10 @@ import { groupTasks } from './checklist-split-helpers';
 
 export function TaskRow({ t }: { t: TaskView }) {
   const pill = statusPill(t);
-  const pie = t.status === 'done' ? 'done' : t.status === 'failed' ? 'fail' : t.done > 0 ? 'started' : 'todo';
-  const sub = t.status === 'done' || t.status === 'failed'
-    ? `${t.run?.completedAt ? new Date(t.run.completedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''} · ${t.run?.completedBy ?? ''}${t.status === 'failed' ? ' · problem fixed' : ''}`
-    : `${t.total} ${t.total === 1 ? 'check' : 'checks'} · ${t.template.who}`;
-  return <RowLink to={runPath(t.key)} lead={<StatusIcon d={checklistIcon(t.template.id, t.template.phase)} status={pie} />} title={t.title} sub={sub} right={<span className={`pill ${pill.cls}`}>{pill.text}</span>} />;
+  const sub = isDone(t)
+    ? `${doneAt(t)} · ${t.run?.completedBy ?? ''}${t.status === 'failed' ? ' · problem fixed' : ''}`
+    : checksText(t);
+  return <RowLink to={runPath(t.key)} lead={<StatusIcon d={checklistIcon(t.template.id, t.template.phase)} status={taskPie(t)} />} title={t.title} sub={sub} right={<span className={`pill ${pill.cls}`}>{pill.text}</span>} />;
 }
 
 /** The one Submit under all the lists. Lists save as you go; this locks every one that's ready. */
@@ -76,8 +75,8 @@ export function SplitFrame({ selected, children }: { selected: string | null; ch
   const { user } = useAuth();
   const navigate = useNavigate();
   const g = groupTasks(tasks);
-  const scheduled = tasks.filter((t) => t.status !== 'anytime');
-  const late = tasks.filter((t) => t.status === 'late' || t.status === 'missed').length;
+  const scheduled = tasks.filter(isScheduled);
+  const late = tasks.filter(isOverdue).length;
 
   // J and K move through the lists, unless someone is typing.
   useEffect(() => {
@@ -111,7 +110,7 @@ export function SplitFrame({ selected, children }: { selected: string | null; ch
         </div>
         <div className="titleblock" style={{ paddingBottom: 4 }}>
           <h1>Checklists</h1>
-          <span className="eyebrow">{g.done.filter((t) => t.status !== 'anytime').length} of {scheduled.length} done{late ? ` · ${late} late or missed` : ''}</span>
+          <span className="eyebrow">{g.done.filter(isScheduled).length} of {scheduled.length} done{late ? ` · ${late} late or missed` : ''}</span>
         </div>
         {group('Now', g.now)}
         {group('Missed', g.missed, 'Still worth doing')}

@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { Navigate, useParams } from 'react-router';
-import { clockTime, computeDayWith, denominationLabel, findSite, formatPounds, SECTION_LABELS, SESSION_KEYS, type Pence, type SessionKey } from '@maginhawa/core';
+import { cashWords, clockTime, computeDayWith, denominationLabel, findSite, formatPounds, SECTION_LABELS, SESSION_KEYS, type Pence, type SessionKey } from '@maginhawa/core';
 import { previewDefinitions } from '../lib/definition';
 import { formatDay } from '../lib/draft';
 import { useSiteDay } from '../lib/site-timeline';
-import { eodPill } from '../lib/day-status';
+import { dayCashDiff, eodPill } from '../lib/day-status';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 import { BigMoney, Icon, Nav } from '../components/ui';
 import { ICONS, SECTION_ICONS } from '../components/ui-helpers';
@@ -39,7 +39,7 @@ export default function HeadOfficeEod() {
   // Sent reports show the server's official figures; a draft shows what the figures come to so far.
   const r = report.official ?? computeDayWith(draft, day.settings, undefined, previewDefinitions());
   const pill = eodPill(report);
-  const cashDiff = (r.sessions.lunch.cash.difference ?? 0) + (r.sessions.dinner.cash.difference ?? 0);
+  const cashDiff = dayCashDiff(r);
   const wageTone = r.wageRag === 'red' ? 'h-bad' : r.wageRag === 'amber' ? 'h-warn' : 'h-ok';
   const flagged = report.issues.filter((i) => i.level !== 'block');
 
@@ -72,7 +72,7 @@ export default function HeadOfficeEod() {
         <Line label="Counted" value={formatPounds(res.cash.counted)} />
         <Line label="Taken (less float)" value={formatPounds(res.cash.taken)} />
         <Line label="Cash on the till report" value={money(s.cash.tillCash)} />
-        <Line label="Difference" value={res.cash.difference === null ? '—' : res.cash.difference === 0 ? 'Balanced' : `${formatPounds(Math.abs(res.cash.difference))} ${res.cash.difference < 0 ? 'short' : 'over'}`}
+        <Line label="Difference" value={res.cash.difference === null ? '—' : cashWords(res.cash.difference)}
           tone={res.cash.status === 'short' ? 'bad' : res.cash.status === 'over' ? 'warn' : undefined} />
         {s.cash.reason && <Line label="Reason" value={`${s.cash.reason}${s.cash.note ? `: ${s.cash.note}` : ''}`} />}
       </Card>
@@ -91,7 +91,7 @@ export default function HeadOfficeEod() {
             <span>{r.covers}<small>Covers · {r.sessions.lunch.covers} lunch, {r.sessions.dinner.covers} dinner</small></span>
             <span>{money(r.perHeadDineIn)}<small>Net a head, dine-in</small></span>
             <span>{r.wagePct !== null ? `${r.wagePct}%` : '—'}<small className={r.wagePct !== null ? wageTone : ''}>Wages</small></span>
-            <span>{cashDiff === 0 ? 'Balanced' : `${formatPounds(Math.abs(cashDiff))} ${cashDiff < 0 ? 'short' : 'over'}`}<small>Cash</small></span>
+            <span>{cashWords(cashDiff)}<small>Cash</small></span>
           </div>
           <span className="hs-small">{report.submittedAt ? `Sent ${formatDay(report.submittedAt.slice(0, 10), { day: 'numeric', month: 'short' })} at ${clockTime(report.submittedAt)}${report.submittedBy ? ` by ${report.submittedBy}` : ''}` : 'Still being filled in at the site.'}</span>
         </div>

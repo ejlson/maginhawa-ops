@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { DEFAULT_KEEP, keepText, RECORD_LABELS, RECORD_TYPES, type KeepPolicy, type RecordType } from '@maginhawa/core';
 import { useFoodSafety } from '../lib/food-safety';
-import { Foot, Icon, Nav } from '../components/ui';
+import { ChipRadio, Foot, Icon, Nav } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 
 const CHOICES = [6, 12, 24, 36, 72];
@@ -35,7 +35,7 @@ export default function FsKeep() {
                 </button>
                 {open === t && (
                   <div className="chips" role="radiogroup" aria-label={`Keep ${RECORD_LABELS[t].title}`} style={{ padding: '4px 0 14px' }}>
-                    {CHOICES.map((m) => <button key={m} type="button" role="radio" className="chip" aria-checked={draft[t].months === m} aria-pressed={draft[t].months === m} onClick={() => { setDraft({ ...draft, [t]: { ...draft[t], months: m } }); setSaved(false); }}>{keepText({ months: m })}{m === DEFAULT_KEEP[t].months ? ' · suggested' : ''}</button>)}
+                    {CHOICES.map((m) => <ChipRadio key={m} checked={draft[t].months === m} onClick={() => { setDraft({ ...draft, [t]: { ...draft[t], months: m } }); setSaved(false); }}>{keepText({ months: m })}{m === DEFAULT_KEEP[t].months ? ' · suggested' : ''}</ChipRadio>)}
                   </div>
                 )}
               </div>

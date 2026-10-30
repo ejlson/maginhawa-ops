@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
+import { formatPounds, isEditable, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
 import { recordedAs, useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
 import { EodSyncNotice } from '../components/Sync';
@@ -18,7 +18,7 @@ const TEAM: SectionKey[] = ['wages', 'tips', 'feedback', 'handover'];
 export default function Close() {
   const { user } = useAuth();
   const { draft, result, progress, savedAt, update, status, settings } = useDraft();
-  const locked = status === 'submitted' || status === 'approved';
+  const locked = !isEditable(status);
 
   const sub = (k: SectionKey): string => {
     const st = sectionStatus(draft, k);

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { dayCloseAt, eodDueText, SECTION_KEYS, SECTION_LABELS, sectionStatus } from '@maginhawa/core';
+import { dayCloseAt, eodDueText, isEditable, SECTION_KEYS, SECTION_LABELS, sectionStatus } from '@maginhawa/core';
 import { useDraft } from '../../lib/draft';
 import { now } from '../../lib/clock';
-import { isUrgent, useChecklists, type TaskView } from '../../lib/checklists';
+import { isDone, isScheduled, isUrgent, useChecklists } from '../../lib/checklists';
 
 export function greeting(d: Date) {
   const h = d.getHours();
@@ -23,14 +23,12 @@ export function useMinuteTick() {
 /** Daytime ends at 15:00: after that the end-of-day report becomes the focus. */
 export const isDaytime = (d: Date) => d.getHours() >= 4 && d.getHours() < 15;
 
-export const isDone = (t: Pick<TaskView, 'status'>) => t.status === 'done' || t.status === 'failed';
-
 /** Today's checklists, worked out once for every home screen. */
 export function useToday() {
   const { tasks } = useChecklists();
   useMinuteTick();
   const at = now();
-  const scheduled = tasks.filter((t) => t.status !== 'anytime');
+  const scheduled = tasks.filter(isScheduled);
   const done = tasks.filter(isDone);
   const urgent = tasks.filter((t) => isUrgent(t.status));
   const next = urgent[0] ?? tasks.find((t) => t.status === 'upcoming');
@@ -41,7 +39,7 @@ export function useToday() {
 export function useEod() {
   const { draft, result, issues, progress, status, settings } = useDraft();
   const sections = SECTION_KEYS.map((key) => ({ key, status: sectionStatus(draft, key) })).filter((s) => s.status !== 'skipped');
-  const submitted = status !== 'draft' && status !== 'sent-back';
+  const submitted = !isEditable(status);
   const nextSection = sections.find((s) => s.status === 'started') ?? sections.find((s) => s.status === 'todo');
   const firstDone = sections.find((s) => s.status === 'done');
   return {

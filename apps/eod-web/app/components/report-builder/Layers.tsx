@@ -13,7 +13,7 @@ export function Layers() {
     ...[...ws.secs].sort((a, b) => Number(a.kind === 'setting') - Number(b.kind === 'setting')).map((s) => ({ id: s.id, lane: 0, label: s.title, role: ROLE_OF[s.kind], kids: s.fields.map((f) => ({ id: s.id, fid: f.id as string | undefined, name: f.name, role: ROLE_OF[s.kind] })) })),
     ...CLUSTERS.map((c) => ({ id: c.id, lane: c.lane, label: c.title, role: clusterRole(c.id), kids: ws.bx.filter((b) => clusterOf(b) === c.id).map((b) => ({ id: b.id, fid: undefined as string | undefined, name: boxName(b), role: ROLE_OF[b.kind] })) })).filter((c) => c.kids.length),
   ];
-  const chev = (id: string, isOpen: boolean, label: string, onClick: () => void) => (
+  const chev = (isOpen: boolean, label: string, onClick: () => void) => (
     <button type="button" className="lchev" aria-expanded={isOpen} aria-label={`${isOpen ? 'Fold' : 'Unfold'} ${label}`} onClick={onClick}><Ic name="chev" /></button>
   );
   // A card opens on the map and moves into view; a figure opens its editor.
@@ -37,12 +37,12 @@ export function Layers() {
           const laneOpen = !closedLanes.has(`lane${i}`), inLane = cards.filter((c) => c.lane === i);
           return (
             <div key={t}>
-              <div className={`lyr-lane ${LANE_ROLE[i]}`}>{chev(`lane${i}`, laneOpen, t, () => setClosedLanes(flip(closedLanes, `lane${i}`)))}<span className="sw" />{t}<span className="lcount">{inLane.length}</span></div>
+              <div className={`lyr-lane ${LANE_ROLE[i]}`}>{chev(laneOpen, t, () => setClosedLanes(flip(closedLanes, `lane${i}`)))}<span className="sw" />{t}<span className="lcount">{inLane.length}</span></div>
               <div className="lyr-group" hidden={!laneOpen}>
                 {inLane.map((c) => (
                   <div key={c.id}>
                     <div className={`lyr-card ${c.role}`}>
-                      {chev(c.id, open.has(c.id), c.label, () => setOpen(flip(open, c.id)))}
+                      {chev(open.has(c.id), c.label, () => setOpen(flip(open, c.id)))}
                       <button type="button" className={`lyr ${c.role}${ws.sel === c.id && !ws.selField ? ' on' : ''}`} data-lcard={c.id} onClick={() => showCard(c.id)}>
                         <span className="sw" /><span className="nm">{c.label}</span><span className="lcount">{c.kids.length}</span>
                       </button>

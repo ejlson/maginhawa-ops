@@ -11,7 +11,7 @@ import { storage } from '../lib/storage';
 import { now } from '../lib/clock';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 import { WhoMenu } from '../components/home/WhoMenu';
-import { Icon } from '../components/ui';
+import { Icon, ShowMore, SiteOptions } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 
 type Kind = 'all' | 'checklists' | 'eod';
@@ -135,7 +135,7 @@ export default function HeadOfficeDays() {
             <label><span className="vh">Site</span>
               <select className="in rs-sel" value={site} onChange={(e) => set('site', e.target.value)}>
                 <option value="all">All {SITES.length} sites</option>
-                {SITES.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
+                <SiteOptions />
               </select>
             </label>
             <label><span className="vh">Dates</span>
@@ -178,7 +178,7 @@ export default function HeadOfficeDays() {
               ))}
             </div>
           ))}
-          {hits.length > shown && <button type="button" className="btn b2" onClick={() => setShown(shown + PAGE)}>Show {Math.min(PAGE, hits.length - shown)} more of {(hits.length - shown).toLocaleString('en-GB')}</button>}
+          {hits.length > shown && <ShowMore left={hits.length - shown} page={PAGE} onMore={() => setShown(shown + PAGE)} />}
           {example && <div className="banner" role="note"><Icon d={ICONS.bang} size={16} /><span>Example data. Checklists, names and figures are made up so you can see a full month.</span></div>}
         </section>
       </div>

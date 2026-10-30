@@ -19,7 +19,6 @@ const PAD = 8;
 const GUTTER = 16;
 const GAP = 14;
 const PIE = 18.85; // circumference of the progress pie (r = 3)
-const HELP = 'M7 6.5a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.5M9 13h.01M9 16A7 7 0 1 0 9 2a7 7 0 0 0 0 14z';
 
 const onScreen = (steps: TourStep[]) => steps.filter((s) => !s.target || findTarget(s.target));
 const reduced = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
@@ -300,7 +299,7 @@ export function FirstTimeTip({ id, title, children }: { id: string; title: strin
   if (!showsTip(t, id)) return null;
   return (
     <div className="tour-hint" role="note">
-      <span className="av"><Icon d={HELP} size={16} /></span>
+      <span className="av"><Icon d={ICONS.help} size={16} /></span>
       <span className="tx">
         <span>{title}</span>
         <small>{children}</small>

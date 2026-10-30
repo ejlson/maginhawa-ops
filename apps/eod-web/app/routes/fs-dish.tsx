@@ -5,7 +5,7 @@ import { can, useAuth } from '../lib/auth';
 import { shortDate, useFoodSafety } from '../lib/food-safety';
 import { useChecklists } from '../lib/checklists';
 import { now } from '../lib/clock';
-import { Foot, Icon, Nav, RowLink } from '../components/ui';
+import { ChipPicker, Foot, Icon, Nav, RowLink } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 
 /** One dish: its 14-allergen grid, every version kept, and "I've read the change". */
@@ -39,7 +39,7 @@ export default function FsDish() {
           <>
             <section className="grp">
               <div className="gh"><h2>Contains</h2><p>The old version is kept; staff are asked to read the change.</p></div>
-              <div className="chips">{ALLERGENS.map((a) => <button key={a} type="button" className="chip" aria-pressed={picked.includes(a)} onClick={() => setPicked((x) => (x.includes(a) ? x.filter((y) => y !== a) : [...x, a]))}>{a}</button>)}</div>
+              <ChipPicker options={ALLERGENS} picked={picked} onChange={setPicked} />
             </section>
             <section className="grp">
               <div className="gh"><h2>Why</h2></div>

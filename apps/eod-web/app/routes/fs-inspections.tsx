@@ -3,7 +3,7 @@ import { addDays, currentRating, noticeDeadlines, type Notice, type Visit } from
 import { shortDate, useFoodSafety } from '../lib/food-safety';
 import { useChecklists } from '../lib/checklists';
 import { useDraft } from '../lib/draft';
-import { Foot, Nav, Toggle } from '../components/ui';
+import { ChipRadio, Foot, Nav, Toggle } from '../components/ui';
 
 const WHO: Visit['who'][] = ['Environmental health', 'Trading standards', 'Other'];
 const KINDS: Notice['kind'][] = ['Improvement notice', 'Prohibition notice', 'Written warning'];
@@ -40,17 +40,17 @@ export default function FsInspections() {
         <Nav back="/food-safety/inspections" backLabel="Cancel" title="Log a visit" />
         <div className="body form">
           <section className="grp">
-            <div className="chips" role="radiogroup" aria-label="Who visited">{WHO.map((w) => <button key={w} type="button" role="radio" className="chip" aria-checked={who === w} aria-pressed={who === w} onClick={() => setWho(w)}>{w}</button>)}</div>
+            <div className="chips" role="radiogroup" aria-label="Who visited">{WHO.map((w) => <ChipRadio key={w} checked={who === w} onClick={() => setWho(w)}>{w}</ChipRadio>)}</div>
             <div className="sub">
               <label className="fr"><span>Date</span><input className="in wide-in" type="date" aria-label="Visit date" max={today} value={date} onChange={(e) => setDate(e.target.value)} /></label>
-              <div className="fr"><span>Hygiene rating</span><span className="chips" role="radiogroup" aria-label="Rating">{[null, 0, 1, 2, 3, 4, 5].map((n) => <button key={String(n)} type="button" role="radio" className="chip" aria-checked={score === n} aria-pressed={score === n} onClick={() => setScore(n)}>{n === null ? 'None' : n}</button>)}</span></div>
+              <div className="fr"><span>Hygiene rating</span><span className="chips" role="radiogroup" aria-label="Rating">{[null, 0, 1, 2, 3, 4, 5].map((n) => <ChipRadio key={String(n)} checked={score === n} onClick={() => setScore(n)}>{n === null ? 'None' : n}</ChipRadio>)}</span></div>
             </div>
             <textarea className="ta" aria-label="What they said" placeholder="What they looked at and said" value={outcome} onChange={(e) => setOutcome(e.target.value)} />
           </section>
           <section className="grp">
             <div className="sub"><div className="fr"><span>They left a notice</span><Toggle label="They left a notice" checked={hasNotice} onChange={setHasNotice} /></div></div>
             {hasNotice && <>
-              <div className="chips" role="radiogroup" aria-label="Kind of notice">{KINDS.map((k) => <button key={k} type="button" role="radio" className="chip" aria-checked={nKind === k} aria-pressed={nKind === k} onClick={() => setNKind(k)}>{k}</button>)}</div>
+              <div className="chips" role="radiogroup" aria-label="Kind of notice">{KINDS.map((k) => <ChipRadio key={k} checked={nKind === k} onClick={() => setNKind(k)}>{k}</ChipRadio>)}</div>
               <div className="sub">
                 <label className="fr"><span>What it's about</span><input className="in wide-in" aria-label="Notice about" value={nTitle} onChange={(e) => setNTitle(e.target.value)} /></label>
                 <label className="fr"><span>Fix by</span><input className="in wide-in" type="date" aria-label="Fix by" value={fixBy} onChange={(e) => setFixBy(e.target.value)} /></label>

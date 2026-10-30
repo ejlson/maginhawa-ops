@@ -47,6 +47,15 @@ function place(items: Item[], H: Record<string, number>, tidy: boolean, manual: 
   });
   return out;
 }
+/** Follows the pointer until it lifts. */
+function trackPointer(move: (ev: PointerEvent) => void, up: (ev: PointerEvent) => void) {
+  const end = (ev: PointerEvent) => {
+    window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', end);
+    up(ev);
+  };
+  window.addEventListener('pointermove', move); window.addEventListener('pointerup', end);
+}
+
 const samePos = (a: Record<string, Pos>, b: Record<string, Pos>) => JSON.stringify(a) === JSON.stringify(b);
 
 export function MapView() {
@@ -233,11 +242,10 @@ export function MapView() {
       setPan({ x: start.p.x + dx, y: start.p.y + dy });
     };
     const up = () => {
-      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up);
       setPanning(false);
       if (!moved && !anywhere) { setLinkPop(null); if (wsRef.current.picked.size) wsRef.current.setPicked(new Set()); if (wsRef.current.sel || wsRef.current.selField) wsRef.current.open(null); }
     };
-    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+    trackPointer(move, up);
   };
 
   /* ---------- picking several: Shift-drag a box round them (Shift keeps what's already picked) ---------- */
@@ -255,8 +263,8 @@ export function MapView() {
       });
       wsRef.current.setPicked(next);
     };
-    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); setMarquee(null); };
-    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+    const up = () => setMarquee(null);
+    trackPointer(move, up);
   };
   const togglePick = (id: string) => ws.setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
@@ -278,7 +286,6 @@ export function MapView() {
       setDrag(shifted(dx, dy));
     };
     const up = (ev: PointerEvent) => {
-      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up);
       if (!moved) {
         // Shift-click adds the card to the picked ones (or takes it out); a plain click starts again.
         if (shift) { togglePick(id); dragged.current = true; setTimeout(() => { dragged.current = false; }, 0); }
@@ -293,7 +300,7 @@ export function MapView() {
       // A click arrives after the drag ends; ignore that one.
       setTimeout(() => { dragged.current = false; }, 0);
     };
-    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+    trackPointer(move, up);
   };
   const clicked = () => { if (dragged.current) { dragged.current = false; return false; } return true; };
 
@@ -314,14 +321,13 @@ export function MapView() {
       under(ev)?.classList.add('drop-hover');
     };
     const up = (ev: PointerEvent) => {
-      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up);
       if (wire.current) wire.current.innerHTML = '';
       const t = under(ev);
       setWiring(null);
       if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) { ws.toast(`Drag the dot onto a calculation or an email to connect ${src}`); return; }
       if (t?.dataset.id) ws.connectTo(src, t.dataset.id);
     };
-    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+    trackPointer(move, up);
   };
 
   const onEdgeClick = (e: RMouseEvent<SVGSVGElement>) => {

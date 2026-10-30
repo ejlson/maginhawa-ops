@@ -1,7 +1,7 @@
 import { Link, useSearchParams } from 'react-router';
 import { PHASE_LABELS, PHASES, type Phase } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
-import { runPath, useChecklists } from '../lib/checklists';
+import { isDone, isScheduled, runPath, useChecklists } from '../lib/checklists';
 import { Foot, Nav } from '../components/ui';
 import { groupTasks } from '../components/checklist-split-helpers';
 import { SplitFrame, SubmitLists, TaskRow } from '../components/ChecklistSplit';
@@ -17,7 +17,7 @@ export default function Checklists() {
   const tasks = phase ? all.filter((t) => t.template.phase === phase) : all;
   const title = phase ? `${PHASE_LABELS[phase]} checklists` : 'Checklists';
   const { now, missed, later, anytime, ready, done, next } = groupTasks(tasks);
-  const scheduled = tasks.filter((t) => t.status !== 'anytime');
+  const scheduled = tasks.filter(isScheduled);
   const two = useTwoColumns();
 
   const hero = (
@@ -25,7 +25,7 @@ export default function Checklists() {
       <span className="hl">Done today</span>
       <div className="big"><b>{done.length}</b><i>&nbsp;of {scheduled.length}</i></div>
       <div className="segs" aria-hidden="true">
-        {scheduled.map((t) => <span key={t.key} className={t.status === 'done' || t.status === 'failed' ? 'd' : ''} style={t.status === 'missed' ? { background: 'var(--heroBad)' } : undefined} />)}
+        {scheduled.map((t) => <span key={t.key} className={isDone(t) ? 'd' : ''} style={t.status === 'missed' ? { background: 'var(--heroBad)' } : undefined} />)}
       </div>
       <div className="hm">
         <span className={now.some((t) => t.status === 'late') || missed.length ? 'h-bad' : ''}>{now.filter((t) => t.status === 'late').length + missed.length}<small>Late or missed</small></span>

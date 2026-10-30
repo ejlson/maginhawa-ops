@@ -6,6 +6,7 @@
  */
 import { parseGovUkBankHolidays } from '@maginhawa/core';
 import { createForecastJob } from '../../src/nightly';
+import { forecastStoreNotReady } from '../../src/not-connected';
 
 export const config = { schedule: '30 5 * * *' };
 
@@ -22,11 +23,7 @@ export default async (): Promise<void> => {
     sites: async () => [],
     historyFor: async () => [],
     holidays: async () => parseGovUkBankHolidays(await (await fetch('https://www.gov.uk/bank-holidays.json')).json()),
-    store: { saveSnapshots: notReady, listSnapshots: notReady, saveForecasts: notReady, listForecasts: notReady },
+    store: forecastStoreNotReady,
   });
   console.log('nightly-forecast', JSON.stringify(await job()));
 };
-
-async function notReady(): Promise<never> {
-  throw new Error('SharePoint store not connected yet.');
-}

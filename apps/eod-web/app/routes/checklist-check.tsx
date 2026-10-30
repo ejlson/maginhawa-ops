@@ -3,8 +3,8 @@ import { Navigate, useNavigate, useParams } from 'react-router';
 import { ANSWER_LABELS, ANSWER_TYPES, canFail, changeType, checkpointIssues, type AnswerValue, type Checkpoint } from '@maginhawa/core';
 import { editPath, useListEditor } from '../lib/templates';
 import { Answer } from '../components/Answer';
-import { Foot, Icon, Nav, TempInput, Toggle } from '../components/ui';
-import { ICONS } from '../components/ui-helpers';
+import { ChipRadio, Foot, Icon, Nav, TempInput, Toggle } from '../components/ui';
+import { ICONS, parseNumber } from '../components/ui-helpers';
 
 /** Common limits to start from. Example values: each site checks its own. */
 const TEMP_PRESETS: { label: string; min?: number; max?: number }[] = [
@@ -13,10 +13,7 @@ const TEMP_PRESETS: { label: string; min?: number; max?: number }[] = [
   { label: 'Hot holding · 63°C or above', min: 63 },
 ];
 
-const parseNum = (s: string): number | undefined => {
-  const n = parseFloat(s.replace('−', '-').replace(/[^0-9.\-]/g, ''));
-  return Number.isFinite(n) ? n : undefined;
-};
+const parseNum = (s: string): number | undefined => parseNumber(s) ?? undefined;
 
 /** A number field that keeps what was typed ("-", "8.") while storing a number or nothing. */
 function LimitInput({ label, value, onChange, unit }: { label: string; value: number | undefined; onChange: (n: number | undefined) => void; unit: string }) {
@@ -77,14 +74,14 @@ export default function ChecklistCheck() {
         <section className="grp">
           <div className="gh"><h2>Kind of answer</h2></div>
           <div className="chips" role="radiogroup" aria-label="Answer type">
-            {ANSWER_TYPES.map((type) => <button key={type} type="button" className="chip" role="radio" aria-checked={c.type === type} aria-pressed={c.type === type} onClick={() => { replace(changeType(c, type)); setPreview(null); }}>{ANSWER_LABELS[type]}</button>)}
+            {ANSWER_TYPES.map((type) => <ChipRadio key={type} checked={c.type === type} onClick={() => { replace(changeType(c, type)); setPreview(null); }}>{ANSWER_LABELS[type]}</ChipRadio>)}
           </div>
 
           {c.type === 'yesno' && (
             <div className="sub">
               <div className="sl"><span>Which answer is a fail?</span></div>
               <div className="chips" role="radiogroup" aria-label="Which answer is a fail?">
-                {([['no', 'No'], ['yes', 'Yes'], [undefined, 'Neither']] as const).map(([v, l]) => <button key={l} type="button" className="chip" role="radio" aria-checked={c.failOn === v} aria-pressed={c.failOn === v} onClick={() => set({ failOn: v, ...(v ? {} : { faultOnFail: false }) })}>{l}</button>)}
+                {([['no', 'No'], ['yes', 'Yes'], [undefined, 'Neither']] as const).map(([v, l]) => <ChipRadio key={l} checked={c.failOn === v} onClick={() => set({ failOn: v, ...(v ? {} : { faultOnFail: false }) })}>{l}</ChipRadio>)}
               </div>
             </div>
           )}

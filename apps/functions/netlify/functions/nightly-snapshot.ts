@@ -6,6 +6,7 @@
  * logs that it ran and saves nothing, so switching it on is only a matter of filling in the deps.
  */
 import { createSnapshotJob } from '../../src/nightly';
+import { forecastStoreNotReady } from '../../src/not-connected';
 
 export const config = { schedule: '15 5 * * *' };
 
@@ -20,12 +21,8 @@ export default async (): Promise<void> => {
   //   bookingsFor  → the reservations system's API (returns null for sites not on one yet)
   const job = createSnapshotJob({
     sites: async () => [],
-    store: { saveSnapshots: notReady, listSnapshots: notReady, saveForecasts: notReady, listForecasts: notReady },
+    store: forecastStoreNotReady,
     bookingsFor: async () => null,
   });
   console.log('nightly-snapshot', JSON.stringify(await job()));
 };
-
-async function notReady(): Promise<never> {
-  throw new Error('SharePoint store not connected yet.');
-}

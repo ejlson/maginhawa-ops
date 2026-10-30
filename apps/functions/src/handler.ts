@@ -4,9 +4,8 @@
  * Every outside service is passed in, so the handler is fully testable and the real
  * ones (SharePoint via Graph, Entra, mail) plug in later.
  */
-import type { DefinitionRecord } from '@maginhawa/core';
-import { eodKey, record, type VersionIndex } from './version-index';
-import { eodSummaryEmail, flowMessage, submitReport, type EmailMessage, type EodStore, type FlowOutbox, type SiteSettings, type StoredReport } from '@maginhawa/core';
+import { eodSummaryEmail, flowMessage, submitReport, type DefinitionRecord, type EmailMessage, type EodStore, type FlowOutbox, type SiteSettings, type StoredReport } from '@maginhawa/core';
+import { recordReport, type VersionIndex } from './version-index';
 
 export interface Caller {
   name: string;
@@ -16,9 +15,11 @@ export interface Caller {
   role?: 'staff' | 'supervisor' | 'manager' | 'headoffice';
 }
 
+/** Checks the bearer token (Entra ID) and says who is calling. Null = not signed in. */
+export type Authenticate = (req: Request) => Promise<Caller | null>;
+
 export interface SubmitDeps {
-  /** Checks the bearer token (Entra ID) and says who is calling. Null = not signed in. */
-  authenticate: (req: Request) => Promise<Caller | null>;
+  authenticate: Authenticate;
   store: EodStore;
   settingsFor: (siteCode: string) => Promise<SiteSettings | null>;
   targetNetFor?: (siteCode: string, businessDate: string) => Promise<number | null>;
@@ -58,18 +59,20 @@ export function createSubmitHandler(deps: SubmitDeps) {
     const settings = await deps.settingsFor(siteCode);
     if (!settings) return json(400, { error: 'Unknown site.' });
     const businessDate = (body as { businessDate?: string }).businessDate ?? '';
-    const targetNet = deps.targetNetFor ? await deps.targetNetFor(siteCode, businessDate) : null;
-
-    const definitions = deps.definitions ? await deps.definitions() : null;
+    // Independent reads: ask for both at once.
+    const [targetNet, definitions] = await Promise.all([
+      deps.targetNetFor ? deps.targetNetFor(siteCode, businessDate) : null,
+      deps.definitions ? deps.definitions() : null,
+    ]);
     const res = await submitReport(body, { store: deps.store, settings, submittedBy: caller.name, now: deps.now?.(), targetNet, definitions, ...condition });
     // 409: someone else sent it first, or changed it since this person last looked. `current` is what is stored.
     const at = (deps.now?.() ?? new Date()).getTime();
     if (!res.ok && (res.code === 'already-submitted' || res.code === 'conflict')) {
-      if (res.current) await record(deps.index, eodKey(res.current.draft.siteCode, res.current.draft.businessDate), res.current.version, at);
+      if (res.current) await recordReport(deps.index, res.current, at);
       return json(409, { error: res.error, code: res.code, current: res.current });
     }
     if (!res.ok) return json(422, { error: res.error, code: res.code, issues: res.issues ?? [] });
-    await record(deps.index, eodKey(res.report.draft.siteCode, res.report.draft.businessDate), res.report.version, at);
+    await recordReport(deps.index, res.report, at);
     // Before the replay shortcut: a retry may be the first attempt that got this far. Adding twice is a no-op.
     await queueFlow(deps, res.report, settings);
     // A retry after lost signal: finance already has the email, unless the first attempt never got that far.

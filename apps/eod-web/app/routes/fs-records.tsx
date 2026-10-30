@@ -4,7 +4,7 @@ import { PACK_LABELS, PACK_NOTES, PACK_PRESETS, PACK_SECTIONS, packRange, siteNa
 import { can, useAuth } from '../lib/auth';
 import { useChecklists } from '../lib/checklists';
 import { shortDate } from '../lib/food-safety';
-import { Foot, Nav, Toggle } from '../components/ui';
+import { ChipRadio, Foot, Nav, Toggle } from '../components/ui';
 
 /**
  * Records for an inspector (HANDOFF.md §8a, item 2). Supervisors and managers make one for their own
@@ -41,7 +41,7 @@ export default function FsRecords() {
           <section className="grp">
             <div className="gh"><h2>Site</h2></div>
             <div className="chips" role="radiogroup" aria-label="Site">
-              {SITES.map((s) => <button key={s.code} type="button" role="radio" className="chip" aria-checked={site === s.code} aria-pressed={site === s.code} onClick={() => setSite(s.code)}>{s.name}</button>)}
+              {SITES.map((s) => <ChipRadio key={s.code} checked={site === s.code} onClick={() => setSite(s.code)}>{s.name}</ChipRadio>)}
             </div>
           </section>
         )}
@@ -49,8 +49,8 @@ export default function FsRecords() {
         <section className="grp">
           <div className="hd"><h2>Dates</h2><span>{shortDate(range.from, today)} – {shortDate(range.to, today)}</span></div>
           <div className="chips" role="radiogroup" aria-label="Dates">
-            {(Object.keys(PACK_PRESETS) as PackPreset[]).map((p) => <button key={p} type="button" role="radio" className="chip" aria-checked={preset === p} aria-pressed={preset === p} onClick={() => setPreset(p)}>{PACK_PRESETS[p].label}</button>)}
-            <button type="button" role="radio" className="chip" aria-checked={preset === 'custom'} aria-pressed={preset === 'custom'} onClick={() => setPreset('custom')}>Pick dates</button>
+            {(Object.keys(PACK_PRESETS) as PackPreset[]).map((p) => <ChipRadio key={p} checked={preset === p} onClick={() => setPreset(p)}>{PACK_PRESETS[p].label}</ChipRadio>)}
+            <ChipRadio checked={preset === 'custom'} onClick={() => setPreset('custom')}>Pick dates</ChipRadio>
           </div>
           {preset === 'custom' && (
             <div className="sub">

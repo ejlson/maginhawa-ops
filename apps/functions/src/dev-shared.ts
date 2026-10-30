@@ -8,7 +8,7 @@
  * or a deployed Netlify Function.
  */
 import { DEFAULT_SETTINGS, DEV_USER_HEADER, findSite, MemoryChecklistStore, MemoryPresence, MemoryStore, SITES, type ChecklistBackend, type EmailMessage, type EodStore, type FlowMessage, type FlowOutbox, type PresenceRemote, type SiteSettings } from '@maginhawa/core';
-import type { Caller } from './handler';
+import type { Authenticate, Caller } from './handler';
 import { MemoryVersionIndex, type VersionIndex } from './version-index';
 
 type Env = Record<string, string | undefined>;
@@ -44,7 +44,7 @@ export async function devAuthenticate(req: Request): Promise<Caller | null> {
 }
 
 export interface SharedDev {
-  authenticate: (req: Request) => Promise<Caller | null>;
+  authenticate: Authenticate;
   eod: EodStore;
   checklists: ChecklistBackend;
   presence: PresenceRemote;

@@ -8,6 +8,7 @@ import {
   PHASE_LABELS, PHASES, type AnswerValue, type ChecklistRun, type ChecklistSyncState, type FinishOutcome, type Phase, type ChecklistTemplate, type CorrectiveAction, type Task, type TaskStatus,
 } from '@maginhawa/core';
 import { now } from './clock';
+import { timeHM } from './draft';
 
 export interface TaskView extends Task {
   status: TaskStatus;
@@ -66,6 +67,14 @@ export function statusPill(t: Pick<TaskView, 'status' | 'dueAt' | 'done' | 'tota
 }
 
 export const isUrgent = (s: TaskStatus) => s === 'late' || s === 'due';
+export const isOverdue = (t: Pick<TaskView, 'status'>) => t.status === 'late' || t.status === 'missed';
+export const isDone = (t: Pick<TaskView, 'status'>) => t.status === 'done' || t.status === 'failed';
+export const isScheduled = (t: Pick<TaskView, 'status'>) => t.status !== 'anytime';
+
+/** The progress circle for a list. */
+export const taskPie = (t: Pick<TaskView, 'status' | 'done'>) => (t.status === 'done' ? 'done' : t.status === 'failed' ? 'fail' : t.done > 0 ? 'started' : 'todo');
+export const checksText = (t: Pick<TaskView, 'total' | 'template'>) => `${t.total} ${t.total === 1 ? 'check' : 'checks'} · ${t.template.who}`;
+export const doneAt = (t: Pick<TaskView, 'run'>) => (t.run?.completedAt ? timeHM(new Date(t.run.completedAt)) : '');
 
 export interface PhaseSummary {
   phase: Phase;
@@ -84,8 +93,8 @@ export interface PhaseSummary {
 export function phaseSummaries(tasks: TaskView[]): PhaseSummary[] {
   return PHASES.map((phase) => {
     const mine = tasks.filter((t) => t.template.phase === phase);
-    const scheduled = mine.filter((t) => t.status !== 'anytime');
-    const done = scheduled.filter((t) => t.status === 'done' || t.status === 'failed').length;
+    const scheduled = mine.filter(isScheduled);
+    const done = scheduled.filter(isDone).length;
     const order: TaskView['status'][] = ['late', 'due', 'missed', 'upcoming'];
     const lead = order.map((s) => scheduled.find((t) => t.status === s)).find(Boolean) ?? scheduled[scheduled.length - 1];
     const status: PhaseSummary['status'] = scheduled.length > 0 && done === scheduled.length ? 'done' : done > 0 || mine.some((t) => t.done > 0) ? 'started' : 'todo';

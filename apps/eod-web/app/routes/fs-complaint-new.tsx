@@ -4,7 +4,7 @@ import { COMPLAINT_ACTIONS, COMPLAINT_KINDS, complaintProblem } from '@maginhawa
 import { useAuth } from '../lib/auth';
 import { useFoodSafety } from '../lib/food-safety';
 import { now } from '../lib/clock';
-import { Foot, Nav, Toggle } from '../components/ui';
+import { ChipPicker, ChipRadio, Foot, Nav, Toggle } from '../components/ui';
 
 /** Record a complaint with its evidence. The customer's contact is only kept if they say yes. */
 export default function FsComplaintNew() {
@@ -30,7 +30,7 @@ export default function FsComplaintNew() {
         <section className="grp">
           <div className="gh"><h2>What happened</h2></div>
           <div className="chips" role="radiogroup" aria-label="What happened">
-            {COMPLAINT_KINDS.map((k) => <button key={k} type="button" role="radio" className="chip" aria-checked={kind === k} aria-pressed={kind === k} onClick={() => setKind(k)}>{k}</button>)}
+            {COMPLAINT_KINDS.map((k) => <ChipRadio key={k} checked={kind === k} onClick={() => setKind(k)}>{k}</ChipRadio>)}
           </div>
           <div className="sub">
             <label className="fr"><span>Dish</span><input className="in wide-in" aria-label="Dish" placeholder="e.g. Sinigang" value={dish} onChange={(e) => setDish(e.target.value)} /></label>
@@ -49,7 +49,7 @@ export default function FsComplaintNew() {
         </section>
         <section className="grp">
           <div className="gh"><h2>What we did</h2></div>
-          <div className="chips">{COMPLAINT_ACTIONS.map((a) => <button key={a} type="button" className="chip" aria-pressed={actions.includes(a)} onClick={() => setActions((x) => (x.includes(a) ? x.filter((y) => y !== a) : [...x, a]))}>{a}</button>)}</div>
+          <ChipPicker options={COMPLAINT_ACTIONS} picked={actions} onChange={setActions} />
         </section>
       </div>
       <Foot>

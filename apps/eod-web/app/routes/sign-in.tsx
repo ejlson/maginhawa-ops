@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
-import { SITES } from '@maginhawa/core';
-import { homeFor, initialsOf, ROLE_LABELS, useAuth, type Role } from '../lib/auth';
+import { homeFor, initialsOf, ROLE_ENTRIES, useAuth, type Role } from '../lib/auth';
 import { isConnected, isSharedDev } from '../lib/config';
-import { Icon } from '../components/ui';
+import { ChipRadio, Icon, SiteOptions } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 
 export default function SignIn() {
@@ -53,13 +52,13 @@ export default function SignIn() {
             <label className="fr">
               <span>Site</span>
               <select className="in" style={{ width: 200 }} value={siteCode} onChange={(e) => setSiteCode(e.target.value)} aria-label="Site">
-                {SITES.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
+                <SiteOptions />
               </select>
             </label>
           </div>
           <div className="chips" role="radiogroup" aria-label="Role">
-            {(Object.entries(ROLE_LABELS) as [Role, string][]).map(([r, label]) => (
-              <button key={r} type="button" role="radio" aria-checked={role === r} aria-pressed={role === r} className="chip" onClick={() => setRole(r)}>{label}</button>
+            {ROLE_ENTRIES.map(([r, label]) => (
+              <ChipRadio key={r} checked={role === r} onClick={() => setRole(r)}>{label}</ChipRadio>
             ))}
           </div>
         </section>

@@ -3,7 +3,7 @@ import { backToWorkAt, EXCLUSION_HOURS } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { useFoodSafety } from '../lib/food-safety';
 import { now } from '../lib/clock';
-import { Foot, Icon, Nav, Toggle } from '../components/ui';
+import { ChipRadio, Foot, Icon, Nav, Toggle } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 
 /** The question before a shift (HANDOFF.md §8a, item 9). Only managers see the answers. */
@@ -41,8 +41,8 @@ export default function FsFit() {
           <section className="grp">
             <div className="gh"><h2>In the last {EXCLUSION_HOURS} hours, have you been sick or had diarrhoea?</h2></div>
             <div className="chips" role="radiogroup" aria-label="Sick or diarrhoea">
-              <button type="button" role="radio" className="chip" aria-checked={ill === false} aria-pressed={ill === false} onClick={() => setIll(false)}>No</button>
-              <button type="button" role="radio" className="chip" aria-checked={ill === true} aria-pressed={ill === true} onClick={() => setIll(true)}>Yes</button>
+              <ChipRadio checked={ill === false} onClick={() => setIll(false)}>No</ChipRadio>
+              <ChipRadio checked={ill === true} onClick={() => setIll(true)}>Yes</ChipRadio>
             </div>
             {ill && (
               <div className="sub">
