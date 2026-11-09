@@ -88,7 +88,7 @@ The finance team's current EOD form is a **single static page on Netlify**. It p
 | Identity | Microsoft Entra ID. Users sign in with MSAL (delegated access to the one site). The server uses app-only **`Sites.Selected`** granted on the "Maginhawa Ops" site, plus **`Mail.Send`** restricted to one shared mailbox (e.g. `ops@…`) |
 | Data | **SharePoint site "Maginhawa Ops"**: 51 lists (16 of them food safety, §8a) and 7 document libraries, accessed only through the **Microsoft Graph API**. Use `$batch` (up to 20 requests per call) and honour `Retry-After` |
 | Email | Graph `sendMail` from a shared mailbox (no licence needed). Resend is the fallback |
-| Power Automate (optional, 29 Oct 2026) | On submit, `submit-eod` adds one message to the **FlowOutbox** list (`flowMessage` in `packages/core/src/flow.ts`; switched on with `FLOW_OUTBOX=1`). The **EOD submitted** flow starts on the new row, posts to the ops Teams channel, emails the ops manager when wages are red or there's something to look at, and marks the row Done or Failed. Standard connectors only (no Premium), run by a service account. Finance choose the figures with the **Send to Power Automate** action in the report builder. The flow is kept in git as an unpacked solution: `flows/` (README there). `email-retry` adds any message a submit missed. **Not imported into Power Platform yet** |
+| Power Automate (optional, 29 Oct 2026) | On submit, `submit-eod` adds one message to the **FlowOutbox** list (`flowMessage` in `packages/core/src/flow.ts`; `FLOW_OUTBOX=1` says it's set up, then **head office switch each site on or off** in the report builder's Send to Power Automate panel, stored as `PowerAutomateFrom` on the Sites list; only reports sent after that date go). The **EOD submitted** flow starts on the new row, posts to the ops Teams channel, emails the ops manager when wages are red or there's something to look at, and marks the row Done or Failed. Standard connectors only (no Premium), run by a service account. Finance choose the figures with the **Send to Power Automate** action in the report builder. The flow is kept in git as an unpacked solution: `flows/` (README there). `email-retry` adds any message a submit missed. **Not imported into Power Platform yet** |
 | Reporting | Head-office views and CSV export in our app; finance can also use Excel Power Query on the SharePoint lists. Power BI later, if wanted |
 | Quality | Vitest (unit), Playwright (end-to-end), ESLint + Prettier, pnpm workspaces. Sentry optional for error alerts |
 | Later | A Netlify Function "AI proxy" calling the Claude API (default model `claude-opus-5-5`) for Ask your logs and the summaries |
@@ -129,7 +129,16 @@ Any new shared data (food safety, templates, people once they sync) follows the 
 - 12 lookups per query.
 - About 30M items per list.
 - Graph throttling per app and per tenant (back off on HTTP 429).
-- Netlify Functions: about 10 seconds per synchronous call (keep `submit-eod` short; use background functions for slow work).
+- Netlify Functions: 60 seconds per synchronous call by default; background functions up to 15 minutes but only a 256 KB payload (keep `submit-eod` short; use background functions for slow work such as PDFs).
+- SharePoint Online can refuse a new index once a list passes 5,000 items: create every index before go-live (`Responses_{yyyy}` passes 5,000 in about 4 days).
+
+**Checklist storage (agreed 9 Nov 2026, spec updated, not built yet).** Full design: `docs/reports/Staff friendly checklist storage.md`; examples: `docs/reports/checklist-storage-examples.html`; plain-English email for the team: `docs/reports/checklist-storage-email.md`.
+- **Lists are the record; only the app writes.** `ChecklistDays` → `ChecklistRuns` → `Responses_{yyyy}` → `CorrectiveActions`, with `ChecklistAudit` for edits and deletions. Setup lives in `ChecklistTemplates`, `Checkpoints` and `Schedules`. Staff never use SharePoint; they use the app.
+- **Excel is not the store.** Graph's add-table-row call doesn't support app-only access, and one workbook can't take several saves at once.
+- **"Maginhawa App Checklists" library (for people, read-only):** `{Restaurant}/{yyyy-MM}/` with one PDF per restaurant per day (missed days too, e.g. `2026-11-05 Bunso – Thu – MISSED.pdf`) and one monthly XLSX rebuilt nightly. Remade after a correction; versions keep the old copy. EHO gets a view-only link that expires.
+- **Photos library:** `{Restaurant}/{yyyy-MM}/{yyyy-MM-dd}/{Checklist name}/Walk-in chiller – 09:12.jpg`. Write-once; the app links by `PhotoId`, never by path.
+- **Open decisions (in the team email):** per-restaurant folder permissions; keep checks 3 years (`DEFAULT_KEEP` still says 24 months until agreed); photos about 12 months unless tied to an incident.
+- **Tenant tests before building:** `Sites.Selected` with write access can upload, PATCH columns, replace and delete files; `createLink`; replacing a workbook while someone has it open; index creation at 5,001 items.
 
 **Volume estimate:** about 1,250 items a day across 8 sites, about 410k a year, and about 9 GB of photos a year.
 

@@ -1,0 +1,266 @@
+<title>Checklist Storage Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one dark hero card, then Monzo-style plain lists and tables in a single 880px column (Maginhawa Ops design language) */
+:root{
+  --bg:#FFFFFF; --panel:#F7F7F9; --fg:#1D1D1F; --muted:#6E6E73; --fill:#F2F2F5; --line:rgba(0,0,0,.08);
+  --hero:#1D1D1F; --hero-fg:#F5F5F7; --hero-muted:rgba(245,245,247,.6); --hero-line:rgba(255,255,255,.12);
+  --link:#0066CC; --good:#1F7A35; --warn:#B25000; --bad:#D70015;
+  --good-t:rgba(31,122,53,.10); --warn-t:rgba(178,80,0,.10); --bad-t:rgba(215,0,21,.08); --link-t:rgba(0,102,204,.08);
+  --sans:-apple-system,BlinkMacSystemFont,"Geist","Helvetica Neue",Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121214; --panel:#1B1B1F; --fg:#F2F2F4; --muted:#A3A3AB; --fill:#2A2A2F; --line:rgba(255,255,255,.12);
+  --hero:#232328; --hero-fg:#F5F5F7; --hero-muted:rgba(245,245,247,.6); --hero-line:rgba(255,255,255,.12);
+  --link:#4AA3FF; --good:#4CD964; --warn:#FFB340; --bad:#FF6B60;
+  --good-t:rgba(76,217,100,.14); --warn-t:rgba(255,179,64,.14); --bad-t:rgba(255,107,96,.14); --link-t:rgba(74,163,255,.12);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121214; --panel:#1B1B1F; --fg:#F2F2F4; --muted:#A3A3AB; --fill:#2A2A2F; --line:rgba(255,255,255,.12);
+  --hero:#232328; --hero-fg:#F5F5F7; --hero-muted:rgba(245,245,247,.6); --hero-line:rgba(255,255,255,.12);
+  --link:#4AA3FF; --good:#4CD964; --warn:#FFB340; --bad:#FF6B60;
+  --good-t:rgba(76,217,100,.14); --warn-t:rgba(255,179,64,.14); --bad-t:rgba(255,107,96,.14); --link-t:rgba(74,163,255,.12);
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:17px/1.5 var(--sans);-webkit-font-smoothing:antialiased;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 72px}
+main{max-width:880px;margin:0 auto;display:grid;gap:56px}
+h1{font-size:34px;line-height:1.15;letter-spacing:-.02em;margin:0;text-wrap:balance}
+h2{font-size:22px;letter-spacing:-.01em;margin:0 0 6px;text-wrap:balance}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:0 0 12px;max-width:68ch}
+.sub{color:var(--muted);font-size:15px}
+code,.mono{font-family:var(--mono);font-size:.84em;background:var(--fill);padding:1px 5px;border-radius:6px;white-space:nowrap}
+.eyebrow{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+header{display:grid;gap:10px}
+a{color:var(--link)}
+
+/* hero */
+.hero{background:var(--hero);color:var(--hero-fg);border-radius:26px;padding:28px;display:grid;gap:22px;box-shadow:0 10px 30px rgba(0,0,0,.12);border:1px solid var(--hero-line)}
+.hero .eyebrow{color:var(--hero-muted)}
+.key{font-family:var(--mono);font-size:clamp(30px,7vw,52px);font-weight:500;letter-spacing:-.04em;line-height:1.05;overflow-wrap:anywhere}
+.key span{color:var(--hero-muted)}
+.hero p{color:var(--hero-muted);margin:0}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;border-top:1px solid var(--hero-line);padding-top:18px}
+.stat b{display:block;font-size:24px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat small{color:var(--hero-muted);font-size:13px}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{padding:22px}}
+
+/* list rows */
+.list{display:grid;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.ic{width:42px;height:42px;border-radius:50%;background:var(--fill);display:grid;place-items:center;font-size:12px;font-weight:700;font-family:var(--mono)}
+.row .t{font-weight:600}
+.row .s{color:var(--muted);font-size:14px;line-height:1.35}
+.row .r{color:var(--muted);font-size:14px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.indent{padding-left:28px}
+@media (max-width:520px){.row{grid-template-columns:42px minmax(0,1fr)}.row .r{grid-column:2;text-align:left}.indent{padding-left:0}}
+
+/* tables */
+.tw{overflow-x:auto;border-top:1px solid var(--line);margin-top:8px}
+table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.4}
+th,td{text-align:left;padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+td.c,th.c{text-align:center}
+.yes{color:var(--good);font-weight:700}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.p-good{background:var(--good-t);color:var(--good)}.p-warn{background:var(--warn-t);color:var(--warn)}.p-bad{background:var(--bad-t);color:var(--bad)}.p-link{background:var(--link-t);color:var(--link)}
+
+/* architecture */
+.arch{display:grid;gap:10px;margin-top:16px}
+.tier{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;align-items:stretch}
+.tier>.lab{padding-top:14px}
+.tier>.lab b{display:block;font-size:15px}
+.tier>.lab small{color:var(--muted);font-size:13px}
+.boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px;min-width:0}
+.box b{display:block;font-size:14px}
+.box span{display:block;color:var(--muted);font-size:13px;line-height:1.35;margin-top:2px}
+.box.dark{background:var(--hero);color:var(--hero-fg);border-color:var(--hero-line)}
+.box.dark span{color:var(--hero-muted)}
+.link{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px}
+.link div{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;padding-left:18px;border-left:2px dashed var(--line);margin-left:22px;min-height:30px}
+@media (max-width:640px){.tier,.link{grid-template-columns:1fr}.tier>.lab{padding-top:0}.link>span{display:none}}
+
+/* steps */
+ol.steps{list-style:none;margin:12px 0 0;padding:0;counter-reset:s;border-top:1px solid var(--line)}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:42px minmax(0,1fr);gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+ol.steps li::before{content:counter(s);width:32px;height:32px;border-radius:50%;border:2px solid var(--fg);display:grid;place-items:center;font-size:13px;font-weight:700;margin:2px 0 0 5px}
+ol.steps b{display:block}
+ol.steps span{color:var(--muted);font-size:14px}
+
+.decide{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:12px}
+.decide div{background:var(--panel);border-radius:16px;padding:14px 16px;border:1px solid var(--line)}
+.decide b{display:block;margin-bottom:4px}
+.decide span{color:var(--muted);font-size:14px}
+footer{color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+
+<main>
+<header>
+  <div class="eyebrow">Maginhawa Ops · Checklists · Plan, 6 Nov 2026</div>
+  <h1>How checklists are stored in SharePoint</h1>
+  <p class="sub">Text, numbers and photos for each site's day, saved by our own Netlify Functions through Microsoft Graph. You can get, add, change and delete any checklist, and every day a site misses is recorded. All figures are estimates or examples, not real data.</p>
+</header>
+
+<section class="hero" aria-label="Summary">
+  <div class="eyebrow">Every checklist is found by one key</div>
+  <div class="key">BUN<span>|</span>2026-11-06</div>
+  <p>Site code + trading date. Each active site gets exactly one day record per date, whether or not it submits. Runs, answers and photos all hang off this key, so the app, offline devices, the nightly jobs and Excel can find a day without knowing any SharePoint id.</p>
+  <div class="stats">
+    <div class="stat"><b>~2,920</b><small>day records a year (8 sites × 365)</small></div>
+    <div class="stat"><b>~410k</b><small>answer rows a year, split by year</small></div>
+    <div class="stat"><b>~9 GB</b><small>photos a year at ~300 KB each</small></div>
+    <div class="stat"><b>3–4 RU</b><small>Graph cost per save, any batch size</small></div>
+  </div>
+</section>
+
+<section>
+  <h2>What a day looks like</h2>
+  <p class="sub">One day record, the checklists done that day (opening, closing, temperature checks), one row per final answer, and photos as files.</p>
+  <div class="list">
+    <div class="row"><div class="ic">DAY</div><div><div class="t">ChecklistDays · <code>BUN|2026-11-06</code></div><div class="s">Status: Due, In progress, Submitted, Late, Missed, Not trading, Deleted. Counts, who submitted, a hash of the day.</div></div><div class="r">1 per site per day</div></div>
+    <div class="row indent"><div class="ic">RUN</div><div><div class="t">ChecklistRuns · <code>BUN|2026-11-06|closing|22:30</code></div><div class="s">One per checklist and due time. While open, its answers live as a JSON snapshot on this item, saved with If-Match.</div></div><div class="r">5–10 a day</div></div>
+    <div class="row indent"><div class="ic">ANS</div><div><div class="t">Responses_2026 · <code>…|walkin-temp|0</code></div><div class="s">Written once at Finish: typed value (number, text, yes/no, date), Pass/Fail, who, when. Corrections add rev 1, 2… and never edit rev 0.</div></div><div class="r">20–80 per run</div></div>
+    <div class="row indent"><div class="ic">IMG</div><div><div class="t">Photos library · <code>BUN/2026/11/{PhotoId}.jpg</code></div><div class="s">Write-once JPEG named by an id made on the device. Columns tie it to the day, run and question. Answers store the id, never a URL.</div></div><div class="r">~80 a day</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>Lists and libraries</h2>
+  <p class="sub">Mostly the existing spec in <code>sharepoint-lists.json</code>, repaired. Text keys replace lookups, and every index is created before go-live.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Name</th><th>Key (unique, indexed)</th><th>Other indexes</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td><b>ChecklistDays</b></td><td><code>Site|date</code></td><td>SiteCode, BusinessDateKey, Status</td><td><span class="pill p-link">Rename</span> extends DayClosures</td></tr>
+      <tr><td><b>ChecklistRuns</b></td><td><code>Site|date|template|time</code></td><td>DayKey, BusinessDateKey, Status, RowsStatus</td><td><span class="pill p-warn">Change</span> add AnswersJson, Seq, delete columns</td></tr>
+      <tr><td><b>Responses_{yyyy}</b></td><td><code>AnswerKey|rev</code></td><td>AnswerKey, DayKey, BusinessDateKey, CheckpointId</td><td><span class="pill p-warn">Change</span> one list per year, written at Finish</td></tr>
+      <tr><td><b>Photos</b> (library)</td><td><code>PhotoId</code></td><td>Kind, DayKey, AnswerKey, Status</td><td><span class="pill p-warn">Change</span> add columns, store ids not URLs</td></tr>
+      <tr><td><b>CorrectiveActions</b></td><td>—</td><td>AnswerKey, DayKey, Status</td><td><span class="pill p-warn">Change</span> text keys, not lookups</td></tr>
+      <tr><td><b>Schedules</b></td><td>—</td><td>SiteCode, TemplateId</td><td><span class="pill p-warn">Change</span> add EffectiveFrom / To</td></tr>
+      <tr><td><b>ChecklistAudit</b></td><td><code>key|action|time</code></td><td>—</td><td><span class="pill p-good">New</span> survives a hard delete</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Get, add, change and delete</h2>
+  <p class="sub">The app never calls SharePoint itself. Our functions check the person's role and sites, apply the <code>packages/core</code> rules, then call Graph with the app's own token.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Action</th><th class="c">Staff</th><th class="c">Supervisor</th><th class="c">Manager</th><th class="c">Head office</th></tr></thead>
+    <tbody>
+      <tr><td>Read a day, its checklists and photos</td><td class="c">Own sites</td><td class="c">Own sites</td><td class="c">Own sites</td><td class="c">All</td></tr>
+      <tr><td>Answer, change or clear an answer, add a photo (open checklist)</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+      <tr><td>Finish a checklist</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+      <tr><td>Correct a finished answer (reason, old value kept)</td><td class="c"></td><td class="c yes">✓</td><td class="c">Own sites</td><td class="c yes">✓</td></tr>
+      <tr><td>Soft delete a checklist or a day (reason)</td><td class="c"></td><td class="c"></td><td class="c">Own sites</td><td class="c yes">✓</td></tr>
+      <tr><td>Restore, move to the right site or date, mark Not trading</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c yes">✓</td></tr>
+      <tr><td>Hard delete (permanent)</td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c yes">✓</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Endpoints</h3>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>Our endpoint</th><th>Graph behind it</th><th>Rule</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-link">GET</span></td><td><code>/api/checklists/BUN/2026-11-06</code></td><td>Day by <code>Title</code>; runs by <code>DayKey</code>; answers by <code>DayKey</code></td><td>Returns versions (ETag, Seq) for later writes</td></tr>
+      <tr><td><span class="pill p-link">GET</span></td><td><code>/api/checklists?from=&amp;to=&amp;site=&amp;status=</code></td><td>One indexed date-range filter, rest in code</td><td>Head office calendar, missed days</td></tr>
+      <tr><td><span class="pill p-good">POST</span></td><td><code>…/ops</code> (answer, fix, finish)</td><td>GET run → POST if missing (409 = exists) → PATCH with If-Match</td><td>Batched every 10–20 s, never one call per answer</td></tr>
+      <tr><td><span class="pill p-good">POST</span></td><td><code>/api/photos</code></td><td>PUT file with <code>conflictBehavior=fail</code>, then PATCH its columns</td><td>Hash checked; a retry never duplicates</td></tr>
+      <tr><td><span class="pill p-warn">PATCH</span></td><td><code>…/runs/{run}/answers/{q}</code></td><td>PATCH snapshot (If-Match) + POST a new rev row</td><td>After Finish: correction with a reason only</td></tr>
+      <tr><td><span class="pill p-bad">DELETE</span></td><td><code>/api/checklists/BUN/2026-11-06</code></td><td>PATCH <code>Status = Deleted</code>, reason, who, when</td><td>Soft: hidden, kept for head office and inspectors</td></tr>
+      <tr><td><span class="pill p-bad">DELETE</span></td><td><code>…?hard=1</code></td><td>Photos → answers → fixes → runs → day, resumable</td><td>Head office only; logged in ChecklistAudit</td></tr>
+    </tbody>
+  </table></div>
+  <p class="sub" style="margin-top:12px">Under the recommended retention policy, a hard delete still keeps a hidden copy for the policy period (Preservation Hold library). The confirm screen should say so rather than claim the data is gone.</p>
+</section>
+
+<section>
+  <h2>System architecture</h2>
+  <p class="sub">Four layers. Only our app registration can write to SharePoint; people have read access at most.</p>
+  <div class="arch">
+    <div class="tier"><div class="lab"><b>Devices</b><small>phone · kitchen iPad · desktop</small></div>
+      <div class="boxes">
+        <div class="box"><b>eod-web</b><span>React Router v7 SPA, installable PWA</span></div>
+        <div class="box"><b>On-device queue</b><span>Dexie: drafts, answer batches, photos waiting to upload</span></div>
+        <div class="box"><b>Sign-in</b><span>Entra ID (MSAL). iPad: site account + staff PIN</span></div>
+      </div></div>
+    <div class="link"><span></span><div>HTTPS, bearer token · batched ops · photos by PhotoId</div></div>
+    <div class="tier"><div class="lab"><b>Netlify</b><small>stateless back end</small></div>
+      <div class="boxes">
+        <div class="box dark"><b>API functions</b><span>checklist-sync, /api/checklists, /api/photos</span></div>
+        <div class="box"><b>packages/core</b><span>Keys, pass/fail, last write wins, corrections, hashes. Same code on device and server</span></div>
+        <div class="box"><b>Scheduled jobs</b><span>05:00 day records · close-time Missed · answer-row writer · weekly check · monthly CSV · delete sweep</span></div>
+        <div class="box"><b>Netlify Blobs</b><span>Access cache (5 min), version index</span></div>
+      </div></div>
+    <div class="link"><span></span><div>Microsoft Graph, app-only <code>Sites.Selected</code> · GET / POST / PATCH If-Match / DELETE · $batch</div></div>
+    <div class="tier"><div class="lab"><b>SharePoint</b><small>site "Maginhawa Ops"</small></div>
+      <div class="boxes">
+        <div class="box"><b>Reference</b><span>Sites, Staff, ChecklistTemplates, Checkpoints, Schedules</span></div>
+        <div class="box dark"><b>Records</b><span>ChecklistDays, ChecklistRuns, Responses_{yyyy}, CorrectiveActions, ChecklistAudit</span></div>
+        <div class="box"><b>Files</b><span>Photos (SITE/yyyy/mm), Reports (EHO packs, monthly CSVs)</span></div>
+      </div></div>
+    <div class="link"><span></span><div>Read only</div></div>
+    <div class="tier"><div class="lab"><b>Reporting</b><small>copies only</small></div>
+      <div class="boxes">
+        <div class="box"><b>App screens</b><span>Head-office calendar, site history, EHO pack</span></div>
+        <div class="box"><b>Excel / Power BI</b><span>ChecklistDays live; answers from monthly CSVs</span></div>
+      </div></div>
+  </div>
+
+  <h3>A checklist's day, end to end</h3>
+  <ol class="steps">
+    <li><div><b>05:00 · day record created</b><span>The morning job writes <code>BUN|2026-11-06</code> as Due, or Not trading. Re-running it is harmless because the key is unique.</span></div></li>
+    <li><div><b>On the iPad · answers saved on the device first</b><span>Each answer goes into the device queue at once, so no signal means no lost work. Every 10–20 s one batch is sent. Photos are compressed, stripped of location data, hashed and uploaded on their own.</span></div></li>
+    <li><div><b>Server · rules applied once</b><span>Checks the person's sites, loads the run by key, applies last-write-wins per answer, saves with If-Match and returns the new version. Other devices see it on their next poll.</span></div></li>
+    <li><div><b>Finish · checklist locked</b><span>Refused if someone answered since the finisher last looked. Who and when are stamped by the server, and the run is hashed.</span></div></li>
+    <li><div><b>Background · answer rows written</b><span>Final answers are copied to <code>Responses_2026</code>, paced under Graph's limit, then the run is marked Written.</span></div></li>
+    <li><div><b>Close time · gaps recorded</b><span>Unfinished due checklists become Missed. A late finish turns the day Late, but the missed time stays on record.</span></div></li>
+    <li><div><b>Later · found, corrected or deleted</b><span>Head office finds the day by key or date range, corrects it with a reason, soft-deletes or restores it, or hard-deletes it.</span></div></li>
+  </ol>
+</section>
+
+<section>
+  <h2>Five fixes to the current spec</h2>
+  <div class="list">
+    <div class="row"><div class="ic">1</div><div><div class="t">Text date keys, not Date columns</div><div class="s">SharePoint stores a date as midnight London time, so in summer Graph returns the day before. Add <code>BusinessDateKey</code> (<code>2026-11-06</code>).</div></div><div class="r"><span class="pill p-bad">Wrong dates</span></div></div>
+    <div class="row"><div class="ic">2</div><div><div class="t">Text keys, not lookups</div><div class="s">An offline device can't know a SharePoint item id, and lookups count towards a 12-per-query limit.</div></div><div class="r"><span class="pill p-warn">Offline</span></div></div>
+    <div class="row"><div class="ic">3</div><div><div class="t">Answers list: indexes first, one list per year</div><div class="s">SharePoint stops building indexes after about 20,000 items. At about 1,250 a day that's day 16.</div></div><div class="r"><span class="pill p-bad">Day 16</span></div></div>
+    <div class="row"><div class="ic">4</div><div><div class="t">Store photo ids, not links</div><div class="s">Download links expire in about an hour. Hyperlink columns are awkward to write through Graph.</div></div><div class="r"><span class="pill p-warn">Broken links</span></div></div>
+    <div class="row"><div class="ic">5</div><div><div class="t">Lock records without E5</div><div class="s">Record labels need E5 and can't be set on list items through Graph. Use: app-only writes, read-only people, versioning, hashes and a site retention policy.</div></div><div class="r"><span class="pill p-warn">Licence</span></div></div>
+  </div>
+</section>
+
+<section>
+  <h2>Decisions for you</h2>
+  <div class="decide">
+    <div><b>Name the day list</b><span>Rename DayClosures to ChecklistDays (recommended), or keep the old name.</span></div>
+    <div><b>Hard deletes</b><span>One head-office person with a confirm screen, or two people (request + approve). Two is safer.</span></div>
+    <div><b>How long to keep photos</b><span>2 years like the checks, or about 12 months unless tied to an incident. No legal minimum; confirm with the EHO.</span></div>
+    <div><b>Licences</b><span>Check the tenant has E3 or Business Premium, which the retention policy needs.</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>Test these first in the real tenant</h2>
+  <p class="sub">A short spike on a test site, before the provisioning script runs.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Test</th><th>Pass looks like</th></tr></thead>
+    <tbody>
+      <tr><td>Duplicate key POST</td><td>A consistent 409 and no second item</td></tr>
+      <tr><td>60,000-character answer snapshot</td><td>Reads back intact (limit not documented by Microsoft)</td></tr>
+      <tr><td>Stale If-Match PATCH</td><td>412, nothing changed</td></tr>
+      <tr><td>Date column in summer time</td><td>Confirms the one-day shift</td></tr>
+      <tr><td>Photo upload and thumbnail under Sites.Selected</td><td>Folders created, columns set, thumbnail shows, no GPS in the file</td></tr>
+      <tr><td>25,000 rows, then query and add an index</td><td>Indexed queries work; note whether the new index fails</td></tr>
+      <tr><td>8 sites finish within one minute</td><td>No errors shown; every run reaches Written</td></tr>
+      <tr><td>Retention policy and 30 saves</td><td>Measure version and Preservation Hold growth</td></tr>
+      <tr><td>Delete under retention, and a half-finished hard delete</td><td>Copy kept in Preservation Hold; the sweep cleans up with nothing left behind</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>Full report with sources: <code>docs/reports/SharePoint checklist data storage.md</code>. Research notes: <code>docs/research_notes/SharePoint checklist data storage/</code>. Figures are estimates for planning, not real Maginhawa data.</footer>
+</main>

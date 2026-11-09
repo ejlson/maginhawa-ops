@@ -1,0 +1,284 @@
+<title>Checklist storage examples</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one dark hero card, then stacked example "screens" on soft panels, Monzo-style lists, Things 3 circles */
+:root{
+  --bg:#FFFFFF;--side:#F7F7F9;--hero:#1D1D1F;--onhero:#F5F5F7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.14);
+  --fill:#F2F2F5;--text:#1D1D1F;--sec:#6E6E73;--sep:rgba(0,0,0,.08);--ink:#1D1D1F;--onink:#FFFFFF;--link:#0066CC;
+  --ok:#1F7A35;--okbg:rgba(52,199,89,.14);--warn:#B25000;--warnbg:rgba(255,149,0,.16);--bad:#D70015;--badbg:rgba(255,59,48,.12);
+  --xl:#1F6E43;--xlbg:#E9F4EE;--frame:#D9D9DE;
+  --sans:-apple-system,BlinkMacSystemFont,"Geist","Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121214;--side:#1B1B1F;--hero:#232328;--onhero:#F5F5F7;--herosec:rgba(245,245,247,.66);--heroline:rgba(245,245,247,.12);
+  --fill:#2A2A2F;--text:#F2F2F4;--sec:#A3A3AB;--sep:rgba(255,255,255,.12);--ink:#F2F2F4;--onink:#121214;--link:#4AA3FF;
+  --ok:#4CD964;--okbg:rgba(76,217,100,.16);--warn:#FFB340;--warnbg:rgba(255,179,64,.16);--bad:#FF6B60;--badbg:rgba(255,107,96,.16);
+  --xl:#6FD39B;--xlbg:rgba(111,211,155,.12);--frame:#34343A;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121214;--side:#1B1B1F;--hero:#232328;--onhero:#F5F5F7;--herosec:rgba(245,245,247,.66);--heroline:rgba(245,245,247,.12);
+  --fill:#2A2A2F;--text:#F2F2F4;--sec:#A3A3AB;--sep:rgba(255,255,255,.12);--ink:#F2F2F4;--onink:#121214;--link:#4AA3FF;
+  --ok:#4CD964;--okbg:rgba(76,217,100,.16);--warn:#FFB340;--warnbg:rgba(255,179,64,.16);--bad:#FF6B60;--badbg:rgba(255,107,96,.16);
+  --xl:#6FD39B;--xlbg:rgba(111,211,155,.12);--frame:#34343A;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.5;letter-spacing:-.012em;font-variant-numeric:tabular-nums}
+.wrap{max-width:980px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:48px}
+h1{font-size:34px;font-weight:700;letter-spacing:-.035em;margin:0;text-wrap:balance}
+h2{font-size:20px;font-weight:700;letter-spacing:-.025em;margin:0;text-wrap:balance}
+p{margin:0}
+.sec{color:var(--sec)}
+.small{font-size:13px}
+.note{font-size:12px;color:var(--sec)}
+.head{display:flex;flex-direction:column;gap:6px;max-width:68ch}
+.hero{background:var(--hero);color:var(--onhero);border-radius:26px;padding:28px;box-shadow:0 24px 48px -24px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;gap:22px}
+.hero .k{font-size:13px;color:var(--herosec);text-transform:uppercase;letter-spacing:.06em}
+.hero .big{font-size:30px;font-weight:600;letter-spacing:-.03em;line-height:1.2;text-wrap:balance;max-width:26ch}
+.flow{display:grid;grid-template-columns:1fr auto 1.2fr auto 2fr;gap:14px;align-items:center}
+.node{border:1px solid var(--heroline);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.node b{font-size:15px}
+.node span{font-size:13px;color:var(--herosec)}
+.arrow{color:var(--herosec);font-size:20px;text-align:center}
+.outs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.outs .node{padding:10px 12px}
+.meta{display:flex;flex-wrap:wrap;gap:18px;border-top:1px solid var(--heroline);padding-top:16px;font-size:13px;color:var(--herosec)}
+.meta b{color:var(--onhero);font-weight:600}
+section{display:flex;flex-direction:column;gap:18px}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.stage{background:var(--side);border-radius:22px;padding:24px;display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
+.cap{display:flex;flex-direction:column;gap:4px}
+.cap b{font-size:15px}
+/* phone */
+.phone{width:300px;max-width:100%;background:var(--bg);border:8px solid var(--frame);border-radius:38px;padding:18px 16px 20px;display:flex;flex-direction:column;gap:14px}
+.ph-top{display:flex;justify-content:space-between;font-size:12px;color:var(--sec)}
+.ph-title{font-size:24px;font-weight:700;letter-spacing:-.03em}
+.mini-hero{background:var(--hero);color:var(--onhero);border-radius:18px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.mini-hero .n{font-size:28px;font-weight:600;letter-spacing:-.04em}
+.mini-hero span{font-size:12px;color:var(--herosec)}
+.list{display:flex;flex-direction:column}
+.li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--sep)}
+.li:last-child{border-bottom:0}
+.li .t{flex:1;min-width:0;display:flex;flex-direction:column}
+.li .t b{font-size:14px;font-weight:600}
+.li .t span{font-size:12px;color:var(--sec)}
+.li .r{font-size:13px;font-weight:600;white-space:nowrap}
+.circ{width:24px;height:24px;border-radius:50%;flex:none;border:2px solid var(--sec);display:inline-flex;align-items:center;justify-content:center;font-size:13px;color:#fff}
+.circ.done{background:var(--ok);border-color:var(--ok)}
+.circ.half{border-color:var(--warn);background:conic-gradient(var(--warn) 0 50%,transparent 50% 100%)}
+.circ.miss{border-style:dashed}
+.circ.fail{background:var(--bad);border-color:var(--bad)}
+.input{background:var(--fill);border-radius:10px;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:20px;font-weight:600}
+.input span{font-size:13px;color:var(--sec);font-weight:400}
+.btn{background:var(--ink);color:var(--onink);border-radius:999px;height:48px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.ok{background:var(--okbg);color:var(--ok)}.warn{background:var(--warnbg);color:var(--warn)}.bad{background:var(--badbg);color:var(--bad)}.na{background:var(--fill);color:var(--sec)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:var(--fill);border-radius:999px;padding:6px 12px;font-size:13px}
+.chip.on{background:var(--ink);color:var(--onink)}
+.photo{height:84px;border-radius:12px;background:var(--fill);display:flex;align-items:center;justify-content:center;color:var(--sec);font-size:12px;border:1px dashed var(--sep)}
+/* panels */
+.panel{background:var(--bg);border:1px solid var(--sep);border-radius:16px;overflow:hidden;width:100%}
+.bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--sep);font-size:13px;flex-wrap:wrap}
+.bar .grow{flex:1}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--sec);padding:8px 12px;border-bottom:1px solid var(--sep);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid var(--sep);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.grid td,.grid th{text-align:center;padding:8px 6px}
+.grid td:first-child,.grid th:first-child{text-align:left;padding-left:12px}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%}
+.d-ok{background:var(--ok)}.d-late{background:var(--warn)}.d-miss{background:var(--bad)}.d-na{background:var(--fill);border:1px solid var(--sep)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--sec)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.xl th{background:var(--xlbg);color:var(--xl)}
+.xl td:first-child,.xl th:first-child{color:var(--sec);background:var(--fill);text-align:center;width:36px}
+.tree{padding:14px 16px;font-size:14px;display:flex;flex-direction:column;gap:6px}
+.tree div{display:flex;align-items:center;gap:8px}
+.ic{width:18px;height:18px;border-radius:4px;flex:none;display:inline-block}
+.ic.f{background:#F5B83D}.ic.p{background:#E5484D}.ic.x{background:#1F7A43}
+.doc{background:#fff;color:#1D1D1F;border-radius:6px;padding:22px 24px;width:340px;max-width:100%;border:1px solid var(--frame);display:flex;flex-direction:column;gap:10px;font-size:12px}
+.doc h3{margin:0;font-size:15px}
+.doc .r{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #E5E5EA;padding-top:6px}
+.doc .s{color:#6E6E73}
+.doc .badp{color:#D70015;font-weight:600}.doc .okp{color:#1F7A35;font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.card{border:1px solid var(--sep);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.card.rec{border:2px solid var(--ok)}
+.card b{font-size:15px}
+.card ul{margin:0;padding-left:18px;font-size:13px;color:var(--sec);display:flex;flex-direction:column;gap:4px}
+.verdict{font-size:13px;font-weight:600}
+.share{padding:16px;display:flex;flex-direction:column;gap:12px;max-width:380px}
+.field{background:var(--fill);border-radius:10px;padding:10px 12px;font-size:13px;display:flex;justify-content:space-between;gap:8px}
+@media (max-width:760px){
+  .flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}
+  .row2{grid-template-columns:minmax(0,1fr)}
+  .stage{padding:16px}
+  h1{font-size:28px}
+}
+</style>
+
+<div class="wrap">
+
+<header class="head">
+  <p class="sec small">Maginhawa Ops · checklists · all names and figures are examples</p>
+  <h1>How checklists are saved, found and shared</h1>
+  <p class="sec">Staff tick off small checks on a phone or iPad. The app saves every answer once, to SharePoint. Everyone else sees the same answers in the form that suits them.</p>
+</header>
+
+<div class="hero" role="img" aria-label="Flow: staff app saves to SharePoint lists, which feed four views">
+  <p class="k">The idea in one line</p>
+  <p class="big">Save once, in one safe place. See it four ways.</p>
+  <div class="flow">
+    <div class="node"><b>Staff app</b><span>Phone or shared iPad, PIN sign-in, works offline</span></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="node"><b>SharePoint lists</b><span>The official record. Only the app writes here</span></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="outs">
+      <div class="node"><b>Head office grid</b><span>Every site, every day</span></div>
+      <div class="node"><b>Restaurant folders</b><span>One PDF per day</span></div>
+      <div class="node"><b>Monthly Excel</b><span>One file per restaurant</span></div>
+      <div class="node"><b>Inspection pack</b><span>Any dates, one PDF</span></div>
+    </div>
+  </div>
+  <div class="meta"><span><b>8</b> restaurants</span><span><b>1</b> day record per restaurant per day</span><span><b>~5–10</b> checklists a day each</span><span><b>0</b> spreadsheets written by hand</span></div>
+</div>
+
+<section>
+  <div class="head"><h2>1 · What staff see</h2><p class="sec">Today's checks in time order, ticked off one at a time. Temperatures show the safe range, and a reading out of range has to have a fix before it can be closed.</p></div>
+  <div class="stage">
+    <div class="phone" aria-label="Phone mock-up: today's checks">
+      <div class="ph-top"><span>Bunso</span><span>Fri 6 Nov</span></div>
+      <div class="ph-title">Today</div>
+      <div class="mini-hero"><div><span>Checks done</span><div class="n">14 / 22</div></div><span>Next: closing 22:30</span></div>
+      <div class="list">
+        <div class="li"><span class="circ done">✓</span><div class="t"><b>Opening checks</b><span>Done by Jo · 08:06</span></div><span class="pill ok">Done</span></div>
+        <div class="li"><span class="circ done">✓</span><div class="t"><b>Fridge temps · 12:00</b><span>6 of 6 in range</span></div><span class="pill ok">Done</span></div>
+        <div class="li"><span class="circ half"></span><div class="t"><b>Fridge temps · 17:00</b><span>Ana is filling this in</span></div><span class="pill warn">3 of 6</span></div>
+        <div class="li"><span class="circ"></span><div class="t"><b>Closing checks</b><span>Due 22:30</span></div><span class="r sec">To do</span></div>
+      </div>
+    </div>
+    <div class="phone" aria-label="Phone mock-up: entering a temperature">
+      <div class="ph-top"><span>Fridge temps · 17:00</span><span>3 of 6</span></div>
+      <div class="ph-title">Walk-in chiller</div>
+      <p class="sec small">Probe the middle shelf. Safe range 0–5 °C.</p>
+      <div class="input">7.4 <span>°C</span></div>
+      <div><span class="pill bad">Too warm · needs a fix</span></div>
+      <p class="small" style="font-weight:600">What did you do?</p>
+      <div class="chips"><span class="chip on">Moved food to back-up fridge</span><span class="chip">Door was open</span><span class="chip">Called engineer</span></div>
+      <div class="photo">Take photo (camera only)</div>
+      <p class="note">Re-check reminder set for 17:30</p>
+      <div class="btn">Save</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="head"><h2>2 · What head office sees</h2><p class="sec">One grid of every restaurant, every day. Missed and late days show up on their own, so a gap never goes unnoticed.</p></div>
+  <div class="panel">
+    <div class="bar"><b>Checklist days</b><span class="sec">November 2026</span><span class="grow"></span><span class="chip">All restaurants</span><span class="chip">Open in Excel</span></div>
+    <div class="scroll">
+      <table class="grid">
+        <tr><th>Restaurant</th><th>Mon 2</th><th>Tue 3</th><th>Wed 4</th><th>Thu 5</th><th>Fri 6</th><th>Sat 7</th><th>Sun 8</th></tr>
+        <tr><td>Bunso</td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td></tr>
+        <tr><td>Hoxton</td><td><i class="dot d-ok"></i></td><td><i class="dot d-late"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-late"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td></tr>
+        <tr><td>Soho</td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-miss"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td></tr>
+        <tr><td>Camden</td><td><i class="dot d-na"></i></td><td><i class="dot d-na"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-na"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td></tr>
+        <tr><td>Peckham</td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td><td><i class="dot d-ok"></i></td></tr>
+      </table>
+    </div>
+    <div class="bar"><div class="legend"><span><i class="dot d-ok"></i>Submitted</span><span><i class="dot d-late"></i>Late</span><span><i class="dot d-miss"></i>Missed</span><span><i class="dot d-na"></i>Not trading</span></div><span class="grow"></span><span class="note">Tap a dot to open that day</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="head"><h2>3 · What managers find in SharePoint</h2><p class="sec">A folder for each restaurant, filled by the app, never by hand. After closing, each day becomes one PDF holding all of that day's checklists, and each month gets one Excel file. Missed days get a PDF too, so a gap is never just a missing file. Staff can open them but not change them. Photos sit in their own library, filed by day and checklist.</p></div>
+  <div class="row2">
+    <div class="panel">
+      <div class="bar"><b>Maginhawa App Checklists</b><span class="grow"></span><span class="pill na">Read only</span></div>
+      <div class="tree">
+        <div><i class="ic f"></i>Bunso</div>
+        <div style="padding-left:22px"><i class="ic f"></i>2026-11</div>
+        <div style="padding-left:44px"><i class="ic p"></i>2026-11-04 Bunso – Wed.pdf</div>
+        <div style="padding-left:44px"><i class="ic p"></i>2026-11-05 Bunso – Thu – MISSED.pdf</div>
+        <div style="padding-left:44px"><i class="ic p"></i>2026-11-06 Bunso – Fri.pdf</div>
+        <div style="padding-left:44px"><i class="ic x"></i>Bunso – Checklists – Nov 2026.xlsx</div>
+        <div><i class="ic f"></i>Hoxton</div>
+        <div><i class="ic f"></i>Soho</div>
+        <div class="sec"><i class="ic f"></i>…one folder per restaurant</div>
+      </div>
+      <div class="bar" style="border-top:1px solid var(--sep)"><b>Photos</b><span class="grow"></span><span class="pill na">Kept about 12 months</span></div>
+      <div class="tree">
+        <div><i class="ic f"></i>Bunso</div>
+        <div style="padding-left:22px"><i class="ic f"></i>2026-11</div>
+        <div style="padding-left:44px"><i class="ic f"></i>2026-11-06</div>
+        <div style="padding-left:66px"><i class="ic f"></i>Opening checks</div>
+        <div style="padding-left:88px"><i class="ic f" style="opacity:0"></i>Walk-in chiller – 09:12.jpg</div>
+        <div style="padding-left:88px"><i class="ic f" style="opacity:0"></i>Delivery – chicken – 09:40.jpg</div>
+        <div style="padding-left:66px"><i class="ic f"></i>Closing checks</div>
+        <div style="padding-left:88px"><i class="ic f" style="opacity:0"></i>Fryer cleaned – 22:55.jpg</div>
+      </div>
+    </div>
+    <div class="stage" style="padding:20px">
+      <div class="doc" aria-label="Example PDF">
+        <h3>Bunso · Friday 6 November 2026</h3>
+        <p class="s">5 of 5 checklists done · 1 problem, fixed · page 2 of 4</p>
+        <p style="font-weight:600;margin-top:4px">Fridge temps 17:00 · finished 17:12 by Ana Cruz</p>
+        <div class="r"><span>Walk-in chiller</span><span class="badp">7.4 °C · too warm</span></div>
+        <p class="s">Fix: moved food to back-up fridge · re-checked 17:30 by Ana: 3.9 °C</p>
+        <div class="r"><span>Dessert fridge</span><span class="okp">3.1 °C</span></div>
+        <div class="r"><span>Bar fridge</span><span class="okp">4.2 °C</span></div>
+        <div class="r"><span>Changed later</span><span class="s">None</span></div>
+        <p class="s" style="font-size:10px">Record check code 7f3a…c21. If anything changes, a new version is saved and the code changes.</p>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="bar"><i class="ic x"></i><b>Bunso – Checklists – Nov 2026.xlsx</b><span class="grow"></span><span class="note">Rebuilt every night · one row per answer</span></div>
+    <div class="scroll">
+      <table class="xl">
+        <tr><th></th><th>Date</th><th>Checklist</th><th>Question</th><th>Answer</th><th>Result</th><th>By</th><th>Time</th><th>Fix</th></tr>
+        <tr><td>2</td><td>06/11/2026</td><td>Opening</td><td>Hand-wash stations stocked</td><td>Yes</td><td>Pass</td><td>Jo Santos</td><td>08:06</td><td></td></tr>
+        <tr><td>3</td><td>06/11/2026</td><td>Fridge temps 17:00</td><td>Walk-in chiller</td><td>7.4 °C</td><td>Fail</td><td>Ana Cruz</td><td>17:04</td><td>Moved food; 3.9 °C at 17:30</td></tr>
+        <tr><td>4</td><td>06/11/2026</td><td>Fridge temps 17:00</td><td>Dessert fridge</td><td>3.1 °C</td><td>Pass</td><td>Ana Cruz</td><td>17:06</td><td></td></tr>
+        <tr><td>5</td><td>06/11/2026</td><td>Closing</td><td>Bins emptied</td><td>Photo</td><td>Pass</td><td>Jo Santos</td><td>22:38</td><td></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="head"><h2>4 · When the inspector visits</h2><p class="sec">Pick a restaurant and dates, and the app makes one PDF. It can be shown on the iPad, printed, or sent to the officer with a view-only link that expires.</p></div>
+  <div class="row2">
+    <div class="panel">
+      <div class="share">
+        <b>Inspection pack</b>
+        <div class="field"><span class="sec">Restaurant</span><span>Bunso</span></div>
+        <div class="field"><span class="sec">Dates</span><span>12 Oct – 8 Nov 2026</span></div>
+        <div class="field"><span class="sec">Includes</span><span>Checks, misses, fixes, changes</span></div>
+        <div class="field"><span class="sec">Share with</span><span>officer@council.gov.uk · view only · expires in 14 days</span></div>
+        <div class="btn">Make PDF</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="bar"><b>Inside the pack</b></div>
+      <div class="list" style="padding:4px 16px">
+        <div class="li"><span class="circ done">✓</span><div class="t"><b>Every check, by day</b><span>Who did it, when, and the reading</span></div></div>
+        <div class="li"><span class="circ fail">!</span><div class="t"><b>Every problem and its fix</b><span>With the re-check that proved it</span></div></div>
+        <div class="li"><span class="circ miss"></span><div class="t"><b>Missed and late checks</b><span>Shown openly, not hidden</span></div></div>
+        <div class="li"><span class="circ half"></span><div class="t"><b>Anything changed later</b><span>Old value, new value, who and why</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="head"><h2>5 · Why not keep it all in Excel or in files?</h2><p class="sec">We looked at four ways to store the checklists. Only the last one is safe when several staff save at once and is still easy for people to read.</p></div>
+  <div class="cards">
+    <div class="card"><b>One Excel spreadsheet</b><ul><li>Microsoft doesn't let an app like ours add rows to Excel on its own</li><li>Locks and clashes when two people save</li><li>No safe record of changes</li></ul><span class="verdict" style="color:var(--bad)">Doesn't work</span></div>
+    <div class="card"><b>A file per checklist only</b><ul><li>Easy to browse</li><li>Can't search across restaurants or days</li><li>Clashes when people save at once</li></ul><span class="verdict" style="color:var(--warn)">Fragile</span></div>
+    <div class="card"><b>SharePoint lists only</b><ul><li>Safe, fast to search, tracks changes</li><li>Looks like a spreadsheet, but harder for managers to browse on a phone</li></ul><span class="verdict" style="color:var(--warn)">Safe, less friendly</span></div>
+    <div class="card rec"><b>Lists, plus files made for you</b><ul><li>The lists keep the record safe</li><li>The app makes PDFs, monthly Excel files and inspection packs</li><li>Nobody types anything twice</li></ul><span class="verdict" style="color:var(--ok)">Recommended</span></div>
+  </div>
+  <p class="note">Sources: Microsoft Graph documentation (adding rows to an Excel table isn't supported for an app working on its own), SharePoint limits, FSA Safer Food Better Business guidance. See the full report for details.</p>
+</section>
+
+</div>

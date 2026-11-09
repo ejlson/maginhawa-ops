@@ -15,6 +15,7 @@
 | `WageAmberPct` | Number | Amber above (default 30) |
 | `NetSalesRule` | Choice | GrossMinusSCTaxDiscounts (default) / GrossMinusSCTax — confirm with finance |
 | `DayCloseTime` | Text | e.g. 23:30 — when EOD/missed-check jobs run |
+| `PowerAutomateFrom` | DateTime | When head office switched the EOD flow on for this site; blank = off. Reports sent before it aren't sent to the flow |
 | `Active` *(indexed)* | Yes/No | Open and trading. A closed site (e.g. Ramo) stays for its old records but drops out of pickers, counts and access |
 
 *Indexed (2):* SiteCode, Active
@@ -114,19 +115,21 @@
 | Column | Type | Notes |
 |---|---|---|
 | `Title` *(required)* | Text | Name |
+| `TemplateId` *(unique, required)* | Text | Stable id used in run keys, e.g. closing |
 | `Kind` *(indexed)* | Choice | Opening / Closing / Cleaning / Food safety / Delivery / Handover / Custom |
 | `CurrentVersion` | Number | Bumped on publish; runs store the version used |
 | `Status` *(indexed)* | Choice | Draft / Published / Archived |
-| `Sites` | Lookup (multi) → Sites | Where it applies |
+| `SiteCodes` | Text | Where it applies, e.g. BUN;HOX (blank = every site). Text, not a lookup |
 
-*Indexed (2):* Kind, Status
+*Indexed (3):* TemplateId, Kind, Status
 
 **Checkpoints**: Questions inside a template version — the customisable checkpoints with media. *Written by:* Admin / Manager (builder).
 
 | Column | Type | Notes |
 |---|---|---|
 | `Title` *(required)* | Text | Prompt, e.g. Walk-in chiller temperature |
-| `Template` *(indexed)* | Lookup → ChecklistTemplates |  |
+| `CheckpointId` *(indexed, required)* | Text | Stable id used in answer keys, e.g. walkin-temp (never reused) |
+| `TemplateId` *(indexed)* | Text | ChecklistTemplates.TemplateId (text, not a lookup) |
 | `TemplateVersion` *(indexed)* | Number | Published versions are never edited |
 | `Position` | Number |  |
 | `Section` | Text |  |
@@ -140,15 +143,15 @@
 | `PhotoRequired` | Yes/No |  |
 | `CorrectiveActionOnFail` | Yes/No |  |
 
-*Indexed (2):* Template, TemplateVersion
+*Indexed (3):* CheckpointId, TemplateId, TemplateVersion
 
 **Schedules**: When each checklist is due at each site. *Written by:* Admin / Manager.
 
 | Column | Type | Notes |
 |---|---|---|
 | `Title` | Text | Description |
-| `Template` *(indexed)* | Lookup → ChecklistTemplates |  |
-| `Site` *(indexed)* | Lookup → Sites |  |
+| `TemplateId` *(indexed)* | Text | ChecklistTemplates.TemplateId |
+| `SiteCode` *(indexed)* | Text | Sites.SiteCode |
 | `DueTime` *(required)* | Text | e.g. 08:00 |
 | `Days` | Choice (multi) | Mon–Sun |
 | `WindowMinutes` | Number | Late after this |
@@ -156,81 +159,144 @@
 | `AssignedRole` | Choice |  |
 | `PausedFrom` | Date | Closures / refurb |
 | `PausedUntil` | Date |  |
+| `EffectiveFrom` *(required)* | Text | yyyy-MM-dd. Missed-day checks use the schedule that applied on that date |
+| `EffectiveTo` | Text | yyyy-MM-dd; blank = still in use. Change a schedule by ending it and adding a new one |
 
-*Indexed (2):* Template, Site
+*Indexed (2):* TemplateId, SiteCode
 
-**ChecklistRuns**: One instance of a checklist on a day (created each morning by a Netlify Scheduled Function). *Written by:* Scheduled function creates; app completes.
+**ChecklistDays**: One header per open site per date: groups the day's runs and records misses (replaces DayClosures). *Written by:* Morning job creates; checklist-sync updates; nightly and weekly jobs mark Missed.
 
 | Column | Type | Notes |
 |---|---|---|
-| `Title` *(unique, required)* | Text | Key = SiteCode\|yyyy-mm-dd\|ScheduleId |
-| `Site` *(indexed)* | Lookup → Sites |  |
-| `BusinessDate` *(indexed)* | Date |  |
-| `Template` | Lookup → ChecklistTemplates |  |
+| `Title` *(unique, required)* | Text | DayKey = SiteCode\|yyyy-MM-dd, e.g. BUN\|2026-11-06 |
+| `Label` | Text | For people and list search, e.g. Bunso · Fri 6 Nov 2026 |
+| `SiteCode` *(indexed)* | Text |  |
+| `BusinessDateKey` *(indexed)* | Text | yyyy-MM-dd; keys and range filters (Date columns shift a day in British Summer Time) |
+| `BusinessDate` | Date | Display and Power BI date tables only; never filter on it |
+| `Status` *(indexed)* | Choice | Due / In progress / Submitted / Late / Missed / Not trading / Deleted / Deleting. Filter by date first, then status in code |
+| `NotTradingReason` | Text | Head office: closure, refurb, holiday |
+| `ExpectedRuns` *(set by server)* | Number |  |
+| `CompletedRuns` *(set by server)* | Number |  |
+| `MissedRuns` *(set by server)* | Number |  |
+| `FailedCount` *(set by server)* | Number |  |
+| `OpenFixes` *(set by server)* | Number |  |
+| `SubmittedAt` *(set by server)* | DateTime | Last run finished (server time) |
+| `SubmittedById` *(set by server)* | Text | Entra object id (not a person column) |
+| `SubmittedByName` *(set by server)* | Text |  |
+| `MissedDetectedAt` *(set by server)* | DateTime | Set once by the nightly job; never cleared, even by a late submission |
+| `DayHash` *(set by server)* | Text | SHA-256 over the finished runs' RunHash values |
+| `Stats` *(set by server)* | Multi-line text | JSON: completion %, failures, open fixes, faults |
+| `ReportItemId` *(set by server)* | Text | driveItem id of the day PDF in Maginhawa App Checklists (never a URL) |
+| `ReportBuiltAt` *(set by server)* | DateTime | When the day PDF was last made; remade after any correction |
+| `DeletedAt` *(set by server)* | DateTime | Soft delete |
+| `DeletedById` *(set by server)* | Text |  |
+| `DeletedByName` *(set by server)* | Text |  |
+| `DeletedReason` *(set by server)* | Text | Required to delete; 'Moved to …' after a move |
+| `StatusBeforeDelete` *(set by server)* | Text | Restore puts this back |
+
+*Indexed (4):* Title, SiteCode, BusinessDateKey, Status
+
+**ChecklistRuns**: One checklist (template + due time) on a day; holds the live answers while open. *Written by:* checklist-sync (Netlify Function); scheduled jobs create and mark Missed.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | RunKey = SiteCode\|yyyy-MM-dd\|templateId\|HH:MM (or \|any), e.g. BUN\|2026-11-06\|closing\|22:30 |
+| `DayKey` *(indexed)* | Text | ChecklistDays key; all runs for a day = one filter on this |
+| `SiteCode` *(indexed)* | Text |  |
+| `BusinessDateKey` *(indexed)* | Text | yyyy-MM-dd |
+| `TemplateId` | Text |  |
 | `TemplateVersion` | Number |  |
-| `DueAt` | Date/Time |  |
-| `Status` *(indexed)* | Choice | Scheduled / In progress / Completed / Missed / Auto-closed / Cancelled |
-| `CompletedBy` | Lookup → Staff |  |
-| `CompletedAt` | Date/Time |  |
-| `DurationSeconds` | Number | Pencil-whip signal |
-| `FailedCount` *(set by server)* | Number | Set by the server when the run is completed |
+| `DueTime` | Text | HH:MM or blank |
+| `DueAt` | DateTime |  |
+| `Status` *(indexed)* | Choice | Scheduled / In progress / Completed / Missed / Auto-closed / Cancelled / Deleted |
+| `AnswersJson` *(set by server)* | Multi-line text (plain) | Snapshot of the run's answers: value, who, when, fix, corrections, per-answer seq. Saved with If-Match; the server refuses more than about 50,000 characters. Photos and signatures are ids, never base64 |
+| `SchemaVersion` *(set by server)* | Number | Version of the AnswersJson shape |
+| `Seq` *(set by server)* | Number | Raised on every successful write; the Finish 'seen' check compares against it |
+| `RecheckOf` | Text | RunKey\|checkpointId of the failed answer |
+| `CompletedAt` *(set by server)* | DateTime | Server time |
+| `CompletedById` *(set by server)* | Text | Entra object id |
+| `CompletedByName` *(set by server)* | Text |  |
+| `DurationSeconds` *(set by server)* | Number | Pencil-whip signal |
+| `FailedCount` *(set by server)* | Number |  |
+| `RunHash` *(set by server)* | Text | SHA-256 of the canonical finished AnswersJson |
+| `RowsStatus` *(indexed)* | Choice | Pending / Written: queue for the background writer of Responses_{yyyy} rows |
+| `DeletedAt` *(set by server)* | DateTime | Soft delete of one run |
+| `DeletedById` *(set by server)* | Text |  |
+| `DeletedReason` *(set by server)* | Text |  |
 
-*Indexed (4):* Title, Site, BusinessDate, Status
+*Indexed (6):* Title, DayKey, SiteCode, BusinessDateKey, Status, RowsStatus
 
-**Responses**: Every answer — the compliance record (largest list). *Written by:* App (append-only by convention + Purview record label).
+**Responses_{yyyy}**: One list per business-date year (Responses_2026, Responses_2027…): one row per final answer, written at Finish and on each correction, never edited. Create every index before go-live: SharePoint Online can refuse a new index once a list passes 5,000 items, and this list passes that in about 4 days. *Written by:* Background writer (Netlify Function) only; create-only.
 
 | Column | Type | Notes |
 |---|---|---|
-| `Title` *(unique, required)* | Text | ClientId — UUID from the device; makes offline retries idempotent |
-| `Run` *(indexed)* | Lookup → ChecklistRuns |  |
-| `Site` *(indexed)* | Lookup → Sites |  |
-| `BusinessDate` *(indexed)* | Date |  |
-| `CheckpointId` | Number | Checkpoint item id |
-| `ValueNumber` | Number |  |
-| `ValueText` | Multi-line text | Text / select / signature JSON |
-| `Passed` *(indexed)* | Yes/No | App preview; confirmed by the server |
+| `Title` *(unique, required)* | Text | RowKey = AnswerKey\|rev (rev 0 = original, 1… = corrections). A retried write gets 409, not a duplicate |
+| `AnswerKey` *(indexed)* | Text | RunKey\|checkpointId |
+| `DayKey` *(indexed)* | Text | Answers for one day |
+| `BusinessDateKey` *(indexed)* | Text | yyyy-MM-dd; date-range exports |
+| `CheckpointId` *(indexed)* | Text | One question over a year (about 2,920 rows) |
+| `SiteCode` | Text |  |
+| `RunKey` | Text |  |
+| `TemplateId` | Text |  |
+| `TemplateVersion` | Number |  |
+| `CheckpointTitle` | Text | Snapshot, so later template edits don't rewrite history |
+| `AnswerType` | Choice | yesno / temp / number / text / photo / choice / date / sign (ANSWER_TYPES) |
+| `ValueNumber` | Number | temp, number |
+| `ValueBool` | Choice | Yes / No / blank (a Yes/No column can't be blank) |
+| `ValueText` | Multi-line text | text, choice |
+| `ValueDateKey` | Text | yyyy-MM-dd |
+| `ValueDisplay` | Text | Readable value for Excel, whatever the type |
+| `Result` | Choice | Pass / Fail / None (replaces Passed) |
 | `ThresholdSnapshot` | Text | Min/max/legal basis used, frozen |
 | `Source` | Choice | Manual / Bluetooth probe / Camera OCR |
-| `PhotoUrl` | Hyperlink | Photos library |
-| `PhotoSha256` | Text | Detects reused photos |
 | `CapturedLive` | Yes/No | In-app camera, not gallery |
-| `RecordedBy` | Lookup → Staff |  |
-| `Device` | Lookup → Devices |  |
-| `ClientRecordedAt` | Date/Time | Device clock (Created = server time) |
-| `Supersedes` | Number | Id of the response this corrects (never edit in place) |
-| `CorrectionReason` | Text |  |
-| `AnswerKey` *(indexed)* | Text | runKey\|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who). The server caps ClientRecordedAt at its own time, so a fast device clock can't win |
+| `PhotoIds` | Text | PhotoId values (; separated). Replaces PhotoUrl: links expire, ids don't |
+| `PhotoItemIds` | Text | driveItem ids in the Photos library |
+| `PhotoSha256` | Text | Detects reused photos |
+| `AnsweredById` | Text | Entra object id |
+| `AnsweredByName` | Text |  |
+| `AnsweredAt` | DateTime | Capped at server time |
+| `ReceivedAt` | DateTime | Server time the answer reached us (offline answers arrive later) |
+| `Rev` | Number | 0 = original |
+| `Supersedes` | Text | RowKey of the row this corrects |
+| `CorrectionReason` | Text | Required when Rev > 0 |
+| `CorrectedAt` | DateTime | Server time |
 
-*Indexed (6):* Title, Run, Site, BusinessDate, Passed, AnswerKey
+*Indexed (5):* Title, AnswerKey, DayKey, BusinessDateKey, CheckpointId
 
 **CorrectiveActions**: What was done about a failed check. *Written by:* App + Netlify Functions (checklist check, re-check and escalation).
 
 | Column | Type | Notes |
 |---|---|---|
 | `Title` *(required)* | Text | Short description |
-| `Response` *(indexed)* | Lookup → Responses |  |
-| `Site` *(indexed)* | Lookup → Sites |  |
+| `AnswerKey` *(indexed)* | Text | RunKey\|checkpointId of the failed answer (replaces the Response lookup) |
+| `DayKey` *(indexed)* | Text |  |
+| `SiteCode` *(indexed)* | Text |  |
 | `ActionTaken` | Multi-line text |  |
 | `FoodDisposed` | Yes/No |  |
 | `Status` *(indexed)* | Choice | Open / Action taken / Verified / Escalated |
 | `RecheckDue` *(indexed)* | Date/Time |  |
 | `WorkOrder` | Lookup → WorkOrders | Set when escalated |
-| `VerifiedBy` | Lookup → Staff |  |
+| `VerifiedById` | Text | Entra object id |
+| `VerifiedByName` | Text |  |
 
-*Indexed (4):* Response, Site, Status, RecheckDue
+*Indexed (5):* AnswerKey, DayKey, SiteCode, Status, RecheckDue
 
-**DayClosures**: Ops end-of-day sign-off per site. *Written by:* App + submit-eod (Netlify Function).
+**ChecklistAudit**: Restores, moves and hard deletes of checklist days; kept when the day itself is hard-deleted. *Written by:* Netlify Functions only.
 
 | Column | Type | Notes |
 |---|---|---|
-| `Title` *(unique, required)* | Text | Key = SiteCode\|yyyy-mm-dd |
-| `Site` *(indexed)* | Lookup → Sites |  |
-| `BusinessDate` *(indexed)* | Date |  |
-| `ClosedBy` | Lookup → Staff | Blank = auto-closed |
-| `Stats` *(set by server)* | Multi-line text | JSON: completion %, failures, open CAs, faults |
-| `ReportLink` *(set by server)* | Hyperlink | PDF in Reports library |
+| `Title` *(unique, required)* | Text | DayKey\|action\|timestamp |
+| `DayKey` *(indexed)* | Text |  |
+| `Action` *(required)* | Choice | Soft delete / Restore / Move / Hard delete started / Hard delete finished |
+| `Reason` *(required)* | Text |  |
+| `ById` *(required)* | Text | Entra object id |
+| `ByName` | Text |  |
+| `At` *(required)* | DateTime | Server time |
+| `Counts` | Text | JSON: runs, rows, photos, corrective actions affected |
+| `MovedTo` | Text | New DayKey after a move |
 
-*Indexed (3):* Title, Site, BusinessDate
+*Indexed (2):* Title, DayKey
 
 **HandoverNotes**: Shift handover log. *Written by:* App.
 
@@ -453,7 +519,7 @@
 | Column | Type | Notes |
 |---|---|---|
 | `Title` *(unique, required)* | Text | Record type: checks, faults, allergens, complaints, training, fitness, inspections |
-| `Months` *(required)* | Number | Suggested defaults in packages/core DEFAULT_KEEP |
+| `Months` *(required)* | Number | Suggested defaults in packages/core DEFAULT_KEEP. Proposed: checks 36 (3 years: Food Safety Act s.34 prosecutions and injury claims both have 3-year limits; DEFAULT_KEEP still says 24 until agreed); check photos 12 unless tied to an incident |
 | `FromLeaving` | Yes/No | Counted from when the person leaves |
 
 *Indexed (1):* Title
@@ -503,7 +569,7 @@
 | `Summary` *(required)* | Text |  |
 | `Description` | Multi-line text |  |
 | `Source` | Choice | Fault report / Failed check / Statutory / Planned / EOD note / AI warning |
-| `SourceResponse` | Number | Response id when source = failed check |
+| `SourceAnswerKey` | Text | AnswerKey (RunKey\|checkpointId) when source = failed check |
 | `Priority` *(indexed)* | Choice | Low / Normal / High / Urgent |
 | `Status` *(indexed)* | Choice | Reported / Triaged / Dispatched / Scheduled / In progress / Awaiting parts / Resolved / Closed / Cancelled |
 | `Contractor` | Lookup → Contractors |  |

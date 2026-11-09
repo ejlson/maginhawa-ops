@@ -7,13 +7,14 @@
 | Reference | **ReasonCodes** | Discount / comp / void reasons (23 discount/comp + 15 void codes from the current form) | Finance / Admin | – |
 | Reference | **DeliveryPlatforms** | Deliveroo, Uber Eats, Just Eat… | Finance | Platform name |
 | Reference | **RulesThresholds** | Food-safety limits per nation (data, not code); consultant-verified | Admin (consultant sign-off) | Nation\|CheckCode |
-| Checklists | **ChecklistTemplates** | Checklist definitions (opening, closing, cleaning, food safety, custom) | Admin / Manager (console builder) | – |
+| Checklists | **ChecklistTemplates** | Checklist definitions (opening, closing, cleaning, food safety, custom) | Admin / Manager (console builder) | TemplateId |
 | Checklists | **Checkpoints** | Questions inside a template version — the customisable checkpoints with media | Admin / Manager (builder) | – |
 | Checklists | **Schedules** | When each checklist is due at each site | Admin / Manager | – |
-| Checklists | **ChecklistRuns** | One instance of a checklist on a day (created each morning by a Netlify Scheduled Function) | Scheduled function creates; app completes | SiteCode\|yyyy-mm-dd\|ScheduleId |
-| Checklists | **Responses** | Every answer — the compliance record (largest list) | App (append-only by convention + Purview record label) | ClientId |
+| Checklists | **ChecklistDays** | One header per open site per date: groups the day's runs and records misses (replaces DayClosures) | Morning job creates; checklist-sync updates; nightly and weekly jobs mark Missed | SiteCode\|yyyy-MM-dd, e.g. BUN\|2026-11-06 |
+| Checklists | **ChecklistRuns** | One checklist (template + due time) on a day; holds the live answers while open | checklist-sync (Netlify Function); scheduled jobs create and mark Missed | SiteCode\|yyyy-MM-dd\|templateId\|HH:MM |
+| Checklists | **Responses_{yyyy}** | One list per business-date year (Responses_2026, Responses_2027…): one row per final answer, written at Finish and on each correction, never edited. Create every index before go-live: SharePoint Online can refuse a new index once a list passes 5,000 items, and this list passes that in about 4 days | Background writer (Netlify Function) only; create-only | corrections). A retried write gets 409, not a duplicate |
 | Checklists | **CorrectiveActions** | What was done about a failed check | App + Netlify Functions (checklist check, re-check and escalation) | – |
-| Checklists | **DayClosures** | Ops end-of-day sign-off per site | App + submit-eod (Netlify Function) | SiteCode\|yyyy-mm-dd |
+| Checklists | **ChecklistAudit** | Restores, moves and hard deletes of checklist days; kept when the day itself is hard-deleted | Netlify Functions only | DayKey\|action\|timestamp |
 | Checklists | **HandoverNotes** | Shift handover log | App | – |
 | Food safety | **Dishes** | Every dish on a menu, for the allergen matrix | Manager / Head office | – |
 | Food safety | **AllergenVersions** | Each version of a dish's 14-allergen list; never edited or deleted | Manager / Head office (append-only) | DishId\|Version |
