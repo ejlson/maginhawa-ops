@@ -5,7 +5,8 @@ import { can, useAuth } from '../lib/auth';
 import { runPath, useChecklists } from '../lib/checklists';
 import { timeHM } from '../lib/draft';
 import { Foot, Icon, Nav, Pie } from '../components/ui';
-import { blockingLabel, rowState } from '../components/checklist-run-helpers';
+import { blockingLabel, finishStats, nextToDo, rowState } from '../components/checklist-run-helpers';
+import { FixInRow } from '../components/FixInRow';
 import { ICONS } from '../components/ui-helpers';
 import { Answer } from '../components/Answer';
 import { PresenceLine } from '../components/Sync';
@@ -27,6 +28,20 @@ export default function ChecklistRun() {
   const title = template?.title ?? null;
   // Other devices see "Jo is in Closing checks".
   useEffect(() => { setWhere(title); return () => setWhere(null); }, [title, setWhere]);
+  // The first check still to do gets a blue ring. After a tap answer (Yes/No, a choice), bring it into
+  // view if it's below the fold; never while someone is typing, so the keyboard isn't pulled away.
+  const nextId = template ? nextToDo(template.checkpoints, runFor(key)?.answers ?? {}, businessDate) : null;
+  useEffect(() => {
+    if (!nextId) return;
+    const typing = document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement;
+    const row = document.querySelector<HTMLElement>('.run .qrow.cur');
+    if (typing || !row) return;
+    const r = row.getBoundingClientRect();
+    if (r.bottom > window.innerHeight - 140 || r.top < 80) {
+      const smooth = !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      row.scrollIntoView?.({ block: 'center', behavior: smooth ? 'smooth' : 'auto' });
+    }
+  }, [nextId]);
   if (!template) return <Navigate to="/checklists" replace />;
   const run = runFor(key);
   const task = tasks.find((t) => t.key === key);
@@ -48,7 +63,24 @@ export default function ChecklistRun() {
     <>
       <Nav back="/checklists" backLabel="Checklists" title={task?.recheckOf ? 'Re-check' : template.title} right={<span className="saved"><span className="dot" />Saved</span>} />
       <div className="body form run">
-        {/* Calm list: a small summary card, so the checks themselves get the screen. */}
+        {/* Finished (everything answered, failures dealt with, not yet submitted): a proper ending. */}
+        {s.canFinish && !done && run ? (() => {
+          const f = finishStats(run);
+          return (
+            <div className="hero run-hero finish" role="status" aria-live="polite">
+              <div className="finish-head">
+                <span className="finish-tick" aria-hidden="true"><Icon d={ICONS.check} size={22} /></span>
+                <div className="finish-title"><b>All {s.answered} checks done</b><span className="hl">{template.title}{template.who ? ` · ${template.who}` : ''}</span></div>
+              </div>
+              <div className="hm">
+                <span>{f.minutes ? `${f.minutes} min` : '—'}<small>Took</small></span>
+                <span>{f.fixed}<small>{f.fixed === 1 ? 'Problem fixed' : 'Problems fixed'}</small></span>
+                <span>{f.recheckAt ? timeHM(f.recheckAt) : 'None'}<small>Re-check due</small></span>
+              </div>
+            </div>
+          );
+        })() : (
+        /* Calm list: a small summary card, so the checks themselves get the screen. */
         <div className="hero run-hero" role="status" aria-live="polite">
           <div className="hero-row">
             <span className="hl">{task?.title ?? template.title}{template.who ? ` · ${template.who}` : ''}</span>
@@ -60,6 +92,7 @@ export default function ChecklistRun() {
           </div>
           {s.unfixed > 0 && <span className="hl h-bad">{s.unfixed} {s.unfixed === 1 ? 'needs' : 'need'} action</span>}
         </div>
+        )}
         {here.length > 0 && <PresenceLine others={here} />}
         {refused.length > 0 && (
           <div className="sync-card" role="alert">
@@ -83,7 +116,7 @@ export default function ChecklistRun() {
                 const by = run?.answeredBy?.[c.id];
                 const state = rowState(e, Boolean(fixed));
                 return (
-                  <div key={c.id} className={`qrow circ ${state}${state === 'done' && e.passed !== false ? ' dim' : ''}`}>
+                  <div key={c.id} className={`qrow circ ${state}${state === 'done' && e.passed !== false ? ' dim' : ''}${!done && c.id === nextId ? ' cur' : ''}`}>
                     <span className="qmark"><Pie status={state} size={22} /></span>
                     <div className="qbody">
                     {/* Who answered and when, on every answered row, so a shared list stays attributable. */}
@@ -97,11 +130,11 @@ export default function ChecklistRun() {
                     {e.passed === false && (
                       fixed ? (
                         <div className="banner qnote"><Icon d={ICONS.check} size={16} /><span>Dealt with: {fixed.actions.join(', ').toLowerCase()}. Re-check in {fixed.recheckInMinutes} min{fixed.reportFault ? ' · fault reported' : ''}.</span></div>
+                      ) : done ? (
+                        <div className="qfail"><span className="tx"><span>{e.reason}</span><small>Not dealt with before it was submitted.</small></span></div>
                       ) : (
-                        <div className="qfail">
-                          <span className="tx"><span>{e.reason}</span><small>Say what you did about it before it's submitted.</small></span>
-                          {!done && <Link className="qfix" to={`${runPath(key)}/fix/${c.id}`}>Fix this</Link>}
-                        </div>
+                        // Dealt with right here: what was done, when to check again, and a fault report.
+                        <FixInRow runKey={key} c={c} reason={e.reason} />
                       )
                     )}
                     </div>

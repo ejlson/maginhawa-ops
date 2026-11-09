@@ -121,8 +121,8 @@ export default function ChecklistBuilder() {
             )}
           </div>
           {picking && (
-            <div className="panel" role="group" aria-label="What kind of answer?">
-              <div className="hd"><h2 style={{ fontSize: 17 }}>What kind of answer?</h2><button type="button" className="linkbtn" onClick={() => setPicking(false)}>Cancel</button></div>
+            <div className="panel" role="group" aria-label="What type of answer?">
+              <div className="hd"><h2 style={{ fontSize: 17 }}>What type of answer?</h2><button type="button" className="linkbtn" onClick={() => setPicking(false)}>Cancel</button></div>
               <div className="sub">
                 {ANSWER_TYPES.map((type) => (
                   <RowLink key={type} onClick={() => addCheck(type)} lead={<span className="av" style={{ background: 'var(--bg)' }}><Icon d={ANSWER_ICONS[type]} /></span>} title={ANSWER_LABELS[type]} sub={TYPE_HINTS[type]} />

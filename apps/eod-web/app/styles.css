@@ -1009,3 +1009,60 @@ a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.
 .edit-check .sub > .fr { min-height: 60px; }
 .edit-check .in.lim { width: 96px; height: 38px; border-radius: 10px; }
 .tsign[aria-pressed="false"] { color: var(--sec); font-weight: 500; }
+
+/* The next check to do: a blue ring on its circle. */
+.run .qrow.cur .qmark svg circle { stroke: var(--link); stroke-opacity: 1; }
+
+/* The other answer types, sized like the temperature field and the Yes/No buttons. */
+.run .qbody .in { width: 96px; height: 38px; border-radius: 10px; padding: 0 12px; font-size: 16px; font-weight: 600; }
+.run .qbody .in[type="date"] { width: 138px; font-size: 14px; font-weight: 500; text-align: left; padding: 0 10px; }
+.run .qbody .ta { min-height: 76px; border-radius: 12px; font-size: 15px; padding: 10px 12px; }
+.run .qbody .blk { gap: 10px; }
+.run .qbody .blk img { width: 76px !important; height: 76px !important; border-radius: 12px !important; }
+.run .qbody .blk canvas { height: 88px !important; border-radius: 12px !important; }
+.run .qbody .blk .linkbtn { font-size: 14px; }
+
+/* ---- today's checklists: the same compact card and row rhythm as doing a list ---- */
+.lists-hero { gap: 12px; padding: 20px; }
+.lists-hero .big b { font-size: 44px; }
+.lists-hero .big i { font-size: 22px; }
+.lists-hero .hl.h-bad { color: var(--heroBad); font-weight: 600; }
+.lists-page .grp .sub .li { min-height: 64px; }
+.lists-page .grp .sub + .sub { margin-top: 12px; }
+.lists-page .rt .pill { height: 24px; font-size: 12.5px; padding: 0 9px; }
+
+/* Add-a-photo tile: icon over a short centred label. */
+.photo-add { width: 84px; height: 84px; flex: none; border-radius: 14px; border: 1.5px dashed var(--sep); display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; color: var(--link); font-size: 12.5px; font-weight: 600; text-align: center; white-space: nowrap; cursor: pointer; }
+.photo-add:hover { background: var(--fill); }
+.run .photo-add { width: 84px; height: 76px; border-radius: 12px; }
+
+/* ---- fixing a failed check in its row ---- */
+.fixrow { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 14px; background: var(--badbg); }
+.fixrow-q { margin: 0; display: flex; flex-direction: column; gap: 2px; }
+.fixrow-q b { font-size: 15px; font-weight: 600; color: var(--bad); }
+.fixrow-q span { font-size: 14px; color: var(--text); opacity: .8; }
+.fixrow-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fixtile { display: flex; align-items: center; gap: 6px; min-height: 52px; padding: 8px 12px; border: 0; border-radius: 12px; background: var(--bg); color: var(--text); font: inherit; font-size: 14px; font-weight: 500; line-height: 1.25; text-align: left; cursor: pointer; }
+.fixtile[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--ink); font-weight: 600; }
+.fixtile svg { flex: none; }
+.fixrow-link { align-self: flex-start; position: relative; border: 0; background: none; padding: 0; color: var(--link); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
+.fixrow-link::after { content: ''; position: absolute; inset: -12px -8px; }
+.fixrow-note.in { height: 40px; background: var(--bg); font-size: 15px; font-weight: 400; }
+.fixrow-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--text); }
+.fixrow-line > span { display: inline-flex; align-items: center; gap: 8px; }
+.fixrow-line svg { color: var(--sec); }
+.fixrow .chips .chip { background: var(--bg); }
+.fixrow .chips .chip[aria-pressed="true"] { background: var(--ink); color: var(--onink); }
+.fixrow-save.btn { height: 44px; font-size: 15px; }
+.run .qbody .fixrow-note.in { width: 100%; text-align: left; font-weight: 400; padding: 0 12px; }
+
+/* ---- finish card: a clear ending once everything is answered ---- */
+.run-hero.finish { gap: 18px; }
+.finish-head { display: flex; align-items: center; gap: 14px; }
+.finish-tick { width: 44px; height: 44px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--heroOk); color: #0f1a12; }
+.finish-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.finish-title b { font-size: 24px; font-weight: 700; letter-spacing: -.03em; line-height: 1.15; }
+@media (prefers-reduced-motion: no-preference) { .finish-tick { animation: finish-pop .35s ease-out; } }
+@keyframes finish-pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+/* Dealt with: the reading stays as recorded, without the red outline. */
+.run .qrow.done .tfield.bad, .run .qrow.done .in.bad { box-shadow: none; }

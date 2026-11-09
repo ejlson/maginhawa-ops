@@ -128,8 +128,8 @@ export function Answer({ c, value, set, today, disabled, onBig, quiet = false, n
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             {photos.map((src, i) => <img key={i} src={src} alt={`${c.title} ${i + 1}`} style={{ width: 84, height: 84, objectFit: 'cover', borderRadius: 14 }} />)}
             {!disabled && (
-              <label style={{ width: 84, height: 84, borderRadius: 14, border: '1.5px dashed var(--sep)', display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', justifyContent: 'center', color: 'var(--link)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                <Icon d="M2 6h3l1.5-2h5L13 6h3v9H2zM9 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />{photos.length ? 'Retake' : 'Take photo'}
+              <label className="photo-add">
+                <Icon d="M2 6h3l1.5-2h5L13 6h3v9H2zM9 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" /><span>{photos.length ? 'Retake' : 'Take photo'}</span>
                 <input type="file" accept="image/*" capture="environment" aria-label={`Take a photo: ${c.title}`} style={{ display: 'none' }}
                   onChange={async (ev) => { const f = ev.target.files?.[0]; if (f) set([await shrinkPhoto(f)]); }} />
               </label>

@@ -68,14 +68,21 @@ describe('doing a checklist', () => {
     }
     expect(screen.getByRole('button', { name: 'Fix walk-in fridge first' })).toBeDisabled();
 
-    await user.click(screen.getByRole('link', { name: 'Fix this' }));
-    expect(screen.getByRole('button', { name: 'Save and set re-check' })).toBeDisabled();
-    await user.click(screen.getByRole('button', { name: 'Moved food to another fridge' }));
-    await user.click(screen.getByRole('button', { name: '30 min' }));
-    expect(screen.getByRole('switch', { name: 'Report a fault' })).toHaveAttribute('aria-checked', 'true');
-    await user.click(screen.getByRole('button', { name: 'Save and set re-check' }));
+    // The failure is dealt with in its own row: no separate page.
+    const fixPanel = screen.getByRole('group', { name: 'Fix Walk-in fridge' });
+    expect(within(fixPanel).getByRole('button', { name: 'Pick what you did' })).toBeDisabled();
+    await user.click(within(fixPanel).getByRole('button', { name: 'Moved food to another fridge' }));
+    // The re-check is already set (30 minutes); Change offers 15, 30 or 60.
+    expect(fixPanel).toHaveTextContent('Check again at');
+    await user.click(within(fixPanel).getByRole('button', { name: 'Change' }));
+    await user.click(within(fixPanel).getByRole('button', { name: '30 min' }));
+    expect(within(fixPanel).getByRole('switch', { name: 'Report a fault' })).toHaveAttribute('aria-checked', 'true');
+    await user.click(within(fixPanel).getByRole('button', { name: 'Save what you did' }));
 
     expect(await screen.findByText(/Dealt with: moved food to another fridge/)).toBeInTheDocument();
+    // Everything answered and dealt with: the card at the top becomes a finish card.
+    expect(screen.getByText('All 7 checks done')).toBeInTheDocument();
+    expect(screen.getByText('Problem fixed')).toBeInTheDocument();
     // Answers save as you go; nothing is locked from inside the list.
     expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument();
     expect(screen.getByText('Saved. Submit it with the others under the checklists.')).toBeInTheDocument();

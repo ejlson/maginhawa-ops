@@ -77,7 +77,7 @@ export default function ChecklistCheck() {
         </section>
 
         <section className="grp">
-          <div className="gh"><h2>Kind of answer</h2></div>
+          <div className="gh"><h2>Type of answer</h2></div>
           {/* One row showing the current kind; the full list only opens to change it. */}
           <div className="kind" role="radiogroup" aria-label="Answer type">
             {(picking ? ANSWER_TYPES : [c.type]).map((type) => (

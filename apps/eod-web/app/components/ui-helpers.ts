@@ -100,6 +100,18 @@ export function nextOnEnter(e: React.KeyboardEvent<HTMLInputElement>) {
   if (next) next.focus(); else e.currentTarget.blur();
 }
 
+/**
+ * Enter on a checklist reading: jump to the next reading still empty, skipping ones already filled
+ * in, or close the keyboard when there are none left.
+ */
+export function nextEmptyOnEnter(e: React.KeyboardEvent<HTMLInputElement>) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const fields = [...document.querySelectorAll<HTMLInputElement>(NUMBER_FIELDS)];
+  const next = fields.slice(fields.indexOf(e.currentTarget) + 1).find((f) => f.value.trim() === '');
+  if (next) next.focus(); else e.currentTarget.blur();
+}
+
 /** Turns "5" into "-5" and back. The iPhone decimal keypad has no minus key, so freezer readings need this. */
 export const flipSign = (t: string) => (/^\s*[-−]/.test(t) ? t.replace(/^\s*[-−]/, '') : `-${t.trim()}`);
 

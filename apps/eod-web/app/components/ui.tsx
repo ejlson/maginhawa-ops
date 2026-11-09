@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import { Link } from 'react-router';
 import { useWide } from '../lib/wide';
 import { formatPounds, parseCount, parsePounds, SITES, splitPounds, type Pence, type SectionKey, type SectionStatus } from '@maginhawa/core';
-import { SECTION_ICONS, plainPounds, nextOnEnter, flipSign, toggled } from './ui-helpers';
+import { SECTION_ICONS, plainPounds, nextOnEnter, nextEmptyOnEnter, flipSign, toggled } from './ui-helpers';
 
 export function Chevron() {
   return (
@@ -164,7 +164,7 @@ export function SignedTempInput({ value, onChange, label, invalid, disabled, neg
           onPointerDown={(e) => e.preventDefault()} onClick={flip}>{neg ? '−' : '+'}</button>
       )}
       <input ref={input} type="text" inputMode="decimal" enterKeyHint="next" disabled={disabled} aria-label={label}
-        placeholder={placeholder} value={shown} onKeyDown={nextOnEnter} onChange={(e) => type(e.target.value)}
+        placeholder={placeholder} value={shown} onKeyDown={nextEmptyOnEnter} onChange={(e) => type(e.target.value)}
         style={{ width: `${Math.max(shown.length, 1) + 0.1}ch` }} />
       <span className="tunit" aria-hidden="true" onClick={() => input.current?.focus()}>°C</span>
     </span>
