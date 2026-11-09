@@ -151,16 +151,20 @@ export function SignedTempInput({ value, onChange, label, invalid, disabled, neg
     if (value.trim() === '') setPendingNeg((x) => !x);
     else onChange(flipSign(value));
   };
+  const input = useRef<HTMLInputElement>(null);
   return (
-    <span className={`tfield${invalid ? ' bad' : ''}${showSign ? '' : ' nosign'}`}>
+    // The field is right-aligned and sized to its digits, so the sign sits right next to the number.
+    // A tap anywhere on the box focuses it.
+    <span className={`tfield${invalid ? ' bad' : ''}`} onClick={(e) => { if (e.target === e.currentTarget) input.current?.focus(); }}>
       {showSign && (
         <button type="button" className="tsign" disabled={disabled} aria-label={`Below zero: ${label}`} aria-pressed={neg}
           // Keep the keyboard up: don't take focus from the field.
           onPointerDown={(e) => e.preventDefault()} onClick={flip}>{neg ? '−' : '+'}</button>
       )}
-      <input type="text" inputMode="decimal" enterKeyHint="next" disabled={disabled} aria-label={label}
-        placeholder="–" value={shown} onKeyDown={nextOnEnter} onChange={(e) => type(e.target.value)} />
-      <span className="tunit" aria-hidden="true">°C</span>
+      <input ref={input} type="text" inputMode="decimal" enterKeyHint="next" disabled={disabled} aria-label={label}
+        placeholder="–" value={shown} onKeyDown={nextOnEnter} onChange={(e) => type(e.target.value)}
+        style={{ width: `${Math.max(shown.length, 1) + 0.1}ch` }} />
+      <span className="tunit" aria-hidden="true" onClick={() => input.current?.focus()}>°C</span>
     </span>
   );
 }

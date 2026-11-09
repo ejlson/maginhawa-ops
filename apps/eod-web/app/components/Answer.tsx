@@ -75,10 +75,11 @@ function SignaturePad({ value, onChange, disabled }: { value: AnswerValue | unde
  * `onBig` opens the big-target temperature entry (kitchen iPad). `quiet` drops the pass/fail pill: on a
  * checklist the row's circle, the field's red ring and the failure box under the row say it instead.
  */
-export function Answer({ c, value, set, today, disabled, onBig, quiet = false }: { c: Checkpoint; value: AnswerValue | undefined; set: (v: AnswerValue) => void; today: string; disabled: boolean; onBig?: () => void; quiet?: boolean }) {
+export function Answer({ c, value, set, today, disabled, onBig, quiet = false, note }: { c: Checkpoint; value: AnswerValue | undefined; set: (v: AnswerValue) => void; today: string; disabled: boolean; onBig?: () => void; quiet?: boolean; note?: string }) {
   const e = evaluate(c, value, today);
   const rule = ruleText(c);
-  const sub = [c.help, rule].filter(Boolean).join(' · ');
+  // `note` (who answered and when) shares the grey line with the rule, so a row has one line of detail.
+  const sub = [c.help, rule, note].filter(Boolean).join(' · ');
   const status = quiet ? null
     : e.passed === false ? <span className="pill p-bad">{c.type === 'temp' ? (e.reason.startsWith('Too cold') ? 'Too cold' : 'Too warm') : 'Fails'}</span>
     : e.passed === true ? <span className="pill p-ok">OK</span> : null;

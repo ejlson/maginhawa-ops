@@ -916,20 +916,20 @@ a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.
 @keyframes cm-rise { from { opacity: 0; transform: translateY(8px); } }
 
 /* ---- temperature with its sign inside the field (checklist answers) ---- */
-.tfield { display: inline-flex; align-items: center; gap: 4px; height: 48px; padding: 0 14px 0 4px; border-radius: 14px; background: var(--fill); }
-.tfield.nosign { padding-left: 14px; }
+.tfield { display: inline-flex; align-items: center; justify-content: flex-end; gap: 0; height: 38px; min-width: 96px; padding: 0 12px; border-radius: 10px; background: var(--fill); cursor: text; }
 .tfield:focus-within { box-shadow: 0 0 0 2px var(--link); }
-.tfield.bad { box-shadow: 0 0 0 2px var(--bad); }
-.tfield input { width: 52px; height: 100%; border: 0; background: none; outline: none; padding: 0; text-align: right; font: inherit; font-size: 17px; font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; color: var(--text); }
+.tfield.bad { box-shadow: inset 0 0 0 1.5px var(--bad); }
+.tfield input { width: 2ch; min-width: 0; height: 100%; border: 0; background: none; outline: none; padding: 0; text-align: right; font: inherit; font-size: 16px; font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; color: var(--text); }
 .tfield input::placeholder { color: var(--sec); font-weight: 400; }
 .tfield input:disabled { opacity: .6; }
-.tsign { width: 40px; height: 40px; flex: none; border: 0; border-radius: 10px; background: var(--bg); color: var(--text); font: inherit; font-size: 19px; font-weight: 600; cursor: pointer; }
-.tsign[aria-pressed="true"] { color: var(--link); }
+/* The sign reads as part of the number, not a separate button; its tap area is still 44px. */
+.tsign { position: relative; width: auto; min-width: 10px; height: 30px; flex: none; border: 0; border-radius: 6px; background: none; color: var(--text); font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; padding: 0; }
+.tsign::after { content: ''; position: absolute; inset: -7px -14px -7px -12px; }
 .tsign:disabled { opacity: .5; cursor: default; }
-.tunit { font-size: 15px; color: var(--sec); }
+.tunit { font-size: 14px; color: var(--sec); margin-left: 3px; }
 
 /* ---- Calm list: doing a checklist ---- */
-.run { gap: 28px; }
+.run { gap: 32px; }
 .run-hero { gap: 12px; padding: 20px; }
 .run-hero .big b { font-size: 44px; }
 .run-hero .big i { font-size: 22px; }
@@ -939,23 +939,38 @@ a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.
 .qbars i.done { background: var(--heroOk); }
 .qbars i.fail { background: var(--heroBad); }
 
-.run .qrow.circ { display: grid; grid-template-columns: 26px minmax(0, 1fr); column-gap: 14px; padding: 8px 0; }
-.run .qrow.circ + .qrow.circ::before { left: 40px; }
-.run .qmark { display: flex; align-items: center; height: 64px; }
-.run .qrow.circ:has(> .qbody > .blk:first-child) .qmark { height: auto; padding-top: 16px; }
-.run .qbody { min-width: 0; }
-.run .qbody > .fr { min-height: 64px; }
-.run .qbody > .blk { padding: 14px 0 10px; }
-.run .tx > span:first-child { font-size: 17px; }
-.run .tx small { font-size: 13px; }
+.run .grp { gap: 4px; }
+.run .qrow.circ { display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 14px; align-items: start; padding: 12px 0; }
+.run .qrow.circ + .qrow.circ::before { left: 36px; }
+/* One centre line per check: the circle, the name's first line and the answer control all sit on it
+   (38px tall, the height of the field). */
+.run .qmark { display: flex; align-items: center; height: 38px; }
+.run .qmark svg { display: block; }
+.run .qbody { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.run .qbody > .fr { min-height: 0; align-items: flex-start; gap: 16px; }
+.run .qbody > .fr::before { display: none; }
+.run .qbody > .fr > span:last-child { gap: 8px !important; flex: none; }
+.run .qbody > .blk { padding: 0; }
+.run .tx { gap: 2px; padding: 0; }
+.run .tx > span:first-child { font-size: 16px; line-height: 22px; padding-top: 8px; }
+.run .tx small { font-size: 13px; line-height: 1.35; }
 .run .qrow.dim .tx > span:first-child { color: var(--sec); }
-.run .chips .chip { height: 48px; min-width: 64px; border-radius: 14px; font-size: 16px; }
+.run .chips { gap: 6px; flex-wrap: nowrap; }
+.run .fr .chips { margin-top: 2px; }
+.run .chips .chip { position: relative; height: 34px; min-width: 50px; padding: 0 14px; border-radius: 10px; font-size: 15px; font-weight: 600; }
+.run .chips .chip::after { content: ''; position: absolute; inset: -5px -3px; }
 .run .chips[role="radiogroup"] .chip[aria-pressed="true"] { background: var(--okbg); color: var(--ok); box-shadow: inset 0 0 0 1.5px var(--ok); }
-.run .ans-by { margin: 0 0 10px; font-size: 12.5px; }
-.run .qbody > .fr { gap: 12px; }
-.run .qbody > .fr > span:last-child { gap: 8px !important; }
-.run .qnote { margin: 2px 0 10px; }
-.qfail { display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 16px; background: var(--badbg); margin: 2px 0 10px; }
-.qfail .tx > span:first-child { font-weight: 600; color: var(--bad); }
-.qfail .tx small { color: var(--text); opacity: .75; }
-.qfix { flex: none; display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border-radius: 999px; background: var(--bad); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; }
+.run .blk .chips { flex-wrap: wrap; }
+/* The big-button entry is for the kitchen iPad; on a phone the field is enough. */
+@media (max-width: 599px) { .run .tbig { display: none; } }
+.run .tbig { width: 38px; height: 38px; border-radius: 10px; }
+.run .qbody > .fr > label, .run .qbody > .fr > span:last-child { align-items: center; }
+.run .ans-by { margin: -6px 0 0; font-size: 12.5px; }
+.run .qnote { margin: 0; }
+.run .how { margin: -4px 0 0; }
+.qfail { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 10px 10px 14px; border-radius: 12px; background: var(--badbg); }
+.qfail .tx { padding: 0; }
+.qfail .tx > span:first-child { font-size: 14px; font-weight: 600; color: var(--bad); }
+.qfail .tx small { font-size: 12.5px; color: var(--text); opacity: .7; }
+.qfix { position: relative; flex: none; display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border-radius: 999px; background: var(--bad); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; }
+.qfix::after { content: ''; position: absolute; inset: -6px -4px; }

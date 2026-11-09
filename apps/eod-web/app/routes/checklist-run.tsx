@@ -84,12 +84,12 @@ export default function ChecklistRun() {
                 const state = rowState(e, Boolean(fixed));
                 return (
                   <div key={c.id} className={`qrow circ ${state}${state === 'done' && e.passed !== false ? ' dim' : ''}`}>
-                    <span className="qmark"><Pie status={state} size={26} /></span>
+                    <span className="qmark"><Pie status={state} size={22} /></span>
                     <div className="qbody">
-                    <Answer c={c} value={v} set={(x) => answer(key, c.id, x)} today={businessDate} disabled={done} quiet
-                      onBig={touch && !done && c.type === 'temp' ? () => setBig(c.id) : undefined} />
                     {/* Who answered and when, on every answered row, so a shared list stays attributable. */}
-                    {by && e.answered && <small className="ans-by">{by.by === user?.name ? 'You' : by.by} · {clockTime(by.at)}</small>}
+                    <Answer c={c} value={v} set={(x) => answer(key, c.id, x)} today={businessDate} disabled={done} quiet
+                      note={by && e.answered ? `${by.by === user?.name ? 'You' : by.by} ${clockTime(by.at)}` : undefined}
+                      onBig={touch && !done && c.type === 'temp' ? () => setBig(c.id) : undefined} />
                     {run?.corrections?.[c.id]?.map((x, i) => (
                       <small key={i} className="ans-by">Corrected from {String(x.previous).replace('-', '−')}{c.type === 'temp' ? '°C' : ''} by {x.by} · {clockTime(x.at)} · “{x.reason}”</small>
                     ))}
