@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FLOW_SCHEMA, MemoryFlowOutbox, flowMessage, toFlowOutboxFields } from '../src/flow';
+import { FLOW_SCHEMA, MemoryFlowOutbox, MemorySiteFlowStore, flowMessage, flowWanted, toFlowOutboxFields } from '../src/flow';
 import { EOD_DEFINITION, connect } from '../src/report-definition';
 import { seedDefinitionRecord, type DefinitionRecord } from '../src/report-versions';
 import { MemoryStore } from '../src/store';
@@ -79,5 +79,33 @@ describe('the flow outbox', () => {
     const row = toFlowOutboxFields(m, new Date('2026-10-05T23:31:01Z'));
     expect(row).toMatchObject({ Title: 'BUN|2026-10-05|press-1', SiteCode: 'BUN', BusinessDate: '2026-10-05', Schema: FLOW_SCHEMA, Status: 'Queued', QueuedAt: '2026-10-05T23:31:01.000Z' });
     expect(JSON.parse(row.Payload)).toEqual(m);
+  });
+});
+
+describe('flowWanted', () => {
+  const at = { submittedAt: '2026-10-05T23:31:00Z' };
+  it('is off when the site is not switched on', () => {
+    expect(flowWanted(at, {})).toBe(false);
+    expect(flowWanted(at, { flowFrom: null })).toBe(false);
+  });
+  it('only takes reports sent after the site was switched on', () => {
+    expect(flowWanted(at, { flowFrom: '2026-10-05T23:00:00Z' })).toBe(true);
+    expect(flowWanted(at, { flowFrom: '2026-10-06T09:00:00Z' })).toBe(false);
+  });
+  it('compares moments, not text', () => {
+    expect(flowWanted({ submittedAt: '2026-10-06T00:30:00+01:00' }, { flowFrom: '2026-10-05T23:45:00Z' })).toBe(false);
+  });
+  it('skips a report that has not been submitted', () => {
+    expect(flowWanted({ submittedAt: null }, { flowFrom: '2026-10-01T00:00:00Z' })).toBe(false);
+  });
+});
+
+describe('MemorySiteFlowStore', () => {
+  it('switches a site on and off', async () => {
+    const s = new MemorySiteFlowStore();
+    await s.set('BUN', '2026-10-05T00:00:00Z');
+    expect(await s.list()).toEqual({ BUN: '2026-10-05T00:00:00Z' });
+    await s.set('BUN', null);
+    expect(await s.list()).toEqual({});
   });
 });

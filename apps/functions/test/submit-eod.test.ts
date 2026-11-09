@@ -146,9 +146,11 @@ describe('submit-eod with the report builder', () => {
 });
 
 describe('submit-eod with Power Automate', () => {
+  const on = { settingsFor: async () => ({ ...DEFAULT_SETTINGS, flowFrom: '2026-10-01T00:00:00Z' }) };
+
   it('hands the flow one message per submit, even when the upload is retried', async () => {
     const flow = new MemoryFlowOutbox();
-    const { handler } = setup({ flow });
+    const { handler } = setup({ ...on, flow });
     const body = { draft: verifiedDraft(), baseVersion: null, submitId: 'press-1' };
     await handler(post(body));
     await handler(post(body));
@@ -156,8 +158,16 @@ describe('submit-eod with Power Automate', () => {
     expect(flow.items.get('BUN|2026-10-05|press-1')!.summary.netText).toBe('£2,687.50');
   });
 
+  it('leaves a site out when it is switched off, and still emails finance', async () => {
+    const flow = new MemoryFlowOutbox();
+    const { handler, sent } = setup({ flow });
+    expect((await handler(post(verifiedDraft()))).status).toBe(200);
+    expect(flow.items.size).toBe(0);
+    expect(sent).toHaveLength(1);
+  });
+
   it('still succeeds and emails finance when the outbox is down', async () => {
-    const { handler, sent } = setup({ flow: { add: vi.fn().mockRejectedValue(new Error('SharePoint down')) } });
+    const { handler, sent } = setup({ ...on, flow: { add: vi.fn().mockRejectedValue(new Error('SharePoint down')) } });
     const res = await handler(post(verifiedDraft()));
     expect(res.status).toBe(200);
     expect((await res.json()).emailed).toBe(true);
@@ -167,7 +177,7 @@ describe('submit-eod with Power Automate', () => {
   it('a retry adds the message the first attempt could not', async () => {
     let down = true;
     const box = new MemoryFlowOutbox();
-    const { handler } = setup({ flow: { add: async (m) => { if (down) throw new Error('SharePoint down'); return box.add(m); } } });
+    const { handler } = setup({ ...on, flow: { add: async (m) => { if (down) throw new Error('SharePoint down'); return box.add(m); } } });
     const body = { draft: verifiedDraft(), baseVersion: null, submitId: 'press-1' };
     await handler(post(body));
     expect(box.items.size).toBe(0);

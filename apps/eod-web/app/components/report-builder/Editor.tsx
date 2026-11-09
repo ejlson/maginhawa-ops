@@ -1,9 +1,11 @@
 /** The pop-up editor over the darkened map: one for an input or setting, a section, a calculation or check, and an action. */
 import { useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { FLOW_SCHEMA, SETTINGS_GROUP, definitionGroups, figurePicker, updateFigure, usedBy, validateName, type Figure, type FigureType } from '@maginhawa/core';
+import { FLOW_SCHEMA, SETTINGS_GROUP, SITES, definitionGroups, figurePicker, updateFigure, usedBy, validateName, type Figure, type FigureType } from '@maginhawa/core';
 import {
   KIND_LABEL, TYPE_LABEL, allNames, fmt, parseValue, roleOfName, targetsFor, testDay, valueText, worked, type Section,
 } from '../../lib/report-builder/model';
+import { useSiteFlows } from '../../lib/site-flow';
+import { Toggle } from '../ui';
 import { Popup } from './Workspace';
 import { useWs } from './workspace-helpers';
 
@@ -283,7 +285,7 @@ function OutputEditor({ id }: { id: string }) {
       {a.when
         ? <p className="cap small">Runs only when <span className="chip r-act">{a.when}</span> is yes.</p>
         : <>
-            {a.id === 'flow' && <FlowPreview shows={a.shows} />}
+            {a.id === 'flow' && <><SiteFlowSwitches /><FlowPreview shows={a.shows} /></>}
             <div className="cap small">Figures it shows</div>
             <div className="list">
               {figs.map((c, i) => (
@@ -295,6 +297,34 @@ function OutputEditor({ id }: { id: string }) {
               ))}
             </div>
           </>}
+    </>
+  );
+}
+
+/** Which sites send to the flow. A live switch: unlike the rest of the builder, it doesn't wait for a new version. */
+function SiteFlowSwitches() {
+  const { view, error, set } = useSiteFlows();
+  const on = SITES.filter((s) => view?.sites[s.code]).length;
+  const since = (at: string) => new Date(at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  return (
+    <>
+      <div className="cap small">{view ? `Sites using it · ${on} of ${SITES.length}` : 'Sites using it'}</div>
+      {view ? (
+        <div className="list">
+          {SITES.map((s) => {
+            const from = view.sites[s.code];
+            return (
+              <div key={s.code} className="li">
+                <span className="tx"><span>{s.name}</span>{from && <small>Since {since(from)}</small>}</span>
+                <Toggle checked={!!from} disabled={!view.available} label={`Send ${s.name}'s EODs to Power Automate`} onChange={(v) => set(s.code, v)} />
+              </div>
+            );
+          })}
+        </div>
+      ) : !error && <p className="cap small">Loading…</p>}
+      {error && <p className="cap small" role="alert">{error}</p>}
+      {view && !view.available && <p className="cap small">Power Automate isn’t set up yet, so these are off for now.</p>}
+      <p className="cap small">A switch works straight away, for reports sent from then on. Reports still go to finance either way.</p>
     </>
   );
 }

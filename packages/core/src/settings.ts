@@ -31,6 +31,8 @@ export interface SiteSettings {
   platforms: DeliveryPlatform[];
   /** Values for settings finance added in the report builder, by figure id (e.g. a card fee rate as 0.0175). */
   definitionSettings?: Record<string, number>;
+  /** When head office switched Power Automate on for this site. Unset = off. Reports sent before it don't go to the flow. */
+  flowFrom?: string | null;
 }
 
 /** Example settings for local and demo use. Real values come from SharePoint (Sites, DeliveryPlatforms, RulesThresholds). */

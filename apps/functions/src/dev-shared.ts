@@ -7,7 +7,7 @@
  * it only switches on with DEV_SHARED_STORE=1, and refuses whenever anything says production
  * or a deployed Netlify Function.
  */
-import { DEFAULT_SETTINGS, DEV_USER_HEADER, findSite, MemoryChecklistStore, MemoryPresence, MemoryStore, SITES, type ChecklistBackend, type EmailMessage, type EodStore, type FlowMessage, type FlowOutbox, type PresenceRemote, type SiteSettings } from '@maginhawa/core';
+import { DEFAULT_SETTINGS, DEV_USER_HEADER, findSite, MemoryChecklistStore, MemoryPresence, MemorySiteFlowStore, MemoryStore, SITES, type ChecklistBackend, type EmailMessage, type EodStore, type FlowMessage, type FlowOutbox, type PresenceRemote, type SiteFlowStore, type SiteSettings } from '@maginhawa/core';
 import type { Authenticate, Caller } from './handler';
 import { MemoryVersionIndex, type VersionIndex } from './version-index';
 
@@ -50,6 +50,7 @@ export interface SharedDev {
   presence: PresenceRemote;
   index: VersionIndex;
   flow: FlowOutbox;
+  siteFlow: SiteFlowStore;
 }
 
 export function createSharedDev(clock: () => Date = () => new Date()): SharedDev {
@@ -60,6 +61,7 @@ export function createSharedDev(clock: () => Date = () => new Date()): SharedDev
     presence: new MemoryPresence(),
     index: new MemoryVersionIndex(),
     flow: devFlowOutbox(),
+    siteFlow: new MemorySiteFlowStore(),
   };
 }
 
@@ -81,7 +83,9 @@ export function sharedDev(env: Env = process.env): SharedDev | null {
 /** The same settings the web app uses in demo mode. */
 export async function devSettingsFor(siteCode: string): Promise<SiteSettings | null> {
   const site = findSite(siteCode);
-  return site ? { ...DEFAULT_SETTINGS, siteCode, siteName: site.name } : null;
+  if (!site) return null;
+  const flowFrom = (await sharedDev()?.siteFlow.list())?.[site.code];
+  return { ...DEFAULT_SETTINGS, siteCode, siteName: site.name, ...(flowFrom ? { flowFrom } : {}) };
 }
 
 /** Shared test mode has no mailbox: the summary goes to the server log instead. */

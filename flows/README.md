@@ -7,7 +7,7 @@ The Power Automate side of Maginhawa Ops, kept in git like the rest of the code.
 ```
 Manager submits ──► submit-eod (Netlify Function)
                      ├─ works out the figures (packages/core), saves the report
-                     ├─ adds one row to the FlowOutbox list  ◄── the flow's only input
+                     ├─ if the site is switched on: adds one row to the FlowOutbox list  ◄── the flow's only input
                      └─ emails finance (Graph), as before
                                   │
                 FlowOutbox row (Status = Queued)
@@ -19,6 +19,7 @@ Manager submits ──► submit-eod (Netlify Function)
 ```
 
 - **No trigger URL and no Premium licence.** The app never calls the flow. The flow starts from a SharePoint list using the standard SharePoint connector.
+- **Each site has its own switch.** In the report builder, open **Send to Power Automate**: head office turn each site on or off, and it works straight away. Only reports sent after a site is switched on go to the flow, so turning one on never posts old days. `FLOW_OUTBOX=1` on Netlify means the flow is set up; without it the switches stay off. The finance email and saving the report don't depend on any of this.
 - **Figures are worked out once, in the app.** The flow only shows what the message says. It never calculates.
 - **Finance choose the figures.** In the report builder, open **Send to Power Automate** (in *Checks & actions*) and tick figures. The editor shows the message the flow will get. Net, covers, wages and target are always sent.
 - **Nothing is lost.** If SharePoint is down at submit, the `email-retry` job adds the row within 15 minutes. If the flow is off, rows wait as *Queued*. If a run fails, the row says why: fix the problem, then set its Status back to **Queued** to run it again.
@@ -43,7 +44,7 @@ These files were written by hand in the unpacked-solution format. They have **no
 1. Provision the **FlowOutbox** list (`docs/tech-plan/sharepoint/sharepoint-lists.json`).
 2. In a **dev** environment with Dataverse, pack and import (commands below). If the import complains about the format, open the flow in the designer, fix it there, export the solution and unpack it over this folder. From then on, the exported files are the source.
 3. Create the three connections under a **service account**, not a person, so the flow survives staff leaving. Put their ids and the settings in `deployment-settings.json`.
-4. Turn the flow on, set `FLOW_OUTBOX=1` on the Netlify site, submit a test EOD and check the Teams post and the row's Status.
+4. Turn the flow on, set `FLOW_OUTBOX=1` on the Netlify site, switch one site on in the report builder, submit a test EOD there and check the Teams post and the row's Status.
 
 ## Commands
 

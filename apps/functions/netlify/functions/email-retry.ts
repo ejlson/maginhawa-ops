@@ -16,7 +16,7 @@ export default async (): Promise<void> => {
     return;
   }
   // Connection point:
-  //   sites     → Sites list (active sites, with their settings)
+  //   sites     → Sites list (active sites, with their settings, including flowFrom)
   //   store     → the SharePoint EodStore
   //   sendEmail → Graph sendMail from MAIL_FROM to MAIL_TO
   //   flow      → only when FLOW_OUTBOX=1: the FlowOutbox list (see submit-eod)

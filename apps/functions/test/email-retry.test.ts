@@ -53,10 +53,20 @@ describe('email-retry with Power Automate', () => {
     const { store, sent } = await setup();
     await store.markEmailed('BUN', '2026-10-05', submittedAt);
     const flow = new MemoryFlowOutbox();
-    const job = (at: Date) => createEmailRetryJob({ sites: async () => [bun], store, sendEmail: async (m) => { sent.push(m); }, now: () => at, flow })();
+    const job = (at: Date) => createEmailRetryJob({ sites: async () => [{ ...bun, flowFrom: '2026-10-01T00:00:00Z' }], store, sendEmail: async (m) => { sent.push(m); }, now: () => at, flow })();
     expect(await job(later(EMAIL_GRACE_MS + 1))).toEqual({ sent: [], failed: [], queued: ['BUN|2026-10-05'], queueFailed: [] });
     expect(await job(later(EMAIL_GRACE_MS + 60_000))).toMatchObject({ queued: [] });
     expect(flow.items.size).toBe(1);
     expect(sent).toHaveLength(0);
+  });
+
+  it('does not post old days when a site is switched on later', async () => {
+    const { store } = await setup();
+    await store.markEmailed('BUN', '2026-10-05', submittedAt);
+    const flow = new MemoryFlowOutbox();
+    const job = (flowFrom: string | null) => createEmailRetryJob({ sites: async () => [{ ...bun, flowFrom }], store, sendEmail: async () => {}, now: () => later(EMAIL_GRACE_MS + 1), flow })();
+    await job(null);
+    await job(later(1).toISOString());
+    expect(flow.items.size).toBe(0);
   });
 });

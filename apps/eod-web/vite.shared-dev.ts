@@ -14,7 +14,7 @@ export const SHARED_DEV_PORT = 5180;
 
 const FUNCTIONS_DIR = fileURLToPath(new URL('../functions/netlify/functions/', import.meta.url));
 /** The functions the screens call. */
-const SERVED = new Set(['eod-draft', 'submit-eod', 'checklist-sync', 'presence']);
+const SERVED = new Set(['eod-draft', 'submit-eod', 'checklist-sync', 'presence', 'site-flow']);
 
 async function readBody(req: IncomingMessage): Promise<Uint8Array<ArrayBuffer> | undefined> {
   if (req.method === 'GET' || req.method === 'HEAD') return undefined;

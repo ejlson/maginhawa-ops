@@ -4,7 +4,7 @@
  * Every outside service is passed in, so the handler is fully testable and the real
  * ones (SharePoint via Graph, Entra, mail) plug in later.
  */
-import { eodSummaryEmail, flowMessage, submitReport, type DefinitionRecord, type EmailMessage, type EodStore, type FlowOutbox, type SiteSettings, type StoredReport } from '@maginhawa/core';
+import { eodSummaryEmail, flowMessage, flowWanted, submitReport, type DefinitionRecord, type EmailMessage, type EodStore, type FlowOutbox, type SiteSettings, type StoredReport } from '@maginhawa/core';
 import { recordReport, type VersionIndex } from './version-index';
 
 export interface Caller {
@@ -29,7 +29,7 @@ export interface SubmitDeps {
   index?: VersionIndex;
   /** The report builder's versions; the one approved for the report's trading day decides the figures. */
   definitions?: () => Promise<DefinitionRecord | null>;
-  /** The FlowOutbox list the "EOD submitted" flow starts from. Left out = Power Automate isn't switched on. */
+  /** The FlowOutbox list the "EOD submitted" flow starts from. Left out = Power Automate isn't set up; each site then has its own switch. */
   flow?: FlowOutbox;
 }
 
@@ -101,7 +101,7 @@ export async function emailFinance(deps: Pick<SubmitDeps, 'store' | 'sendEmail' 
 
 /** Gives the flow its message. Never fails the submit: the email retry job adds anything missing later. */
 export async function queueFlow(deps: Pick<SubmitDeps, 'flow'>, report: StoredReport, settings: SiteSettings): Promise<'added' | 'exists' | 'failed' | 'off'> {
-  if (!deps.flow) return 'off';
+  if (!deps.flow || !flowWanted(report, settings)) return 'off';
   const message = flowMessage(report, settings);
   if (!message) return 'failed';
   try {

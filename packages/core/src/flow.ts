@@ -6,6 +6,7 @@
  * message survives the flow being off: it waits in the list. Figures are worked out here, never in the flow.
  *
  * Which figures go is up to finance: the "Send to Power Automate" action in the report builder.
+ * Which sites use it is up to head office, in the same place: each site is switched on or off by itself.
  * Handover notes are left out on purpose (they can name staff; UK GDPR data minimisation).
  */
 import { figureText } from './email';
@@ -85,6 +86,24 @@ export function flowMessage(r: StoredReport, settings: Pick<SiteSettings, 'siteN
   };
 }
 
+/**
+ * Should this report go to the flow? Only when its site is switched on, and only if it was sent after that:
+ * the retry job looks back two days, and switching a site on mustn't post those days to Teams.
+ */
+export function flowWanted(r: Pick<StoredReport, 'submittedAt'>, settings: Pick<SiteSettings, 'flowFrom'>) {
+  return !!settings.flowFrom && !!r.submittedAt && Date.parse(r.submittedAt) >= Date.parse(settings.flowFrom);
+}
+
+/** When each site was switched on, by site code. A site that's off isn't listed. */
+export type SiteFlows = Record<string, string>;
+
+/** Which sites use the flow. SharePoint: the PowerAutomateFrom column on the Sites list. */
+export interface SiteFlowStore {
+  list(): Promise<SiteFlows>;
+  /** Null switches the site off. */
+  set(siteCode: string, from: string | null): Promise<void>;
+}
+
 /** Where messages wait for the flow. SharePoint: the FlowOutbox list. */
 export interface FlowOutbox {
   /**
@@ -107,6 +126,16 @@ export function toFlowOutboxFields(m: FlowMessage, at: Date) {
     Status: 'Queued' as FlowStatus,
     QueuedAt: at.toISOString(),
   };
+}
+
+/** In memory, for tests and shared test mode. */
+export class MemorySiteFlowStore implements SiteFlowStore {
+  private sites: SiteFlows = {};
+  async list() { return { ...this.sites }; }
+  async set(siteCode: string, from: string | null) {
+    if (from) this.sites[siteCode] = from;
+    else delete this.sites[siteCode];
+  }
 }
 
 /** In memory, for tests and shared test mode. */

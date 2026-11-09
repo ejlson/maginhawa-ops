@@ -8,7 +8,7 @@ import {
   ChecklistSyncClient, DEV_USER_HEADER, EodSyncClient, newDraft, SyncError,
   type ChecklistBackend, type EodRemote, type PresenceRemote, type RunStart,
 } from '@maginhawa/core';
-import { devAuthenticate, sharedDev, sharedDevRefusal } from '../src/dev-shared';
+import { devAuthenticate, devSettingsFor, sharedDev, sharedDevRefusal } from '../src/dev-shared';
 import eodDraft from '../netlify/functions/eod-draft';
 import submitEod from '../netlify/functions/submit-eod';
 import checklistSync from '../netlify/functions/checklist-sync';
@@ -102,6 +102,14 @@ describe('shared test mode guard', () => {
 });
 
 describe('two devices through the shared test server', () => {
+  it('gives a site its Power Automate switch', async () => {
+    const dev = sharedDev({ DEV_SHARED_STORE: '1' })!;
+    expect((await devSettingsFor('HOO'))?.flowFrom).toBeUndefined();
+    await dev.siteFlow.set('HOO', '2026-10-05T10:00:00Z');
+    expect((await devSettingsFor('HOO'))?.flowFrom).toBe('2026-10-05T10:00:00Z');
+    await dev.siteFlow.set('HOO', null);
+  });
+
   it('see each other\'s EOD sections, checklist answers and presence', async () => {
     const laptop = device(jo);
     const phone = device(sam);

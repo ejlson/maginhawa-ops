@@ -25,6 +25,7 @@ export default async (req: Request): Promise<Response> => {
   //   definitions  → the ReportDefinitions list (the report builder's approved versions)
   //   flow         → only when FLOW_OUTBOX=1: the FlowOutbox list, one row per message using
   //                  toFlowOutboxFields(); a 409 on the unique Title means 'exists'
+  //   settingsFor  → must include flowFrom (Sites: PowerAutomateFrom), the site's own switch
   const handler = createSubmitHandler({
     authenticate: async () => null,
     store: eodStoreNotReady,
