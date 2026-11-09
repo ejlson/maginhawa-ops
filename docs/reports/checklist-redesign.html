@@ -1,0 +1,923 @@
+<title>Checklist redesign</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: an honest review first (how we compare, size audit, chore factor), then each screen as a row of true-size iPhone mockups (393pt wide) with notes. Mockups use the app's own tokens so they follow light/dark like the app. */
+:root{
+  --bg:#FFFFFF; --side:#F7F7F9; --hero:#1D1D1F; --onhero:#F5F5F7; --herosec:rgba(245,245,247,.6); --heroline:rgba(245,245,247,.14); --herofill:rgba(255,255,255,.1);
+  --fill:#F2F2F5; --text:#1D1D1F; --sec:#6E6E73; --sep:rgba(0,0,0,.08); --ink:#1D1D1F; --onink:#FFFFFF; --link:#0066CC;
+  --ok:#1F7A35; --okbg:rgba(52,199,89,.14); --warn:#B25000; --warnbg:rgba(255,149,0,.16); --bad:#D70015; --badbg:rgba(255,59,48,.12);
+  --herook:#4CD964; --herobad:#FF8A80; --herowarn:#FFB340;
+  --frame:#1D1D1F; --page:#F4F4F6; --scrim:rgba(0,0,0,.32); --sheet:#FFFFFF;
+  --font:-apple-system,BlinkMacSystemFont,'Geist','Segoe UI',Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121214; --side:#1B1B1F; --hero:#232328; --onhero:#F5F5F7; --herosec:rgba(245,245,247,.66); --heroline:rgba(245,245,247,.12); --herofill:rgba(255,255,255,.08);
+  --fill:#2A2A2F; --text:#F2F2F4; --sec:#A3A3AB; --sep:rgba(255,255,255,.12); --ink:#F2F2F4; --onink:#121214; --link:#4AA3FF;
+  --ok:#4CD964; --okbg:rgba(76,217,100,.16); --warn:#FFB340; --warnbg:rgba(255,179,64,.16); --bad:#FF6B60; --badbg:rgba(255,107,96,.16);
+  --frame:#3A3A40; --page:#0C0C0E; --scrim:rgba(0,0,0,.55); --sheet:#1B1B1F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121214; --side:#1B1B1F; --hero:#232328; --onhero:#F5F5F7; --herosec:rgba(245,245,247,.66); --heroline:rgba(245,245,247,.12); --herofill:rgba(255,255,255,.08);
+  --fill:#2A2A2F; --text:#F2F2F4; --sec:#A3A3AB; --sep:rgba(255,255,255,.12); --ink:#F2F2F4; --onink:#121214; --link:#4AA3FF;
+  --ok:#4CD964; --okbg:rgba(76,217,100,.16); --warn:#FFB340; --warnbg:rgba(255,179,64,.16); --bad:#FF6B60; --badbg:rgba(255,107,96,.16);
+  --frame:#3A3A40; --page:#0C0C0E; --scrim:rgba(0,0,0,.55); --sheet:#1B1B1F; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.5;letter-spacing:-.012em;font-variant-numeric:tabular-nums;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+.wrap{max-width:1340px;margin:0 auto}
+.read{max-width:780px}
+h1,h2,h3,h4,h5{text-wrap:balance;margin:0}
+p{margin:0}
+a{color:var(--link)}
+code{font-size:.92em;background:var(--fill);padding:1px 5px;border-radius:5px}
+:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+
+.top{padding-block:56px 32px;display:grid;gap:12px}
+.eyebrow{font-size:13px;color:var(--sec);letter-spacing:.01em}
+.top h1{font-size:clamp(34px,6vw,48px);font-weight:700;letter-spacing:-.04em;line-height:1.05}
+.lede{font-size:18px;color:var(--sec);max-width:62ch}
+.tagrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.tag{font-size:13px;padding:4px 10px;border-radius:999px;background:var(--fill);color:var(--sec)}
+.tag.new{background:var(--okbg);color:var(--ok);font-weight:600}
+
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--page)}
+.jump{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--page);padding-block:10px;margin-bottom:8px;border-bottom:1px solid var(--sep)}
+.jump .wrap{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.jump a{flex:none;text-decoration:none;color:var(--text);font-size:14px;font-weight:500;padding:8px 14px;border-radius:999px;background:var(--bg);border:1px solid var(--sep);min-height:36px}
+.jump a:hover{background:var(--fill)}
+
+section.block{padding-block:56px 8px;scroll-margin-top:64px}
+.bh{display:grid;gap:8px;margin-bottom:32px}
+.bh h2{font-size:30px;font-weight:700;letter-spacing:-.03em}
+.bh p{color:var(--sec);max-width:68ch}
+.sub-h{font-size:20px;font-weight:700;letter-spacing:-.025em;margin:40px 0 12px}
+
+/* review */
+.verdicts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.vd{background:var(--bg);border:1px solid var(--sep);border-radius:18px;padding:18px 18px 20px;display:grid;gap:8px;align-content:start}
+.vd .q{font-size:13px;color:var(--sec)}
+.vd .a{display:flex;gap:8px;align-items:center;font-size:17px;font-weight:700;letter-spacing:-.02em}
+.vd p{font-size:14px;color:var(--sec)}
+.mark{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;flex:none}
+.m-ok{background:var(--okbg);color:var(--ok)} .m-warn{background:var(--warnbg);color:var(--warn)} .m-bad{background:var(--badbg);color:var(--bad)}
+
+.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:1px;background:var(--sep);border-radius:20px;overflow:hidden;border:1px solid var(--sep)}
+.pr{background:var(--bg);padding:20px 22px 22px;display:grid;gap:6px;align-content:start}
+.pr b{font-size:16px;letter-spacing:-.02em}
+.pr p{font-size:14px;color:var(--sec)}
+.pr .src{font-size:12px;color:var(--sec);opacity:.85}
+
+.tbl-wrap{overflow-x:auto;border-radius:16px;border:1px solid var(--sep);background:var(--bg)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
+th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--sep);vertical-align:top}
+th{font-size:12px;font-weight:600;color:var(--sec);letter-spacing:.03em;text-transform:uppercase}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600}
+td.us{background:color-mix(in srgb,var(--okbg) 60%,transparent)}
+.cap{font-size:12px;color:var(--sec);margin-top:8px}
+
+.chore{display:grid;gap:0;border-radius:20px;overflow:hidden;border:1px solid var(--sep);background:var(--bg)}
+.ch{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:20px;padding:16px 22px;border-bottom:1px solid var(--sep);font-size:14px}
+.ch:last-child{border-bottom:0}
+.ch b{display:block;font-size:15px}
+.ch span{color:var(--sec)}
+.ch .fix{color:var(--text)}
+@media (max-width:620px){.ch{grid-template-columns:1fr;gap:6px}}
+
+/* options */
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,413px),1fr));gap:48px 32px;align-items:start}
+.opts.wide{grid-template-columns:1fr}
+.opt{display:grid;gap:16px;min-width:0}
+.oh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.oh .k{font-size:13px;font-weight:700;color:var(--sec)}
+.oh h3{font-size:20px;font-weight:700;letter-spacing:-.025em}
+.badge{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--fill);color:var(--sec)}
+.rec{background:var(--okbg);color:var(--ok)}
+.nw{background:var(--warnbg);color:var(--warn)}
+.notes{display:grid;gap:10px;font-size:14px;max-width:413px;margin:0 auto;width:100%}
+.notes p{color:var(--sec)}
+.notes dt{font-size:12px;font-weight:600;color:var(--sec);text-transform:uppercase;letter-spacing:.04em}
+.notes dl{margin:0;display:grid;gap:4px 0}
+.notes dd{margin:0 0 8px;color:var(--text)}
+.wide .notes{max-width:780px;margin:0}
+.stage{overflow-x:auto;padding-bottom:4px}
+
+/* ---------- mockup kit: true iPhone size (393 × 852pt), app tokens ---------- */
+.phone{width:413px;max-width:none;height:800px;border-radius:52px;border:10px solid var(--frame);background:var(--bg);position:relative;overflow:hidden;margin:0 auto;display:flex;flex-direction:column;box-shadow:0 30px 60px -30px rgba(0,0,0,.35);font-size:17px}
+@media (max-width:460px){.phone{zoom:.84}}
+.tablet{width:900px;height:560px;border-radius:30px;border:10px solid var(--frame);background:var(--bg);position:relative;overflow:hidden;margin:0 auto;display:flex;box-shadow:0 30px 60px -30px rgba(0,0,0,.35);font-size:16px}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:34px;border-radius:20px;background:#000;z-index:3}
+.scr{flex:1;overflow:hidden;padding:62px 20px 0;display:flex;flex-direction:column;gap:24px}
+.nav{display:flex;justify-content:space-between;align-items:center;font-size:17px;min-height:32px}
+.nav .back{color:var(--link)}
+.saved{font-size:13px;color:var(--sec);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.dot.warn{background:var(--warn)}
+.hero{background:var(--hero);color:var(--onhero);border-radius:24px;padding:20px;display:grid;gap:14px;box-shadow:0 24px 48px -24px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.04)}
+.hl{font-size:14px;color:var(--herosec)}
+.big{font-size:52px;font-weight:600;letter-spacing:-.055em;line-height:1}
+.big small{font-size:22px;color:var(--herosec);letter-spacing:-.02em;font-weight:500}
+.bars{display:flex;gap:4px}
+.bars i{flex:1;height:5px;border-radius:3px;background:var(--heroline)}
+.bars i.on{background:var(--herook)} .bars i.badi{background:var(--herobad)}
+.bars.light i{background:var(--fill)} .bars.light i.on{background:var(--ok)} .bars.light i.badi{background:var(--bad)} .bars.light i.cur{background:var(--ink)}
+.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid var(--heroline);padding-top:12px}
+.meta span{font-size:16px;font-weight:600}
+.meta small{display:block;font-size:12px;font-weight:400;color:var(--herosec)}
+.hrow{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.sh{display:flex;justify-content:space-between;align-items:baseline}
+.sh h4{font-size:20px;font-weight:700;letter-spacing:-.025em}
+.sh span{font-size:14px;color:var(--sec)}
+.list{display:grid}
+.row{display:flex;align-items:center;gap:14px;min-height:64px;padding:10px 0;position:relative}
+.row+.row::before{content:"";position:absolute;top:0;left:40px;right:0;height:1px;background:var(--sep)}
+.row .t{flex:1;min-width:0;display:grid;gap:2px}
+.row .t b{font-weight:500;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .t small{font-size:13px;color:var(--sec)}
+.row .v{font-weight:600;font-size:17px;text-align:right;display:grid;justify-items:end;gap:3px}
+.row.dim .t b,.row.dim .v{color:var(--sec)}
+.pill{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.p-ok{background:var(--okbg);color:var(--ok)} .p-bad{background:var(--badbg);color:var(--bad)} .p-warn{background:var(--warnbg);color:var(--warn)} .p-mut{background:var(--fill);color:var(--sec)}
+.bad-t{color:var(--bad)!important} .ok-t{color:var(--ok)!important}
+.ic{width:42px;height:42px;border-radius:50%;background:var(--fill);display:grid;place-items:center;flex:none;color:var(--text)}
+.ic svg{width:19px;height:19px}
+
+/* Things 3 circles: 26px drawn, 44px tap area */
+.c{width:26px;height:26px;border-radius:50%;border:2px solid var(--sec);flex:none;display:grid;place-items:center;background:none;padding:0;cursor:pointer;position:relative}
+.c::after{content:"";position:absolute;inset:-9px}
+.c.done{background:var(--ok);border-color:var(--ok)}
+.c.done::before{content:"";width:10px;height:5px;border:2.4px solid #fff;border-top:0;border-right:0;transform:translate(0,-1px) rotate(-45deg)}
+.c.badc{background:var(--bad);border-color:var(--bad)}
+.c.badc::before{content:"!";color:#fff;font-size:14px;font-weight:800;line-height:1}
+.c.half{border-color:var(--warn);background:conic-gradient(var(--warn) 0 50%,transparent 50% 100%)}
+.c.skip{border-style:dashed}
+.c.cur{border-color:var(--link);box-shadow:0 0 0 4px color-mix(in srgb,var(--link) 18%,transparent)}
+.c.lg{width:30px;height:30px}
+
+/* inputs */
+.seg{display:flex;gap:8px}
+.seg button{min-width:64px;height:48px;border-radius:14px;border:0;background:var(--fill);color:var(--text);font:inherit;font-weight:600;font-size:16px;cursor:pointer}
+.seg button.y{background:var(--okbg);color:var(--ok);box-shadow:inset 0 0 0 1.5px var(--ok)}
+.seg button.n{background:var(--badbg);color:var(--bad);box-shadow:inset 0 0 0 1.5px var(--bad)}
+.tin{height:48px;min-width:108px;border-radius:14px;background:var(--fill);display:flex;align-items:center;justify-content:flex-end;padding:0 14px;gap:4px;color:var(--sec);font-size:16px}
+.tin.focus{box-shadow:0 0 0 2px var(--link);color:var(--text)}
+.field{display:grid;gap:8px}
+.field label{font-size:14px;font-weight:600}
+.field label small{font-weight:400;color:var(--sec)}
+.inp{min-height:48px;border-radius:14px;background:var(--fill);padding:12px 16px;font-size:17px;color:var(--text)}
+.inp.ph{color:var(--sec)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 16px;border-radius:999px;background:var(--fill);display:inline-flex;align-items:center;font-size:15px;font-weight:500;color:var(--text);border:0;font-family:inherit;cursor:pointer}
+.chip.on{background:var(--ink);color:var(--onink)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{min-height:56px;border-radius:16px;background:var(--bg);border:0;font:inherit;font-size:15px;font-weight:600;color:var(--text);text-align:left;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px}
+.tile.on{box-shadow:inset 0 0 0 2px var(--ink)}
+.toggle{width:51px;height:31px;border-radius:999px;background:var(--fill);position:relative;flex:none}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.toggle.on{background:var(--ok)} .toggle.on::after{left:22px}
+
+.foot{padding:14px 20px 34px;display:grid;gap:10px;background:linear-gradient(to bottom,transparent,var(--bg) 24%);margin-top:auto}
+.btn{height:54px;border-radius:999px;border:0;background:var(--ink);color:var(--onink);font:inherit;font-weight:600;font-size:17px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;cursor:pointer}
+.btn.ghost{background:var(--fill);color:var(--text)}
+.btn.dis{background:var(--fill);color:var(--sec)}
+.btn.onhero{background:var(--onhero);color:var(--hero)}
+.linkbtn{text-align:center;color:var(--link);font-size:15px;font-weight:500}
+.note{text-align:center;font-size:13px;color:var(--sec)}
+.banner{display:flex;gap:10px;align-items:flex-start;background:var(--fill);border-radius:14px;padding:12px 14px;font-size:14px}
+
+.fixbox{padding:16px;border-radius:20px;background:var(--badbg);display:grid;gap:14px}
+.fixbox .q{font-size:15px;color:var(--bad);font-weight:600}
+.minirow{display:flex;justify-content:space-between;align-items:center;font-size:15px;gap:12px}
+
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.keypad button{height:56px;border-radius:16px;border:0;background:var(--fill);color:var(--text);font:inherit;font-size:24px;font-weight:500;cursor:pointer}
+.keypad button:active{transform:scale(.97)}
+.keypad .fn{font-size:17px;font-weight:600}
+.readout{display:flex;align-items:baseline;justify-content:center;gap:6px;font-size:72px;font-weight:600;letter-spacing:-.05em;line-height:1;padding:4px 0}
+.readout small{font-size:26px;color:var(--sec);font-weight:500}
+.status-line{text-align:center;font-size:16px;font-weight:600;min-height:24px}
+
+.scrim{position:absolute;inset:0;background:var(--scrim)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--sheet);border-radius:28px 28px 0 0;padding:10px 20px 34px;display:grid;gap:18px;box-shadow:0 -10px 40px rgba(0,0,0,.2)}
+.grab{width:36px;height:5px;border-radius:3px;background:var(--sep);margin:0 auto}
+.sheet h5{font-size:22px;font-weight:700;letter-spacing:-.025em}
+
+.mv{display:flex;gap:6px}
+.mv span{width:40px;height:40px;border-radius:12px;background:var(--fill);display:grid;place-items:center;color:var(--text)}
+.mv svg{width:16px;height:16px}
+.handle{color:var(--sec);width:20px;flex:none}
+
+.tl{display:grid;position:relative;padding-left:24px}
+.tl::before{content:"";position:absolute;left:5px;top:10px;bottom:10px;width:2px;background:var(--sep)}
+.ti{position:relative;padding:8px 0 14px;display:grid;gap:2px;font-size:14px}
+.ti::before{content:"";position:absolute;left:-24px;top:13px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--sec)}
+.ti.now::before{border-color:var(--ok);background:var(--ok)}
+.ti b{font-size:17px}
+.ti s,.ti small{color:var(--sec)}
+
+.split-l{width:300px;border-right:1px solid var(--sep);padding:28px 18px 16px;display:flex;flex-direction:column;gap:16px;background:var(--side)}
+.split-r{flex:1;padding:28px 28px 22px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.preview-pane{width:260px;background:var(--side);border-left:1px solid var(--sep);padding:22px 16px;display:flex;flex-direction:column;gap:12px}
+.mini-phone{border-radius:26px;border:6px solid var(--frame);background:var(--bg);padding:24px 14px 14px;display:grid;gap:12px;font-size:14px}
+.sel{background:var(--bg);border-radius:14px;box-shadow:0 0 0 2px var(--link)}
+.tablet .row{min-height:52px}
+.tablet .row .t b{font-size:15px}
+
+.expand{border-radius:20px;background:var(--fill);padding:16px;display:grid;gap:14px;margin:4px 0 8px}
+.expand .inp{background:var(--bg)}
+.done-fold{display:flex;align-items:center;gap:14px;min-height:56px;color:var(--sec);font-size:16px}
+.done-stack{display:flex}
+.done-stack .c{margin-right:-8px;box-shadow:0 0 0 2px var(--bg)}
+
+.ring{width:56px;height:56px;border-radius:50%;background:conic-gradient(var(--ok) 0 43%,var(--bad) 43% 57%,var(--fill) 57% 100%);display:grid;place-items:center;flex:none}
+.ring::before{content:"";width:44px;height:44px;border-radius:50%;background:var(--bg);grid-area:1/1}
+.ring span{grid-area:1/1;font-size:14px;font-weight:700;z-index:1}
+
+.bigtick{width:72px;height:72px;border-radius:50%;background:var(--herook);display:grid;place-items:center}
+.bigtick::before{content:"";width:26px;height:13px;border:5px solid #121214;border-top:0;border-right:0;transform:translate(0,-3px) rotate(-45deg)}
+
+.pick{display:grid;border-radius:20px;overflow:hidden;border:1px solid var(--sep);background:var(--bg)}
+.pk{display:grid;grid-template-columns:180px 1fr;gap:16px;padding:18px 22px;border-bottom:1px solid var(--sep)}
+.pk:last-child{border-bottom:0}
+.pk b{font-size:15px}
+.pk p{font-size:14px;color:var(--sec)}
+.pk p strong{color:var(--text);font-weight:600}
+@media (max-width:560px){.pk{grid-template-columns:1fr;gap:4px}}
+.fixes{display:grid;gap:12px;padding:0;margin:0;list-style:none}
+.fixes li{display:grid;grid-template-columns:28px 1fr;gap:10px;font-size:15px}
+.fixes li span{width:24px;height:24px;border-radius:50%;background:var(--fill);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--sec)}
+.fixes li p{color:var(--sec);font-size:14px}
+.fixes li b{color:var(--text);font-weight:600}
+details.more{margin-top:24px}
+details.more summary{cursor:pointer;font-weight:600;font-size:15px;color:var(--link);min-height:44px;display:flex;align-items:center}
+.foot-note{margin-top:48px;font-size:13px;color:var(--sec)}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-therm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-hash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 9h14M5 15h14M10 4l-2 16M16 4l-2 16"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20c3-1 4-4 7-4s2 3 5 3 3-2 4-3M15 4l5 5-8 8H7v-5z"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-grip" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.1L4 16.7 7.3 20l5.3-5.3a4 4 0 0 0 5.1-5.4l-2.4 2.4-2.6-.7-.7-2.6z"/></symbol>
+</svg>
+
+<div class="wrap">
+  <header class="top read">
+    <span class="eyebrow">Maginhawa Ops · Checklists · Design directions · Round 2</span>
+    <h1>Checklist redesign</h1>
+    <p class="lede">An honest review of round 1 against other checklist apps and the sizing guidance, then revised and new designs. Every phone is now drawn at true iPhone size (393pt), so what you see is what staff would see.</p>
+    <div class="tagrow"><span class="tag new">Round 2</span><span class="tag">5 new options</span><span class="tag">Follows your device’s light/dark setting</span><span class="tag">All figures and names are examples</span></div>
+  </header>
+</div>
+
+<nav class="jump" aria-label="Sections"><div class="wrap">
+  <a href="#review">Review</a><a href="#fill">Fill out</a><a href="#fix">Failed check</a><a href="#editlist">Edit a list</a><a href="#editcheck">Edit a check</a><a href="#correct">Corrections</a><a href="#pick">Recommendation</a>
+</div></nav>
+
+<div class="wrap">
+
+<!-- ================= REVIEW ================= -->
+<section class="block" id="review">
+  <div class="bh read"><h2>How round 1 stood up</h2><p>Four questions you asked, answered with measurements from the round 1 mockups and what the research found about other apps.</p></div>
+
+  <div class="verdicts">
+    <div class="vd"><span class="q">Are the sizes right?</span><span class="a"><span class="mark m-warn">!</span>Mostly, but the mockups lied</span><p>The phones were 300px wide inside; a real iPhone is 393pt. Everything looked about 25% more cramped than it would be. Body text was 15px; iOS uses 17.</p></div>
+    <div class="vd"><span class="q">Is it overwhelming?</span><span class="a"><span class="mark m-warn">!</span>In places</span><p>Rows had up to 5 parts (circle, name, detail, reading, pill). The hero took 33% of the screen. The fix panel had 8 chips and a toggle at once.</p></div>
+    <div class="vd"><span class="q">Is it easy to follow?</span><span class="a"><span class="mark m-ok">✓</span>Yes</span><p>A grouped list with one Submit is the industry pattern, and the footer said what was blocking. The weak spot: nothing pointed to “do this one next”.</p></div>
+    <div class="vd"><span class="q">Does it feel like a chore?</span><span class="a"><span class="mark m-bad">✕</span>Still a bit</span><p>Finished rows kept taking up space, there was no sense of momentum and no finish line. Round 2 adds “Up next”, folding of done items and a finish screen.</p></div>
+  </div>
+
+  <h3 class="sub-h">Compared with other checklist apps</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th></th><th>Maginhawa (round 2)</th><th>SafetyCulture</th><th>Jolt</th><th>Trail</th><th>FoodDocs</th></tr></thead>
+    <tbody>
+      <tr><td>Layout</td><td class="us">Grouped list with “Up next”; one-at-a-time optional</td><td>Pages and sections, long forms</td><td>Lists per time slot, task tiles</td><td>Task lists with tick or flag</td><td>Simple task lists</td></tr>
+      <tr><td>Temperature entry</td><td class="us">Range shown first, own keypad with minus, instant verdict</td><td>Number field with range logic</td><td>Bluetooth probe, keypad fallback</td><td>Number field, exceptions</td><td>Min/max per item, asks why when out</td></tr>
+      <tr><td>Failed check</td><td class="us">Fixed in the row: 4 preset actions, re-check reminder</td><td>Triggers: note, photo, action</td><td>Corrective action prompt</td><td>Blocks Done until action raised</td><td>Preset corrective actions</td></tr>
+      <tr><td>Feel</td><td class="us">Calm, premium, few colours</td><td>Enterprise, dense</td><td>Bright, task-board</td><td>Functional, admin-like</td><td>Plain, friendly</td></tr>
+      <tr><td>Editing</td><td class="us">Draft → publish for tomorrow, live preview</td><td>Draft → publish, mobile editing</td><td>Desktop, changes need a day’s notice</td><td>Desktop templates</td><td>Desktop</td></tr>
+      <tr><td>Corrections</td><td class="us">Original kept, reason needed, sign-off reopened</td><td>Change history (who, what, when)</td><td>Not documented</td><td>Editing resets the time (lost)</td><td>Missed stays missed, with a comment</td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap">Competitor details come from their help centres and marketing pages, not from using the apps or from screenshots, so treat the “Feel” row as an impression.</p>
+
+  <h3 class="sub-h">Size check, round 1 → round 2</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Part</th><th>Round 1</th><th>Guidance</th><th>Round 2</th></tr></thead>
+    <tbody>
+      <tr><td>Phone width in mockups</td><td>300px inside</td><td>iPhone 15/16: 393pt</td><td>393pt, true size</td></tr>
+      <tr><td>Body text</td><td>15px</td><td>iOS default 17pt</td><td>17px</td></tr>
+      <tr><td>Captions</td><td>12.5px</td><td>11pt minimum, 13pt comfortable</td><td>13px</td></tr>
+      <tr><td>Hero on fill-out</td><td>204px, 33% of screen</td><td>Summary, not the main event</td><td>~120px, 15%, or used as the “Up next” card</td></tr>
+      <tr><td>Row height</td><td>64–69px</td><td>Material 56/72; 44 minimum</td><td>64px (kept)</td></tr>
+      <tr><td>Yes / No buttons</td><td>56 × 44px</td><td>44px minimum, 48+ for kitchen</td><td>64 × 48px, 8px apart</td></tr>
+      <tr><td>Temperature field</td><td>92 × 44px</td><td>44 minimum</td><td>108 × 48px</td></tr>
+      <tr><td>Fix panel chips</td><td>8 chips at 40px + toggle</td><td>44px; fewer choices</td><td>4 tiles at 56px; re-check pre-set</td></tr>
+      <tr><td>Parts per row</td><td>Up to 5</td><td>Glanceable: 3–4</td><td>3–4; pass pills removed (the tick says it)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="sub-h">What makes checklists feel like a chore, and what we do about it</h3>
+  <div class="chore">
+    <div class="ch"><div><b>Hunting for the next thing</b><span>Eyes scan the whole list each time.</span></div><div class="fix">“Up next” card always shows the next unanswered check; entering a reading moves straight to the next one.</div></div>
+    <div class="ch"><div><b>Done items clutter the screen</b><span>The list never gets shorter.</span></div><div class="fix">Done checks fold into one “3 done” row you can open. They stay on the record.</div></div>
+    <div class="ch"><div><b>No sense of progress</b><span>A count that changes by one.</span></div><div class="fix">Circles fill in, the bar grows, and a finish screen shows time taken and problems dealt with.</div></div>
+    <div class="ch"><div><b>Too many choices when something fails</b><span>Panic plus a wall of options.</span></div><div class="fix">Four likely actions, the re-check time pre-set, fault reporting one tap away.</div></div>
+    <div class="ch"><div><b>Typing on a small field with wet hands</b><span>Missed taps, wrong numbers.</span></div><div class="fix">48px fields, 56px keypad keys, a minus key for freezers, and the range shown before you type.</div></div>
+    <div class="ch"><div><b>Tempting shortcuts</b><span>“Mark all as Yes”.</span></div><div class="fix">Deliberately left out. Filling records in without checking led to a 2023 prosecution in Salford. Speed comes from fewer taps per check, not skipping checks.</div></div>
+  </div>
+
+  <details class="more">
+    <summary>Research principles from round 1</summary>
+    <div class="principles" style="margin-top:12px">
+      <div class="pr"><b>Routine checks belong in one list</b><p>All the products we checked use a grouped, scrolling list with one Submit. NN/g: step-by-step wizards suit novices and break down when people are interrupted.</p><span class="src">NN/g · Trail, Jolt, FoodDocs</span></div>
+      <div class="pr"><b>Deal with failure on the item</b><p>Preset actions, an optional photo, a raised fault. Trail won’t submit until it’s dealt with.</p><span class="src">FoodDocs, SafetyCulture, Trail</span></div>
+      <div class="pr"><b>Show the range before the reading</b><p>Pass rule next to the field; verdict the moment you type. Freezers need a minus key.</p><span class="src">Jolt, FoodDocs · GOV.UK</span></div>
+      <div class="pr"><b>44px targets, 12px apart</b><p>48px or more for main actions; centre-screen taps are most accurate.</p><span class="src">WCAG 2.5.5/2.5.8 · Apple HIG · Hoober</span></div>
+      <div class="pr"><b>Draft, then publish</b><p>Autosaved draft, a clear “Unpublished” label, explicit Publish; changes apply to runs not yet started.</p><span class="src">SafetyCulture, Typeform, Jotform</span></div>
+      <div class="pr"><b>Reorder without dragging too</b><p>WCAG 2.2 needs an alternative to drag, such as up/down buttons.</p><span class="src">WCAG 2.5.7</span></div>
+      <div class="pr"><b>Never overwrite a record</b><p>Keep the original; record who, when, why; changes reopen the sign-off.</p><span class="src">MHRA data integrity · SFBB</span></div>
+      <div class="pr"><b>Head office reviews exceptions</b><p>Late, missed, edited, out of range; 3+ times in 4 weeks counts as serious.</p><span class="src">MHRA · FSA SFBB</span></div>
+    </div>
+  </details>
+</section>
+
+<!-- ================= FILL OUT ================= -->
+<section class="block" id="fill">
+  <div class="bh read"><h2>1 · Filling out a checklist</h2><p>Five ways to fill out and one finish screen. A is round 1, tidied. D, E and F are new: D is the bolder one, E the simplest. A, B and D are interactive.</p></div>
+  <div class="opts">
+
+    <!-- A v2 -->
+    <article class="opt">
+      <div class="oh"><span class="k">A</span><h3>Calm list</h3><span class="badge">Refined</span></div>
+      <div class="phone"><span class="island"></span><div class="scr">
+        <div class="nav"><span class="back">‹ Checklists</span><span class="saved"><span class="dot"></span>Saved</span></div>
+        <div class="hero" style="gap:12px">
+          <div class="hrow"><span class="hl">Opening checks</span><span class="hl">Due 09:30</span></div>
+          <div class="big" id="fa-count" style="font-size:44px">3 <small>of 7 done</small></div>
+          <div class="bars" id="fa-bars"><i class="on"></i><i class="on"></i><i class="badi"></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div style="display:grid;gap:4px">
+          <div class="sh"><h4>Temperatures</h4><span>2 of 3</span></div>
+          <div class="list">
+            <div class="row dim"><span class="c done"></span><div class="t"><b>Walk-in fridge</b><small>Sam · 09:12</small></div><div class="v">4.2°C</div></div>
+            <div class="row"><span class="c badc"></span><div class="t"><b>Freezer</b><small class="bad-t">Too warm · needs action</small></div><div class="v bad-t">−12°C</div></div>
+            <div class="row"><span class="c cur"></span><div class="t"><b>Reach-in fridge 1</b><small>8°C or below</small></div><div class="tin focus"><span style="color:var(--text)">|</span><span>°C</span></div></div>
+          </div>
+        </div>
+        <div style="display:grid;gap:4px">
+          <div class="sh"><h4>Seals &amp; doors</h4><span>0 of 2</span></div>
+          <div class="list" data-yn>
+            <div class="row"><button class="c" aria-label="Mark done"></button><div class="t"><b>Door seals clean</b><small>Fails if No</small></div><div class="seg"><button>Yes</button><button>No</button></div></div>
+            <div class="row"><button class="c" aria-label="Mark done"></button><div class="t"><b>Food labelled</b><small>Fails if No</small></div><div class="seg"><button>Yes</button><button>No</button></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><button class="btn dis" id="fa-btn">Fix the freezer, then 4 left</button></div></div>
+      <div class="notes">
+        <p>Smaller hero (title, count, bar). Pass pills gone: a green tick and a dimmed row already say “fine”. Only problems get colour and words. The next field is focused for you.</p>
+        <dl><dt>Changed from round 1</dt><dd>17px text, 48px controls, 3–4 parts per row, hero 15% of screen.</dd><dt>Best for</dt><dd>Regular staff on routine lists.</dd></dl>
+      </div>
+    </article>
+
+    <!-- D Up next -->
+    <article class="opt">
+      <div class="oh"><span class="k">D</span><h3>Up next</h3><span class="badge nw">New · bolder</span><span class="badge rec">Recommended</span></div>
+      <div class="phone"><span class="island"></span><div class="scr" style="gap:22px">
+        <div class="nav"><span class="back">‹ Checklists</span><span class="saved"><span class="dot"></span>Saved</span></div>
+        <div class="hero" style="gap:16px;padding:22px">
+          <div class="hrow"><span class="hl">Up next · Temperatures</span><span class="hl" id="fd-step">4 of 7</span></div>
+          <div style="display:grid;gap:4px"><div style="font-size:28px;font-weight:700;letter-spacing:-.035em" id="fd-title">Reach-in fridge 1</div><span class="hl" id="fd-rule">Pass: 8°C or below · probe the middle</span></div>
+          <div style="display:flex;gap:10px;align-items:stretch" id="fd-answer">
+            <div id="fd-input" style="flex:1;height:64px;border-radius:18px;background:var(--herofill);display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:32px;font-weight:600;letter-spacing:-.04em"><span id="fd-val">5.4</span><span style="font-size:18px;color:var(--herosec);font-weight:500">°C</span></div>
+            <button class="btn onhero" id="fd-save" style="width:auto;height:64px;padding:0 22px;border-radius:18px">Save</button>
+          </div>
+          <span id="fd-verdict" style="font-size:15px;font-weight:600;color:var(--herook)">In range</span>
+        </div>
+        <div style="display:grid;gap:4px">
+          <div class="sh"><h4>Needs action</h4><span>1</span></div>
+          <div class="list"><div class="row"><span class="c badc"></span><div class="t"><b>Freezer</b><small class="bad-t">−12°C · too warm</small></div><span class="linkbtn">Fix</span></div></div>
+        </div>
+        <div style="display:grid;gap:4px">
+          <div class="sh"><h4>Still to do</h4><span id="fd-left">3</span></div>
+          <div class="list" id="fd-todo">
+            <div class="row"><span class="c"></span><div class="t"><b>Door seals clean</b></div></div>
+            <div class="row"><span class="c"></span><div class="t"><b>Food labelled</b></div></div>
+            <div class="row"><span class="c"></span><div class="t"><b>Hand-wash basins stocked</b></div></div>
+          </div>
+          <div class="done-fold"><span class="done-stack"><span class="c done"></span><span class="c done"></span><span class="c done"></span></span><span id="fd-done" style="margin-left:12px">3 done · Walk-in fridge, Probe…</span></div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <p>The dark hero becomes the current check. Staff never hunt for what’s next: type, Save, and the next check slides in. Problems sit right under it; finished checks fold away into one row. Tap Save to try it.</p>
+        <dl><dt>Why it’s less of a chore</dt><dd>One thing to look at, one button to press, visible momentum. The full list is still right there.</dd><dt>Trade-off</dt><dd>Moves away from the hero showing a figure, though it’s still one dark card per screen.</dd></dl>
+      </div>
+    </article>
+
+    <!-- E Simple ticks -->
+    <article class="opt">
+      <div class="oh"><span class="k">E</span><h3>Simple ticks</h3><span class="badge nw">New · simplest</span></div>
+      <div class="phone"><span class="island"></span><div class="scr" style="gap:20px">
+        <div class="nav"><span class="back">‹ Checklists</span><span class="saved"><span class="dot"></span>Saved</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+          <div style="display:grid;gap:2px"><h4 style="font-size:32px;font-weight:700;letter-spacing:-.035em">Opening checks</h4><span style="color:var(--sec);font-size:15px">Due 09:30 · 4 left</span></div>
+          <div class="ring"><span>3/7</span></div>
+        </div>
+        <div class="list">
+          <div class="row dim"><span class="c lg done"></span><div class="t"><b>Walk-in fridge</b></div><div class="v">4.2°</div></div>
+          <div class="row"><span class="c lg badc"></span><div class="t"><b>Freezer</b><small class="bad-t">Too warm · tap to fix</small></div><div class="v bad-t">−12°</div></div>
+          <div class="row" style="padding-bottom:4px"><span class="c lg cur"></span><div class="t"><b>Reach-in fridge 1</b></div></div>
+          <div class="expand" style="margin-left:44px">
+            <span style="font-size:14px;color:var(--sec)">Pass: 8°C or below</span>
+            <div style="display:flex;gap:10px"><div class="tin focus" style="flex:1;font-size:20px;color:var(--text);justify-content:space-between;background:var(--bg)"><span>5.4</span><span style="color:var(--sec);font-size:16px">°C</span></div><button class="btn" style="width:auto;height:48px;padding:0 20px;font-size:16px">Done</button></div>
+          </div>
+          <div class="row"><span class="c lg"></span><div class="t"><b>Door seals clean</b></div></div>
+          <div class="row"><span class="c lg"></span><div class="t"><b>Food labelled</b></div></div>
+          <div class="row"><span class="c lg"></span><div class="t"><b>Hand-wash basins stocked</b></div></div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <p>Things 3 at its purest: a title, a progress ring and a list of names. Tap a row and it opens in place to answer; close it and it ticks. Nothing else on screen.</p>
+        <dl><dt>Best for</dt><dd>Short lists (under ~10 checks), bar and front-of-house.</dd><dt>Trade-off</dt><dd>Drops the dark hero card, which breaks the house style. Rules only show once a row is open.</dd></dl>
+      </div>
+    </article>
+
+    <!-- B -->
+    <article class="opt">
+      <div class="oh"><span class="k">B</span><h3>One at a time</h3><span class="badge">Resized</span></div>
+      <div class="phone"><span class="island"></span><div class="scr" style="gap:18px">
+        <div class="nav"><span class="back">‹ List</span><span class="saved">4 of 7</span></div>
+        <div class="bars light"><i class="on"></i><i class="on"></i><i class="badi"></i><i class="cur"></i><i></i><i></i><i></i></div>
+        <div style="display:grid;gap:6px;margin-top:6px">
+          <span class="eyebrow">Temperatures</span>
+          <h4 style="font-size:30px;letter-spacing:-.035em">Reach-in fridge 1</h4>
+          <p style="font-size:15px;color:var(--sec)">Probe the middle of the unit.</p>
+          <div><span class="pill p-mut" style="font-size:14px;padding:6px 12px">Pass: 8°C or below</span></div>
+        </div>
+        <div class="readout" id="fb-read">5.4<small>°C</small></div>
+        <div class="status-line" id="fb-status" style="color:var(--ok)">In range</div>
+        <div class="keypad" id="fb-pad">
+          <button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button><button class="fn">−</button><button>0</button><button class="fn">.</button>
+        </div>
+      </div>
+      <div class="foot" style="grid-template-columns:auto 1fr;align-items:center;gap:12px"><button class="btn ghost" style="width:100px" id="fb-clear">Clear</button><button class="btn">Save · next</button></div></div>
+      <div class="notes">
+        <p>One check fills the screen with a large reading and our own keypad (with a minus key). Try the keypad.</p>
+        <dl><dt>Best for</dt><dd>A “Guide me” mode for new starters.</dd><dt>Trade-off</dt><dd>Slower for regulars; NN/g advises against it as the default for routine work.</dd></dl>
+      </div>
+    </article>
+
+    <!-- F Finish line -->
+    <article class="opt">
+      <div class="oh"><span class="k">F</span><h3>Finish line</h3><span class="badge nw">New</span><span class="badge rec">Use with any</span></div>
+      <div class="phone"><span class="island"></span><div class="scr">
+        <div class="nav"><span class="back">‹ Checklists</span><span></span></div>
+        <div class="hero" style="gap:18px;padding:26px 22px">
+          <div class="bigtick"></div>
+          <div style="display:grid;gap:6px"><div style="font-size:32px;font-weight:700;letter-spacing:-.035em">All 7 checks done</div><span class="hl">Opening checks · Bunso · Mon 9 Nov</span></div>
+          <div class="meta"><span>6 min<small>Took</small></span><span>1<small>Problem fixed</small></span><span>09:44<small>Re-check due</small></span></div>
+        </div>
+        <div style="display:grid;gap:4px">
+          <div class="sh"><h4>Before you submit</h4></div>
+          <div class="list">
+            <div class="row"><span class="ic" style="color:var(--bad)"><svg><use href="#i-therm"/></svg></span><div class="t"><b>Freezer was −12°C</b><small>Moved food · re-check 09:44</small></div></div>
+            <div class="row"><span class="ic"><svg><use href="#i-pen"/></svg></span><div class="t"><b>Done by Sam and Ana</b><small>Each answer keeps its own name</small></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><button class="btn">Submit as Sam</button><p class="note">Locked once submitted. Corrections keep the original.</p></div></div>
+      <div class="notes">
+        <p>A proper ending: a big tick, how long it took, and a 2-line recap of anything that went wrong before the record is locked. Gives each list a clear finish instead of fading out.</p>
+        <dl><dt>Best for</dt><dd>The last step of A, B, D or E.</dd><dt>Trade-off</dt><dd>One extra screen, but it replaces the old footer Submit.</dd></dl>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="opts wide" style="margin-top:56px">
+    <article class="opt">
+      <div class="oh"><span class="k">C</span><h3>Kitchen iPad split</h3><span class="badge">Kept</span></div>
+      <div class="stage"><div class="tablet">
+        <div class="split-l">
+          <div class="nav" style="font-size:16px"><span class="back">‹ Today</span><span class="saved"><span class="dot"></span>Saved</span></div>
+          <div class="hero" style="padding:16px;gap:10px"><span class="hl">Opening checks</span><div class="big" style="font-size:38px">3 <small>of 7</small></div><div class="bars"><i class="on"></i><i class="on"></i><i class="badi"></i><i></i><i></i><i></i><i></i></div></div>
+          <div class="list">
+            <div class="row dim"><span class="c done"></span><div class="t"><b>Walk-in fridge</b></div><div class="v" style="font-size:15px">4.2°C</div></div>
+            <div class="row"><span class="c badc"></span><div class="t"><b>Freezer</b></div><div class="v bad-t" style="font-size:15px">−12°C</div></div>
+            <div class="row sel" style="padding-inline:10px;margin-inline:-10px"><span class="c cur"></span><div class="t"><b>Reach-in fridge 1</b></div></div>
+            <div class="row"><span class="c"></span><div class="t"><b>Door seals clean</b></div></div>
+          </div>
+        </div>
+        <div class="split-r">
+          <span class="eyebrow">Temperatures · 4 of 7</span>
+          <h4 style="font-size:32px;letter-spacing:-.035em">Reach-in fridge 1</h4>
+          <div style="display:flex;gap:10px;align-items:center"><span class="pill p-mut" style="font-size:14px;padding:6px 12px">Pass: 8°C or below</span><span style="font-size:14px;color:var(--sec)">Probe the middle of the unit</span></div>
+          <div style="display:grid;grid-template-columns:1fr 270px;gap:28px;align-items:center;flex:1">
+            <div style="display:grid;gap:8px;justify-items:center"><div class="readout" style="font-size:88px">5.4<small>°C</small></div><span class="status-line ok-t">In range</span></div>
+            <div class="keypad"><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button><button class="fn">−</button><button>0</button><button class="fn">.</button></div>
+          </div>
+          <button class="btn" style="height:60px">Save · next check</button>
+        </div>
+      </div></div>
+      <div class="notes"><p>List on the left, current check on the right, 56px keys for wet or gloved hands. Best for the fixed kitchen iPad; phones fall back to D or A.</p></div>
+    </article>
+  </div>
+</section>
+
+<!-- ================= FAILED CHECK ================= -->
+<section class="block" id="fix">
+  <div class="bh read"><h2>2 · When a check fails</h2><p>Round 1 showed 8 chips and a toggle at once. Round 2 asks one question with four big answers, and pre-sets the rest.</p></div>
+  <div class="opts">
+    <article class="opt">
+      <div class="oh"><span class="k">A</span><h3>Fix it in the row</h3><span class="badge">Simplified</span><span class="badge rec">Recommended</span></div>
+      <div class="phone"><span class="island"></span><div class="scr">
+        <div class="nav"><span class="back">‹ Checklists</span><span class="saved"><span class="dot"></span>Saved</span></div>
+        <div class="sh"><h4>Temperatures</h4><span>2 of 3</span></div>
+        <div style="display:grid;gap:8px">
+          <div class="list">
+            <div class="row dim"><span class="c done"></span><div class="t"><b>Walk-in fridge</b><small>Sam · 09:12</small></div><div class="v">4.2°C</div></div>
+            <div class="row"><span class="c badc"></span><div class="t"><b>Freezer</b><small class="bad-t">Should be −18°C or below</small></div><div class="v bad-t">−12°C</div></div>
+          </div>
+          <div class="fixbox">
+            <span class="q">6° too warm. What did you do?</span>
+            <div class="grid2" data-tiles>
+              <button class="tile on">Moved the food</button><button class="tile">Turned it colder</button><button class="tile">Threw food away</button><button class="tile">Something else</button>
+            </div>
+            <div class="minirow"><span style="display:flex;gap:8px;align-items:center"><svg width="18" height="18"><use href="#i-clock"/></svg>Check again in 30 min</span><span class="linkbtn">Change</span></div>
+            <div class="minirow"><span style="display:flex;gap:8px;align-items:center"><svg width="18" height="18"><use href="#i-wrench"/></svg>Report a fault to Repairs</span><span class="toggle"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><button class="btn">Save what you did</button><p class="note">We’ll remind you at 09:44.</p></div></div>
+      <div class="notes"><p>One question, four 56px answers in a 2×2 grid. The re-check time is already set (change it if needed). Fault reporting is one switch, off by default.</p><dl><dt>Changed from round 1</dt><dd>8 chips → 4 tiles; re-check chips → one pre-set line.</dd></dl></div>
+    </article>
+
+    <article class="opt">
+      <div class="oh"><span class="k">B</span><h3>Fix-it sheet</h3><span class="badge">Resized</span></div>
+      <div class="phone"><span class="island"></span><div class="scr" style="opacity:.5">
+        <div class="nav"><span class="back">‹ Checklists</span><span class="saved"><span class="dot"></span>Saved</span></div>
+        <div class="hero"><span class="hl">Opening checks</span><div class="big" style="font-size:44px">3 <small>of 7 done</small></div></div>
+        <div class="list"><div class="row"><span class="c badc"></span><div class="t"><b>Freezer</b><small>−18°C or below</small></div><div class="v bad-t">−12°C</div></div></div>
+      </div>
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div style="display:grid;gap:8px"><span class="pill p-bad" style="justify-self:start;font-size:13px">Freezer · −12°C · too warm</span><h5>What did you do?</h5></div>
+        <div class="list">
+          <div class="row"><span class="c done"></span><div class="t"><b>Moved food to another freezer</b></div></div>
+          <div class="row"><span class="c"></span><div class="t"><b>Turned the thermostat down</b></div></div>
+          <div class="row"><span class="c"></span><div class="t"><b>Threw food away</b><small>Asks what and how much</small></div></div>
+          <div class="row"><span class="ic" style="width:26px;height:26px;background:none"><svg><use href="#i-cam"/></svg></span><div class="t"><b>Add a photo</b><small>Optional</small></div></div>
+        </div>
+        <button class="btn">Next: when to check again</button>
+      </div></div>
+      <div class="notes"><p>A bottom sheet in two short steps. Keep for failures with follow-up questions (discards: what and how much).</p></div>
+    </article>
+  </div>
+</section>
+
+<!-- ================= EDIT LIST ================= -->
+<section class="block" id="editlist">
+  <div class="bh read"><h2>3 · Editing a list</h2><p>Round 1 stacked a warning banner, a hero and pills on most rows. Round 2 moves the warning into the hero and uses one small dot for “changed”. D is new.</p></div>
+  <div class="opts">
+    <article class="opt">
+      <div class="oh"><span class="k">A</span><h3>Draft-first list</h3><span class="badge">Simplified</span><span class="badge rec">Recommended on phone</span></div>
+      <div class="phone"><span class="island"></span><div class="scr">
+        <div class="nav"><span class="back">‹ Lists</span><span class="saved"><span class="dot warn"></span>Draft saved</span></div>
+        <div class="hero">
+          <span class="hl">Bunso only · Daily · 16:30</span>
+          <div style="font-size:30px;font-weight:700;letter-spacing:-.035em">Bar opening</div>
+          <div class="meta" style="grid-template-columns:1fr 1fr"><span style="color:var(--herowarn)">2 changes<small>Not published</small></span><span>Tue 10 Nov<small>Would start</small></span></div>
+        </div>
+        <div style="display:grid;gap:4px">
+          <div class="sh"><h4>Checks</h4><span class="linkbtn">Reorder</span></div>
+          <div class="list">
+            <div class="row"><span class="ic"><svg><use href="#i-check"/></svg></span><div class="t"><b>Ice machine cleaned</b><small>Yes / No</small></div><svg width="16" height="16" style="color:var(--sec)"><use href="#i-chev"/></svg></div>
+            <div class="row"><span class="ic"><svg><use href="#i-therm"/></svg></span><div class="t"><b>Beer cellar temperature</b><small>11°C to 13°C · <span style="color:var(--warn)">changed</span></small></div><span class="dot warn"></span></div>
+            <div class="row"><span class="ic"><svg><use href="#i-list"/></svg></span><div class="t"><b>Garnishes prepped</b><small class="bad-t">Add at least 2 options</small></div><span class="dot" style="background:var(--bad)"></span></div>
+            <div class="row"><span class="ic"><svg><use href="#i-cam"/></svg></span><div class="t"><b>Photo of the bar top</b><small>Photo</small></div><svg width="16" height="16" style="color:var(--sec)"><use href="#i-chev"/></svg></div>
+            <div class="row"><span class="ic" style="background:none;border:1.5px dashed var(--sep)"><svg><use href="#i-plus"/></svg></span><div class="t"><b style="color:var(--link)">Add a check</b></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><button class="btn dis">Finish “Garnishes prepped” to publish</button><p class="linkbtn">Undo my changes</p></div></div>
+      <div class="notes"><p>The problem is named on the row it belongs to and in the button, so there’s no separate banner. Changed rows get a small amber dot instead of a pill.</p></div>
+    </article>
+
+    <article class="opt">
+      <div class="oh"><span class="k">D</span><h3>Open in place</h3><span class="badge nw">New</span></div>
+      <div class="phone"><span class="island"></span><div class="scr" style="gap:18px">
+        <div class="nav"><span class="back">‹ Lists</span><span class="saved"><span class="dot warn"></span>Draft saved</span></div>
+        <h4 style="font-size:30px;letter-spacing:-.035em">Bar opening</h4>
+        <div class="list">
+          <div class="row"><span class="ic"><svg><use href="#i-check"/></svg></span><div class="t"><b>Ice machine cleaned</b><small>Yes / No</small></div></div>
+          <div class="row" style="padding-bottom:4px"><span class="ic" style="background:var(--ink);color:var(--onink)"><svg><use href="#i-therm"/></svg></span><div class="t"><b>Beer cellar temperature</b><small>Temperature</small></div><span class="linkbtn">Close</span></div>
+          <div class="expand">
+            <div class="field"><label>Question</label><div class="inp">Beer cellar temperature</div></div>
+            <div class="grid2"><div class="field"><label>Pass from</label><div class="inp">11 °C</div></div><div class="field"><label>Pass to</label><div class="inp">13 °C</div></div></div>
+            <div class="minirow"><span>Report a fault if it fails</span><span class="toggle on"></span></div>
+            <div class="minirow" style="font-size:14px"><span class="linkbtn">More settings</span><span class="linkbtn" style="color:var(--bad)">Remove</span></div>
+          </div>
+          <div class="row"><span class="ic"><svg><use href="#i-hash"/></svg></span><div class="t"><b>Float in the till</b><small>Number</small></div></div>
+          <div class="row"><span class="ic"><svg><use href="#i-list"/></svg></span><div class="t"><b>Garnishes prepped</b><small>Pick from a list</small></div></div>
+        </div>
+      </div>
+      <div class="foot"><button class="btn">Publish · starts Tue 10 Nov</button></div></div>
+      <div class="notes"><p>Tap a check and its common settings open right there in the list (like SafetyCulture). You never lose your place; rarer settings sit behind “More settings”.</p><dl><dt>Best for</dt><dd>Quick tweaks to several checks in a row.</dd><dt>Trade-off</dt><dd>Gets long if several checks are opened; open one at a time.</dd></dl></div>
+    </article>
+
+    <article class="opt">
+      <div class="oh"><span class="k">B</span><h3>Reorder mode</h3><span class="badge">Part of A</span></div>
+      <div class="phone"><span class="island"></span><div class="scr" style="gap:16px">
+        <div class="nav"><span class="back">Cancel</span><b style="font-size:17px">Reorder</b><span class="back" style="font-weight:600">Done</span></div>
+        <p style="font-size:14px;color:var(--sec)">Drag by the handle, or use the arrows.</p>
+        <div class="list">
+          <div class="row"><svg class="handle" height="20"><use href="#i-grip"/></svg><div class="t"><b>Ice machine cleaned</b></div><div class="mv"><span style="opacity:.35"><svg><use href="#i-up"/></svg></span><span><svg><use href="#i-down"/></svg></span></div></div>
+          <div class="row sel" style="padding-inline:10px;margin-inline:-10px"><svg class="handle" height="20"><use href="#i-grip"/></svg><div class="t"><b>Beer cellar temp</b><small>Moved up 2</small></div><div class="mv"><span><svg><use href="#i-up"/></svg></span><span><svg><use href="#i-down"/></svg></span></div></div>
+          <div class="row"><svg class="handle" height="20"><use href="#i-grip"/></svg><div class="t"><b>Float in the till</b></div><div class="mv"><span><svg><use href="#i-up"/></svg></span><span><svg><use href="#i-down"/></svg></span></div></div>
+          <div class="row"><svg class="handle" height="20"><use href="#i-grip"/></svg><div class="t"><b>Garnishes prepped</b></div><div class="mv"><span><svg><use href="#i-up"/></svg></span><span><svg><use href="#i-down"/></svg></span></div></div>
+          <div class="row"><svg class="handle" height="20"><use href="#i-grip"/></svg><div class="t"><b>Photo of the bar top</b></div><div class="mv"><span><svg><use href="#i-up"/></svg></span><span style="opacity:.35"><svg><use href="#i-down"/></svg></span></div></div>
+        </div>
+      </div></div>
+      <div class="notes"><p>Handles for dragging plus 40px up/down buttons (WCAG 2.5.7). The moved row stays highlighted.</p></div>
+    </article>
+  </div>
+
+  <div class="opts wide" style="margin-top:56px">
+    <article class="opt">
+      <div class="oh"><span class="k">C</span><h3>Builder with live preview</h3><span class="badge rec">Recommended on iPad and desktop</span></div>
+      <div class="stage"><div class="tablet" style="width:980px">
+        <div class="split-l" style="width:260px">
+          <div class="nav" style="font-size:16px"><span class="back">‹ Lists</span><span class="saved"><span class="dot warn"></span>Draft</span></div>
+          <b style="font-size:22px;letter-spacing:-.025em">Bar opening</b>
+          <div class="list">
+            <div class="row"><span class="ic" style="width:34px;height:34px"><svg><use href="#i-check"/></svg></span><div class="t"><b>Ice machine cleaned</b></div></div>
+            <div class="row sel" style="padding-inline:10px;margin-inline:-10px"><span class="ic" style="width:34px;height:34px"><svg><use href="#i-therm"/></svg></span><div class="t"><b>Beer cellar temp</b></div></div>
+            <div class="row"><span class="ic" style="width:34px;height:34px"><svg><use href="#i-hash"/></svg></span><div class="t"><b>Float in the till</b></div></div>
+            <div class="row"><span class="ic" style="width:34px;height:34px"><svg><use href="#i-list"/></svg></span><div class="t"><b>Garnishes prepped</b></div><span class="dot" style="background:var(--bad)"></span></div>
+          </div>
+          <span class="linkbtn" style="text-align:left">+ Add a check</span>
+        </div>
+        <div class="split-r">
+          <span class="eyebrow">Check 2 of 8</span>
+          <div class="field"><label>Question</label><div class="inp">Beer cellar temperature</div></div>
+          <div class="field"><label>Kind of answer</label><div class="chips"><span class="chip">Yes / No</span><span class="chip on">Temperature</span><span class="chip">Number</span><span class="chip">Photo</span><span class="chip">More…</span></div></div>
+          <div class="grid2" style="gap:12px"><div class="field"><label>Pass from</label><div class="inp">11 °C</div></div><div class="field"><label>Pass to</label><div class="inp">13 °C</div></div></div>
+          <div class="minirow"><span>Report a fault if it fails</span><span class="toggle on"></span></div>
+          <div style="margin-top:auto;display:flex;gap:16px;align-items:center"><button class="btn" style="width:auto;padding:0 26px">Publish · starts Tue 10 Nov</button><span class="linkbtn">Undo my changes</span></div>
+        </div>
+        <div class="preview-pane">
+          <span class="eyebrow">What staff will see</span>
+          <div class="mini-phone">
+            <b style="font-size:16px">Beer cellar temperature</b>
+            <span style="color:var(--sec)">Pass: 11°C to 13°C</span>
+            <div class="tin focus" style="justify-content:space-between;color:var(--text)"><span>14.5</span><span style="color:var(--sec)">°C</span></div>
+            <span class="pill p-bad" style="justify-self:start">Too warm · 1.5° over</span>
+          </div>
+          <p style="font-size:12px;color:var(--sec)">Try a reading here. Nothing is saved.</p>
+        </div>
+      </div></div>
+      <div class="notes"><p>Checks, settings and a live preview side by side. No ops tool in the research shows the preview next to the editor. Best for building a new list on iPad or desktop.</p></div>
+    </article>
+  </div>
+</section>
+
+<!-- ================= EDIT CHECK ================= -->
+<section class="block" id="editcheck">
+  <div class="bh read"><h2>4 · Editing a single check</h2><p>Kept from round 1, resized to true scale. Settings are grouped so a manager only sees what applies.</p></div>
+  <div class="opts">
+    <article class="opt">
+      <div class="oh"><span class="k">A</span><h3>Preview, then settings</h3><span class="badge rec">Recommended</span></div>
+      <div class="phone"><span class="island"></span><div class="scr" style="gap:20px">
+        <div class="nav"><span class="back">‹ Bar opening</span><span class="saved">Check 2 of 8</span></div>
+        <div class="hero" style="gap:12px">
+          <span class="hl">Staff will see this · try it</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><div><b style="font-size:18px;font-weight:600">Beer cellar temperature</b><div class="hl">11°C to 13°C</div></div><div style="background:var(--herofill);border-radius:14px;height:48px;min-width:96px;display:flex;align-items:center;justify-content:flex-end;padding:0 14px;color:var(--herosec)">°C</div></div>
+        </div>
+        <div class="field"><label>Question</label><div class="inp">Beer cellar temperature</div></div>
+        <div class="list" style="border-radius:18px;background:var(--fill);padding:0 16px">
+          <div class="row" style="min-height:56px"><div class="t"><b>Kind of answer</b></div><span style="color:var(--sec);font-size:16px">Temperature</span><svg width="14" height="14" style="color:var(--sec)"><use href="#i-chev"/></svg></div>
+          <div class="row" style="min-height:56px"><div class="t"><b>Passes between</b></div><span style="color:var(--sec);font-size:16px">11–13°C</span><svg width="14" height="14" style="color:var(--sec)"><use href="#i-chev"/></svg></div>
+          <div class="row" style="min-height:56px"><div class="t"><b>Help text</b></div><span style="color:var(--sec);font-size:16px">None</span><svg width="14" height="14" style="color:var(--sec)"><use href="#i-chev"/></svg></div>
+        </div>
+        <div class="list" style="border-radius:18px;background:var(--fill);padding:0 16px">
+          <div class="row" style="min-height:56px"><div class="t"><b>Must be answered</b></div><span class="toggle on"></span></div>
+          <div class="row" style="min-height:56px"><div class="t"><b>Report a fault if it fails</b></div><span class="toggle"></span></div>
+        </div>
+        <p class="linkbtn" style="color:var(--bad)">Remove this check</p>
+      </div></div>
+      <div class="notes"><p>iOS Settings-style rows that show the current value; tap to change. A third the length of today’s form.</p></div>
+    </article>
+
+    <article class="opt">
+      <div class="oh"><span class="k">B</span><h3>Pick the kind first</h3><span class="badge">For new checks</span></div>
+      <div class="phone"><span class="island"></span><div class="scr" style="gap:18px">
+        <div class="nav"><span class="back">Cancel</span><b style="font-size:17px">New check</b><span style="width:52px"></span></div>
+        <h4 style="font-size:28px;letter-spacing:-.035em">What kind of answer?</h4>
+        <div class="list">
+          <div class="row"><span class="ic"><svg><use href="#i-check"/></svg></span><div class="t"><b>Yes or No</b><small>Door seals clean, food labelled</small></div></div>
+          <div class="row sel" style="padding-inline:10px;margin-inline:-10px"><span class="ic"><svg><use href="#i-therm"/></svg></span><div class="t"><b>Temperature</b><small>Fridges, freezers, hot holding</small></div></div>
+          <div class="row"><span class="ic"><svg><use href="#i-hash"/></svg></span><div class="t"><b>Number</b><small>Till float, stock counts</small></div></div>
+          <div class="row"><span class="ic"><svg><use href="#i-list"/></svg></span><div class="t"><b>Pick from a list</b><small>Garnishes, areas cleaned</small></div></div>
+          <div class="row"><span class="ic"><svg><use href="#i-cam"/></svg></span><div class="t"><b>Photo</b><small>Bar top, delivery label</small></div></div>
+          <div class="row"><span class="ic"><svg><use href="#i-pen"/></svg></span><div class="t"><b>Signature</b><small>Signed off by</small></div></div>
+        </div>
+      </div>
+      <div class="foot"><button class="btn">Next: the question</button></div></div>
+      <div class="notes"><p>Choose the kind with real examples, then only that kind’s settings are asked.</p></div>
+    </article>
+  </div>
+</section>
+
+<!-- ================= CORRECTIONS ================= -->
+<section class="block" id="correct">
+  <div class="bh read"><h2>5 · Correcting a submitted record</h2><p>Kept from round 1, resized. Never overwrite; keep the original visible; record who, when and why; reopen the sign-off.</p></div>
+  <div class="opts">
+    <article class="opt">
+      <div class="oh"><span class="k">A</span><h3>Correction sheet</h3><span class="badge rec">Recommended</span></div>
+      <div class="phone"><span class="island"></span><div class="scr" style="gap:22px">
+        <div class="nav"><span class="back">Cancel</span><b style="font-size:17px">Correct an answer</b><span style="width:52px"></span></div>
+        <div class="hero" style="gap:10px">
+          <span class="hl">Freezer · answered by Sam at 09:14</span>
+          <div class="big" style="font-size:48px">−12<small>°C</small></div>
+          <span class="hl">This stays on the record. Your correction is added after it.</span>
+        </div>
+        <div class="field"><label>The right reading</label><div class="tin focus" style="justify-content:space-between;color:var(--text);font-size:19px;font-weight:600"><span>−21.2</span><span style="color:var(--sec);font-weight:400">°C</span></div><span class="pill p-ok" style="justify-self:start">In range</span></div>
+        <div class="field"><label>Why <small>· head office and inspectors see this</small></label>
+          <div class="chips" data-chips><button class="chip on">Typed it wrong</button><button class="chip">Wrong unit</button><button class="chip">Other</button></div>
+          <div class="inp ph">Add detail (optional)</div>
+        </div>
+      </div>
+      <div class="foot"><button class="btn">Save correction</button><p class="note">Saved as Demo with the server’s time. Today’s sign-off will need redoing.</p></div></div>
+      <div class="notes"><p>Reason chips make it quick; the warning about the sign-off comes before you save.</p></div>
+    </article>
+
+    <article class="opt">
+      <div class="oh"><span class="k">B</span><h3>History on the row</h3><span class="badge rec">With A</span></div>
+      <div class="phone"><span class="island"></span><div class="scr">
+        <div class="nav"><span class="back">‹ Opening checks</span><span class="saved">Submitted 09:31</span></div>
+        <div class="banner"><span>Locked. A correction keeps the old answer and needs a reason.</span></div>
+        <div class="list">
+          <div class="row dim"><span class="c done"></span><div class="t"><b>Walk-in fridge</b><small>Sam · 09:12</small></div><div class="v">4.2°C</div></div>
+          <div class="row"><span class="c done"></span><div class="t"><b>Freezer</b><small>Corrected by Demo · 11:02</small></div><div class="v">−21.2°C<span class="pill p-warn">Edited</span></div></div>
+        </div>
+        <div style="border-radius:18px;background:var(--fill);padding:18px">
+          <div class="tl">
+            <div class="ti"><b><s>−12°C</s></b><small>Sam · 09:14 · original</small></div>
+            <div class="ti now"><b>−21.2°C</b><small>Demo · 11:02 · “Typed it wrong”</small></div>
+            <div class="ti"><b style="font-size:15px">Sign-off reopened</b><small>Ana signed at 09:31 · needs signing again</small></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="notes"><p>An “Edited” pill opens the history in place: the original struck through, who changed it and why.</p></div>
+    </article>
+
+    <article class="opt">
+      <div class="oh"><span class="k">C</span><h3>Head office: exceptions first</h3></div>
+      <div class="phone"><span class="island"></span><div class="scr">
+        <div class="nav"><span class="back">‹ Bunso</span><span class="saved">Mon 9 Nov</span></div>
+        <div class="hero">
+          <span class="hl">Bunso checklists · Mon 9 Nov</span>
+          <div class="big" style="font-size:48px">3 <small>to look at</small></div>
+          <div class="meta"><span>6<small>Done</small></span><span style="color:var(--herobad)">1<small>Missed</small></span><span>1<small>Edited</small></span></div>
+        </div>
+        <div style="display:grid;gap:4px">
+          <div class="sh"><h4>Look at these</h4><span>3</span></div>
+          <div class="list">
+            <div class="row"><span class="c skip" style="border-color:var(--bad)"></span><div class="t"><b>Hot holding · 12:00</b><small>Missed · no reason given</small></div><span class="pill p-bad">Missed</span></div>
+            <div class="row"><span class="c done"></span><div class="t"><b>Opening · Freezer</b><small>Edited after submit</small></div><span class="pill p-warn">Edited</span></div>
+            <div class="row"><span class="c half"></span><div class="t"><b>Freezer too warm</b><small>3rd time in 4 weeks</small></div><span class="pill p-bad">Repeat</span></div>
+          </div>
+        </div>
+        <div class="sh"><h4>All fine</h4><span>5 lists</span></div>
+      </div>
+      <div class="foot"><button class="btn">Mark the day reviewed</button></div></div>
+      <div class="notes"><p>Head office sees only what needs a decision; “Repeat” uses the SFBB 3-in-4-weeks rule.</p></div>
+    </article>
+  </div>
+</section>
+
+<!-- ================= PICK ================= -->
+<section class="block" id="pick">
+  <div class="bh read"><h2>Recommendation, round 2</h2><p>Each screen is independent, so mix and match.</p></div>
+  <div class="pick">
+    <div class="pk"><b>Fill out</b><p><strong>D, Up next</strong> as the default: least hunting, clear momentum, still a full list underneath. <strong>F, Finish line</strong> at the end. <strong>C</strong> on the kitchen iPad, <strong>B</strong> as “Guide me”. Keep <strong>A</strong> if you’d rather the hero stays a summary.</p></div>
+    <div class="pk"><b>Failed check</b><p><strong>A, Fix it in the row</strong>, simplified to 4 answers with the re-check pre-set.</p></div>
+    <div class="pk"><b>Edit a list</b><p><strong>A, Draft-first</strong> with <strong>B, Reorder</strong> on phones; <strong>D, Open in place</strong> if managers mostly make quick tweaks; <strong>C</strong> on iPad and desktop.</p></div>
+    <div class="pk"><b>Edit a check</b><p><strong>A</strong> for editing, <strong>B</strong> when adding.</p></div>
+    <div class="pk"><b>Corrections</b><p><strong>A + B</strong> for sites, <strong>C</strong> for head office.</p></div>
+  </div>
+
+  <div class="bh read" style="margin-top:56px"><h2 style="font-size:22px">Quick fixes for the current build</h2><p>These fit whichever direction you pick.</p></div>
+  <ol class="fixes read">
+    <li><span>1</span><div><b>17px body, 13px captions.</b><p>The app’s own design language already says 17px; the run screen should match.</p></div></li>
+    <li><span>2</span><div><b>48px fields and answer buttons, 8px apart.</b><p>Replace the separate ± button with a keypad that has a minus key.</p></div></li>
+    <li><span>3</span><div><b>A circle on every row; drop “pass” pills.</b><p>Colour and words only for problems. Dim rows that are done.</p></div></li>
+    <li><span>4</span><div><b>Focus the next unanswered check automatically.</b><p>After a reading is saved, move straight on.</p></div></li>
+    <li><span>5</span><div><b>Shrink the fill-out hero</b><p>to title, count and bar (about 120px), or make it the “Up next” card.</p></div></li>
+    <li><span>6</span><div><b>Footer names what’s blocking.</b><p>“Fix the freezer, then 4 left”.</p></div></li>
+    <li><span>7</span><div><b>Show who answered and when</b><p>under each answered row.</p></div></li>
+  </ol>
+  <p class="foot-note read">Sources: <code>docs/reports/Checklist UX design patterns.md</code> and <code>docs/research_notes/Checklist UX design patterns/</code>. Competitor details are from help centres, not hands-on use. All readings, names, times and sites on this page are examples.</p>
+</section>
+</div>
+
+<script>
+(function(){
+  // A: Yes/No answers tick the row and update the count
+  var done = 3, total = 7;
+  function refresh(){
+    var c = document.getElementById('fa-count'); if (c) c.innerHTML = done + ' <small>of ' + total + ' done</small>';
+    var n = 0;
+    document.querySelectorAll('#fa-bars i').forEach(function(b,i){ if(i===2) return; b.className = n < done - 1 ? 'on' : ''; n++; });
+    var btn = document.getElementById('fa-btn'); if (btn) btn.textContent = 'Fix the freezer, then ' + (total - done) + ' left';
+  }
+  document.querySelectorAll('[data-yn] .row').forEach(function(row){
+    var circ = row.querySelector('.c'); var b = row.querySelectorAll('.seg button');
+    function set(v){
+      var was = circ.classList.contains('done') || circ.classList.contains('badc');
+      b[0].className = v==='y' ? 'y' : ''; b[1].className = v==='n' ? 'n' : '';
+      circ.className = 'c' + (v==='y' ? ' done' : v==='n' ? ' badc' : '');
+      row.classList.toggle('dim', v==='y');
+      var is = v==='y' || v==='n';
+      if (is && !was) done++; if (!is && was) done--;
+      refresh();
+    }
+    b[0].addEventListener('click', function(){ set(b[0].className==='y' ? null : 'y'); });
+    b[1].addEventListener('click', function(){ set(b[1].className==='n' ? null : 'n'); });
+    circ.addEventListener('click', function(){ set(circ.classList.contains('done') ? null : 'y'); });
+  });
+
+  // D: Save moves to the next check
+  var queue = [
+    {t:'Door seals clean', r:'Fails if No', yn:true},
+    {t:'Food labelled', r:'Use-by dates on everything', yn:true},
+    {t:'Hand-wash basins stocked', r:'Soap and paper towels', yn:true}
+  ];
+  var dDone = 3;
+  var answer = document.getElementById('fd-answer');
+  var heroLabel = answer && answer.closest('.hero').querySelector('.hl');
+  var hb = 'flex:1;height:64px;border-radius:18px;border:0;background:var(--herofill);color:var(--onhero);font:inherit;font-size:20px;font-weight:600;cursor:pointer';
+  function advance(){
+    dDone++;
+    var next = queue.shift();
+    var todo = document.getElementById('fd-todo');
+    if (todo.firstElementChild) todo.removeChild(todo.firstElementChild);
+    document.getElementById('fd-left').textContent = queue.length;
+    document.getElementById('fd-done').textContent = dDone + ' done · tap to see them';
+    document.getElementById('fd-verdict').textContent = '';
+    if (!next) {
+      heroLabel.textContent = 'Nearly there';
+      document.getElementById('fd-step').textContent = '';
+      document.getElementById('fd-title').textContent = 'Just the freezer left';
+      document.getElementById('fd-rule').textContent = 'Say what you did, then submit';
+      answer.innerHTML = '<button class="btn onhero" style="height:64px;border-radius:18px">Fix the freezer</button>';
+      return;
+    }
+    heroLabel.textContent = 'Up next · Seals & doors';
+    document.getElementById('fd-step').textContent = (dDone + 1) + ' of 7';
+    document.getElementById('fd-title').textContent = next.t;
+    document.getElementById('fd-rule').textContent = next.r;
+    answer.innerHTML = '<button style="' + hb + '">Yes</button><button style="' + hb + '">No</button>';
+    answer.querySelectorAll('button').forEach(function(x){ x.addEventListener('click', advance); });
+  }
+  var save = document.getElementById('fd-save');
+  if (save) save.addEventListener('click', advance);
+
+  // B: keypad
+  var val = '5.4', fresh = true;
+  var read = document.getElementById('fb-read'), st = document.getElementById('fb-status');
+  function show(){
+    read.innerHTML = (val === '' ? '–' : val.replace('-', '−')) + '<small>°C</small>';
+    var n = parseFloat(val);
+    if (isNaN(n)) { st.textContent = 'Enter a reading'; st.style.color = 'var(--sec)'; }
+    else if (n <= 8) { st.textContent = 'In range'; st.style.color = 'var(--ok)'; }
+    else { st.textContent = 'Too warm · ' + (Math.round((n-8)*10)/10) + '° over'; st.style.color = 'var(--bad)'; }
+  }
+  document.querySelectorAll('#fb-pad button').forEach(function(k){
+    k.addEventListener('click', function(){
+      var t = k.textContent;
+      if (fresh) { val = ''; fresh = false; }
+      if (t === '−') { val = val.charAt(0) === '-' ? val.slice(1) : '-' + val; }
+      else if (t === '.') { if (val.indexOf('.') < 0) val = (val === '' || val === '-' ? val + '0' : val) + '.'; }
+      else if (val.replace('-','').replace('.','').length < 4) { val += t; }
+      show();
+    });
+  });
+  var clr = document.getElementById('fb-clear'); if (clr) clr.addEventListener('click', function(){ val=''; fresh=false; show(); });
+
+  // single-choice chips and tiles
+  document.querySelectorAll('[data-chips],[data-tiles]').forEach(function(g){
+    var items = g.querySelectorAll('.chip,.tile');
+    items.forEach(function(ch){ ch.addEventListener('click', function(){ items.forEach(function(x){x.classList.remove('on')}); ch.classList.add('on'); }); });
+  });
+})();
+</script>
