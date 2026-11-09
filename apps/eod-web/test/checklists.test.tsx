@@ -144,3 +144,11 @@ describe('changing your mind', () => {
     expect(screen.getByRole('button', { name: '7 left to answer' })).toBeInTheDocument();
   });
 });
+
+describe('old links', () => {
+  it('the old Fix page address opens the list, where the fix panel is', () => {
+    at('2026-10-05T08:15:00Z');
+    renderApp(opening + '/fix/walkin');
+    expect(screen.getByRole('radiogroup', { name: 'Door seals clean, no gaps' })).toBeInTheDocument();
+  });
+});

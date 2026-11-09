@@ -973,8 +973,6 @@ a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.
 .qfail .tx { padding: 0; }
 .qfail .tx > span:first-child { font-size: 14px; font-weight: 600; color: var(--bad); }
 .qfail .tx small { font-size: 12.5px; color: var(--text); opacity: .7; }
-.qfix { position: relative; flex: none; display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border-radius: 999px; background: var(--bad); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; }
-.qfix::after { content: ''; position: absolute; inset: -6px -4px; }
 
 /* ---- reorder mode: drag by the grip, or use the arrows ---- */
 .reorder { display: flex; flex-direction: column; position: relative; }
