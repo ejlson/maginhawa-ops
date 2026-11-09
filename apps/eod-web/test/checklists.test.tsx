@@ -130,3 +130,17 @@ describe('doing a checklist', () => {
     expect(within(row).getByRole('img', { name: 'In progress' })).toBeInTheDocument();
   });
 });
+
+describe('changing your mind', () => {
+  it('tapping the chosen answer again clears it', async () => {
+    at('2026-10-05T08:15:00Z');
+    const { user } = renderApp(opening);
+    const seals = screen.getByRole('radiogroup', { name: 'Door seals clean, no gaps' });
+    await user.click(within(seals).getByRole('button', { name: 'Yes' }));
+    expect(within(seals).getByRole('button', { name: 'Yes' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: '6 left to answer' })).toBeInTheDocument();
+    await user.click(within(seals).getByRole('button', { name: 'Yes' }));
+    expect(within(seals).getByRole('button', { name: 'Yes' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: '7 left to answer' })).toBeInTheDocument();
+  });
+});

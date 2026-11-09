@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import {
-  addOnFor, archive, editableTemplate, moveRecord, recordStatus, tradingDate, EXAMPLE_TEMPLATES, newAddOn, newRecord, publish, seedRecords, uniqueId, type TemplateRecord,
+  addOnFor, archive, editableTemplate, moveRecord, moveRecordTo, recordStatus, tradingDate, EXAMPLE_TEMPLATES, newAddOn, newRecord, publish, seedRecords, uniqueId, type TemplateRecord,
 } from '@maginhawa/core';
 import { storage } from './storage';
 import { now } from './clock';
@@ -54,6 +54,7 @@ export function TemplatesProvider({ children, initial }: { children: ReactNode; 
     discard: (id) => update(id, (r) => (r.versions.length ? { ...r, draft: null } : null)),
     stop: (id, today) => update(id, (r) => archive(r, today)),
     move: (id, by, sameGroup) => save((all) => moveRecord(all, id, by, sameGroup)),
+    moveTo: (id, to, sameGroup) => save((all) => moveRecordTo(all, id, to, sameGroup)),
   }), [records, save, update]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

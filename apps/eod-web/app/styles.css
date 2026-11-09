@@ -1066,3 +1066,5 @@ a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.
 @keyframes finish-pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 /* Dealt with: the reading stays as recorded, without the red outline. */
 .run .qrow.done .tfield.bad, .run .qrow.done .in.bad { box-shadow: none; }
+.ro-row.has-lead { grid-template-columns: 22px 40px minmax(0, 1fr) auto; column-gap: 14px; }
+.ro-row.has-lead + .ro-row.has-lead::before { left: 90px; }

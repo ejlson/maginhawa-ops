@@ -24,6 +24,8 @@ export interface TemplatesValue {
   stop: (id: string, today: string) => void;
   /** Moves a list up or down among the lists it's shown with. Takes effect straight away. */
   move: (id: string, by: -1 | 1, sameGroup: (r: TemplateRecord) => boolean) => void;
+  /** Moves a list to a place among its own group, as when it's dragged. */
+  moveTo: (id: string, to: number, sameGroup: (r: TemplateRecord) => boolean) => void;
 }
 
 export const Ctx = createContext<TemplatesValue | null>(null);

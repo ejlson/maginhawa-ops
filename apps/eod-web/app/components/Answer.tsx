@@ -92,7 +92,9 @@ export function Answer({ c, value, set, today, disabled, onBig, quiet = false, n
           <span className="chips" role="radiogroup" aria-label={c.title}>
             {([['Yes', true], ['No', false]] as const).map(([l, v]) => (
               <button key={l} type="button" className="chip" disabled={disabled} aria-pressed={value === v}
-                style={value === v && e.passed === false ? { background: 'var(--bad)', color: '#fff' } : undefined} onClick={() => set(v)}>{l}</button>
+                style={value === v && e.passed === false ? { background: 'var(--bad)', color: '#fff' } : undefined}
+                // Tapping the chosen answer again clears it, so a mis-tap can be taken back before submitting.
+                onClick={() => set(value === v ? null : v)}>{l}</button>
             ))}
           </span>
         </div>
@@ -115,7 +117,7 @@ export function Answer({ c, value, set, today, disabled, onBig, quiet = false, n
           <div className="chips" role={c.multi ? 'group' : 'radiogroup'} aria-label={c.title}>
             {(c.options ?? []).map((o, i) => (
               <button key={`${i}:${o}`} type="button" className="chip" disabled={disabled} aria-pressed={picked.includes(o)}
-                onClick={() => set(c.multi ? toggled(picked, o) : [o])}>{o}</button>
+                onClick={() => set(c.multi ? toggled(picked, o) : picked.includes(o) ? [] : [o])}>{o}</button>
             ))}
           </div>
         </div>

@@ -204,6 +204,24 @@ export function moveRecord(records: TemplateRecord[], id: string, by: -1 | 1, sa
   return next;
 }
 
+/**
+ * Moves a list to a new place (0-based) among the lists it's shown with, as when it's dragged. The
+ * group keeps the slots it had in the full list, so lists outside it don't move.
+ */
+export function moveRecordTo(records: TemplateRecord[], id: string, to: number, sameGroup: (r: TemplateRecord) => boolean): TemplateRecord[] {
+  const slots = records.map((r, i) => ({ r, i })).filter((x) => sameGroup(x.r));
+  const at = slots.findIndex((x) => x.r.id === id);
+  if (at < 0) return records;
+  const j = Math.max(0, Math.min(slots.length - 1, Math.round(to)));
+  if (j === at) return records;
+  const order = slots.map((x) => x.r);
+  const [moved] = order.splice(at, 1);
+  order.splice(j, 0, moved!);
+  const next = [...records];
+  slots.forEach((s, k) => { next[s.i] = order[k]!; });
+  return next;
+}
+
 /** A short id from a name, unique among `taken`. */
 export function uniqueId(name: string, taken: Iterable<string>): string {
   const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24) || 'list';

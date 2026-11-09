@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  activeTemplates, addOnFor, addOnId, archive, canAddChecks, canCreateList, canEditList, changeType, cleanTemplate, editableTemplate, moveCheckpoint, moveCheckpointTo, moveRecord, newCheckpoint,
+  activeTemplates, addOnFor, addOnId, archive, canAddChecks, canCreateList, canEditList, changeType, cleanTemplate, editableTemplate, moveCheckpoint, moveCheckpointTo, moveRecord, moveRecordTo, newCheckpoint,
   newAddOn, newRecord, nextDay, publish, recordIssues, recordStatus, scheduleText, seedRecords, templateIssues, uniqueId, versionOn, type TemplateRecord,
 } from '../src/builder';
 import { EXAMPLE_TEMPLATES, type ChecklistTemplate } from '../src/checklists';
@@ -222,6 +222,15 @@ describe('ordering lists', () => {
     const after = moveRecord(before, 'cellar', -1, bunso);
     expect(after.map((r) => r.id)).toEqual(before.map((r) => r.id).map((id) => (id === 'brunch' ? 'cellar' : id === 'cellar' ? 'brunch' : id)));
     expect(after.indexOf(after.find((r) => r.id === 'other')!)).toBe(before.findIndex((r) => r.id === 'other'));
+  });
+  it('drags a list to any place among its own, leaving other lists where they are', () => {
+    const before = all();
+    const mine = before.filter(bunso).map((r) => r.id);
+    const after = moveRecordTo(before, 'cellar', 0, bunso);
+    expect(after.filter(bunso).map((r) => r.id)).toEqual(['cellar', ...mine.filter((id) => id !== 'cellar')]);
+    expect(after.findIndex((r) => r.id === 'other')).toBe(before.findIndex((r) => r.id === 'other'));
+    expect(moveRecordTo(before, 'cellar', 99, bunso)).toBe(before);
+    expect(moveRecordTo(before, 'nope', 0, bunso)).toBe(before);
   });
   it("doesn't move past either end", () => {
     const before = all();
