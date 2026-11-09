@@ -177,6 +177,18 @@ export function moveCheckpoint(t: ChecklistTemplate, id: string, by: -1 | 1): Ch
   return { ...t, checkpoints: list };
 }
 
+/** Moves a check to a new position (0-based), as when it's dragged. Out-of-range positions are clamped. */
+export function moveCheckpointTo(t: ChecklistTemplate, id: string, to: number): ChecklistTemplate {
+  const i = t.checkpoints.findIndex((c) => c.id === id);
+  if (i < 0) return t;
+  const j = Math.max(0, Math.min(t.checkpoints.length - 1, Math.round(to)));
+  if (i === j) return t;
+  const list = [...t.checkpoints];
+  const [moved] = list.splice(i, 1);
+  list.splice(j, 0, moved!);
+  return { ...t, checkpoints: list };
+}
+
 /**
  * Moves a list one place up or down among the lists it's shown with (`sameGroup`), such as one
  * site's own lists. The order is the order on the Checklists screen when lists are due at the same

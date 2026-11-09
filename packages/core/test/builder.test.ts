@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  activeTemplates, addOnFor, addOnId, archive, canAddChecks, canCreateList, canEditList, changeType, cleanTemplate, editableTemplate, moveCheckpoint, moveRecord, newCheckpoint,
+  activeTemplates, addOnFor, addOnId, archive, canAddChecks, canCreateList, canEditList, changeType, cleanTemplate, editableTemplate, moveCheckpoint, moveCheckpointTo, moveRecord, newCheckpoint,
   newAddOn, newRecord, nextDay, publish, recordIssues, recordStatus, scheduleText, seedRecords, templateIssues, uniqueId, versionOn, type TemplateRecord,
 } from '../src/builder';
 import { EXAMPLE_TEMPLATES, type ChecklistTemplate } from '../src/checklists';
@@ -132,6 +132,15 @@ describe('editing checks', () => {
     const t = ready({ checkpoints: ['a', 'b', 'c'].map((id) => ({ ...newCheckpoint('yesno', id), title: id })) });
     expect(moveCheckpoint(t, 'c', -1).checkpoints.map((c) => c.id)).toEqual(['a', 'c', 'b']);
     expect(moveCheckpoint(t, 'a', -1)).toBe(t);
+  });
+  it('drags a check to any position, clamped to the list', () => {
+    const t = ready({ checkpoints: ['a', 'b', 'c', 'd'].map((id) => ({ ...newCheckpoint('yesno', id), title: id })) });
+    const ids = (x: typeof t) => x.checkpoints.map((c) => c.id);
+    expect(ids(moveCheckpointTo(t, 'a', 2))).toEqual(['b', 'c', 'a', 'd']);
+    expect(ids(moveCheckpointTo(t, 'd', 0))).toEqual(['d', 'a', 'b', 'c']);
+    expect(ids(moveCheckpointTo(t, 'b', 99))).toEqual(['a', 'c', 'd', 'b']);
+    expect(moveCheckpointTo(t, 'c', 2)).toBe(t);
+    expect(moveCheckpointTo(t, 'zz', 1)).toBe(t);
   });
   it('makes short unique ids', () => {
     expect(uniqueId('Bar opening!', ['bar-opening'])).toBe('bar-opening-2');

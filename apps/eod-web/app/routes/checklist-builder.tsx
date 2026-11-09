@@ -1,21 +1,11 @@
 import { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
-import { addOnFor, ANSWER_LABELS, ANSWER_TYPES, canAddChecks, latestVersion, moveCheckpoint, newCheckpoint, nextDay, PHASE_LABELS, PHASES, recordIssues, recordStatus, ruleText, scheduleText, siteName as nameOfSite, SITES, STATUS_LABELS, uniqueId, type AnswerType, type Checkpoint } from '@maginhawa/core';
+import { addOnFor, ANSWER_LABELS, ANSWER_TYPES, canAddChecks, latestVersion, moveCheckpointTo, newCheckpoint, nextDay, PHASE_LABELS, PHASES, recordIssues, recordStatus, ruleText, scheduleText, siteName as nameOfSite, SITES, STATUS_LABELS, uniqueId, type AnswerType, type Checkpoint } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
 import { checkPath, editPath, useListEditor } from '../lib/templates';
-import { ANSWER_ICONS, ICONS } from '../components/ui-helpers';
+import { ANSWER_ICONS, ICONS, TYPE_HINTS } from '../components/ui-helpers';
 import { ChipRadio, Foot, Icon, Nav, RowLink, Toggle } from '../components/ui';
-
-const TYPE_HINTS: Record<AnswerType, string> = {
-  yesno: 'A quick tick, e.g. "Ice machine cleaned?"',
-  temp: 'A °C reading with a pass range',
-  number: 'Any amount with a unit: £, kg, pH, count',
-  text: 'A short note or a longer comment',
-  photo: 'Taken live with the camera',
-  choice: 'One or several options you write',
-  date: 'e.g. a use-by date',
-  sign: 'Signed with a finger',
-};
+import { ReorderList } from '../components/ReorderList';
 
 const WINDOWS = [15, 30, 45, 60, 90, 120];
 
@@ -116,22 +106,15 @@ export default function ChecklistBuilder() {
           </div>
           <div className="sub">
             {group && !n && <p className="note" style={{ margin: 0 }}>Staff do these after head office's checks, at {siteName(rec.siteCode)} only.</p>}
-            {t.checkpoints.map((c, i) => {
-              const sub = checkSub(c);
-              const lead = checkLead(c);
+            {reorder ? (
+              <ReorderList onMove={(cid, to) => edit((d) => moveCheckpointTo(d, cid, to))}
+                items={t.checkpoints.map((c, i) => ({
+                  id: c.id, label: c.title || `check ${i + 1}`, sub: checkSub(c),
+                  title: c.title || <span className="muted">Check {i + 1} · no question yet</span>,
+                }))} />
+            ) : t.checkpoints.map((c, i) => {
               const title = c.title || <span className="muted">Check {i + 1} · no question yet</span>;
-              if (reorder) {
-                return (
-                  <div className="li" key={c.id}>
-                    {lead}<span className="tx"><span>{title}</span><small>{sub}</small></span>
-                    <span className="rt">
-                      <button type="button" className="mini" aria-label={`Move ${c.title || `check ${i + 1}`} up`} disabled={i === 0} onClick={() => edit((d) => moveCheckpoint(d, c.id, -1))}><Icon d={ICONS.up} size={16} /></button>
-                      <button type="button" className="mini" aria-label={`Move ${c.title || `check ${i + 1}`} down`} disabled={i === n - 1} onClick={() => edit((d) => moveCheckpoint(d, c.id, 1))}><Icon d={ICONS.down} size={16} /></button>
-                    </span>
-                  </div>
-                );
-              }
-              return <RowLink key={c.id} to={editable ? checkPath(id, c.id) : undefined} lead={lead} title={title} sub={sub} />;
+              return <RowLink key={c.id} to={editable ? checkPath(id, c.id) : undefined} lead={checkLead(c)} title={title} sub={checkSub(c)} />;
             })}
             {editable && !reorder && !picking && (
               <RowLink onClick={() => setPicking(true)} lead={<span className="av dash"><Icon d={ICONS.plus} /></span>} title={<span style={{ color: 'var(--link)' }}>Add a check</span>} />

@@ -132,13 +132,15 @@ export function TempInput({ value, onChange, label, invalid, disabled, negative 
  * zero) start on "−", so staff type 18 for −18°C; tap the sign to flip it. A wrong sign still fails a
  * freezer check either way, so the default can't turn a failure into a pass.
  */
-export function SignedTempInput({ value, onChange, label, invalid, disabled, negative = true, expectNegative = false }: {
+export function SignedTempInput({ value, onChange, label, invalid, disabled, negative = true, expectNegative = false, alwaysSign = false, placeholder = '–' }: {
   value: string; onChange: (t: string) => void; label: string; invalid?: boolean; disabled?: boolean; negative?: boolean; expectNegative?: boolean;
+  /** Always show the sign, e.g. for a pass limit, which can sit either side of zero. */
+  alwaysSign?: boolean; placeholder?: string;
 }) {
-  // The sign button only shows where below zero is the norm (freezers). Elsewhere a minus can still be
-  // typed, or set with the big-button entry, without a button on every fridge row.
-  const showSign = negative && expectNegative;
-  const [pendingNeg, setPendingNeg] = useState(showSign);
+  // The sign button only shows where below zero is the norm (freezers), or where it's asked for.
+  // Elsewhere a minus can still be typed, or set with the big-button entry.
+  const showSign = negative && (expectNegative || alwaysSign);
+  const [pendingNeg, setPendingNeg] = useState(negative && expectNegative);
   const hasSign = /^\s*[-−]/.test(value);
   const neg = value.trim() === '' ? pendingNeg : hasSign;
   const shown = showSign ? value.replace(/^\s*[-−]/, '') : value.replace('-', '−');
@@ -162,7 +164,7 @@ export function SignedTempInput({ value, onChange, label, invalid, disabled, neg
           onPointerDown={(e) => e.preventDefault()} onClick={flip}>{neg ? '−' : '+'}</button>
       )}
       <input ref={input} type="text" inputMode="decimal" enterKeyHint="next" disabled={disabled} aria-label={label}
-        placeholder="–" value={shown} onKeyDown={nextOnEnter} onChange={(e) => type(e.target.value)}
+        placeholder={placeholder} value={shown} onKeyDown={nextOnEnter} onChange={(e) => type(e.target.value)}
         style={{ width: `${Math.max(shown.length, 1) + 0.1}ch` }} />
       <span className="tunit" aria-hidden="true" onClick={() => input.current?.focus()}>°C</span>
     </span>

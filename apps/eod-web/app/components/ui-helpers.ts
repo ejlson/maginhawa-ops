@@ -1,4 +1,4 @@
-import type { Pence, Phase, SectionKey } from '@maginhawa/core';
+import type { AnswerType, Pence, Phase, SectionKey } from '@maginhawa/core';
 
 export const ICONS = {
   help: 'M7 6.5a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2v.5M9 13h.01M9 16A7 7 0 1 0 9 2a7 7 0 0 0 0 14z',
@@ -43,6 +43,18 @@ export const ANSWER_ICONS = {
   yesno: ICONS.check, temp: ICONS.thermo, number: ICONS.hash, text: ICONS.chat,
   photo: ICONS.camera, choice: ICONS.list, date: ICONS.cal, sign: ICONS.pen,
 } as const;
+
+/** One line on what each kind of answer is for: in the add-a-check list and the check editor. */
+export const TYPE_HINTS: Record<AnswerType, string> = {
+  yesno: 'A quick tick, e.g. "Ice machine cleaned?"',
+  temp: 'A °C reading with a pass range',
+  number: 'Any amount with a unit: £, kg, pH, count',
+  text: 'A short note or a longer comment',
+  photo: 'Taken live with the camera',
+  choice: 'One or several options you write',
+  date: 'e.g. a use-by date',
+  sign: 'Signed with a finger',
+};
 
 export const SECTION_ICONS: Record<SectionKey, string> = {
   lunch: ICONS.sun,

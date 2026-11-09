@@ -940,12 +940,13 @@ a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.
 .qbars i.fail { background: var(--heroBad); }
 
 .run .grp { gap: 4px; }
-.run .qrow.circ { display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 14px; align-items: start; padding: 12px 0; }
-.run .qrow.circ + .qrow.circ::before { left: 36px; }
+.run .qrow.circ { display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 16px; align-items: start; padding: 12px 0; }
+.run .qrow.circ + .qrow.circ::before { left: 38px; }
 /* One centre line per check: the circle, the name's first line and the answer control all sit on it
    (38px tall, the height of the field). */
 .run .qmark { display: flex; align-items: center; height: 38px; }
 .run .qmark svg { display: block; }
+.run .qmark .pie { width: 22px; }
 .run .qbody { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
 .run .qbody > .fr { min-height: 0; align-items: flex-start; gap: 16px; }
 .run .qbody > .fr::before { display: none; }
@@ -974,3 +975,37 @@ a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.
 .qfail .tx small { font-size: 12.5px; color: var(--text); opacity: .7; }
 .qfix { position: relative; flex: none; display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border-radius: 999px; background: var(--bad); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; }
 .qfix::after { content: ''; position: absolute; inset: -6px -4px; }
+
+/* ---- reorder mode: drag by the grip, or use the arrows ---- */
+.reorder { display: flex; flex-direction: column; position: relative; }
+.ro-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; column-gap: 16px; align-items: center; min-height: 60px; padding: 8px 0; position: relative; background: var(--bg); transition: transform .18s ease-out, box-shadow .18s ease-out; }
+.ro-row + .ro-row::before { content: ''; position: absolute; top: 0; left: 38px; right: 0; height: .5px; background: var(--sep); }
+.reorder.dragging .ro-row::before { opacity: 0; }
+.ro-row.lifted { z-index: 2; transition: box-shadow .18s ease-out; border-radius: 14px; box-shadow: 0 12px 28px -10px rgba(0,0,0,.35), 0 0 0 1px var(--sep); }
+.ro-row.moved { animation: ro-flash 1.2s ease-out; border-radius: 14px; }
+@keyframes ro-flash { from { background: var(--fill); } to { background: var(--bg); } }
+.ro-grip { position: relative; width: 22px; height: 36px; display: grid; place-items: center; border: 0; padding: 0; background: none; color: var(--sec); cursor: grab; touch-action: none; }
+.ro-grip::after { content: ''; position: absolute; inset: 0 -11px; }
+.reorder.dragging .ro-grip { cursor: grabbing; }
+.ro-row .tx > span:first-child { font-size: 16px; line-height: 22px; }
+.ro-row .tx small { font-size: 13px; }
+.ro-arrows { display: flex; gap: 6px; }
+.ro-btn { position: relative; width: 32px; height: 32px; border-radius: 10px; border: 0; background: var(--fill); color: var(--text); display: grid; place-items: center; cursor: pointer; }
+.ro-btn::after { content: ''; position: absolute; inset: -6px -3px; }
+.ro-btn:disabled { opacity: .3; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .ro-row { transition: none; } .ro-row.moved { animation: none; } }
+
+/* ---- editing one check ---- */
+.kind { display: flex; flex-direction: column; border-radius: 16px; background: var(--fill); padding: 0 14px; }
+.kind-row { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; column-gap: 14px; align-items: center; min-height: 60px; padding: 10px 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; position: relative; }
+.kind-row + .kind-row::before { content: ''; position: absolute; top: 0; left: 50px; right: 0; height: .5px; background: var(--sep); }
+.kind-row .av { width: 36px; height: 36px; background: var(--bg); }
+.kind-row .tx > span:first-child { font-size: 16px; }
+.kind-row .tx small { font-size: 13px; }
+.kind-row.on .av { background: var(--ink); color: var(--onink); }
+.kind-row > svg { color: var(--link); }
+.kind-change { font-size: 15px; font-weight: 500; color: var(--link); }
+.edit-check .chips .chip { height: 34px; border-radius: 10px; padding: 0 12px; font-size: 14px; }
+.edit-check .sub > .fr { min-height: 60px; }
+.edit-check .in.lim { width: 96px; height: 38px; border-radius: 10px; }
+.tsign[aria-pressed="false"] { color: var(--sec); font-weight: 500; }
