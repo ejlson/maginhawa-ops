@@ -32,7 +32,7 @@ describe('switching site', () => {
     const first = renderApp('/close/lunch', manager);
     await first.user.type(screen.getByLabelText('Gross sales'), '100');
     await first.user.click(screen.getByRole('button', { name: 'Save lunch' }));
-    expect(await screen.findByText('1 of 8 sections done')).toBeInTheDocument();
+    expect(await screen.findByRole('img', { name: '1 of 8 sections done' })).toBeInTheDocument();
     first.unmount();
     const { user } = renderApp('/close', manager);
     await user.click(screen.getByRole('link', { name: 'Home' }));

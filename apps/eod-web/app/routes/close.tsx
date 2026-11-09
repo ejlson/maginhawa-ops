@@ -25,7 +25,7 @@ export default function Close() {
     if (st === 'skipped') return "Didn't run today";
     if (k === 'lunch' || k === 'dinner') {
       const s = result.sessions[k];
-      return st === 'done' ? `Completed · ${s.covers} covers` : st === 'started' ? 'In progress' : 'From the till report';
+      return st === 'done' ? (s.covers ? `Completed · ${s.covers} covers` : 'Completed') : st === 'started' ? 'In progress' : 'From the till report';
     }
     if (k === 'delivery') return settings.platforms.filter((p) => p.active).map((p) => p.name).join(', ');
     if (k === 'promotions') return 'Offers, events, anything unusual';
@@ -53,6 +53,13 @@ export default function Close() {
   };
   const next = [...SALES, ...TEAM].find((k) => { const st = sectionStatus(draft, k); return st !== 'done' && st !== 'skipped'; });
   const all = [...SALES, ...TEAM].map((k) => sectionStatus(draft, k)).filter((s) => s !== 'skipped');
+  const allDone = progress.active > 0 && progress.done === progress.active;
+  // A session's net once it's done; a dash while it's still to do; "Didn't run" if it was switched off.
+  const sessionFigure = (k: 'lunch' | 'dinner') => {
+    const st = sectionStatus(draft, k);
+    return st === 'skipped' ? "Didn't run" : st === 'done' ? formatPounds(result.sessions[k].net) : '—';
+  };
+  const wageCls = result.wageRag === 'red' ? 'h-bad' : result.wageRag === 'amber' ? 'h-warn' : '';
   // Back after being pulled away: offer the exact field they were in.
   const [place] = useState(() => readResume(draft.siteCode, draft.businessDate));
   const resume = !locked && place && now().getTime() - place.at >= AWAY_MS
@@ -67,7 +74,8 @@ export default function Close() {
           <div className="titleblock">
             <span className="eyebrow">{formatDay(draft.businessDate)}</span>
             <h1>Today's EOD</h1>
-            <p className="lead">Do the sections in any order. Everything saves on this device, even without signal.</p>
+            {/* The how-to only before anything's entered: after that it's the same words every day. */}
+            {!locked && progress.done === 0 && !savedAt && <p className="lead">Do the sections in any order. Everything saves on this device, even without signal.</p>}
           </div>
           {resume && (
             <Link className="resume" to={resumePath(resume)}>
@@ -78,12 +86,19 @@ export default function Close() {
           )}
         </>}
         hero={<>
-          <div className="hero" role="status">
-            <div className="hero-row"><span className="hl">Net so far</span><span className="hs-small">{result.covers} covers</span></div>
+          <div className="hero eod-hero" role="status">
+            <div className="hero-row">
+              <span className="hl">{allDone ? 'Net today' : 'Net so far'}</span>
+              {/* Covers only once there are some: "0 covers" beside delivery money looks like a mistake. */}
+              {result.covers > 0 && <span className="hs-small">{result.covers} covers{result.perHeadDineIn !== null ? ` · ${formatPounds(result.perHeadDineIn)} a head` : ''}</span>}
+            </div>
             <BigMoney value={result.totalNet} />
-            <div className="titleblock" style={{ gap: 10 }}>
-              <Segments statuses={all} />
-              <span className="hs-small">{progress.done} of {progress.active} sections done</span>
+            <Segments statuses={all} label={`${progress.done} of ${progress.active} sections done`} />
+            <div className="hm">
+              {(['lunch', 'dinner'] as const).map((k) => (
+                <span key={k}>{sessionFigure(k)}<small>{SECTION_LABELS[k]}</small></span>
+              ))}
+              <span className={wageCls}>{result.wagePct !== null ? `${result.wagePct}%` : '—'}<small>Wages</small></span>
             </div>
           </div>
         </>}

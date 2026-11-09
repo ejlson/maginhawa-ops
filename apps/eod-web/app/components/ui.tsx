@@ -56,9 +56,10 @@ export function BigMoney({ value }: { value: Pence }) {
   return <div className="big" aria-label={formatPounds(value)}><b aria-hidden="true">{p}</b><i aria-hidden="true">{d}</i></div>;
 }
 
-export function Segments({ statuses }: { statuses: SectionStatus[] }) {
+/** One bar per section. `label` (e.g. "2 of 8 sections done") is read out when the words aren't on screen. */
+export function Segments({ statuses, label }: { statuses: SectionStatus[]; label?: string }) {
   return (
-    <div className="segs" aria-hidden="true">
+    <div className="segs" {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true })}>
       {statuses.map((s, i) => <span key={i} className={s === 'done' ? 'd' : s === 'started' ? 'p' : ''} />)}
     </div>
   );

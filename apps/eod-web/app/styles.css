@@ -1066,3 +1066,7 @@ a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.
 .run .qrow.done .tfield.bad, .run .qrow.done .in.bad { box-shadow: none; }
 .ro-row.has-lead { grid-template-columns: 22px 40px minmax(0, 1fr) auto; column-gap: 14px; }
 .ro-row.has-lead + .ro-row.has-lead::before { left: 90px; }
+
+/* ---- Today's EOD card ---- */
+.eod-hero { gap: 14px; }
+.eod-hero .hm span { white-space: nowrap; }

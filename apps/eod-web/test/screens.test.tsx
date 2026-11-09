@@ -126,7 +126,10 @@ describe('lunch', () => {
     await user.type(screen.getByLabelText('Gross sales'), '100');
     await user.click(screen.getByRole('button', { name: 'Save lunch' }));
     expect(await screen.findByRole('heading', { name: "Today's EOD" })).toBeInTheDocument();
-    expect(screen.getByText('1 of 8 sections done')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '1 of 8 sections done' })).toBeInTheDocument();
+    // No covers entered yet, so the card doesn't say "0 covers".
+    expect(screen.getByText('Net so far')).toBeInTheDocument();
+    expect(screen.queryByText(/^0 covers/)).not.toBeInTheDocument();
   });
 });
 
@@ -156,7 +159,7 @@ describe('hub', () => {
     const { user } = renderApp('/close');
     await user.click(screen.getByRole('switch', { name: 'Lunch ran today' }));
     expect(screen.getByText("Didn't run today")).toBeInTheDocument();
-    expect(screen.getByText('0 of 7 sections done')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '0 of 7 sections done' })).toBeInTheDocument();
   });
 });
 
