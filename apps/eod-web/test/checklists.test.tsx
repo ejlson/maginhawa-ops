@@ -59,14 +59,14 @@ describe('doing a checklist', () => {
     await user.type(screen.getByLabelText('Walk-in fridge'), '9.2');
     expect(screen.getByText('Too warm: 9.2°C')).toBeInTheDocument();
     // A failure comes first: it has to be dealt with whatever else is left.
-    expect(screen.getByRole('button', { name: 'Fix 1 failed check first' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Fix walk-in fridge, then 6 left' })).toBeDisabled();
 
     await user.type(screen.getByLabelText('Reach-in fridge 1'), '4');
     await user.type(screen.getByLabelText('Freezer'), '-19');
     for (const name of ['Door seals clean, no gaps', 'Food covered and labelled', 'Hand-wash basins stocked', 'Probe thermometer cleaned and working']) {
       await user.click(within(screen.getByRole('radiogroup', { name })).getByRole('button', { name: 'Yes' }));
     }
-    expect(screen.getByRole('button', { name: 'Fix 1 failed check first' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Fix walk-in fridge first' })).toBeDisabled();
 
     await user.click(screen.getByRole('link', { name: 'Fix this' }));
     expect(screen.getByRole('button', { name: 'Save and set re-check' })).toBeDisabled();

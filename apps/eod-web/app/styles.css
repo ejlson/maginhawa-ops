@@ -914,3 +914,48 @@ a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.
 @keyframes cm-tick { from { stroke-dashoffset: 40; } to { stroke-dashoffset: 0; } }
 @keyframes cm-fade { from { opacity: 0; } }
 @keyframes cm-rise { from { opacity: 0; transform: translateY(8px); } }
+
+/* ---- temperature with its sign inside the field (checklist answers) ---- */
+.tfield { display: inline-flex; align-items: center; gap: 4px; height: 48px; padding: 0 14px 0 4px; border-radius: 14px; background: var(--fill); }
+.tfield.nosign { padding-left: 14px; }
+.tfield:focus-within { box-shadow: 0 0 0 2px var(--link); }
+.tfield.bad { box-shadow: 0 0 0 2px var(--bad); }
+.tfield input { width: 52px; height: 100%; border: 0; background: none; outline: none; padding: 0; text-align: right; font: inherit; font-size: 17px; font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; color: var(--text); }
+.tfield input::placeholder { color: var(--sec); font-weight: 400; }
+.tfield input:disabled { opacity: .6; }
+.tsign { width: 40px; height: 40px; flex: none; border: 0; border-radius: 10px; background: var(--bg); color: var(--text); font: inherit; font-size: 19px; font-weight: 600; cursor: pointer; }
+.tsign[aria-pressed="true"] { color: var(--link); }
+.tsign:disabled { opacity: .5; cursor: default; }
+.tunit { font-size: 15px; color: var(--sec); }
+
+/* ---- Calm list: doing a checklist ---- */
+.run { gap: 28px; }
+.run-hero { gap: 12px; padding: 20px; }
+.run-hero .big b { font-size: 44px; }
+.run-hero .big i { font-size: 22px; }
+.run-hero .hl.h-bad { color: var(--heroBad); font-weight: 600; }
+.qbars { display: flex; gap: 4px; }
+.qbars i { flex: 1; height: 5px; border-radius: 3px; background: var(--heroline); transition: background-color .2s ease-out; }
+.qbars i.done { background: var(--heroOk); }
+.qbars i.fail { background: var(--heroBad); }
+
+.run .qrow.circ { display: grid; grid-template-columns: 26px minmax(0, 1fr); column-gap: 14px; padding: 8px 0; }
+.run .qrow.circ + .qrow.circ::before { left: 40px; }
+.run .qmark { display: flex; align-items: center; height: 64px; }
+.run .qrow.circ:has(> .qbody > .blk:first-child) .qmark { height: auto; padding-top: 16px; }
+.run .qbody { min-width: 0; }
+.run .qbody > .fr { min-height: 64px; }
+.run .qbody > .blk { padding: 14px 0 10px; }
+.run .tx > span:first-child { font-size: 17px; }
+.run .tx small { font-size: 13px; }
+.run .qrow.dim .tx > span:first-child { color: var(--sec); }
+.run .chips .chip { height: 48px; min-width: 64px; border-radius: 14px; font-size: 16px; }
+.run .chips[role="radiogroup"] .chip[aria-pressed="true"] { background: var(--okbg); color: var(--ok); box-shadow: inset 0 0 0 1.5px var(--ok); }
+.run .ans-by { margin: 0 0 10px; font-size: 12.5px; }
+.run .qbody > .fr { gap: 12px; }
+.run .qbody > .fr > span:last-child { gap: 8px !important; }
+.run .qnote { margin: 2px 0 10px; }
+.qfail { display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 16px; background: var(--badbg); margin: 2px 0 10px; }
+.qfail .tx > span:first-child { font-weight: 600; color: var(--bad); }
+.qfail .tx small { color: var(--text); opacity: .75; }
+.qfix { flex: none; display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border-radius: 999px; background: var(--bad); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; }

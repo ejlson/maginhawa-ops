@@ -1,7 +1,7 @@
 /** One checklist question and its answer control: used when doing a list and in the builder's preview. */
 import { useEffect, useRef, useState } from 'react';
 import { evaluate, ruleText, type AnswerValue, type Checkpoint } from '@maginhawa/core';
-import { Icon, TempInput } from './ui';
+import { Icon, SignedTempInput } from './ui';
 import { ICONS, nextOnEnter, parseNumber, toggled } from './ui-helpers';
 
 /** Downscales a photo to keep it small enough to store on the device. */
@@ -29,10 +29,12 @@ function NumberAnswer({ c, value, onChange, invalid, disabled }: { c: Checkpoint
   }, [value, editing]); // eslint-disable-line react-hooks/exhaustive-deps
   const change = (t: string) => { setText(t); onChange(parseNumber(t)); };
   if (c.type === 'temp') {
-    // A reading can only go below zero if the check allows it (no ± on hot holding at 63°C or above).
+    // A reading can only go below zero if the check allows it (no sign on hot holding at 63°C or above).
+    // Freezer checks start on "−", so staff type the number they see on the probe.
     return (
       <span onFocus={() => setEditing(true)} onBlur={() => setEditing(false)}>
-        <TempInput label={c.title} value={text} onChange={change} invalid={invalid} disabled={disabled} negative={c.min === undefined || c.min < 0} style={{ width: 104 }} />
+        <SignedTempInput label={c.title} value={text} onChange={change} invalid={invalid} disabled={disabled}
+          negative={c.min === undefined || c.min < 0} expectNegative={c.max !== undefined && c.max < 0} />
       </span>
     );
   }
@@ -69,12 +71,16 @@ function SignaturePad({ value, onChange, disabled }: { value: AnswerValue | unde
   );
 }
 
-/** `onBig` opens the big-target temperature entry (kitchen iPad). */
-export function Answer({ c, value, set, today, disabled, onBig }: { c: Checkpoint; value: AnswerValue | undefined; set: (v: AnswerValue) => void; today: string; disabled: boolean; onBig?: () => void }) {
+/**
+ * `onBig` opens the big-target temperature entry (kitchen iPad). `quiet` drops the pass/fail pill: on a
+ * checklist the row's circle, the field's red ring and the failure box under the row say it instead.
+ */
+export function Answer({ c, value, set, today, disabled, onBig, quiet = false }: { c: Checkpoint; value: AnswerValue | undefined; set: (v: AnswerValue) => void; today: string; disabled: boolean; onBig?: () => void; quiet?: boolean }) {
   const e = evaluate(c, value, today);
   const rule = ruleText(c);
   const sub = [c.help, rule].filter(Boolean).join(' · ');
-  const status = e.passed === false ? <span className="pill p-bad">{c.type === 'temp' ? (e.reason.startsWith('Too cold') ? 'Too cold' : 'Too warm') : 'Fails'}</span>
+  const status = quiet ? null
+    : e.passed === false ? <span className="pill p-bad">{c.type === 'temp' ? (e.reason.startsWith('Too cold') ? 'Too cold' : 'Too warm') : 'Fails'}</span>
     : e.passed === true ? <span className="pill p-ok">OK</span> : null;
   const head = <span className="tx"><span>{c.title}{!c.required && <span className="muted" style={{ fontSize: 14 }}> · optional</span>}</span>{sub && <small>{sub}</small>}</span>;
 

@@ -127,6 +127,44 @@ export function TempInput({ value, onChange, label, invalid, disabled, negative 
   );
 }
 
+/**
+ * A temperature with its sign inside the field, for checklist rows. Freezer checks (whole range below
+ * zero) start on "−", so staff type 18 for −18°C; tap the sign to flip it. A wrong sign still fails a
+ * freezer check either way, so the default can't turn a failure into a pass.
+ */
+export function SignedTempInput({ value, onChange, label, invalid, disabled, negative = true, expectNegative = false }: {
+  value: string; onChange: (t: string) => void; label: string; invalid?: boolean; disabled?: boolean; negative?: boolean; expectNegative?: boolean;
+}) {
+  // The sign button only shows where below zero is the norm (freezers). Elsewhere a minus can still be
+  // typed, or set with the big-button entry, without a button on every fridge row.
+  const showSign = negative && expectNegative;
+  const [pendingNeg, setPendingNeg] = useState(showSign);
+  const hasSign = /^\s*[-−]/.test(value);
+  const neg = value.trim() === '' ? pendingNeg : hasSign;
+  const shown = showSign ? value.replace(/^\s*[-−]/, '') : value.replace('-', '−');
+  const type = (t: string) => {
+    if (!showSign) { onChange(negative ? t.replace('−', '-') : t.replace(/[-−]/g, '')); return; }
+    const digits = t.replace(/[-−]/g, '');
+    onChange(digits === '' ? '' : neg ? `-${digits}` : digits);
+  };
+  const flip = () => {
+    if (value.trim() === '') setPendingNeg((x) => !x);
+    else onChange(flipSign(value));
+  };
+  return (
+    <span className={`tfield${invalid ? ' bad' : ''}${showSign ? '' : ' nosign'}`}>
+      {showSign && (
+        <button type="button" className="tsign" disabled={disabled} aria-label={`Below zero: ${label}`} aria-pressed={neg}
+          // Keep the keyboard up: don't take focus from the field.
+          onPointerDown={(e) => e.preventDefault()} onClick={flip}>{neg ? '−' : '+'}</button>
+      )}
+      <input type="text" inputMode="decimal" enterKeyHint="next" disabled={disabled} aria-label={label}
+        placeholder="–" value={shown} onKeyDown={nextOnEnter} onChange={(e) => type(e.target.value)} />
+      <span className="tunit" aria-hidden="true">°C</span>
+    </span>
+  );
+}
+
 export function MoneyInput({ value, onChange, label, invalid }: { value: Pence | null; onChange: (p: Pence | null) => void; label: string; invalid?: boolean }) {
   const [text, setText] = useState(value === null ? '' : formatPounds(value));
   const [editing, setEditing] = useState(false);
