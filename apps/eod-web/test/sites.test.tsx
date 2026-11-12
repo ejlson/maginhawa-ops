@@ -19,7 +19,7 @@ describe('switching site', () => {
     const { user } = renderApp('/', manager);
     await user.click(screen.getByRole('button', { name: /^Bunso/ }));
     const sheet = screen.getByRole('dialog', { name: 'Your sites' });
-    expect(within(sheet).getAllByRole('option').map((o) => o.textContent)).toEqual([expect.stringMatching(/^BUBunso/), expect.stringMatching(/^GUGuanabana/)]);
+    expect(within(sheet).getAllByRole('option').map((o) => o.textContent)).toEqual([expect.stringMatching(/^BUBunso/), expect.stringMatching(/^GBGuanabana/)]);
     await user.click(within(sheet).getByRole('option', { name: /Guanabana/ }));
     expect(screen.getByRole('button', { name: /^Guanabana/ })).toBeInTheDocument();
     expect(screen.getByRole('status', { name: '' })).toHaveTextContent('Now in Guanabana');
@@ -35,10 +35,10 @@ describe('switching site', () => {
     expect(await screen.findByRole('img', { name: '1 of 8 sections done' })).toBeInTheDocument();
     first.unmount();
     const { user } = renderApp('/close', manager);
-    await user.click(screen.getByRole('link', { name: 'Home' }));
+    await user.click(screen.getByRole('link', { name: 'Today' }));
     await user.click(screen.getByRole('button', { name: /^Bunso/ }));
     await user.click(screen.getByRole('option', { name: /Guanabana/ }));
-    await user.click(screen.getByRole('link', { name: 'EOD' }));
+    await user.click(screen.getByRole('link', { name: 'Close' }));
     expect(await screen.findByRole('heading', { name: "Today's EOD" })).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent('£100.00');
     await user.click(screen.getByRole('button', { name: 'Back to Bunso' }));
@@ -52,7 +52,7 @@ describe('head office in a site', () => {
     const { user } = renderApp('/head-office/GUA', admin);
     await user.click(screen.getByRole('button', { name: 'Open Guanabana' }));
     expect(screen.getByText(/as head office/)).toHaveTextContent('Viewing Guanabana as head office');
-    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'EOD' })).toBeInTheDocument();
+    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Close' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /^Guanabana/ }));
     const sheet = screen.getByRole('dialog', { name: 'Sites' });
     expect(within(sheet).getAllByRole('option')).toHaveLength(8);

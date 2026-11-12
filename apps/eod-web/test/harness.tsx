@@ -52,6 +52,8 @@ import FsReview from '../app/routes/fs-review';
 import ReportBuilder from '../app/routes/report-builder';
 import { deviceStore } from '../app/lib/store';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
+import HoSites from '../app/routes/ho-sites';
+import More from '../app/routes/more';
 
 export const manager: User = { name: 'Jo', initials: 'J', role: 'manager', siteCode: 'BUN' };
 export const admin: User = { name: 'Ana', initials: 'A', role: 'headoffice', siteCode: 'BUN' };
@@ -105,6 +107,8 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="people" element={<People />} />
             <Route path="people/new" element={<PeopleNew />} />
             <Route path="head-office/report-builder" element={<ReportBuilder />} />
+            <Route path="head-office/sites" element={<HoSites />} />
+            <Route path="more" element={<More />} />
             <Route path="head-office/:site" element={<HeadOfficeSite />} />
           </Route>
         </Routes>

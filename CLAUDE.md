@@ -4,7 +4,7 @@ This folder is the handoff for an internal restaurant operations app for **Magin
 
 ## Before doing anything
 1. Read `HANDOFF.md` in full. It holds the decisions, stack, calculation rules, screens, design language, research, timeline and open questions.
-2. For design work, also read `design/design-language.md` and look at `design/eod-canvas/`.
+2. For design work, also read `design/design-language.md` and look at `design/redesign-canvas/` (Nov 2026, current) and `design/eod-canvas/`.
 3. For research context, read `research/2026-10-research-findings.md`.
 
 ## Hard rules
@@ -14,7 +14,7 @@ This folder is the handoff for an internal restaurant operations app for **Magin
   - We code our own apps.
   - Managers type the figures in (no EPOS integration in v1).
   - React Router v7 SPA on Vite + TypeScript.
-  - The "one dark hero card + Monzo-style lists + Things 3 circles" design.
+  - The "one main card + Monzo-style lists + Things 3 circles" design, with the 12 Nov 2026 redesign: a colour per site (editable in settings) and a slowly moving, grainy gradient on the main card made from it (no black), soft shadows, Apple-style corners (`design/design-language.md` › Redesign).
 - Use UK English and £, and keep UK law in mind (Tips Act 2023, Employment Rights Act 2025, UK GDPR).
 - All figures in the designs are examples. Never present them as real data.
 - Calculations live in one shared, unit-tested `packages/core` module (rules in `HANDOFF.md` §5). Test against the verified example: lunch net £850.00, day total net £2,687.50, wages 29.8%.

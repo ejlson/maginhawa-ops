@@ -44,7 +44,7 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
 
   const isOn = (to: string) => {
     const [path, h] = to.split('#');
-    if (path === '/head-office' && h === 'sites' && /^\/head-office\/(?!reports$|days$|report-builder$)[^/]+(\/|$)/.test(pathname)) return true;
+    if (path === '/head-office' && h === 'sites' && /^\/head-office\/(?!reports$|days$|report-builder$|sites$)[^/]+(\/|$)/.test(pathname)) return true;
     if (path !== pathname) return false;
     if (path === '/head-office/reports') return !saved;
     return h ? hash === `#${h}` : !hash;
@@ -67,6 +67,9 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
           <Link to="/head-office/report-builder" className="si">
             <Icon d={BUILDER_ICON} size={20} />Report builder
           </Link>
+          <Link to="/head-office/sites" className={`si${pathname === '/head-office/sites' ? ' on' : ''}`} aria-current={pathname === '/head-office/sites' ? 'page' : undefined}>
+            <Icon d={ICONS.palette} size={20} />Sites and colours
+          </Link>
         </div>
         <div className="ho-saved">
           <span>Saved searches</span>
@@ -80,7 +83,7 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
       {!wide && <nav className="tabbar ho-tabs" aria-label="Head office">
         {LINKS.map((l) => (
           <NavLink key={l.to} to={l.to} end data-tour={l.label === 'Days' ? 'ho-days' : undefined} className={() => `tab${isOn(l.to) ? ' on' : ''}`}>
-            <Icon d={l.icon} size={22} />
+            <span className="pillbg"><Icon d={l.icon} size={22} /></span>
             <span>{l.label}</span>
           </NavLink>
         ))}

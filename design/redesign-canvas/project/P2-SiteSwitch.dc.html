@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Switch site</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.sw,.qa,.ic,.pill,.chip,.btn{corner-shape:round}
+
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em">
+  <div aria-hidden="true" style="padding:20px;display:flex;flex-direction:column;gap:16px;filter:saturate(.9)">
+    <div style="display:flex;align-items:center;gap:10px"><span style="width:32px;height:32px;border-radius:12px;background:#F59F00"></span><span style="width:70px;height:14px;border-radius:7px;background:#E5E5EA"></span></div>
+    <div style="width:220px;height:26px;border-radius:8px;background:#E5E5EA"></div>
+    <div style="height:250px;border-radius:32px;background:radial-gradient(70% 70% at 90% 0%, #F59F00 0%, transparent 70%), radial-gradient(70% 70% at 60% 110%, oklch(from #F59F00 calc(l - .04) calc(c * 1.1) calc(h - 40)) 0%, transparent 70%), oklch(from #F59F00 .17 calc(c * .6) calc(h - 35))"></div>
+  </div>
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.32)"></div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#FFFFFF;border-radius:34px 28px 0 0;padding:8px 24px 40px;box-sizing:border-box;animation:sheetUp .4s cubic-bezier(.32,.72,0,1) both;display:flex;flex-direction:column;gap:20px">
+    <div style="width:40px;height:5px;border-radius:3px;background:#D1D1D6;margin:0 auto"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:24px;font-weight:700;letter-spacing:-0.03em">Switch site</div>
+      <button aria-label="Close" style="width:32px;height:32px;border-radius:999px;border:0;background:#F2F2F5;display:flex;align-items:center;justify-content:center;color:#6E6E73"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;height:42px;border-radius:14px;background:#F2F2F5;padding:0 12px;color:#8E8E93">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M20 20l-4-4"></path></svg>
+      <input placeholder="Find a site" aria-label="Find a site" style="border:0;background:none;outline:none;font:inherit;font-size:16px;flex:1;color:#1D1D1F">
+    </label>
+
+    <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:20px;background:#F7F7F9">
+      <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;width:36px;flex-shrink:0">
+        <span style="height:16px;border-radius:5px;background:#F59F00"></span><span style="height:16px;border-radius:5px;background:#A0612A"></span><span style="height:16px;border-radius:5px;background:#0C8599"></span><span style="height:16px;border-radius:5px;background:#C92A2A"></span>
+      </span>
+      <span style="flex:1;display:flex;flex-direction:column"><span style="font-size:16px;font-weight:600">All my sites</span><span style="font-size:13px;color:#6E6E73">Tonight at your 4 sites, side by side</span></span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C7C7CC" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+    </div>
+
+    <div style="font-size:13px;font-weight:600;color:#6E6E73;letter-spacing:.02em;margin-top:8px">YOUR SITES</div>
+    <div style="display:flex;flex-direction:column;margin-top:-12px">
+      <sc-for list="{{mine}}" as="s" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:14px;height:66px;animation:rise .4s cubic-bezier(.23,1,.32,1) both;animation-delay:{{s.delay}}">
+          <span style="width:40px;height:40px;border-radius:14px;background:{{s.c}};color:{{s.on}};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">{{s.mono}}</span>
+          <span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600">{{s.name}}<sc-if value="{{s.current}}" hint-placeholder-val="{{false}}"><span style="font-size:11px;font-weight:600;color:#1D1D1F;background:#F2F2F5;padding:2px 8px;border-radius:999px">You're here</span></sc-if></span><span style="font-size:13px;color:#6E6E73">{{s.status}}</span></span>
+          <svg width="26" height="26" viewBox="0 0 26 26" role="img" aria-label="{{s.ringLabel}}" style="flex-shrink:0"><circle cx="13" cy="13" r="10" fill="none" stroke="#E5E5EA" stroke-width="3"></circle><circle cx="13" cy="13" r="10" fill="none" stroke="{{s.c}}" stroke-width="3" stroke-linecap="round" stroke-dasharray="{{s.dash}}" stroke-opacity="{{s.op}}" transform="rotate(-90 13 13)"></circle></svg>
+        </div>
+      </sc-for>
+    </div>
+    <div style="font-size:13px;color:#6E6E73;line-height:1.45">Circles show how much of tonight's close is done. Head office see all 8 sites here; managers see the sites they've been given.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const C = 2 * Math.PI * 10;
+    const m = [
+      ['Bunso','BU','#F59F00','#1D1D1F','Close 3 of 8 · 2 checks overdue',3/8,true],
+      ['Hoodwood','HW','#A0612A','#FFFFFF','Close 1 of 8 · 2 checks overdue',1/8,false],
+      ['Mamasons Kentish Town','KT','#0C8599','#FFFFFF','Close 6 of 8',6/8,false],
+      ['Mamasons China Town','CT','#C92A2A','#FFFFFF','Close not started',0,false]
+    ];
+    return { mine: m.map((x, i) => ({ name: x[0], mono: x[1], c: x[2], on: x[3], status: x[4], current: x[6],
+      dash: (C * x[5]).toFixed(1) + ' ' + C.toFixed(1), op: x[5] > 0 ? 1 : 0, ringLabel: Math.round(x[5] * 8) + ' of 8 sections done', delay: (60 + i * 40) + 'ms' })) };
+  }
+}
+</script>
+</body>
+</html>

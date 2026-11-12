@@ -77,6 +77,20 @@
         "dev:shared"
       ],
       "port": 5180
+    },
+    {
+      "name": "redesign-canvas",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4195",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "/Users/ethanjameslegson/Work/Maginhawa/MaginhawaApp/design/redesign-canvas/project"
+      ],
+      "port": 4195
     }
   ]
 }

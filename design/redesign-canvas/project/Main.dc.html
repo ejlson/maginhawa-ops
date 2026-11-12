@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Redesign direction</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.sw,.qa,.ic,.pill,.chip,.btn{corner-shape:round}
+
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.rise{animation:rise .5s cubic-bezier(.23,1,.32,1) both}
+@keyframes pan{0%{background-position:0% 0%}100%{background-position:100% 100%}}
+.pan{background-size:170% 170% !important;animation:pan 9s ease-in-out infinite alternate}
+@media (prefers-reduced-motion: reduce){.pan{animation:none}}
+</style>
+</helmet>
+<div style="width:1440px;height:1260px;box-sizing:border-box;padding:72px 80px;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em;display:flex;flex-direction:column;gap:48px">
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:40px">
+    <div style="display:flex;flex-direction:column;gap:12px;max-width:760px">
+      <div style="font-size:14px;color:#6E6E73;font-weight:500">Maginhawa Ops · redesign direction · November 2026</div>
+      <h1 style="margin:0;font-size:56px;line-height:1.02;font-weight:700;letter-spacing:-0.045em">Every site has its own colour. Every screen says what's next.</h1>
+      <p style="margin:0;font-size:19px;line-height:1.45;color:#6E6E73">We keep what works (one main card per screen, clean lists, progress circles) and add three things: a colour that tells you which site you're in, a clear "up next" through the day, and search on every screen.</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:380px;justify-content:flex-end">
+      <sc-for list="{{sites}}" as="s" hint-placeholder-count="8">
+        <div class="rise" style="width:40px;height:40px;border-radius:14px;background:{{s.c}};color:{{s.on}};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;animation-delay:{{s.delay}}">{{s.mono}}</div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px">
+    <div style="background:#F7F7F9;border-radius:30px;padding:28px;display:flex;flex-direction:column;gap:10px">
+      <div style="width:44px;height:44px;border-radius:18px;background:#1D1D1F;color:#fff;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg></div>
+      <div style="font-size:22px;font-weight:700;letter-spacing:-0.025em">Know where you are</div>
+      <div style="font-size:15px;line-height:1.5;color:#6E6E73">The site's colour and initials sit at the top of every screen and colour the main card. Switching site changes the colour in a quarter of a second, so you feel the move.</div>
+    </div>
+    <div style="background:#F7F7F9;border-radius:30px;padding:28px;display:flex;flex-direction:column;gap:10px">
+      <div style="width:44px;height:44px;border-radius:18px;background:#1D1D1F;color:#fff;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+      <div style="font-size:22px;font-weight:700;letter-spacing:-0.025em">Know what's next</div>
+      <div style="font-size:15px;line-height:1.5;color:#6E6E73">Today reads top to bottom: Needs you, Now, Later today. The main card always holds one "Up next" button. The close has a bar that says what's left and jumps you there.</div>
+    </div>
+    <div style="background:#F7F7F9;border-radius:30px;padding:28px;display:flex;flex-direction:column;gap:10px">
+      <div style="width:44px;height:44px;border-radius:18px;background:#1D1D1F;color:#fff;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M20 20l-4-4"></path></svg></div>
+      <div style="font-size:22px;font-weight:700;letter-spacing:-0.025em">Find anything</div>
+      <div style="font-size:15px;line-height:1.5;color:#6E6E73">Four tabs on the phone (Today, Close, Checks, More) and search at the top of every screen. It finds sites, past days ("Belly 3 Nov"), checklists, people and settings.</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:48px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:24px;font-weight:700;letter-spacing:-0.03em">Site colours</div><div style="font-size:14px;color:#6E6E73">Suggested defaults · head office can change them</div></div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px">
+        <sc-for list="{{sites}}" as="s" hint-placeholder-count="8">
+          <div class="rise" style="border-radius:24px;overflow:hidden;border:1px solid rgba(0,0,0,.08);animation-delay:{{s.delay}}">
+            <div class="pan" style="height:120px;position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(140% 130% at 100% 100%, {{s.light}} 0%, {{s.c}} 30%, oklch(from {{s.c}} calc(l - .04) calc(c * 1.1) calc(h - 40)) 62%, oklch(from {{s.c}} .17 calc(c * .6) calc(h - 35)) 100%);color:#F5F5F7;padding:14px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between">
+              <svg aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:overlay;opacity:.75;pointer-events:none"><filter id="gm"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#gm)"></rect></svg>
+              <div style="font-size:15px;font-weight:700">{{s.mono}}</div>
+              <div style="font-size:12px;font-weight:500;opacity:.85">{{s.hex}}</div>
+            </div>
+            <div style="padding:10px 14px 12px;display:flex;flex-direction:column;gap:2px">
+              <div style="font-size:14px;font-weight:600">{{s.name}}</div>
+              <div style="font-size:12px;color:#6E6E73">{{s.colour}}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="font-size:24px;font-weight:700;letter-spacing:-0.03em">How colour is used</div>
+      <div style="display:flex;flex-direction:column">
+        <div style="display:flex;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)">
+          <div style="width:36px;height:36px;border-radius:13px;background:#0C8599;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">KT</div>
+          <div style="font-size:15px;line-height:1.4"><b>Site colour = where you are.</b> <span style="color:#6E6E73">Site badge, the slowly moving gradient on the main card (a blend of the site’s colours, with grain), the selected tab, progress circles.</span></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)">
+          <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;width:36px">
+            <span style="height:8px;border-radius:4px;background:#1F7A35"></span><span style="height:8px;border-radius:4px;background:#B25000"></span><span style="height:8px;border-radius:4px;background:#D70015"></span>
+          </div>
+          <div style="font-size:15px;line-height:1.4"><b>Green, amber and red = how it's going.</b> <span style="color:#6E6E73">They never change with the site and always come with words: "£20.00 short", "Missed".</span></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)">
+          <div style="width:36px;height:36px;border-radius:13px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">Aa</div>
+          <div style="font-size:15px;line-height:1.4"><b>Text colour is worked out for you.</b> <span style="color:#6E6E73">Light or dark text on each site colour, checked for contrast in light and dark mode.</span></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:center;padding:12px 0">
+          <div style="width:36px;height:36px;border-radius:13px;background:#FFF0F0;color:#D70015;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></div>
+          <div style="font-size:15px;line-height:1.4"><b>Never</b> <span style="color:#6E6E73">on body text, status pills or whole page backgrounds. Never colour alone: the initials always go with it.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;padding-top:8px;border-top:1px solid rgba(0,0,0,.08)">
+    <div style="display:flex;flex-direction:column;gap:6px;padding-top:20px"><div style="font-size:13px;color:#6E6E73;font-weight:500">Phone tabs</div><div style="font-size:17px;font-weight:600">Today · Close · Checks · More</div><div style="font-size:14px;color:#6E6E73;line-height:1.45">Search at the top of every screen. Pin Temperatures or Repairs to the tab bar.</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;padding-top:20px"><div style="font-size:13px;color:#6E6E73;font-weight:500">Desktop sidebar</div><div style="font-size:17px;font-weight:600">Today · Records · Team · Site</div><div style="font-size:14px;color:#6E6E73;line-height:1.45">Grouped under 4 headings instead of 8 loose links. ⌘K finds anything.</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;padding-top:20px"><div style="font-size:13px;color:#6E6E73;font-weight:500">Motion</div><div style="font-size:17px;font-weight:600">Quick, soft, never in the way</div><div style="font-size:14px;color:#6E6E73;line-height:1.45">Press 0.97 · 120 ms. Screens 200–280 ms ease-out. Sheets on a spring. Exits faster than entries.</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;padding-top:20px"><div style="font-size:13px;color:#6E6E73;font-weight:500">What stays</div><div style="font-size:17px;font-weight:600">Main card · lists · circles</div><div style="font-size:14px;color:#6E6E73;line-height:1.45">Same type, light and dark rules, 44px touch targets, plain English.</div></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1260}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = [
+      ['Bintang','BN','#3B5BDB','Indigo','#FFFFFF','#A5B8FF','#141C66'],
+      ['Guanabana','GB','#5C940D','Leaf','#FFFFFF','#D8F5A2','#1F3D0A'],
+      ['Belly','BL','#9C36B5','Plum','#FFFFFF','#F3C4FF','#3B0F5C'],
+      ['Hoodwood','HW','#A0612A','Walnut','#FFFFFF','#F5D0A9','#4A2410'],
+      ['Bunso','BU','#F59F00','Mango','#1D1D1F','#FFE8A3','#D9480F'],
+      ['Cafe Mama & Sons','CM','#D6336C','Rose','#FFFFFF','#FFC9DE','#5C0F2E'],
+      ['Mamasons Kentish Town','KT','#0C8599','Teal','#FFFFFF','#99E9F2','#073B4C'],
+      ['Mamasons China Town','CT','#C92A2A','Lantern','#FFFFFF','#FFB37A','#5C0A0A']
+    ];
+    return { sites: s.map((x, i) => ({ name: x[0], mono: x[1], c: x[2], hex: x[2], colour: x[3] + ' · glow and grain', on: x[4], light: x[5], deep: x[6], delay: (i * 40) + 'ms' })) };
+  }
+}
+</script>
+</body>
+</html>

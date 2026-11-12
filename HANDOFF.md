@@ -68,7 +68,7 @@ The finance team's current EOD form is a **single static page on Netlify**. It p
 | 4 | **We code our own user-facing apps** | Not Power Apps |
 | 5 | **Managers type the numbers in** | No till/EPOS integration in v1. The forecast works from the typed figures |
 | 6 | **Web framework: React Router v7 in SPA mode (Vite, TypeScript)**, hosted on Netlify, installable as a PWA | Next.js was rejected: the app is a client-side SPA, and the only server code is a few small Netlify Functions. **Expo** (React Native) is only for a later native app, if one is needed |
-| 7 | **Design direction:** Apple-like. **One dark "hero" card per screen**, then **Monzo/Revolut-style lists**, with **Things 3-style progress circles** | See §7. The user rejected other directions; don't drift back to them |
+| 7 | **Design direction:** Apple-like. **One main card per screen**, then **Monzo/Revolut-style lists**, with **Things 3-style progress circles**. **12 Nov 2026 redesign (user's call; first pass built):** each site has its own colour (editable in settings), and the main card is a slowly moving, grainy gradient made from that colour (no black), with soft shadows and Apple-style corners | See §7 and `design/design-language.md` › Redesign. The user rejected other directions; don't drift back to them |
 | 8 | **Sections can be filled in any order** from a hub ("Today's close"), not a strict wizard | Backed by research: same users every night |
 | 9 | **Sign-in:** Microsoft 365 work account (Entra ID via MSAL) on phone and desktop; **shared iPad = photo grid of today's rota + 4-digit PIN**, plus a badge/QR alternative | A site device account sits underneath the shared-iPad login |
 | 10 | **Forecasts:** same weekday over the last 6 weeks, nudged by bookings and the recent trend | Shown to managers (Trends) and to head office (Forecast tab). No AI needed |
@@ -227,7 +227,7 @@ All figures in the designs are **made-up examples**.
 
 ## 7. Design language (follow exactly)
 
-**What the user liked:**
+**Redesign, 12 Nov 2026 (designed; first pass built in the app the same day: site colours, gradient card, tabs, More, Sites and colours).** The user found the app too plain and hard to follow. New canvas: **https://claude.ai/artifact/2SaS5mXwouxhbg23YspRVV** ("Maginhawa Ops redesign": direction, 7 phone screens, 3 desktop screens, motion demos, research). Local copy: `design/redesign-canvas/project/`. What changed (full rules in `design/design-language.md` › Redesign):
 - Apple-like, minimal, sleek and premium.
 - **One main dark card per screen**; everything else is **plain lists** like Monzo/Revolut (round icon, title, grey subtitle, amount on the right, hairline dividers).
 - **Things 3 progress circles.**

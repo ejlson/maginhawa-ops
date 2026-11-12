@@ -14,6 +14,7 @@ import { HeadOfficeShell } from '../components/HeadOfficeShell';
 import { PageSkeleton } from '../components/Skeleton';
 import { useComingScreen } from '../components/skeleton-helpers';
 import { TourHost } from '../components/Tour';
+import { SiteTheme } from '../lib/site-colours';
 
 /** Every screen after sign-in works on today's report and checklists for the manager's site. */
 export default function SignedIn() {
@@ -48,6 +49,8 @@ export default function SignedIn() {
           <SiteProvider siteCode={user.siteCode} businessDate={tradingDate(now(), settingsFor(user.siteCode))}>
             <FoodSafetyProvider siteCode={user.siteCode} businessDate={tradingDate(now(), settingsFor(user.siteCode))}>
               {/* Head office has its own frame, until they open a site; everyone else gets the site sidebar on desktop. */}
+              {/* The open site's colour on the whole app; graphite on head office's own pages. */}
+              <SiteTheme code={outsideSite ? null : user.siteCode} />
               {ownFrame && (outsideSite || pathname.startsWith('/head-office')) ? <Screen headOffice />
                 : outsideSite ? <HeadOfficeShell><Screen /></HeadOfficeShell>
                 : <SiteShell><Screen /></SiteShell>}

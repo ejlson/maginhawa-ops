@@ -6,6 +6,7 @@
  * site just sees the name. Design: design/eod-canvas/s01–s03 and a05.
  */
 import { useEffect, useRef, useState } from 'react';
+import { SiteMono } from '../lib/site-colours';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router';
 import { siteName, SITES, type StoredReport } from '@maginhawa/core';
@@ -61,7 +62,7 @@ export function SitePicker({ place, title }: { place: 'side' | 'top'; title?: st
   }, [open, place]);
 
   if (place === 'side') {
-    if (!canSwitch) return <div className="ho-brand"><span>{eyebrow}</span><b>{title ?? settings.siteName}</b></div>;
+    if (!canSwitch) return <div className="ho-brand"><span>{eyebrow}</span><b className="sitebrand"><SiteMono code={settings.siteCode} />{title ?? settings.siteName}</b></div>;
     return (
       <div className="sitepick" ref={box} onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false); }}>
         <button type="button" className="ho-brand sitebtn" data-tour="site" aria-haspopup="dialog" aria-expanded={open} onClick={(e) => {
@@ -70,17 +71,17 @@ export function SitePicker({ place, title }: { place: 'side' | 'top'; title?: st
           setOpen(!open);
         }}>
           <span>{eyebrow}</span>
-          <b>{settings.siteName}<Icon d={UPDOWN} size={16} /></b>
+          <b className="sitebrand"><SiteMono code={settings.siteCode} />{settings.siteName}<Icon d={UPDOWN} size={16} /></b>
         </button>
         {open && <div className="sitepop" role="dialog" aria-label="Switch site" style={at ?? undefined}><SiteList onDone={() => setOpen(false)} /></div>}
       </div>
     );
   }
 
-  if (!canSwitch) return <span className="title">{settings.siteName}</span>;
+  if (!canSwitch) return <span className="title sitetitle"><SiteMono code={settings.siteCode} size="sm" />{settings.siteName}</span>;
   return <>
     <button type="button" className="title sitetitle" data-tour="site" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
-      {settings.siteName}<Icon d="M4.5 7l4.5 4.5L13.5 7" size={16} />
+      <SiteMono code={settings.siteCode} size="sm" />{settings.siteName}<Icon d="M4.5 7l4.5 4.5L13.5 7" size={16} />
     </button>
     {/* Drawn at the page root: the top bar's blur would otherwise hold the sheet inside the bar. */}
     {open && createPortal(
@@ -163,7 +164,7 @@ function SiteList({ onDone }: { onDone: () => void }) {
           const on = code === user.siteCode;
           return (
             <button key={code} ref={!ho && !overview && i === 0 ? first : undefined} type="button" role="option" aria-selected={on} className="menuitem" onClick={() => pick(code)}>
-              <span className="av">{code.slice(0, 2)}</span>
+              <SiteMono code={code} size="lg" />
               <span className="tx"><span>{nameOf(code)}</span><small className={st.tone}>{st.text}</small></span>
               {on && <Icon d={ICONS.check} size={18} />}
             </button>

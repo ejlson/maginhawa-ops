@@ -33,6 +33,7 @@ export default function Account() {
           <section className="grp">
             <div className="sub">
               <RowLink to="/people" lead={<span className="av"><Icon d={ICONS.people} size={18} /></span>} title="People" sub="Add people, change roles, reset a forgotten PIN" />
+              {can.seeAllSites(user.role) && <RowLink to="/head-office/sites" lead={<span className="av"><Icon d={ICONS.palette} size={18} /></span>} title="Sites and colours" sub="Pick each site's colour" />}
             </div>
           </section>
         )}

@@ -39,6 +39,8 @@ export default [
     route('handover', 'routes/handover.tsx'),
     route('day', 'routes/day.tsx'),
     route('switch', 'routes/switch.tsx'),
+    route('more', 'routes/more.tsx'),
+    route('head-office/sites', 'routes/ho-sites.tsx'),
     route('account', 'routes/account.tsx'),
     route('people', 'routes/people.tsx'),
     route('people/new', 'routes/people-new.tsx'),

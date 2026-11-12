@@ -1,0 +1,167 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-12T20:00:00Z"
+  },
+  "title": "Maginhawa Ops redesign",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1260,
+      "title": "Direction \u00b7 site colours, navigation, motion"
+    },
+    "P1-Today.dc.html": {
+      "x": 0,
+      "y": 1640,
+      "w": 390,
+      "h": 844,
+      "title": "Phone \u00b7 Today (tap the site to switch)",
+      "is_interactive": true,
+      "radius": 48
+    },
+    "P2-SiteSwitch.dc.html": {
+      "x": 470,
+      "y": 1640,
+      "w": 390,
+      "h": 844,
+      "title": "Phone \u00b7 Switch site",
+      "radius": 48
+    },
+    "P3-Close.dc.html": {
+      "x": 940,
+      "y": 1640,
+      "w": 390,
+      "h": 844,
+      "title": "Phone \u00b7 Close the day (EOD hub)",
+      "radius": 48
+    },
+    "P4-Lunch.dc.html": {
+      "x": 1410,
+      "y": 1640,
+      "w": 390,
+      "h": 844,
+      "title": "Phone \u00b7 Lunch, one step at a time",
+      "is_interactive": true,
+      "radius": 48
+    },
+    "P5-Checks.dc.html": {
+      "x": 1880,
+      "y": 1640,
+      "w": 390,
+      "h": 844,
+      "title": "Phone \u00b7 Checks",
+      "radius": 48
+    },
+    "P6-Search.dc.html": {
+      "x": 2350,
+      "y": 1640,
+      "w": 390,
+      "h": 844,
+      "title": "Phone \u00b7 Search anything",
+      "radius": 48
+    },
+    "P7-SiteColours.dc.html": {
+      "x": 2820,
+      "y": 1640,
+      "w": 390,
+      "h": 844,
+      "title": "Phone \u00b7 Settings \u203a Site colour",
+      "is_interactive": true,
+      "radius": 48
+    },
+    "D1-Manager.dc.html": {
+      "x": 0,
+      "y": 2864,
+      "w": 1440,
+      "h": 960,
+      "title": "Desktop \u00b7 Manager, Today",
+      "expand": "fill"
+    },
+    "D2-HeadOffice.dc.html": {
+      "x": 1520,
+      "y": 2864,
+      "w": 1440,
+      "h": 960,
+      "title": "Desktop \u00b7 Head office, all sites",
+      "expand": "fill"
+    },
+    "D3-Settings.dc.html": {
+      "x": 3040,
+      "y": 2864,
+      "w": 1440,
+      "h": 960,
+      "title": "Desktop \u00b7 Settings \u203a Sites and colours",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "M1-Motion.dc.html": {
+      "x": 0,
+      "y": 4224,
+      "w": 1440,
+      "h": 900,
+      "title": "Motion \u00b7 press each demo",
+      "is_interactive": true
+    },
+    "R1-Research.dc.html": {
+      "x": 1520,
+      "y": 4224,
+      "w": 1440,
+      "h": 1100,
+      "title": "Research \u00b7 what we borrowed"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "P1-Today.dc.html",
+    "P2-SiteSwitch.dc.html",
+    "P3-Close.dc.html",
+    "P4-Lunch.dc.html",
+    "P5-Checks.dc.html",
+    "P6-Search.dc.html",
+    "P7-SiteColours.dc.html",
+    "D1-Manager.dc.html",
+    "D2-HeadOffice.dc.html",
+    "D3-Settings.dc.html",
+    "M1-Motion.dc.html",
+    "R1-Research.dc.html"
+  ],
+  "notes": {
+    "phone": {
+      "x": 0,
+      "y": 1380,
+      "text": "Phone \u00b7 managers and supervisors",
+      "kind": "title1",
+      "maxW": 3210
+    },
+    "desk": {
+      "x": 0,
+      "y": 2604,
+      "text": "Desktop \u00b7 managers and head office",
+      "kind": "title1",
+      "maxW": 4480
+    },
+    "motion": {
+      "x": 0,
+      "y": 3964,
+      "text": "Motion and research",
+      "kind": "title1",
+      "maxW": 2960
+    },
+    "examples": {
+      "x": 3290,
+      "y": 1640,
+      "w": 320,
+      "text": "All names and figures are made-up examples, not real data. Site colours are suggested defaults; head office can change any of them in Settings.",
+      "fill": "orange",
+      "size": "m"
+    }
+  },
+  "designSystems": []
+}

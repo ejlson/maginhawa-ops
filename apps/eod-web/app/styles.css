@@ -1070,3 +1070,172 @@ a.cal-ev:hover { filter: brightness(.97); } a.cal-ev:active { transform: scale(.
 /* ---- Today's EOD card ---- */
 .eod-hero { gap: 14px; }
 .eod-hero .hm span { white-space: nowrap; }
+
+/* ==== Redesign (design/redesign-canvas, Nov 2026): site colours, glow and grain, motion ====
+   Site colour = where you are: badge, main card, selected tab, progress circles. Never body text,
+   status pills or page backgrounds. Green, amber and red stay for status. */
+:root {
+  --site: #48484f; --site-on: #ffffff; --site-light: #8e8e99; --site-deep: #1d1d1f;
+  --ease-out: cubic-bezier(.23,1,.32,1); --ease-sheet: cubic-bezier(.32,.72,0,1); --ease-spring: cubic-bezier(.34,1.56,.64,1);
+  --press: scale(.97);
+}
+/* The site colour moves with you: a quarter-second cross-fade when you switch site. */
+@property --site { syntax: '<color>'; inherits: true; initial-value: #48484f; }
+@property --site-light { syntax: '<color>'; inherits: true; initial-value: #8e8e99; }
+html { transition: --site .35s ease, --site-light .35s ease; }
+
+/* Main card: the site's colours blended, drifting slowly, with a little grain. Text sits on the deepest part. */
+.hero { position: relative; isolation: isolate; overflow: hidden;
+  background: var(--hero);
+  background: oklch(from var(--site) .17 calc(c * .6) calc(h - 35));
+  box-shadow: 0 18px 56px -28px color-mix(in oklch, var(--site) 40%, transparent), inset 0 0 0 1px var(--heroEdge);
+  border-radius: 30px; }
+.hero::before { content: ''; position: absolute; inset: -40%; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(26% 30% at 79% 44%, oklch(from var(--site-light) .95 calc(c * .6) h) 0%, oklch(from var(--site-light) .95 calc(c * .6) h) 22%, transparent 70%),
+    radial-gradient(48% 42% at 62% 42%, var(--site) 0%, var(--site) 28%, transparent 72%),
+    radial-gradient(38% 32% at 40% 74%, oklch(from var(--site) calc(l - .04) calc(c * 1.1) calc(h - 40)) 0%, oklch(from var(--site) calc(l - .04) calc(c * 1.1) calc(h - 40)) 25%, transparent 70%),
+    radial-gradient(34% 34% at 22% 78%, oklch(from var(--site) .1 calc(c * .4) calc(h - 35)) 0%, transparent 72%);
+  filter: blur(30px); opacity: 1; animation: drift 14s ease-in-out infinite alternate; }
+.hero::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; mix-blend-mode: overlay; opacity: .75;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+@keyframes drift {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  50% { transform: translate(-6%, 4%) scale(1.12) rotate(8deg); }
+  100% { transform: translate(5%, -3%) scale(.95) rotate(-5deg); }
+}
+.hero, .hero * { --onhero: #f5f5f7; }
+.hero { text-shadow: 0 1px 14px rgba(0,0,0,.22); }
+
+/* Press: every tap answers at once. Screens and lists ease out; nothing bouncy on everyday taps. */
+.btn, .tab, .si, .menuitem, .sitebadge, .iconbtn, a.hero, .row, .sr.link, .chip { transition: transform .12s var(--ease-out), background-color .25s ease, color .25s ease; }
+.btn:active, .tab:active, .si:active, .menuitem:active, .sitebadge:active, .iconbtn:active, a.hero:active, .chip:active { transform: var(--press); }
+.page > .body > * { animation: rise .32s var(--ease-out) both; }
+.page > .body > *:nth-child(2) { animation-delay: 35ms; } .page > .body > *:nth-child(3) { animation-delay: 70ms; }
+.page > .body > *:nth-child(4) { animation-delay: 105ms; } .page > .body > *:nth-child(5) { animation-delay: 140ms; }
+.page > .body > *:nth-child(n+6) { animation-delay: 175ms; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.tsheet { animation: sheetUp .36s var(--ease-sheet) both; }
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+
+/* Site badge: colour always with its initials, never colour alone. */
+.sitemono { width: 32px; height: 32px; border-radius: 11px; flex: none; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--site); color: var(--site-on); font-size: 12px; font-weight: 700; letter-spacing: 0; transition: background-color .35s ease, color .25s ease; }
+.sitemono.sm { width: 26px; height: 26px; border-radius: 9px; font-size: 11px; }
+.sitemono.lg { width: 42px; height: 42px; border-radius: 14px; font-size: 14px; }
+.sitebadge { display: inline-flex; align-items: center; gap: 10px; padding: 4px 12px 4px 4px; border-radius: 999px; border: 0; cursor: pointer;
+  background: var(--fill); color: var(--text); font: inherit; font-size: 17px; font-weight: 600; letter-spacing: -.02em; min-height: 40px; max-width: 100%; }
+.sitebadge .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+span.sitebadge { cursor: default; }
+.iconbtn { width: 40px; height: 40px; border-radius: 999px; border: 0; background: var(--fill); color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
+
+/* Phone tabs: Today · Close · Checks · More. The selected tab wears the site colour. */
+.tabbar .tab { gap: 4px; }
+.tabbar .tab .pillbg { width: 56px; height: 30px; border-radius: 999px; display: flex; align-items: center; justify-content: center; transition: background-color .35s ease, color .25s ease; }
+.tabbar .tab.on .pillbg { background: color-mix(in oklch, var(--site) 18%, transparent); color: oklch(from var(--site) min(l, .5) c h); }
+@media (prefers-color-scheme: dark) { .tabbar .tab.on .pillbg { background: color-mix(in oklch, var(--site) 30%, transparent); color: oklch(from var(--site) max(l, .8) c h); } }
+
+/* Progress circles in the site's colour (done and in progress). Failed stays red. */
+.pie .pd { fill: var(--site); } .pie .pt { stroke: var(--site-on); }
+.pie .ps { stroke: var(--site); } .pie .pf { fill: var(--site); }
+
+/* Desktop sidebar headings: Today · Records · Team · Site. */
+.ho-links .sgh { font-size: 12px; font-weight: 600; color: var(--sec); letter-spacing: .02em; text-transform: uppercase; padding: 14px 12px 4px; }
+.ho-links .sgh:first-child { padding-top: 4px; }
+.ho-brand .sitebrand { display: flex; align-items: center; gap: 10px; }
+
+/* "What's left" bar on the close. */
+.leftbar { position: sticky; bottom: calc(66px + env(safe-area-inset-bottom, 0px)); z-index: 5; margin-top: 8px;
+  display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 18px; border-radius: 999px;
+  background: var(--ink); color: var(--onink); box-shadow: 0 12px 32px -16px rgba(0,0,0,.45); text-decoration: none; }
+.leftbar .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.leftbar .tx small { font-size: 12px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.leftbar .tx b { font-size: 16px; font-weight: 600; }
+.leftbar .go { height: 38px; padding: 0 16px; border-radius: 999px; background: var(--site); color: var(--site-on); display: inline-flex; align-items: center; font-weight: 600; font-size: 15px; }
+@media (min-width: 900px) { .leftbar { bottom: 16px; } }
+
+/* "Up next" inside the main card: one clear next step. */
+.upnext { margin-top: 4px; display: flex; align-items: center; justify-content: space-between; gap: 12px; text-decoration: none;
+  background: rgba(255,248,240,.92); color: #1d1d1f; border-radius: 999px; min-height: 54px; padding: 6px 8px 6px 20px;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.upnext .tx { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.upnext .tx small { font-size: 12px; color: #6e6e73; font-weight: 500; }
+.upnext .tx b { font-size: 17px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.upnext .arrow { width: 38px; height: 38px; border-radius: 999px; background: #1d1d1f; color: #fff; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+
+/* Colour picker (Settings › Sites and colours). */
+.swatches { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.swatch { aspect-ratio: 1; border-radius: 999px; border: 0; cursor: pointer; box-shadow: 0 0 0 1px rgba(0,0,0,.06); transition: transform .12s var(--ease-out), box-shadow .2s ease; }
+.swatch:active { transform: var(--press); }
+.swatch[aria-checked='true'] { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--text); }
+.hue { width: 100%; height: 28px; border-radius: 999px; appearance: none; -webkit-appearance: none; cursor: pointer;
+  background: linear-gradient(90deg, oklch(.68 .15 0), oklch(.68 .15 60), oklch(.68 .15 120), oklch(.68 .15 180), oklch(.68 .15 240), oklch(.68 .15 300), oklch(.68 .15 360)); }
+.hue::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 999px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3), inset 0 0 0 2px rgba(0,0,0,.08); }
+.hue::-moz-range-thumb { width: 28px; height: 28px; border-radius: 999px; background: #fff; border: 0; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+.colourlist .row-site { display: flex; align-items: center; gap: 14px; min-height: 60px; width: 100%; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; padding: 0 4px; border-radius: 12px; }
+.colourlist .row-site[aria-current='true'] { background: var(--sel); }
+.colourlist .row-site .tx { flex: 1; display: flex; flex-direction: column; }
+.colourlist .row-site small { color: var(--sec); font-size: 13px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { transition: none; }
+  .hero::before { animation: none; }
+  .page > .body > *, .tsheet { animation: fadeIn .2s both; }
+  .btn:active, .tab:active, .si:active, .menuitem:active, .sitebadge:active, .iconbtn:active, a.hero:active, .chip:active, .swatch:active { transform: none; }
+}
+
+/* ==== Redesign, part 2: spacing, Apple-style corners, softer shadows, new screens ==== */
+/* Calmer spacing: 24px phone margins, bigger titles, taller rows. */
+.body { padding-left: max(24px, env(safe-area-inset-left)); padding-right: max(24px, env(safe-area-inset-right)); }
+h1 { font-size: 34px; letter-spacing: -.038em; }
+.li { min-height: 68px; }
+.tx > span:first-child { font-size: 17px; }
+.hero { padding: 24px; gap: 16px; }
+.big b { font-size: 54px; }
+
+/* Apple-style continuous corners (a plain rounded corner where it isn't supported). Round things stay round. */
+.hero, .panel, .tsheet, .in, .ta, .sitepop, .ho-search, .ho-side .si, .sitemono, .searchfield, .menuitem, .colourchip, .row-site { corner-shape: superellipse(1.6); }
+.hero { border-radius: 32px; }
+.panel { border-radius: 22px; }
+.tsheet { border-radius: 32px; box-shadow: inset 0 0 0 1px var(--sep), 0 30px 80px -30px rgba(0,0,0,.35); }
+.in, .ta { border-radius: 12px; }
+
+/* Status words on the card stay readable on any site colour: pale tints with a soft shadow. */
+.hero { --heroOk: #b8f5c6; --heroWarn: #ffe0a8; --heroBad: #ffc4bd; }
+.hero .h-ok, .hero .h-warn, .hero .h-bad { text-shadow: 0 1px 6px rgba(0,0,0,.35); font-weight: 600; }
+
+/* A faint wash of the site colour behind the top of phone screens. */
+@media (max-width: 899px) {
+  .page { position: relative; isolation: isolate; }
+  .page::before { content: ''; position: absolute; z-index: -1; pointer-events: none; top: -140px; left: -30%; right: -30%; height: 340px;
+    background: radial-gradient(closest-side, color-mix(in oklch, var(--site) 20%, transparent), transparent),
+                radial-gradient(40% 60% at 85% 40%, color-mix(in oklch, var(--site-light) 35%, transparent), transparent);
+    filter: blur(20px); }
+}
+
+/* Site initials in the bars. */
+.sitetitle { display: inline-flex; align-items: center; gap: 8px; }
+.ho-brand .sitebrand { font-size: 22px; }
+
+/* More: search sits at the top. */
+.searchfield { display: flex; align-items: center; gap: 10px; width: 100%; height: 46px; padding: 0 14px; border: 0; border-radius: 14px;
+  background: var(--fill); color: var(--sec); font: inherit; font-size: 16px; text-align: left; cursor: pointer; }
+.searchfield:active { transform: var(--press); }
+
+/* Settings › Sites and colours. */
+.colour-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 48px; align-items: start; }
+@media (max-width: 899px) { .colour-cols { grid-template-columns: minmax(0, 1fr); gap: 32px; } .colour-edit { order: -1; } }
+.colourlist { display: flex; flex-direction: column; gap: 2px; }
+.colourlist .row-site { min-height: 64px; padding: 0 12px; }
+.colourlist .row-site .tx > span:first-child { font-size: 16px; font-weight: 600; }
+.colourchip { width: 56px; height: 24px; border-radius: 999px; flex: none;
+  background: linear-gradient(90deg, oklch(from var(--site) calc(l * .52) c calc(h - 25)), var(--site) 45%, oklch(from var(--site) calc(l + .04) c calc(h - 60)) 80%, var(--site-light)); }
+.colour-edit { display: flex; flex-direction: column; gap: 24px; position: sticky; top: 76px; }
+.colour-preview { min-height: 200px; justify-content: flex-end; }
+.sitebrand-hero { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; margin-bottom: auto; }
+.hue-row { display: flex; align-items: center; gap: 14px; font-size: 15px; font-weight: 600; margin-top: 8px; }
+.colour-note { flex-direction: row; align-items: center; gap: 14px; }
+.colour-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.colour-actions .note { margin: 0; }
+@media (prefers-reduced-motion: reduce) { .searchfield:active { transform: none; } }

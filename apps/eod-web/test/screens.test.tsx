@@ -23,13 +23,13 @@ describe('tab bar', () => {
   it('home is marked as the current tab', () => {
     renderApp('/');
     const tabs = screen.getByRole('navigation', { name: 'Main' });
-    expect(within(tabs).getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
-    expect(within(tabs).getByRole('link', { name: 'EOD' })).not.toHaveAttribute('aria-current');
+    expect(within(tabs).getByRole('link', { name: 'Today' })).toHaveAttribute('aria-current', 'page');
+    expect(within(tabs).getByRole('link', { name: 'Close' })).not.toHaveAttribute('aria-current');
   });
 
   it('shows on the EOD and checklists screens, and not inside a task', () => {
     const { unmount } = renderApp('/close');
-    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'EOD' })).toHaveAttribute('aria-current', 'page');
+    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Close' })).toHaveAttribute('aria-current', 'page');
     unmount();
     renderApp('/close/lunch');
     expect(screen.queryByRole('navigation', { name: 'Main' })).not.toBeInTheDocument();
@@ -49,7 +49,7 @@ describe('roles', () => {
   it('staff do checklists but not the EOD', () => {
     renderApp('/', staff);
     const nav = screen.getByRole('navigation', { name: 'Main' });
-    expect(within(nav).queryByRole('link', { name: 'EOD' })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole('link', { name: 'Close' })).not.toBeInTheDocument();
     expect(screen.queryByText("Today's EOD")).not.toBeInTheDocument();
     expect(screen.queryByText('End-of-day report')).not.toBeInTheDocument();
   });

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Research</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.sw,.qa,.ic,.pill,.chip,.btn{corner-shape:round}
+
+a{color:#0066CC;text-decoration:none}a:hover{color:#004C99;text-decoration:underline}
+.col{display:flex;flex-direction:column;gap:12px}
+.ch{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;letter-spacing:-0.025em;padding-bottom:4px}
+.ch i{width:10px;height:10px;border-radius:3px;display:block}
+.card{border-radius:24px;background:#F7F7F9;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.card .from{font-size:12px;font-weight:600;color:#6E6E73;letter-spacing:.02em}
+.card b{font-size:15px;font-weight:600;line-height:1.35}
+.card span{font-size:13px;color:#6E6E73;line-height:1.45}
+</style>
+</helmet>
+<div style="width:1440px;height:1100px;box-sizing:border-box;padding:56px;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em;display:flex;flex-direction:column;gap:32px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:40px">
+    <div><div style="font-size:14px;color:#6E6E73">Research · November 2026</div><div style="font-size:34px;font-weight:700;letter-spacing:-0.035em">What we borrowed, and why</div></div>
+    <div style="font-size:14px;color:#6E6E73;max-width:520px;text-align:right;line-height:1.45">Patterns from apps people already find easy, picked for managers closing late on a phone and head office checking 8 sites at once.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px">
+    <div class="col">
+      <div class="ch"><i style="background:#F59F00"></i>Site colour</div>
+      <div class="card"><span class="from">LINEAR · RADIX</span><b>One colour per site; the rest is worked out</b><span>Each site stores one colour. Lighter and deeper shades and the gradient blend come from it, so custom colours always look right. <a href="https://linear.app/now/how-we-redesigned-the-linear-ui">Source</a></span></div>
+      <div class="card"><span class="from">ARC · SLACK</span><b>The whole view changes when you change place</b><span>Switching site fades the badge, card and tab tint together in about a quarter of a second. <a href="https://slack.com/help/articles/205166337-Change-your-Slack-theme">Source</a></span></div>
+      <div class="card"><span class="from">TODOIST · GOOGLE CALENDAR</span><b>Tested swatches first, custom second</b><span>12 swatches checked in light and dark. Custom picks a shade, and we pick the text colour so it's always readable. <a href="https://www.onecal.io/blog/google-calendar-colors">Source</a></span></div>
+      <div class="card"><span class="from">APPLE HIG · MONZO</span><b>Never colour alone</b><span>Site colour always comes with its initials, and green, amber and red only ever mean status. <a href="https://developer.apple.com/design/human-interface-guidelines/color">Source</a></span></div>
+    </div>
+
+    <div class="col">
+      <div class="ch"><i style="background:#0C8599"></i>Finding things</div>
+      <div class="card"><span class="from">7SHIFTS · AIRBNB HOST</span><b>Needs you → Now → Later today</b><span>Today opens on what needs action, then the day in order, with exact counts ("1 late · 1 failed", not "2 items"). <a href="https://kb.7shifts.com/hc/en-us/articles/48276402521619-Overview-dashboard-in-the-7shifts-mobile-app">Source</a></span></div>
+      <div class="card"><span class="from">LINEAR MOBILE</span><b>Four tabs and search everywhere</b><span>Today, Close, Checks, More. Temperatures or Repairs can be pinned. Search finds sites, past days, checks, people and settings. <a href="https://linear.app/changelog/2026-01-22-customize-your-navigation-in-linear-mobile">Source</a></span></div>
+      <div class="card"><span class="from">TRAIL</span><b>One card per site, with a "needs a look" filter</b><span>Head office see all 8 sites at once: net, wages and status in words, filtered to what needs attention. <a href="https://trailapp.com/industry/restaurants">Source</a></span></div>
+      <div class="card"><span class="from">THINGS 3</span><b>Group the day by time</b><span>Checks sit under Opening, Through the day and Closing, so the list reads like the shift. <a href="https://www.macrumors.com/2017/05/18/things-3-task-manager-for-mac-ios-and-apple-watch/">Source</a></span></div>
+    </div>
+
+    <div class="col">
+      <div class="ch"><i style="background:#9C36B5"></i>Motion</div>
+      <div class="card"><span class="from">APPLE · EMIL KOWALSKI</span><b>Fast, interruptible, never in the way</b><span>Press 0.97 in 120ms, screens under 300ms, never grow from zero, no animation on things used dozens of times a shift. <a href="https://developer.apple.com/documentation/swiftui/spring">Source</a></span></div>
+      <div class="card"><span class="from">FAMILY</span><b>Screens open from what you tapped</b><span>Sections open from their row like a tray, so you never lose your place. Delight is saved for "Day sent". <a href="https://benji.org/family-values">Source</a></span></div>
+      <div class="card"><span class="from">NUMBERFLOW</span><b>Figures roll as you type</b><span>Net and wages slide digit by digit, so a change is easy to notice. <a href="https://github.com/barvian/number-flow">Source</a></span></div>
+      <div class="card"><span class="from">MATERIAL 3</span><b>Leave faster than you arrive</b><span>Sheets come in over 360ms and go in 220ms. Reduce motion swaps movement for a short fade. <a href="https://camoa.github.io/dev-guides/css/css-craft/motion-design-tokens">Source</a></span></div>
+    </div>
+
+    <div class="col">
+      <div class="ch"><i style="background:#3B5BDB"></i>Easy to follow</div>
+      <div class="card"><span class="from">THINGS 3</span><b>A progress circle on every section and checklist</b><span>Done, half done or to do can be seen at a glance, in the site's colour.</span></div>
+      <div class="card"><span class="from">OUR RESEARCH</span><b>A "what's left" bar</b><span>The close always says what's left and jumps you to the next unfinished section.</span></div>
+      <div class="card"><span class="from">TRAIL</span><b>Fix a failed check in the row</b><span>A failed fridge reading offers "Moved food", "Rechecked" or "Called repair" right there, with no extra page. <a href="https://trailapp.com/product">Source</a></span></div>
+      <div class="card"><span class="from">FIRE GRADIENTS (YOUR REFERENCE)</span><b>Soft colour, gentle movement, a little grain</b><span>Each site's card blends its own colours and drifts slowly. Text sits on the deepest part so it stays readable.</span></div>
+    </div>
+  </div>
+
+  <div style="margin-top:auto;border-radius:28px;background:#1D1D1F;color:#F5F5F7;padding:22px 26px;display:flex;gap:28px;align-items:flex-start">
+    <div style="font-size:17px;font-weight:600;white-space:nowrap">We avoid</div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 28px;font-size:14px;color:#C7C7CC;line-height:1.45">
+      <span>Colour pickers with no contrast check</span>
+      <span>Site colour on body text or status pills</span>
+      <span>Counts that mix different things</span>
+      <span>Bouncy or slow animation on everyday taps</span>
+      <span>Confetti on routine ticks</span>
+      <span>More than 5 tabs, or Temperatures over 2 taps deep</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

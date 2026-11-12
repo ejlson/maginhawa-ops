@@ -21,13 +21,17 @@ export function Icon({ d, size = 19 }: { d: string; size?: number }) {
   );
 }
 
+/** A site's initials on its colour (lives with the site colours). */
+export { SiteMono } from '../lib/site-colours';
+
 export function Pie({ status, size = 24 }: { status: SectionStatus | 'fail'; size?: number }) {
   const label = { todo: 'To do', started: 'In progress', done: 'Completed', skipped: "Didn't run", fail: 'Needs fixing' }[status];
   return (
     <span className="pie" role="img" aria-label={label}>
       <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden="true">
-        {status === 'done' && <><circle cx="10" cy="10" r="9" fill="var(--ok)" /><path d="M6 10.2l2.7 2.6L14 7.5" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></>}
-        {status === 'started' && <><circle cx="10" cy="10" r="8.6" fill="none" stroke="var(--warn)" strokeWidth="1.6" /><path d="M10 10V4.4a5.6 5.6 0 0 1 0 11.2z" fill="var(--warn)" /></>}
+        {/* Done and in progress wear the site's colour (Things-style); failed stays red. */}
+        {status === 'done' && <><circle className="pd" cx="10" cy="10" r="9" fill="var(--ok)" /><path className="pt" d="M6 10.2l2.7 2.6L14 7.5" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></>}
+        {status === 'started' && <><circle className="ps" cx="10" cy="10" r="8.6" fill="none" stroke="var(--warn)" strokeWidth="1.6" /><path className="pf" d="M10 10V4.4a5.6 5.6 0 0 1 0 11.2z" fill="var(--warn)" /></>}
         {status === 'todo' && <circle cx="10" cy="10" r="8.6" fill="none" stroke="var(--sec)" strokeOpacity=".45" strokeWidth="1.6" />}
         {status === 'skipped' && <circle cx="10" cy="10" r="8.6" fill="none" stroke="var(--sec)" strokeOpacity=".45" strokeWidth="1.6" strokeDasharray="2.5 2.5" />}
         {status === 'fail' && <><circle cx="10" cy="10" r="9" fill="var(--bad)" /><path d="M7 7l6 6M13 7l-6 6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" /></>}
