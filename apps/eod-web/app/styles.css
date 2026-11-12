@@ -1239,3 +1239,105 @@ h1 { font-size: 34px; letter-spacing: -.038em; }
 .colour-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 .colour-actions .note { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .searchfield:active { transform: none; } }
+
+/* ==== Redesign, part 3: head office "All sites" (design/redesign-canvas, Option C) ==== */
+.ho-head { position: relative; z-index: 5; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 24px; flex-wrap: wrap; }
+.ho-head-r { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ho-approve { width: auto; height: 44px; padding: 0 20px; font-size: 15px; }
+
+/* Search in the header. */
+.hosearch { position: relative; }
+.hosearch-box { display: flex; align-items: center; gap: 8px; width: min(340px, 80vw); height: 44px; padding: 0 12px; border-radius: 14px; background: var(--fill); color: var(--sec);
+  corner-shape: superellipse(1.6); transition: box-shadow .15s ease, background-color .15s ease; }
+.hosearch-box:focus-within { background: var(--bg); box-shadow: 0 0 0 2px var(--text); }
+.hosearch-box input { flex: 1; min-width: 0; border: 0; background: none; outline: none; font: inherit; font-size: 15px; color: var(--text); }
+.hosearch-box .kbd { font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 6px; background: var(--bg); color: var(--sec); box-shadow: 0 0 0 1px var(--sep); }
+.hosearch-list { position: absolute; top: 52px; right: 0; width: 380px; max-width: 90vw; z-index: 40; background: var(--bg); border-radius: 22px; padding: 8px;
+  box-shadow: 0 0 0 1px var(--sep), 0 24px 60px -20px rgba(0,0,0,.28); animation: hosPop .18s var(--ease-out) both; corner-shape: superellipse(1.6); }
+@keyframes hosPop { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
+.hosearch-gh { font-size: 11px; font-weight: 600; color: var(--sec); letter-spacing: .06em; text-transform: uppercase; padding: 8px 10px 4px; }
+.hosearch-item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 0; border-radius: 12px; background: none; font: inherit; color: var(--text); text-align: left; cursor: pointer; }
+.hosearch-item.on { background: var(--fill); }
+.hosearch-item .tx > span:first-child { font-size: 15px; font-weight: 600; }
+.hosearch-ic { width: 32px; height: 32px; border-radius: 10px; background: var(--fill); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.hosearch-none { margin: 0; padding: 12px 10px; font-size: 14px; color: var(--sec); }
+.hosearch-foot { font-size: 12px; color: var(--sec); padding: 8px 10px 4px; border-top: .5px solid var(--sep); margin-top: 4px; }
+
+/* The group card: deep base, a big blue shape, a pale pink glow, violet corner, heavy grain (the user's references). */
+.hero.ho-hero { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 36px; padding: 28px 30px; min-height: 300px;
+  background: #0e0d16; box-shadow: 0 22px 60px -32px rgba(76,91,212,.5); }
+.hero.ho-hero::before {
+  background:
+    radial-gradient(26% 26% at 62% 26%, #e7b6e2 0%, #e7b6e2 18%, transparent 70%),
+    radial-gradient(44% 40% at 58% 34%, #4554d6 0%, #4554d6 26%, transparent 72%),
+    radial-gradient(32% 30% at 78% 74%, #7b5be0 0%, transparent 70%),
+    radial-gradient(36% 36% at 22% 76%, #07060c 0%, transparent 72%);
+}
+.ho-hero-l { display: flex; flex-direction: column; gap: 6px; }
+.ho-hero .big b { font-size: 58px; }
+.ho-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; margin-top: 16px; }
+.ho-kpis > span { display: flex; flex-direction: column; gap: 1px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.16); font-size: 22px; font-weight: 600; letter-spacing: -.03em; }
+.ho-kpis small { font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--herosec); }
+.ho-kpis small:first-child { color: rgba(245,245,247,.72); }
+.ho-chart { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.ho-chart-empty { justify-content: center; }
+.ho-chart-hd { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 15px; font-weight: 600; flex-wrap: wrap; }
+.ho-key { display: flex; align-items: center; gap: 6px 8px; font-size: 12px; font-weight: 400; color: rgba(245,245,247,.78); flex-wrap: wrap; }
+.ho-key i { display: inline-block; margin-left: 8px; }
+.ho-key i:first-child { margin-left: 0; }
+.ho-key .k-line { width: 16px; height: 3px; border-radius: 2px; background: #fff; }
+.ho-key .k-band { width: 12px; height: 12px; border-radius: 4px; background: rgba(255,255,255,.25); }
+.ho-key .k-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+.ho-chart svg { overflow: visible; }
+.ho-chart-x { display: flex; justify-content: space-between; font-size: 12px; color: rgba(245,245,247,.7); }
+.ho-chart-x b { color: #fff; font-weight: 600; }
+.ho-line { stroke-dasharray: 1; animation: hoDraw 1.2s var(--ease-out) .2s both; }
+@keyframes hoDraw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.ho-area { animation: fadeIn .8s ease .6s both; }
+.ho-pulse { transform-box: fill-box; transform-origin: center; opacity: .22; animation: hoPulse 2.4s ease-in-out infinite; }
+@keyframes hoPulse { 0%, 100% { transform: scale(1); opacity: .22; } 50% { transform: scale(1.6); opacity: 0; } }
+@media (max-width: 899px) { .hero.ho-hero { grid-template-columns: minmax(0, 1fr); gap: 24px; } .ho-hero .big b { font-size: 46px; } }
+
+/* The sites table: six columns, site colour only on the badge, status in words. */
+.ho-tools { align-items: center; flex-wrap: wrap; }
+.stable .th, .stable .sr { grid-template-columns: minmax(220px, 2.2fr) minmax(90px, 1fr) minmax(130px, 1.2fr) minmax(70px, .8fr) minmax(110px, 1fr) minmax(96px, 1fr); min-width: 820px; }
+.stable .th { min-height: 40px; font-size: 13px; font-weight: 600; color: var(--sec); }
+.stable .sr { min-height: 60px; width: 100%; border: 0; background: none; font: inherit; color: inherit; text-align: left; }
+.stable .sr::before { left: 58px; }
+.stable .sr.sel { background: var(--fill); }
+.stable .r { justify-self: end; }
+.st-site { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.st-site .tx > span:first-child { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-net { font-weight: 600; }
+.st-fc { display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.st-bar { width: 72px; height: 6px; border-radius: 3px; background: var(--fill); overflow: hidden; display: inline-block; }
+.st-bar i { display: block; height: 100%; border-radius: 3px; background: var(--text); }
+.stable .pill { height: 24px; font-size: 12.5px; padding: 0 9px; }
+.stable .pill.ok { background: var(--okbg); } .stable .pill.bad { background: var(--badbg); }
+
+/* Site details beside the table. */
+.ho-back { position: fixed; inset: 0; z-index: 50; border: 0; background: rgba(17,17,20,.18); cursor: pointer; animation: fadeIn .2s ease both; }
+.ho-panel { position: fixed; top: 12px; right: 12px; bottom: 12px; width: min(400px, calc(100vw - 24px)); z-index: 51; overflow-y: auto;
+  background: var(--bg); border-radius: 30px; corner-shape: superellipse(1.6); padding: 26px; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 18px; box-shadow: 0 0 0 1px var(--sep), 0 30px 80px -24px rgba(0,0,0,.35);
+  animation: hoSlide .32s var(--ease-sheet) both; }
+@keyframes hoSlide { from { transform: translateX(110%); } to { transform: none; } }
+.ho-panel-hd { display: flex; align-items: center; gap: 12px; }
+.ho-panel-hd .tx > span:first-child { font-size: 20px; font-weight: 700; letter-spacing: -.025em; }
+.ho-panel-hd .mini { width: 36px; height: 36px; }
+.ho-panel-net { display: flex; justify-content: space-between; align-items: flex-end; padding: 16px 18px; border-radius: 20px; background: var(--side); corner-shape: superellipse(1.6); }
+.ho-panel-net > span { display: flex; flex-direction: column; }
+.ho-panel-net small { font-size: 12px; color: var(--sec); }
+.ho-panel-net b { font-size: 32px; font-weight: 600; letter-spacing: -.04em; }
+.ho-kv > div { display: flex; justify-content: space-between; align-items: center; min-height: 44px; font-size: 15px; border-bottom: .5px solid var(--sep); }
+.ho-kv span { color: var(--sec); }
+.ho-kv b { font-weight: 600; }
+.ho-note { padding: 14px 16px; border-radius: 18px; background: var(--side); corner-shape: superellipse(1.6); }
+.ho-note p { margin: 4px 0 0; font-size: 15px; line-height: 1.45; }
+.ho-panel-act { margin-top: auto; display: flex; gap: 10px; }
+.ho-panel-act .btn { flex: 1; height: 48px; font-size: 15px; }
+.ho-sec { background: var(--fill); color: var(--text); }
+@media (prefers-reduced-motion: reduce) {
+  .ho-line, .ho-area, .ho-pulse, .ho-panel, .ho-back, .hosearch-list { animation: none; }
+  .ho-line { stroke-dasharray: none; }
+}

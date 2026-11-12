@@ -115,6 +115,32 @@
       "w": 1440,
       "h": 1100,
       "title": "Research \u00b7 what we borrowed"
+    },
+    "H1-ActionList.dc.html": {
+      "x": 0,
+      "y": 5704,
+      "w": 1440,
+      "h": 960,
+      "title": "Option A \u00b7 Action list (click a site)",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "H2-NightBoard.dc.html": {
+      "x": 1520,
+      "y": 5704,
+      "w": 1440,
+      "h": 760,
+      "title": "Option B \u00b7 Night board",
+      "expand": "fill"
+    },
+    "H3-FinanceTable.dc.html": {
+      "x": 3040,
+      "y": 5704,
+      "w": 1440,
+      "h": 1060,
+      "title": "Option C \u00b7 Finance table (search, click a site)",
+      "expand": "fill",
+      "is_interactive": true
     }
   },
   "order": [
@@ -130,7 +156,10 @@
     "D2-HeadOffice.dc.html",
     "D3-Settings.dc.html",
     "M1-Motion.dc.html",
-    "R1-Research.dc.html"
+    "R1-Research.dc.html",
+    "H1-ActionList.dc.html",
+    "H2-NightBoard.dc.html",
+    "H3-FinanceTable.dc.html"
   ],
   "notes": {
     "phone": {
@@ -160,6 +189,21 @@
       "w": 320,
       "text": "All names and figures are made-up examples, not real data. Site colours are suggested defaults; head office can change any of them in Settings.",
       "fill": "orange",
+      "size": "m"
+    },
+    "ho": {
+      "x": 0,
+      "y": 5444,
+      "text": "Head office \u00b7 All sites, three options",
+      "kind": "title1",
+      "maxW": 4480
+    },
+    "ho-note": {
+      "x": 4560,
+      "y": 5704,
+      "w": 340,
+      "text": "A \u00b7 Action list (recommended): what needs you first, then sites as rows grouped by status, detail panel on the right.\n\nB \u00b7 Night board: sites move across Not started \u2192 Closing \u2192 Sent \u2192 Approved.\n\nC \u00b7 Finance table: taller card with tonight's graph, search in the header, a sortable table, and a details panel when you click a site.\n\nAll three: one main card, site colour only on the badges, status always in words.",
+      "fill": "blue",
       "size": "m"
     }
   },

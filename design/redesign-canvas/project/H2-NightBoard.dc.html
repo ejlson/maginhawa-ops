@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Head office · night board</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.pill,.act{corner-shape:round}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}50%{transform:translate(-60px,20px) scale(1.2) rotate(15deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+@keyframes driftB{0%{transform:translate(0,0) scale(1.05)}50%{transform:translate(60px,-16px) scale(.9)}100%{transform:translate(0,0) scale(1.05)}}
+.rise{animation:rise .45s cubic-bezier(.23,1,.32,1) both}
+.blob{position:absolute;border-radius:50%;z-index:-1}
+.ba{animation:driftA 13s ease-in-out infinite}
+.bb{animation:driftB 16s ease-in-out infinite}
+.grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:.75}
+.nav{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:10px;font-size:14px;font-weight:500;color:#1D1D1F}
+.nav .n{margin-left:auto;font-size:12px;font-weight:600;color:#6E6E73}
+.nav.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)}
+.grp{font-size:11px;font-weight:600;color:#8E8E93;letter-spacing:.06em;padding:0 10px;margin:18px 0 6px}
+.col{border-radius:24px;background:#F7F7F9;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.colh{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 4px}
+.colh b{font-size:15px;font-weight:600}
+.colh span{font-size:12px;font-weight:600;color:#6E6E73;background:#FFFFFF;border-radius:999px;padding:2px 9px}
+.tile{border-radius:18px;background:#FFFFFF;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 8px 24px -18px rgba(0,0,0,.18);transition:transform .2s cubic-bezier(.23,1,.32,1)}
+.tile:hover{transform:translateY(-2px)}
+.mono{width:30px;height:30px;border-radius:9px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.pill{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.segs{display:flex;gap:3px}
+.segs i{flex:1;height:5px;border-radius:3px;background:#EDEDF0}
+.act{height:36px;padding:0 16px;border-radius:999px;border:0;background:#1D1D1F;color:#fff;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+@media (prefers-reduced-motion: reduce){.rise,.ba,.bb{animation:none}.tile:hover{transform:none}}
+</style>
+</helmet>
+<div style="width:100%;min-height:760px;display:flex;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em">
+  <aside style="flex:0 0 232px;background:#F7F7F9;border-right:1px solid rgba(0,0,0,.06);padding:24px 14px;box-sizing:border-box;display:flex;flex-direction:column">
+    <div style="font-size:12px;color:#6E6E73;padding:0 10px">Head office · 8 sites</div>
+    <div style="font-size:22px;font-weight:700;letter-spacing:-0.03em;padding:2px 10px 0">Tonight</div>
+    <div class="grp">TONIGHT</div>
+    <span class="nav on">Night board<span class="n" style="color:#B25000">3 need you</span></span>
+    <span class="nav">To approve<span class="n">2</span></span>
+    <div class="grp">REPORTS</div>
+    <span class="nav">Past days</span><span class="nav">Forecast</span><span class="nav">Report builder</span>
+    <div class="grp">GROUP</div>
+    <span class="nav">People and access</span><span class="nav">Sites and colours</span>
+  </aside>
+
+  <main style="flex:1;min-width:0;padding:36px 40px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px">
+    <div class="rise" style="position:relative;overflow:hidden;isolation:isolate;border-radius:30px;padding:22px 28px;background:#16121F;color:#F5F5F7;display:flex;align-items:center;gap:36px;text-shadow:0 1px 14px rgba(0,0,0,.22);box-shadow:0 18px 56px -30px rgba(80,60,160,.45)">
+      <div aria-hidden="true" class="blob ba" style="right:120px;top:-120px;width:420px;height:240px;background:#3B5BDB;filter:blur(50px)"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-60px;bottom:-130px;width:360px;height:220px;background:#F59F00;filter:blur(50px);opacity:.85"></div>
+      <div aria-hidden="true" class="blob ba" style="left:300px;bottom:-140px;width:380px;height:200px;background:#D6336C;filter:blur(52px);opacity:.85"></div>
+      <svg aria-hidden="true" class="grain"><filter id="gh2"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#gh2)"></rect></svg>
+      <div style="display:flex;flex-direction:column"><span style="font-size:13px;color:rgba(245,245,247,.7)">Thursday 12 Nov · 22:15</span><span style="font-variant-numeric:tabular-nums"><span style="font-size:40px;font-weight:600;letter-spacing:-0.05em">£14,820</span><span style="font-size:20px;color:rgba(245,245,247,.6)">.00</span></span></div>
+      <div style="display:flex;gap:28px;font-variant-numeric:tabular-nums;font-size:13px;color:rgba(245,245,247,.75)"><span><b style="display:block;font-size:20px;color:#fff">96%</b>of forecast</span><span><b style="display:block;font-size:20px;color:#fff">29.1%</b>wages</span><span><b style="display:block;font-size:20px;color:#fff">3 of 8</b>closes in</span></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:200px">
+        <div style="position:relative;height:6px;border-radius:3px;background:rgba(255,255,255,.2)">
+          <span style="position:absolute;left:0;top:0;bottom:0;width:38%;border-radius:3px;background:#fff"></span>
+          <span style="position:absolute;left:38%;top:-6px;width:2px;height:18px;background:#fff;border-radius:1px"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:rgba(245,245,247,.7)"><span>21:00</span><span>Now</span><span>Usual last close 00:40</span></div>
+      </div>
+    </div>
+
+    <div style="flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:start">
+      <sc-for list="{{cols}}" as="c" hint-placeholder-count="4">
+        <div class="col rise" style="animation-delay:{{c.delay}}">
+          <div class="colh"><b>{{c.title}}</b><span>{{c.count}}</span></div>
+          <sc-for list="{{c.sites}}" as="s" hint-placeholder-count="2">
+            <div class="tile">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="mono" style="background:{{s.c}};color:{{s.on}}">{{s.mono}}</span>
+                <span style="flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{s.name}}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;font-variant-numeric:tabular-nums"><span style="font-size:20px;font-weight:600;letter-spacing:-0.03em">{{s.net}}</span><span style="font-size:12px;color:#6E6E73">{{s.pct}}</span></div>
+              <div class="segs">
+                <sc-for list="{{s.segs}}" as="g" hint-placeholder-count="8"><i style="background:{{g.bg}}"></i></sc-for>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-size:12px;color:#6E6E73">{{s.when}}</span><span class="pill" style="color:{{s.fCol}};background:{{s.fBg}}">{{s.flag}}</span></div>
+            </div>
+          </sc-for>
+          <sc-if value="{{c.empty}}" hint-placeholder-val="{{false}}">
+            <div style="border:1.5px dashed rgba(0,0,0,.12);border-radius:18px;padding:22px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+              <span style="font-size:13px;color:#6E6E73;line-height:1.45">Clean closes land here once approved. Finance sees them at 07:00.</span>
+              <button class="act">Approve 2 clean</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ok = ['#1F7A35','rgba(52,199,89,.14)'], warn = ['#B25000','rgba(255,149,0,.16)'], bad = ['#D70015','rgba(255,59,48,.12)'], neu = ['#6E6E73','#F2F2F5'];
+    const mk = (mono, name, c, on, net, p, done, when, flag, f) => ({ mono, name, c, on, net, pct: p + '% of forecast', when, flag, fCol: f[0], fBg: f[1],
+      segs: Array.from({ length: 8 }, (_, i) => ({ bg: i < done ? c : '#EDEDF0' })) });
+    const cols = [
+      { title: 'Not started', sites: [
+        mk('CT','Mamasons China Town','#C92A2A','#fff','£1,835.00',97,0,'Usually starts 22:30','Wages 36.2%',bad),
+        mk('BL','Belly','#9C36B5','#fff','£1,610.00',88,0,'Usually starts 22:40','On track',neu) ] },
+      { title: 'Closing', sites: [
+        mk('GB','Guanabana','#5C940D','#fff','£1,920.50',93,5,'Started 21:50','5 of 8',neu),
+        mk('BU','Bunso','#F59F00','#1D1D1F','£1,840.50',80,3,'Started 22:02','3 of 8',neu),
+        mk('HW','Hoodwood','#A0612A','#fff','£1,402.00',90,2,'Started 22:05','2 checks late',warn) ] },
+      { title: 'Sent', sites: [
+        mk('KT','Mamasons Kentish Town','#0C8599','#fff','£2,240.00',99,8,'Sent 23:10','£20.00 short',bad),
+        mk('BN','Bintang','#3B5BDB','#fff','£2,684.00',104,8,'Sent 23:48','Clean',ok),
+        mk('CM','Cafe Mama & Sons','#D6336C','#fff','£1,288.00',101,8,'Sent 22:58','Clean',ok) ] },
+      { title: 'Approved', sites: [] }
+    ];
+    return { cols: cols.map((c, i) => Object.assign({}, c, { count: String(c.sites.length), empty: c.sites.length === 0, delay: (80 + i * 50) + 'ms' })) };
+  }
+}
+</script>
+</body>
+</html>

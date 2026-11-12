@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Head office · action list</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.ic,.pill,.chip,.btn{corner-shape:round}
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-60px,28px) scale(1.2) rotate(20deg)}66%{transform:translate(40px,-20px) scale(.92) rotate(-10deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+@keyframes driftB{0%{transform:translate(0,0) scale(1.05)}50%{transform:translate(50px,-24px) scale(.9)}100%{transform:translate(0,0) scale(1.05)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+.rise{animation:rise .45s cubic-bezier(.23,1,.32,1) both}
+.blob{position:absolute;border-radius:50%;z-index:-1}
+.ba{animation:driftA 13s ease-in-out infinite}
+.bb{animation:driftB 16s ease-in-out infinite}
+.grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:.75}
+.nav{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:10px;font-size:14px;font-weight:500;color:#1D1D1F}
+.nav .n{margin-left:auto;font-size:12px;font-weight:600;color:#6E6E73}
+.nav.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)}
+.grp{font-size:11px;font-weight:600;color:#8E8E93;letter-spacing:.06em;padding:0 10px;margin:18px 0 6px}
+.h2{font-size:20px;font-weight:700;letter-spacing:-0.025em}
+.mono{width:32px;height:32px;border-radius:10px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.pill{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.act{height:32px;padding:0 14px;border-radius:999px;border:0;background:#1D1D1F;color:#fff;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.act.ghost{background:#F2F2F5;color:#1D1D1F}
+.need{display:flex;align-items:center;gap:12px;height:60px;background:linear-gradient(rgba(0,0,0,.07),rgba(0,0,0,.07)) 54px 100%/calc(100% - 54px) 1px no-repeat}
+.ic{width:40px;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex:none}
+.site{width:100%;display:grid;grid-template-columns:32px minmax(0,1.5fr) minmax(0,1.3fr) 104px 98px 56px;align-items:center;column-gap:14px;height:52px;padding:0 12px;border:0;border-radius:12px;background:transparent;font:inherit;color:#1D1D1F;text-align:left;cursor:pointer;transition:background-color .15s ease}
+.site:hover{background:#F7F7F9}
+.sh{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:#8E8E93;letter-spacing:.04em;padding:12px 12px 4px}
+.bar{height:6px;border-radius:3px;background:#EDEDF0;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px;background:#1D1D1F}
+.kv{display:flex;justify-content:space-between;align-items:center;height:44px;font-size:14px;background:linear-gradient(rgba(0,0,0,.07),rgba(0,0,0,.07)) 0 100%/100% 1px no-repeat}
+.kv span:first-child{color:#6E6E73}
+.kv b{font-weight:600;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion: reduce){.rise,.ba,.bb{animation:none}}
+</style>
+</helmet>
+<div style="width:100%;min-height:960px;display:flex;flex-wrap:wrap;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em">
+  <aside style="flex:0 0 232px;background:#F7F7F9;border-right:1px solid rgba(0,0,0,.06);padding:24px 14px;box-sizing:border-box;display:flex;flex-direction:column">
+    <div style="font-size:12px;color:#6E6E73;padding:0 10px">Head office · 8 sites</div>
+    <div style="font-size:22px;font-weight:700;letter-spacing:-0.03em;padding:2px 10px 0">Tonight</div>
+    <div style="display:flex;align-items:center;gap:8px;height:36px;margin-top:14px;padding:0 10px;border-radius:10px;background:#EDEDF0;color:#8E8E93;font-size:14px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M20 20l-4-4"></path></svg><span style="flex:1">Search</span><span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:6px;background:#fff">⌘K</span></div>
+    <div class="grp">TONIGHT</div>
+    <span class="nav on">All sites<span class="n" style="color:#B25000">3 need you</span></span>
+    <span class="nav">To approve<span class="n">2</span></span>
+    <div class="grp">REPORTS</div>
+    <span class="nav">Past days</span><span class="nav">Forecast</span><span class="nav">Report builder</span>
+    <div class="grp">GROUP</div>
+    <span class="nav">People and access</span><span class="nav">Sites and colours</span>
+  </aside>
+
+  <main style="flex:1 1 640px;min-width:0;padding:36px 40px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px">
+      <div><div style="font-size:14px;color:#6E6E73">Thursday 12 November · 22:15</div><div style="font-size:34px;font-weight:700;letter-spacing:-0.038em;line-height:1.1">3 sites need you</div></div>
+      <button class="act" style="height:44px;padding:0 20px;font-size:15px">Approve 2 clean closes</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:28px;align-items:start">
+      <div class="rise" style="position:relative;overflow:hidden;isolation:isolate;border-radius:30px;padding:24px;background:#16121F;color:#F5F5F7;display:flex;flex-direction:column;gap:12px;box-shadow:0 18px 56px -30px rgba(80,60,160,.45);text-shadow:0 1px 14px rgba(0,0,0,.22)">
+        <div aria-hidden="true" class="blob ba" style="right:-80px;top:-90px;width:300px;height:240px;background:#3B5BDB;filter:blur(46px)"></div>
+        <div aria-hidden="true" class="blob bb" style="left:30px;bottom:-130px;width:300px;height:220px;background:#D6336C;filter:blur(48px);opacity:.9"></div>
+        <div aria-hidden="true" class="blob ba" style="right:-40px;bottom:-110px;width:240px;height:180px;background:#F59F00;filter:blur(46px);opacity:.85"></div>
+        <div aria-hidden="true" class="blob bb" style="right:20px;top:20px;width:110px;height:100px;background:oklch(from #A5B8FF .95 calc(c * .6) h);filter:blur(34px);opacity:.6"></div>
+        <svg aria-hidden="true" class="grain"><filter id="gh1"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#gh1)"></rect></svg>
+        <span style="font-size:13px;color:rgba(245,245,247,.7)">Group net so far</span>
+        <span style="font-variant-numeric:tabular-nums;margin-top:-4px"><span style="font-size:44px;font-weight:600;letter-spacing:-0.05em">£14,820</span><span style="font-size:22px;color:rgba(245,245,247,.6)">.00</span></span>
+        <svg width="100%" height="44" viewBox="0 0 300 44" preserveAspectRatio="none" role="img" aria-label="Tonight against the same night last week"><polyline points="0,40 30,36 60,30 90,26 120,22 150,18 180,14 210,12 240,10" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline><polyline points="0,40 30,37 60,33 90,28 120,25 150,21 180,17 210,13 240,11 270,8 300,6" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2" stroke-dasharray="4 4"></polyline></svg>
+        <div style="display:flex;gap:24px;font-variant-numeric:tabular-nums;font-size:13px;color:rgba(245,245,247,.75)">
+          <span><b style="display:block;font-size:18px;color:#fff">96%</b>of forecast</span>
+          <span><b style="display:block;font-size:18px;color:#fff">29.1%</b>wages</span>
+          <span><b style="display:block;font-size:18px;color:#fff">+4%</b>vs last Thu</span>
+        </div>
+      </div>
+
+      <div class="rise" style="animation-delay:60ms;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px"><span class="h2">Needs you</span><span style="font-size:13px;color:#6E6E73">1 cash · 1 wages · 1 checks</span></div>
+        <div class="need"><span class="ic" style="background:rgba(255,59,48,.12);color:#D70015"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle></svg></span><span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:600">Kentish Town £20.00 short</span><span style="font-size:13px;color:#6E6E73">No reason given · sent 23:10 by Mia</span></span><button class="act">Ask</button></div>
+        <div class="need"><span class="ic" style="background:rgba(255,149,0,.16);color:#B25000"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 19l5-6 4 3 7-9"></path></svg></span><span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:600">China Town wages 36.2%</span><span style="font-size:13px;color:#6E6E73">Over 35% · 4 on the rota after 22:00</span></span><button class="act ghost">Look</button></div>
+        <div class="need" style="background:none"><span class="ic" style="background:rgba(255,149,0,.16);color:#B25000"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l2.5 2"></path></svg></span><span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:600">Hoodwood 2 checks late</span><span style="font-size:13px;color:#6E6E73">Hot holding 18:00 and 21:00</span></span><button class="act ghost">Nudge</button></div>
+      </div>
+    </div>
+
+    <div class="rise" style="animation-delay:120ms;display:flex;flex-direction:column">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span class="h2">Sites</span><span style="font-size:13px;color:#6E6E73">Click a site for details</span></div>
+      <sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+        <div class="sh"><span>{{g.title}}</span><span>{{g.count}}</span></div>
+        <sc-for list="{{g.sites}}" as="s" hint-placeholder-count="3">
+          <button class="site" onClick="{{s.pick}}" style="background:{{s.rowBg}}">
+            <span class="mono" style="background:{{s.c}};color:{{s.on}}">{{s.mono}}</span>
+            <span style="display:flex;flex-direction:column;min-width:0"><span style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{s.name}}</span><span style="font-size:12px;color:#6E6E73">{{s.status}}</span></span>
+            <span style="display:flex;flex-direction:column;gap:5px"><span style="display:flex;justify-content:space-between;font-size:13px;font-variant-numeric:tabular-nums"><b style="font-weight:600">{{s.net}}</b><span style="color:#6E6E73">{{s.pct}}</span></span><span class="bar"><i style="width:{{s.barW}}"></i></span></span>
+            <span style="font-size:13px;font-variant-numeric:tabular-nums;color:{{s.wCol}};font-weight:{{s.wWeight}}">Wages {{s.wages}}</span>
+            <span class="pill" style="justify-self:start;color:{{s.cashCol}};background:{{s.cashBg}}">{{s.cash}}</span>
+            <span style="font-size:13px;color:#6E6E73;text-align:right;font-variant-numeric:tabular-nums">{{s.checks}}</span>
+          </button>
+        </sc-for>
+      </sc-for>
+    </div>
+  </main>
+
+  <aside style="flex:0 0 360px;border-left:1px solid rgba(0,0,0,.06);padding:36px 28px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px;background:#FFFFFF" key="{{sel.mono}}">
+    <div style="display:flex;align-items:center;gap:12px;animation:slideIn .3s cubic-bezier(.23,1,.32,1) both">
+      <span class="mono" style="width:44px;height:44px;border-radius:14px;font-size:14px;background:{{sel.c}};color:{{sel.on}}">{{sel.mono}}</span>
+      <span style="display:flex;flex-direction:column"><span style="font-size:20px;font-weight:700;letter-spacing:-0.025em">{{sel.name}}</span><span style="font-size:13px;color:#6E6E73">{{sel.status}}</span></span>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div class="kv"><span>Net</span><b>{{sel.net}}</b></div>
+      <div class="kv"><span>vs forecast</span><b>{{sel.pct}} of forecast</b></div>
+      <div class="kv"><span>Wages</span><b style="color:{{sel.wCol}}">{{sel.wages}}</b></div>
+      <div class="kv"><span>Cash</span><b style="color:{{sel.cashCol}}">{{sel.cash}}</b></div>
+      <div class="kv"><span>Checks</span><b>{{sel.checks}}</b></div>
+      <div class="kv"><span>On time this month</span><b>{{sel.ontime}}</b></div>
+    </div>
+    <div style="border-radius:18px;background:#F7F7F9;padding:14px 16px;font-size:14px;line-height:1.45;color:#3A3A3C"><span style="font-size:12px;font-weight:600;color:#8E8E93;letter-spacing:.04em;display:block;margin-bottom:4px">MANAGER'S NOTE</span>{{sel.note}}</div>
+    <div style="margin-top:auto;display:flex;gap:10px">
+      <button class="act" style="flex:1;height:46px;font-size:15px">{{sel.primary}}</button>
+      <button class="act ghost" style="flex:1;height:46px;font-size:15px">Send back</button>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { sel: 'KT' }; }
+  renderVals() {
+    const ok = ['#1F7A35','rgba(52,199,89,.14)'], bad = ['#D70015','rgba(255,59,48,.12)'], neu = ['#6E6E73','#F2F2F5'];
+    const S = [
+      { mono:'KT', name:'Mamasons Kentish Town', c:'#0C8599', on:'#fff', g:'sent', status:'Sent 23:10 · Mia', net:'£2,240.00', p:99, wages:'28.7%', w:28.7, cash:'£20.00 short', cs:bad, checks:'8 of 8', ontime:'11 of 12', note:'Busy last hour, card machine dropped twice. Will recount float in the morning.' },
+      { mono:'BN', name:'Bintang', c:'#3B5BDB', on:'#fff', g:'sent', status:'Sent 23:48 · Ravi', net:'£2,684.00', p:104, wages:'28.0%', w:28.0, cash:'Balanced', cs:ok, checks:'9 of 9', ontime:'12 of 12', note:'Strong night, two large parties. Nothing to flag.' },
+      { mono:'CM', name:'Cafe Mama & Sons', c:'#D6336C', on:'#fff', g:'sent', status:'Sent 22:58 · Leo', net:'£1,288.00', p:101, wages:'26.8%', w:26.8, cash:'Balanced', cs:ok, checks:'8 of 8', ontime:'12 of 12', note:'Quiet but steady. New dessert sold well.' },
+      { mono:'GB', name:'Guanabana', c:'#5C940D', on:'#fff', g:'closing', status:'Closing · 5 of 8', net:'£1,920.50', p:93, wages:'30.4%', w:30.4, cash:'Not counted', cs:neu, checks:'7 of 8', ontime:'10 of 12', note:'Still closing.' },
+      { mono:'BU', name:'Bunso', c:'#F59F00', on:'#1D1D1F', g:'closing', status:'Closing · 3 of 8', net:'£1,840.50', p:80, wages:'27.4%', w:27.4, cash:'Not counted', cs:neu, checks:'5 of 9', ontime:'9 of 12', note:'Still closing.' },
+      { mono:'HW', name:'Hoodwood', c:'#A0612A', on:'#fff', g:'closing', status:'Closing · 2 of 8 · 2 checks late', net:'£1,402.00', p:90, wages:'29.2%', w:29.2, cash:'Not counted', cs:neu, checks:'5 of 7', ontime:'8 of 12', note:'Still closing.' },
+      { mono:'CT', name:'Mamasons China Town', c:'#C92A2A', on:'#fff', g:'not', status:'Not started', net:'£1,835.00', p:97, wages:'36.2%', w:36.2, cash:'Not counted', cs:neu, checks:'6 of 8', ontime:'10 of 12', note:'Not started yet.' },
+      { mono:'BL', name:'Belly', c:'#9C36B5', on:'#fff', g:'not', status:'Not started', net:'£1,610.00', p:88, wages:'31.9%', w:31.9, cash:'Not counted', cs:neu, checks:'6 of 8', ontime:'11 of 12', note:'Not started yet.' }
+    ];
+    const dec = (s) => Object.assign({}, s, {
+      pct: s.p + '%', barW: Math.min(100, s.p) + '%',
+      wCol: s.w > 35 ? '#D70015' : s.w >= 30 ? '#B25000' : '#1D1D1F', wWeight: s.w >= 30 ? 600 : 400,
+      cashCol: s.cs[0], cashBg: s.cs[1], rowBg: s.mono === this.state.sel ? '#F2F2F5' : 'transparent',
+      primary: s.g === 'sent' ? (s.cs === bad ? 'Ask about cash' : 'Approve') : 'Nudge manager',
+      pick: () => this.setState({ sel: s.mono })
+    });
+    const G = [['Sent · to approve','sent'],['Still closing','closing'],['Not started','not']];
+    return {
+      groups: G.map((g) => { const list = S.filter((s) => s.g === g[1]).map(dec); return { title: g[0].toUpperCase(), count: list.length + (list.length === 1 ? ' site' : ' sites'), sites: list }; }),
+      sel: dec(S.find((s) => s.mono === this.state.sel))
+    };
+  }
+}
+</script>
+</body>
+</html>

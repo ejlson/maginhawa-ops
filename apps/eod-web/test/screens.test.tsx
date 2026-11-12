@@ -327,7 +327,10 @@ describe('head office', () => {
   it('opens a restaurant\'s page from the sites table, and back', async () => {
     const { user } = renderApp('/head-office', admin);
     const table = await screen.findByRole('table', { name: 'Sites' });
-    await user.click(within(table).getByRole('row', { name: 'Guanabana: see trends' }));
+    await user.click(within(table).getByRole('row', { name: 'Guanabana: details' }));
+    const panel = screen.getByRole('dialog', { name: 'Guanabana details' });
+    expect(within(panel).getByText('Not started yet.')).toBeInTheDocument();
+    await user.click(within(panel).getByRole('link', { name: "See Guanabana's trends" }));
     expect(await screen.findByRole('heading', { name: 'Guanabana' })).toBeInTheDocument();
     // Tests run without example data, so there's no history to chart yet.
     expect(screen.getByText('Not enough history yet. Trends appear after a few days of closes.')).toBeInTheDocument();

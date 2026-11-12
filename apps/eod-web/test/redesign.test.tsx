@@ -40,3 +40,37 @@ describe('More', () => {
     expect(screen.queryByRole('link', { name: /^Repairs/ })).not.toBeInTheDocument();
   });
 });
+
+describe('head office all sites', () => {
+  it('opens a site’s details, approves it, and can send it back', async () => {
+    const { seedVerifiedDraft } = await import('./harness');
+    const { deviceStore } = await import('../app/lib/store');
+    const { submitReport } = await import('@maginhawa/core');
+    const { settingsFor } = await import('../app/lib/draft');
+    await seedVerifiedDraft((d) => { d.confirmed = true; d.handover = [{ id: 'h1', category: 'general', body: 'Fridge 2 is noisy again.', raiseRepair: false }]; });
+    const d = (await deviceStore().get('BUN', '2026-10-05'))!.draft;
+    await submitReport(d, { store: deviceStore(), settings: settingsFor('BUN'), submittedBy: 'Jo' });
+
+    const { user } = renderApp('/head-office', admin);
+    const table = await screen.findByRole('table', { name: 'Sites' });
+    await user.click(within(table).getByRole('row', { name: 'Bunso: details' }));
+    const panel = screen.getByRole('dialog', { name: 'Bunso details' });
+    expect(within(panel).getByText('£2,687.50')).toBeInTheDocument();
+    expect(within(panel).getByText('Fridge 2 is noisy again.')).toBeInTheDocument();
+    expect(within(panel).getByText(/Manager's note · Jo/)).toBeInTheDocument();
+    await user.click(within(panel).getByRole('button', { name: 'Approve' }));
+    expect(await within(screen.getByRole('dialog', { name: 'Bunso details' })).findByText(/^Approved by Ana/)).toBeInTheDocument();
+    await user.click(within(screen.getByRole('dialog', { name: 'Bunso details' })).getByRole('button', { name: 'Send back' }));
+    expect(await within(screen.getByRole('dialog', { name: 'Bunso details' })).findByText(/^Sent back by Ana/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('dialog', { name: 'Bunso details' })).not.toBeInTheDocument();
+  });
+
+  it('finds a site from the header search', async () => {
+    const { user } = renderApp('/head-office', admin);
+    await screen.findByRole('table', { name: 'Sites' });
+    await user.type(screen.getByRole('combobox', { name: 'Search sites and screens' }), 'bel');
+    await user.click(within(screen.getByRole('listbox', { name: 'Search results' })).getByRole('option', { name: /Belly/ }));
+    expect(screen.getByRole('dialog', { name: 'Belly details' })).toBeInTheDocument();
+  });
+});
