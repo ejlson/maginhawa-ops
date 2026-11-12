@@ -1,6 +1,6 @@
 /**
- * Each site's current version, kept in Netlify Blobs so a poll that finds nothing new
- * never reaches Graph (SharePoint's API is throttled per tenant; Blobs is not).
+ * Each site's current version, kept in Workers KV so a poll that finds nothing new
+ * never reaches Graph (SharePoint's API is throttled per tenant; KV is not).
  *
  *   EOD:        "eod|BUN|2026-10-05" → the report's version (its ETag), or "none" before anyone starts it
  *   Checklists: "checklists|BUN"     → the highest change cursor at the site
@@ -9,7 +9,6 @@
  * INDEX_TRUST_MS after it was last checked, so a change made outside these functions
  * (someone editing the SharePoint list by hand) still shows up within about a minute.
  */
-import { getStore } from '@netlify/blobs';
 import type { StoredReport } from '@maginhawa/core';
 
 export interface IndexEntry {
@@ -37,7 +36,7 @@ export async function trusted(index: VersionIndex | undefined, key: string, now:
     const e = await index.get(key);
     return e && now - e.at < trustMs ? e.value : null;
   } catch {
-    return null; // Blobs unavailable: fall through to SharePoint.
+    return null; // Cache unavailable: fall through to SharePoint.
   }
 }
 
@@ -61,12 +60,28 @@ export class MemoryVersionIndex implements VersionIndex {
   async set(key: string, entry: IndexEntry) { this.entries.set(key, entry); }
 }
 
-/** Strong consistency, so a write on one function instance is seen by the next poll on another. */
-export function blobsVersionIndex(): VersionIndex {
-  const store = getStore({ name: 'site-versions', consistency: 'strong' });
+/** The part of a Workers KV namespace we use (so this package needn't depend on Cloudflare's types). */
+export interface KVLike {
+  get(key: string): Promise<string | null>;
+  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
+}
+
+/** Entries expire after a day: an old version is only ever a reason to ask SharePoint. */
+const KV_TTL_SECONDS = 86_400;
+
+/**
+ * Workers KV. Unlike Netlify Blobs it is eventually consistent: another Cloudflare location can
+ * see an old entry for up to about 60 seconds. Every entry is only trusted for INDEX_TRUST_MS
+ * anyway, so the worst case is a device seeing someone else's change about a minute later.
+ * Our users are all in London, so in practice they share one location.
+ */
+export function kvVersionIndex(kv: KVLike): VersionIndex {
   return {
-    get: async (key) => (await store.get(key, { type: 'json' })) as IndexEntry | null,
-    set: async (key, entry) => { await store.setJSON(key, entry); },
+    get: async (key) => {
+      const raw = await kv.get(key);
+      return raw ? (JSON.parse(raw) as IndexEntry) : null;
+    },
+    set: async (key, entry) => { await kv.put(key, JSON.stringify(entry), { expirationTtl: KV_TTL_SECONDS }); },
   };
 }
 

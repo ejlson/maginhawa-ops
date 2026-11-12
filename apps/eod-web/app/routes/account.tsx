@@ -8,7 +8,7 @@ import { RolePicker } from '../components/RolePicker';
 
 const REPLAY = 'M3 9a6 6 0 1 0 1.8-4.3M3 3v3h3';
 
-/** Who's signed in. Demo mode can switch role on the spot; connected mode takes roles from Microsoft sign-in. */
+/** Who's signed in. Demo mode can switch role on the spot; connected mode takes roles from the team list (People). */
 export default function Account() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();

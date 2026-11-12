@@ -1,0 +1,13 @@
+// Cloudflare Pages project "maginhawa-app". Build: `npm run build` in apps/eod-web, output build/client.
+// /api/* is functions/api/[[path]].ts. Timed jobs are a separate Worker (apps/functions/wrangler.jsonc).
+// Test site: functions/_middleware.ts asks for a password first (TEST_GATE_USER, TEST_GATE_PASSWORD; Preview).
+// Secrets are set in the Cloudflare dashboard (Settings → Variables and Secrets), Production only:
+// ENTRA_TENANT_ID, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET, SHAREPOINT_SITE_ID, MAIL_FROM, MAIL_TO, SESSION_SECRET.
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "maginhawa-app",
+  "pages_build_output_dir": "build/client",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"]
+  // KV (binding CACHE) is added when SharePoint is connected; until then /api works without it.
+}

@@ -25,16 +25,18 @@ lst("Reference", "Sites", "One row per restaurant; drives rules, targets and set
  ("PowerAutomateFrom", "DateTime", "When head office switched the EOD flow on for this site; blank = off. Reports sent before it aren't sent to the flow", ""),
  ("Active", "Yes/No", "Open and trading. A closed site (e.g. Ramo) stays for its old records but drops out of pickers, counts and access", "I"),
 ])
-lst("Reference", "Staff", "Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts. Role and sites decide what the server lets them open", "Head office (sites, roles) / Manager (own site's people)", [
+lst("Reference", "Staff", "Everyone who uses the apps, incl. kiosk-only staff with no email (PIN only). Role and sites decide what the server lets them open", "Head office (sites, roles) / Manager (own site's people)", [
  ("Title", "Text", "Full name", "R"),
- ("Email", "Text", "Microsoft account (blank for kiosk-only staff)", "I"),
+ ("Email", "Text", "Any email they can read (work or personal), stored lower case; they sign in with a code sent to it. Blank for kiosk-only staff. One active row per email", "I"),
+ ("EmailVerifiedAt", "DateTime", "When they first typed a code sent to this email", "F"),
+ ("SessionsValidAfter", "DateTime", "Sign-ins from before this stop working: 'sign out everywhere', an email change, a lost phone", ""),
  ("HomeSite", "Lookup → Sites", "Main site: where they land after signing in", "I"),
  ("OtherSites", "Lookup → Sites (multi)", "Other sites they work at. Head office only", ""),
  ("AllSites", "Yes/No", "Every open site, including ones opened later. Head office only", ""),
  ("Department", "Choice", "Kitchen / FOH / Management / Finance / Admin", ""),
  ("Position", "Choice", "Head chef, Sous chef, CDP, Commis, KP, Floor manager, Senior waiter, Waiter, Runner, Host, Bartender, RM, GM, AM, Duty manager, Supervisor", ""),
  ("AppRole", "Choice", "Staff / Supervisor / Manager / Head office (head office always has every site)", "R"),
- ("PinHash", "Text", "argon2 hash of 4-digit kiosk PIN (never the PIN)", ""),
+ ("PinHash", "Text", "PBKDF2-SHA-256 hash and salt of the 4-digit kiosk PIN (never the PIN; packages/core pin.ts)", ""),
  ("PreferredLanguage", "Text", "en-GB default", ""),
  ("Active", "Yes/No", "", "I"),
 ])
@@ -138,7 +140,7 @@ lst("Checklists", "ChecklistDays", "One header per open site per date: groups th
  ("FailedCount", "Number", "", "F"),
  ("OpenFixes", "Number", "", "F"),
  ("SubmittedAt", "DateTime", "Last run finished (server time)", "F"),
- ("SubmittedById", "Text", "Entra object id (not a person column)", "F"),
+ ("SubmittedById", "Text", "Staff list item id (not a person column)", "F"),
  ("SubmittedByName", "Text", "", "F"),
  ("MissedDetectedAt", "DateTime", "Set once by the nightly job; never cleared, even by a late submission", "F"),
  ("DayHash", "Text", "SHA-256 over the finished runs' RunHash values", "F"),
@@ -166,7 +168,7 @@ lst("Checklists", "ChecklistRuns", "One checklist (template + due time) on a day
  ("Seq", "Number", "Raised on every successful write; the Finish 'seen' check compares against it", "F"),
  ("RecheckOf", "Text", "RunKey|checkpointId of the failed answer", ""),
  ("CompletedAt", "DateTime", "Server time", "F"),
- ("CompletedById", "Text", "Entra object id", "F"),
+ ("CompletedById", "Text", "Staff list item id", "F"),
  ("CompletedByName", "Text", "", "F"),
  ("DurationSeconds", "Number", "Pencil-whip signal", "F"),
  ("FailedCount", "Number", "", "F"),
@@ -200,7 +202,7 @@ lst("Checklists", "Responses_{yyyy}", "One list per business-date year (Response
  ("PhotoIds", "Text", "PhotoId values (; separated). Replaces PhotoUrl: links expire, ids don't", ""),
  ("PhotoItemIds", "Text", "driveItem ids in the Photos library", ""),
  ("PhotoSha256", "Text", "Detects reused photos", ""),
- ("AnsweredById", "Text", "Entra object id", ""),
+ ("AnsweredById", "Text", "Staff list item id", ""),
  ("AnsweredByName", "Text", "", ""),
  ("AnsweredAt", "DateTime", "Capped at server time", ""),
  ("ReceivedAt", "DateTime", "Server time the answer reached us (offline answers arrive later)", ""),
@@ -219,7 +221,7 @@ lst("Checklists", "CorrectiveActions", "What was done about a failed check", "Ap
  ("Status", "Choice", "Open / Action taken / Verified / Escalated", "I"),
  ("RecheckDue", "Date/Time", "", "I"),
  ("WorkOrder", "Lookup → WorkOrders", "Set when escalated", ""),
- ("VerifiedById", "Text", "Entra object id", ""),
+ ("VerifiedById", "Text", "Staff list item id", ""),
  ("VerifiedByName", "Text", "", ""),
 ])
 lst("Checklists", "ChecklistAudit", "Restores, moves and hard deletes of checklist days; kept when the day itself is hard-deleted", "Netlify Functions only", [
@@ -227,11 +229,28 @@ lst("Checklists", "ChecklistAudit", "Restores, moves and hard deletes of checkli
  ("DayKey", "Text", "", "I"),
  ("Action", "Choice", "Soft delete / Restore / Move / Hard delete started / Hard delete finished", "R"),
  ("Reason", "Text", "", "R"),
- ("ById", "Text", "Entra object id", "R"),
+ ("ById", "Text", "Staff list item id", "R"),
  ("ByName", "Text", "", ""),
  ("At", "DateTime", "Server time", "R"),
  ("Counts", "Text", "JSON: runs, rows, photos, corrective actions affected", ""),
  ("MovedTo", "Text", "New DayKey after a move", ""),
+])
+lst("Reference", "SignInLog", "Sign-ins, codes asked for, wrong codes, kitchen iPads set up and sign-outs. Never the code itself. Kept 12 months", "Server (sign-in routes) only", [
+ ("Title", "Text", "action|email|timestamp", "R"),
+ ("Action", "Choice", "Code sent / Code not sent / Signed in / Wrong code / Locked / Kitchen iPad set up / Signed out", "I"),
+ ("Email", "Text", "Lower case", "I"),
+ ("SiteCode", "Text", "For kitchen iPads", ""),
+ ("At", "DateTime", "Server time", "I"),
+ ("NetworkAddress", "Text", "From Cloudflare; personal data, so kept 12 months only", ""),
+])
+lst("Reference", "Devices", "Kitchen iPads set up by a manager. Turning one off stops it at once; it also stops if that manager leaves or loses the site", "Server; managers turn them off in the app", [
+ ("Title", "Text", "DeviceId (random, from the sign-in cookie)", "IUR"),
+ ("SiteCode", "Text", "", "I"),
+ ("SetUpBy", "Text", "Manager's email", ""),
+ ("SetUpAt", "DateTime", "", ""),
+ ("Label", "Text", "e.g. Kitchen iPad by the pass", ""),
+ ("RevokedAt", "DateTime", "Blank = in use", "I"),
+ ("RevokedBy", "Text", "", ""),
 ])
 lst("Checklists", "HandoverNotes", "Shift handover log", "App", [
  ("Title", "Text", "Summary", ""),

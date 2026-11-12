@@ -1,0 +1,16 @@
+Hi Hanz, could you help me with something in Microsoft 365? I need to create a new *SharePoint site* for the Maginhawa app (the checklists: opening, closing, temperatures etc.), but I don't have permission to create sites.
+
+*Why a site and not just a folder in Operations?*
+1. The app saves checklists into SharePoint *lists*, and lists can only live on a site, not in a folder
+2. Microsoft gives an app access to a *whole site*. If it used our Operations folder, it could change everything on Maginhawa.Group
+3. Maginhawa.Group is a *public* group, and food-safety records and staff photos shouldn't be open to everyone (GDPR)
+
+Rather than you doing all the setup, could you give me the *SharePoint Administrator* role? Then I can create and look after the site myself.
+• admin.microsoft.com → Users → Active users → me → *Manage roles* → Admin centre access → tick *SharePoint Administrator* → Save
+• It only covers SharePoint, not users, email or billing
+
+*Two clicks I'll still need from you afterwards* (only a Global admin can do these):
+1. Once I've registered the app in Entra, open *entra.microsoft.com → App registrations → Maginhawa App → API permissions* and click *Grant admin consent*. It only asks for *Sites.Selected*, which gives the app access to nothing until I add it to our new site
+2. In *Graph Explorer*, I'll need admin consent for *Sites.FullControl.All* so I can give the app access to that one site. I'll message you when I get there
+
+It takes about 5 mins. No rush, if you don't have time today, tomorrow is totally fine. Thanks!

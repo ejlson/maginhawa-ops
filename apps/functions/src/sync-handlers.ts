@@ -22,7 +22,7 @@ async function readJson(req: Request): Promise<Record<string, unknown> | null> {
  * GET  /eod-draft?site=BUN&date=2026-10-05   (If-None-Match: <version>) → 200 { report } | 304
  * PUT  /eod-draft  { draft, baseVersion }    → 200 { report } | 409 { code: 'conflict' | 'locked', current }
  *
- * With an `index`, a poll whose version matches the one in Netlify Blobs gets its 304
+ * With an `index`, a poll whose version matches the one in the KV cache gets its 304
  * without SharePoint being asked.
  */
 export function createEodDraftHandler(deps: { authenticate: Authenticate; store: EodStore; index?: VersionIndex; now?: () => number }) {
@@ -75,7 +75,7 @@ export function createEodDraftHandler(deps: { authenticate: Authenticate; store:
  * POST /checklist-sync { siteCode, ops }                 → { outcomes }   (one call per batch)
  *
  * With an `index`, a poll that is already up to date with the site's cursor in Netlify
- * Blobs gets an empty answer without SharePoint being asked.
+ * the cache gets an empty answer without SharePoint being asked.
  */
 export function createChecklistSyncHandler(deps: { authenticate: Authenticate; store: ChecklistBackend; index?: VersionIndex; now?: () => number }) {
   const now = deps.now ?? Date.now;

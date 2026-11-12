@@ -1,5 +1,5 @@
 /**
- * Who is calling and which sites they may open. The sign-in token says who they are (Entra ID);
+ * Who is calling and which sites they may open. The session cookie says who they are (an email they proved with a code, sign-in.ts);
  * their row on the SharePoint Staff list says their role and sites. The browser never decides this.
  *
  *   Head office          → every open site
@@ -7,7 +7,7 @@
  *   Otherwise            → their main site and any others head office ticked (open ones only)
  *   Left, or not listed  → nothing: not signed in
  *
- * The answer is kept in Netlify Blobs for ACCESS_TRUST_MS so ordinary requests don't each read
+ * The answer is kept in the shared cache (Workers KV) for ACCESS_TRUST_MS so ordinary requests don't each read
  * SharePoint. Taking a site away therefore applies within that time.
  */
 import { accessOf, isActive, type Person } from '@maginhawa/core';
@@ -16,12 +16,18 @@ import { record, trusted, type VersionIndex } from './version-index';
 
 export const ACCESS_TRUST_MS = 5 * 60_000;
 
+interface Cached { caller: Caller | null; validAfter: string | null }
+
 export const accessKey = (email: string) => `access|${email.trim().toLowerCase()}`;
 
-/** The signed-in identity from a verified token. Null = no valid token. */
-export interface Identity { email: string }
+/** The signed-in identity from a verified session. Null = not signed in. */
+export interface Identity {
+  email: string;
+  /** When they typed the code (ms). Sessions older than the Staff row's sessionsValidAfter stop working. */
+  signedInAt?: number;
+}
 
-/** The Staff list, looked up by work email. Null = nobody active with that email. */
+/** The Staff list, looked up by email. Null = nobody with that email. */
 export interface StaffDirectory {
   byEmail(email: string): Promise<Person | null>;
 }
@@ -34,7 +40,7 @@ export function callerFor(p: Person): Caller | null {
 }
 
 export interface AccessDeps {
-  /** Checks the bearer token (Entra ID). */
+  /** Checks the session cookie. */
   identify: (req: Request) => Promise<Identity | null>;
   directory: StaffDirectory;
   cache?: VersionIndex;
@@ -52,15 +58,20 @@ export function createAuthenticate(deps: AccessDeps): Authenticate {
     const who = await deps.identify(req);
     if (!who?.email) return null;
     const key = accessKey(who.email);
-    // Blobs unavailable or unreadable: ask SharePoint.
+    // Cache unavailable or unreadable: ask SharePoint.
     const hit = await trusted(deps.cache, key, now(), ACCESS_TRUST_MS);
+    let entry: Cached | null = null;
     if (hit !== null) {
-      try { return JSON.parse(hit) as Caller | null; } catch { /* ask SharePoint */ }
+      try { entry = JSON.parse(hit) as Cached; } catch { /* ask SharePoint */ }
     }
-    const person = await deps.directory.byEmail(who.email);
-    const caller = person ? callerFor(person) : null;
-    // A failure here only costs one extra Graph call next time.
-    await record(deps.cache, key, JSON.stringify(caller), now());
-    return caller;
+    if (!entry || !('caller' in entry)) {
+      const person = await deps.directory.byEmail(who.email);
+      entry = { caller: person ? callerFor(person) : null, validAfter: person?.sessionsValidAfter ?? null };
+      // A failure here only costs one extra Graph call next time.
+      await record(deps.cache, key, JSON.stringify(entry), now());
+    }
+    // "Sign out everywhere" or an email change: sessions from before then stop working.
+    if (entry.validAfter && (who.signedInAt ?? 0) < Date.parse(entry.validAfter)) return null;
+    return entry.caller;
   };
 }

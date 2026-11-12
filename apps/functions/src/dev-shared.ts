@@ -1,6 +1,6 @@
 /**
  * Shared test mode: lets a laptop and a phone on the same Wi-Fi sync through one local
- * server before Entra ID and SharePoint are connected. Everything is kept in memory on
+ * server before SharePoint is connected. Everything is kept in memory on
  * the laptop and lost when the server stops.
  *
  * It trusts a header for who is calling, so it must never run in a deployed site:
@@ -10,15 +10,16 @@
 import { DEFAULT_SETTINGS, DEV_USER_HEADER, findSite, MemoryChecklistStore, MemoryPresence, MemorySiteFlowStore, MemoryStore, SITES, type ChecklistBackend, type EmailMessage, type EodStore, type FlowMessage, type FlowOutbox, type PresenceRemote, type SiteFlowStore, type SiteSettings } from '@maginhawa/core';
 import type { Authenticate, Caller } from './handler';
 import { MemoryVersionIndex, type VersionIndex } from './version-index';
+import { processEnv, type Env } from './not-connected';
 
-type Env = Record<string, string | undefined>;
 
 /** Why shared test mode is off, or null when it may run. */
-export function sharedDevRefusal(env: Env = process.env): string | null {
+export function sharedDevRefusal(env: Env = processEnv()): string | null {
   if (env.DEV_SHARED_STORE !== '1') return 'DEV_SHARED_STORE is not set to 1.';
   if (env.NODE_ENV === 'production') return 'Refused: NODE_ENV is production.';
   if (env.CONTEXT === 'production') return 'Refused: this is a production deploy.';
-  // A deployed Netlify Function runs on AWS Lambda; `netlify dev` and Vite do not.
+  // Anything running on Cloudflare (deployed, or a preview) is refused: it trusts a header for who is calling.
+  if ((globalThis as { navigator?: { userAgent?: string } }).navigator?.userAgent === 'Cloudflare-Workers') return 'Refused: running on Cloudflare.';
   if (env.AWS_LAMBDA_FUNCTION_NAME || env.LAMBDA_TASK_ROOT) return 'Refused: running as a deployed function.';
   return null;
 }
@@ -65,12 +66,12 @@ export function createSharedDev(clock: () => Date = () => new Date()): SharedDev
   };
 }
 
-// Kept on globalThis so every function sees the same stores, even when each is bundled separately (netlify dev).
+// Kept on globalThis so every request sees the same stores, even if the dev server reloads a module.
 const KEY = Symbol.for('maginhawa.sharedDev');
 let warned = false;
 
 /** The shared in-memory stores, or null when shared test mode is off or refused. */
-export function sharedDev(env: Env = process.env): SharedDev | null {
+export function sharedDev(env: Env = processEnv()): SharedDev | null {
   const refused = sharedDevRefusal(env);
   if (refused) {
     if (env.DEV_SHARED_STORE === '1' && !warned) { warned = true; console.warn(`[shared test mode] ${refused}`); }

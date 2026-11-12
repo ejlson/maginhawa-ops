@@ -22,8 +22,8 @@ describe('adding a person', () => {
   it('lets someone keep their own name when edited', () => {
     expect(personProblem({ name: 'Sam', role: 'supervisor', email: null, siteCode: 'BUN' }, team, 'manager', 'Sam')).toBeNull();
   });
-  it('needs a work email for managers, who sign in with Microsoft', () => {
-    expect(personProblem({ name: 'Alex', role: 'manager', email: 'alex', siteCode: 'BUN' }, team, 'manager')).toBe('Add their work email so they can sign in.');
+  it('needs an email for managers, who sign in with a code', () => {
+    expect(personProblem({ name: 'Alex', role: 'manager', email: 'alex', siteCode: 'BUN' }, team, 'manager')).toBe('Add their email so they can sign in.');
     expect(personProblem({ name: 'Alex', role: 'manager', email: 'alex@example.com', siteCode: 'BUN' }, team, 'manager')).toBeNull();
   });
   it('only lets head office give head-office access', () => {
@@ -37,7 +37,7 @@ describe('adding a person', () => {
 });
 
 describe('roles and signing in', () => {
-  it('gives staff and supervisors a PIN, and everyone else a work account', () => {
+  it('gives staff and supervisors a PIN, and everyone else an email sign-in', () => {
     expect(['staff', 'supervisor', 'manager', 'headoffice'].map((r) => usesPin(r as Person['role']))).toEqual([true, true, false, false]);
   });
   it("doesn't let a manager change a head-office person", () => {

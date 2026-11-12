@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SETTINGS, MemoryFlowOutbox, MemoryStore, type EmailMessage } from '@maginhawa/core';
 import { createSubmitHandler, type SubmitDeps } from '../src/handler';
-import netlifyFunction from '../netlify/functions/submit-eod';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
+import { createApi } from '../src/api';
+const viaApi = (r: Request) => createApi(process.env)(r);
 
 const post = (body: unknown, token = 'good') =>
-  new Request('https://ops.example/.netlify/functions/submit-eod', {
+  new Request('https://ops.example/api/submit-eod', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: typeof body === 'string' ? body : JSON.stringify(body),
@@ -112,7 +113,7 @@ describe('the deployed function before SharePoint is connected', () => {
   afterEach(() => { vi.unstubAllEnvs(); });
 
   it('answers 503 with a clear message and lists what is missing', async () => {
-    const res = await netlifyFunction(post(verifiedDraft()));
+    const res = await viaApi(post(verifiedDraft()));
     expect(res.status).toBe(503);
     const body = await res.json();
     expect(body.error).toMatch(/not connected to SharePoint yet/);

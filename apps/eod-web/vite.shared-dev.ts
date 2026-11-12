@@ -1,6 +1,6 @@
 /**
- * Shared test mode (`npm run dev:shared`): the dev server also answers /.netlify/functions/*
- * by running the real function files from apps/functions, which keep the site's data in
+ * Shared test mode (`npm run dev:shared`): the dev server also answers /api/* by running the
+ * same router Cloudflare Pages runs (apps/functions/src/api.ts), which keeps the site's data in
  * memory on this laptop. It listens on the Wi-Fi so a phone can open the same site.
  *
  * `vite dev` only (apply: 'serve'): nothing here is part of a build or a deploy.
@@ -12,9 +12,7 @@ import type { Plugin, ViteDevServer } from 'vite';
 export const SHARED_DEV_MODE = 'shared-dev';
 export const SHARED_DEV_PORT = 5180;
 
-const FUNCTIONS_DIR = fileURLToPath(new URL('../functions/netlify/functions/', import.meta.url));
-/** The functions the screens call. */
-const SERVED = new Set(['eod-draft', 'submit-eod', 'checklist-sync', 'presence', 'site-flow']);
+const API = fileURLToPath(new URL('../functions/src/api.ts', import.meta.url));
 
 async function readBody(req: IncomingMessage): Promise<Uint8Array<ArrayBuffer> | undefined> {
   if (req.method === 'GET' || req.method === 'HEAD') return undefined;
@@ -39,14 +37,13 @@ async function send(res: ServerResponse, out: Response) {
 }
 
 function serveFunctions(server: ViteDevServer) {
-  server.middlewares.use('/.netlify/functions', async (req, res, next) => {
-    const name = (req.url ?? '').replace(/^\//, '').split(/[/?]/)[0] ?? '';
-    if (!SERVED.has(name)) return next();
+  server.middlewares.use('/api', async (req, res) => {
     try {
-      const mod = await server.ssrLoadModule(`${FUNCTIONS_DIR}${name}.ts`);
-      await send(res, await (mod.default as (r: Request) => Promise<Response>)(await toRequest(req)));
+      const mod = await server.ssrLoadModule(API);
+      const api = (mod.createApi as (env: Record<string, string | undefined>) => (r: Request) => Promise<Response>)(process.env);
+      await send(res, await api(await toRequest(req)));
     } catch (e) {
-      server.config.logger.error(`[shared test mode] ${name}: ${(e as Error).stack ?? e}`);
+      server.config.logger.error(`[shared test mode] ${req.url}: ${(e as Error).stack ?? e}`);
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'The test server hit an error. See the terminal.' }));

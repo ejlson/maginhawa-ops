@@ -1,8 +1,10 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { accessOf, findPerson, isOpenSite, OPEN_SITE_CODES } from '@maginhawa/core';
 import { storage } from './storage';
 import { people } from './people';
 import { ROLE_LABELS, type User, remember, AuthContext } from './auth';
+import { usesEmailSignIn } from './config';
+import { signOutOnServer, userFrom, whoAmI } from './session';
 
 /**
  * Users saved before the roles changed were 'admin' or 'finance': both are head office now.
@@ -27,7 +29,28 @@ export function AuthProvider({ children, initialUser }: { children: ReactNode; i
     if (u.role !== 'headoffice') people.ensure(u.siteCode, u.name, u.role, '');
     setUser(u);
   }, []);
-  const signOut = useCallback(() => { storage.remove(KEY); setUser(null); }, []);
+  const signOut = useCallback(() => {
+    storage.remove(KEY);
+    setUser(null);
+    if (usesEmailSignIn()) void signOutOnServer();
+  }, []);
+  // Email sign-in: the server's cookie decides. Check once on opening; no signal keeps the person signed in.
+  useEffect(() => {
+    if (!usesEmailSignIn() || initialUser !== undefined) return;
+    let live = true;
+    void whoAmI().then((me) => {
+      if (!live || me === 'unknown') return;
+      if (me === 'signed-out') { storage.remove(KEY); setUser(null); return; }
+      setUser((u) => {
+        const fresh = userFrom(me);
+        // Keep the site they were working in, if they still have it.
+        const next = u && (me.siteCodes ?? [me.siteCode]).includes(u.siteCode) ? { ...fresh, siteCode: u.siteCode, inSite: u.inSite } : fresh;
+        storage.set(KEY, next);
+        return next;
+      });
+    });
+    return () => { live = false; };
+  }, [initialUser]);
   const save = useCallback((patch: Partial<User>) => setUser((u) => {
     if (!u) return u;
     const next = { ...u, ...patch };

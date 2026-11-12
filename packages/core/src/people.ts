@@ -22,15 +22,19 @@ export interface Person {
   otherSites?: string[];
   /** Every open site, now and later. Head office sets this. */
   allSites?: boolean;
-  /** Managers and head office sign in with their Microsoft work account. */
+  /** Any email they can read (work or personal). Managers and head office sign in with a code sent to it. */
   email: string | null;
+  /** When they first proved the email by typing a code sent to it. */
+  emailVerifiedAt?: string | null;
+  /** Sign-ins that started before this time no longer work ("sign out everywhere", an email change). */
+  sessionsValidAfter?: string | null;
   addedAt: string;
   addedBy: string;
   /** When they left. They can't sign in after this. */
   leftAt: string | null;
 }
 
-/** Staff and supervisors use a PIN on the shared iPad; managers and head office use their work account. */
+/** Staff and supervisors use a PIN on the shared iPad; managers and head office sign in with an email code. */
 export const usesPin = (r: PersonRole) => r === 'staff' || r === 'supervisor';
 
 export const canManagePeople = (r: PersonRole) => r === 'manager' || r === 'headoffice';
@@ -45,7 +49,11 @@ export const canEdit = (by: PersonRole, person: Pick<Person, 'role'>) =>
 
 export const isActive = (p: Pick<Person, 'leftAt'>) => !p.leftAt;
 
-export const isWorkEmail = (s: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.trim());
+export const isEmail = (s: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.trim());
+/** Kept for older callers: any email works now, not only a work one. */
+export const isWorkEmail = isEmail;
+/** The form every email is compared and stored in. */
+export const normaliseEmail = (s: string) => s.trim().toLowerCase();
 
 const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
@@ -62,7 +70,7 @@ export function personProblem(
   if (others.some((o) => o.id !== id && o.siteCode === p.siteCode && isActive(o) && sameName(o.name, p.name))) {
     return `There's already a ${p.name.trim()} here. Add a surname or initial.`;
   }
-  if (!usesPin(p.role) && !isWorkEmail(p.email ?? '')) return 'Add their work email so they can sign in.';
+  if (!usesPin(p.role) && !isWorkEmail(p.email ?? '')) return 'Add their email so they can sign in.';
   return null;
 }
 

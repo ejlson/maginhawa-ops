@@ -2,7 +2,7 @@
  * POST /submit-eod. Re-checks the report with @maginhawa/core, stores the official
  * figures, hands the Power Automate flow its message (FlowOutbox), then emails finance.
  * Every outside service is passed in, so the handler is fully testable and the real
- * ones (SharePoint via Graph, Entra, mail) plug in later.
+ * ones (SharePoint and mail via Graph, the session cookie) plug in at the edge (src/api.ts).
  */
 import { eodSummaryEmail, flowMessage, flowWanted, submitReport, type DefinitionRecord, type EmailMessage, type EodStore, type FlowOutbox, type SiteSettings, type StoredReport } from '@maginhawa/core';
 import { recordReport, type VersionIndex } from './version-index';
@@ -11,11 +11,11 @@ export interface Caller {
   name: string;
   /** Sites this person may submit for. */
   siteCodes: string[];
-  /** From their Entra ID group. Staff can't correct a finished checklist. */
+  /** From their Staff list row. Staff can't correct a finished checklist. */
   role?: 'staff' | 'supervisor' | 'manager' | 'headoffice';
 }
 
-/** Checks the bearer token (Entra ID) and says who is calling. Null = not signed in. */
+/** Checks the session cookie and says who is calling. Null = not signed in. */
 export type Authenticate = (req: Request) => Promise<Caller | null>;
 
 export interface SubmitDeps {
@@ -25,7 +25,7 @@ export interface SubmitDeps {
   targetNetFor?: (siteCode: string, businessDate: string) => Promise<number | null>;
   sendEmail: (msg: EmailMessage) => Promise<void>;
   now?: () => Date;
-  /** Netlify Blobs: so other devices' polls see the submit without asking SharePoint. */
+  /** Workers KV: so other devices' polls see the submit without asking SharePoint. */
   index?: VersionIndex;
   /** The report builder's versions; the one approved for the report's trading day decides the figures. */
   definitions?: () => Promise<DefinitionRecord | null>;

@@ -77,7 +77,7 @@ These folders are **read-only**. The app fills them in, and nobody needs to save
 2. Set up the SharePoint lists and the "Maginhawa App Checklists" folders, with the right access for each role.
 3. Make the app create the PDFs, the monthly Excel files and the inspection pack automatically.
 4. Set up the morning and night jobs that mark each restaurant's day as done, late or missed.
-5. Test it all on a test SharePoint site first, then run a trial at one restaurant before rolling it out.
+5. Test it all on the new SharePoint site before any real checklists go in, clear the test data out, then run a trial at one restaurant before rolling it out.
 
 ### What I need from you
 

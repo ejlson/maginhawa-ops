@@ -1,0 +1,49 @@
+--- MESSAGE 1 ---
+
+Hi Hanz, could you help me with something in Microsoft 365? I need a new *SharePoint site* for the Maginhawa app (the checklists: opening, closing, temperatures etc.). I can't create sites myself.
+
+*Why a site and not just a folder in Operations?*
+1. The app saves checklists into SharePoint *lists*, and lists can only live on a site, not in a folder
+2. Microsoft gives an app access to a *whole site*. If it used our Operations folder, it could change everything on Maginhawa.Group
+3. Maginhawa.Group is a *public* group, and food-safety records and staff photos shouldn't be open to everyone (GDPR)
+
+It takes about 30 mins. No rush, if you don't have time today, tomorrow is totally fine. Steps below:
+
+*1. Create the site* (admin.microsoft.com → SharePoint admin centre)
+• Sites → Active sites → + Create → Other options
+• *Team site* with *no Microsoft 365 group*
+• Name: Maginhawa App
+• Address: /sites/MaginhawaApp
+• Primary admin: me
+• Language: *English (UK)* (it can't be changed later)
+• Time zone: London
+• Don't add anyone else yet
+
+*2. Register the app* (entra.microsoft.com)
+• App registrations → + New registration
+• Name: Maginhawa App, this organisation only, no redirect URI
+• API permissions → Microsoft Graph → *Application* permissions → *Sites.Selected* → Grant admin consent
+• Certificates & secrets → New client secret, 12 months. Copy the *Value* straight away (it's only shown once)
+
+*3. Give the app access to the new site only* (Graph Explorer, signed in as admin; consent to Sites.FullControl.All under "Modify permissions")
+
+GET this and copy the "id":
+```https://graph.microsoft.com/v1.0/sites/<ourtenant>.sharepoint.com:/sites/MaginhawaApp```
+
+Then POST to:
+```https://graph.microsoft.com/v1.0/sites/<site id>/permissions```
+with this body:
+```{"roles":["fullcontrol"],"grantedToIdentities":[{"application":{"id":"<client ID>","displayName":"Maginhawa App"}}]}```
+(If it refuses fullcontrol, switch v1.0 to beta)
+
+Full control is only for the first setup. I'll ask you to lower it to *write* afterwards.
+
+*What I need back* 🙏
+• Tenant ID
+• Client ID
+• Site ID
+(these 3 are fine on here)
+
+⚠️ *Please don't send the client secret on WhatsApp.* Put it straight into Netlify, or give it to me in person or through a password manager. And set a reminder to renew it in 11 months.
+
+Shout if anything looks different and send me a screenshot. Thanks! 🙌

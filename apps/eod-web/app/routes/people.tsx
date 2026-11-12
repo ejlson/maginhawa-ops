@@ -174,7 +174,7 @@ function PeopleScreen() {
 }
 
 function PersonPanel({ person: p, all, by, me, onToast }: { person: Person; all: Person[]; by: PersonRole; me: string; onToast: (t: Toast) => void }) {
-  // Moving someone to a role that signs in with Microsoft needs their work email first.
+  // Moving someone to a role that signs in with an email code needs their email first.
   const [pending, setPending] = useState<PersonRole | null>(null);
   const [email, setEmail] = useState(p.email ?? '');
   const [problem, setProblem] = useState<string | null>(null);
@@ -234,7 +234,7 @@ function PersonPanel({ person: p, all, by, me, onToast }: { person: Person; all:
         {!canEdit(by, p) && <p className="note" style={{ margin: 0 }}>Only head office can change head-office people.</p>}
         {pending && (
           <div className="person-email">
-            <label className="field"><span>Work email <small>{ROLE_LABELS[pending]}s sign in with their Microsoft work account</small></span>
+            <label className="field"><span>Email <small>{ROLE_LABELS[pending]}s sign in with a code sent to it. Any email works</small></span>
               <input className="in" type="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@[your work domain]" />
             </label>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
@@ -254,7 +254,7 @@ function PersonPanel({ person: p, all, by, me, onToast }: { person: Person; all:
           <span className="av"><Icon d={ICONS.lock} size={17} /></span>
           {usesPin(p.role)
             ? <span className="tx"><span>{pins.has(p.siteCode, p.name) ? 'PIN on the iPad' : 'No PIN yet'}</span><small>{pins.has(p.siteCode, p.name) ? 'Only they know it. A reset makes them choose a new one.' : 'They choose one the first time they tap their name on the iPad.'}</small></span>
-            : <span className="tx"><span>Microsoft work account</span><small>{p.email ?? 'No email yet'}</small></span>}
+            : <span className="tx"><span>Email sign-in</span><small>{p.email ?? 'No email yet'}</small></span>}
         </div>
         {editable && usesPin(p.role) && pins.has(p.siteCode, p.name) && <button type="button" className="linkbtn" style={{ alignSelf: 'flex-start', minHeight: 44 }} onClick={resetPin}>Reset PIN</button>}
       </div>

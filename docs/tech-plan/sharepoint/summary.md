@@ -1,7 +1,7 @@
 | Group | List | Purpose | Written by | Unique key |
 |---|---|---|---|---|
 | Reference | **Sites** | One row per restaurant; drives rules, targets and settings | Admin (console) | SiteCode |
-| Reference | **Staff** | Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts. Role and sites decide what the server lets them open | Head office (sites, roles) / Manager (own site's people) | – |
+| Reference | **Staff** | Everyone who uses the apps, incl. kiosk-only staff with no email (PIN only). Role and sites decide what the server lets them open | Head office (sites, roles) / Manager (own site's people) | – |
 | Reference | **Devices** | Registered kiosk tablets and phones | Admin | – |
 | Reference | **Targets** | Daily targets per site (imported from finance Excel or edited in console) | Nightly targets import (Netlify Scheduled Function) / Finance | SiteCode\|yyyy-mm-dd |
 | Reference | **ReasonCodes** | Discount / comp / void reasons (23 discount/comp + 15 void codes from the current form) | Finance / Admin | – |
@@ -15,6 +15,8 @@
 | Checklists | **Responses_{yyyy}** | One list per business-date year (Responses_2026, Responses_2027…): one row per final answer, written at Finish and on each correction, never edited. Create every index before go-live: SharePoint Online can refuse a new index once a list passes 5,000 items, and this list passes that in about 4 days | Background writer (Netlify Function) only; create-only | corrections). A retried write gets 409, not a duplicate |
 | Checklists | **CorrectiveActions** | What was done about a failed check | App + Netlify Functions (checklist check, re-check and escalation) | – |
 | Checklists | **ChecklistAudit** | Restores, moves and hard deletes of checklist days; kept when the day itself is hard-deleted | Netlify Functions only | DayKey\|action\|timestamp |
+| Reference | **SignInLog** | Sign-ins, codes asked for, wrong codes, kitchen iPads set up and sign-outs. Never the code itself. Kept 12 months | Server (sign-in routes) only | – |
+| Reference | **Devices** | Kitchen iPads set up by a manager. Turning one off stops it at once; it also stops if that manager leaves or loses the site | Server; managers turn them off in the app | DeviceId (random, from the sign-in cookie) |
 | Checklists | **HandoverNotes** | Shift handover log | App | – |
 | Food safety | **Dishes** | Every dish on a menu, for the allergen matrix | Manager / Head office | – |
 | Food safety | **AllergenVersions** | Each version of a dish's 14-allergen list; never edited or deleted | Manager / Head office (append-only) | DishId\|Version |

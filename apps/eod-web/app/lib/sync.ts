@@ -2,7 +2,7 @@
  * How this device talks to the others at the site. The screens only see the sync
  * clients from @maginhawa/core; this file picks what sits behind them:
  *
- * - Connected: the Netlify Functions (eod-draft, submit-eod, checklist-sync, presence).
+ * - Connected: the /api routes on Cloudflare Pages (eod-draft, submit-eod, checklist-sync, presence).
  * - Shared test mode: the same functions on the laptop running `npm run dev:shared`, with demo sign-in.
  * - Demo: the same rules on this device (lib/store.ts), so two tabs act as two devices.
  *
@@ -36,7 +36,7 @@ export function deviceId(): string {
   return tabId;
 }
 
-// ── connected: the Netlify Functions ───────────────────────────────────
+// ── connected: the /api routes ─────────────────────────────────────────────────────────────────────────
 
 /** Shared test mode: the local server trusts the demo sign-in sent in this header. */
 function devUser(): Record<string, string> {
@@ -47,7 +47,7 @@ function devUser(): Record<string, string> {
   return { [DEV_USER_HEADER]: encodeURIComponent(JSON.stringify({ name: u.name, role: u.role, siteCodes })) };
 }
 
-/** Sign-in token goes here once Entra ID is connected. */
+/** The session is an HttpOnly cookie the browser sends itself (same origin). */
 const headers = (): Record<string, string> => ({ 'Content-Type': 'application/json', ...devUser() });
 
 async function call(path: string, init: RequestInit = {}): Promise<Response> {

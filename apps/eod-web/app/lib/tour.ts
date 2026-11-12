@@ -78,7 +78,7 @@ const BLANK: PersonTour = { seenAt: null, hidden: [], tipsOff: false, did: {} };
 const listeners = new Set<() => void>();
 let version = 0;
 
-/** By name for now; connected mode will use the person's Entra ID. */
+/** By name for now; connected mode will use the person's Staff id. */
 const who = (u: Pick<User, 'name'>) => u.name.trim().toLowerCase();
 const readAll = () => storage.get<Record<string, PersonTour>>(KEY, {});
 

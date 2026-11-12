@@ -40,7 +40,7 @@ function PeopleNewScreen() {
           <span className="av ok" style={{ width: 72, height: 72, borderRadius: 36 }}><Icon d={ICONS.check} size={30} /></span>
           <div className="titleblock" style={{ alignItems: 'center' }}>
             <h1>{added} is added</h1>
-            <p className="lead">{pin ? 'Their name is on the iPad now. The first time they tap it, they choose a PIN.' : `They can sign in with their work account and see everything at ${site}.`}</p>
+            <p className="lead">{pin ? 'Their name is on the iPad now. The first time they tap it, they choose a PIN.' : `They can sign in with a code sent to their email and see everything at ${site}.`}</p>
           </div>
         </div>
         <Foot>
@@ -86,10 +86,10 @@ function PeopleNewScreen() {
             <span className="av"><Icon d={pin ? ICONS.lock : ICONS.out} size={17} /></span>
             {pin
               ? <span className="tx"><span>A PIN on the iPad</span><small>They tap their name and choose a 4-digit PIN the first time. Nobody else needs to know it.</small></span>
-              : <span className="tx"><span>Their Microsoft work account</span><small>{ROLE_LABELS[role]}s sign in with their own account, on any device.</small></span>}
+              : <span className="tx"><span>Their email</span><small>{ROLE_LABELS[role]}s sign in with a code sent to it, on any device. Any email works.</small></span>}
           </div>
           {!pin && (
-            <label className="field"><span>Work email</span>
+            <label className="field"><span>Email</span>
               <input className="in" type="email" autoComplete="off" placeholder="name@[your work domain]" value={email} onChange={(e) => setEmail(e.target.value)} />
             </label>
           )}
@@ -98,7 +98,7 @@ function PeopleNewScreen() {
       <Foot>
         <button type="button" className="btn b1" disabled={!n} onClick={add}>{n ? `Add ${n}` : 'Add person'}</button>
         <p className="note" role={tried && problem ? 'alert' : undefined} style={tried && problem ? { color: 'var(--bad)' } : undefined}>
-          {tried && problem ? problem : !n ? 'Type their name to add them.' : pin ? `${n} shows up on the iPad straight away.` : `${n} signs in with their work account.`}
+          {tried && problem ? problem : !n ? 'Type their name to add them.' : pin ? `${n} shows up on the iPad straight away.` : `${n} signs in with a code sent to their email.`}
         </p>
       </Foot>
     </main>

@@ -18,13 +18,13 @@ describe('people', () => {
     expect(screen.getByRole('button', { name: /Leah.*Sets a PIN the first time/ })).toBeInTheDocument();
   });
 
-  it('a manager needs a work email to add another manager', async () => {
+  it('a manager needs an email to add another manager', async () => {
     const { user } = renderApp('/people/new', manager);
     await user.type(screen.getByLabelText('Name'), 'Alex');
     await user.click(screen.getByRole('radio', { name: /Manager/ }));
     await user.click(screen.getByRole('button', { name: 'Add Alex' }));
-    expect(screen.getByRole('alert')).toHaveTextContent('Add their work email so they can sign in.');
-    await user.type(screen.getByLabelText('Work email'), 'alex@example.com');
+    expect(screen.getByRole('alert')).toHaveTextContent('Add their email so they can sign in.');
+    await user.type(screen.getByLabelText('Email'), 'alex@example.com');
     await user.click(screen.getByRole('button', { name: 'Add Alex' }));
     expect(screen.getByRole('heading', { name: 'Alex is added' })).toBeInTheDocument();
   });

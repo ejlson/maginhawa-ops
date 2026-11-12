@@ -1,0 +1,14 @@
+// The "maginhawa-jobs" Worker: timed jobs (src/jobs.ts). Deployed with `npx wrangler deploy` from apps/functions.
+// Not deployed yet. Secrets (wrangler secret put …): ENTRA_TENANT_ID, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET,
+// SHAREPOINT_SITE_ID, MAIL_FROM, MAIL_TO. Same values as the Pages project.
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "maginhawa-jobs",
+  "main": "worker/jobs.ts",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "triggers": { "crons": ["15 5 * * *", "30 5 * * *", "*/15 * * * *"] },
+  "kv_namespaces": [{ "binding": "CACHE", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }],
+  "limits": { "cpu_ms": 300000 }
+}

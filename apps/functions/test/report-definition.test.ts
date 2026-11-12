@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { EOD_DEFINITION, VERIFIED_TEST_DAY, addFigure, addGroup, seedDefinitionRecord, updateFigure, type ReportDefinition } from '@maginhawa/core';
 import { createDefinitionHandler, MemoryDefinitionStore, type DefinitionStore } from '../src/report-definition-handler';
-import netlifyFunction from '../netlify/functions/report-definition';
+import { createApi } from '../src/api';
+const viaApi = (r: Request) => createApi(process.env)(r);
 
-const URL_ = 'https://ops.example/.netlify/functions/report-definition';
+const URL_ = 'https://ops.example/api/report-definition';
 const PEOPLE: Record<string, { name: string; siteCodes: string[]; role: 'headoffice' | 'manager' }> = {
   ana: { name: 'Ana', siteCodes: [], role: 'headoffice' },
   ben: { name: 'Ben', siteCodes: [], role: 'headoffice' },
@@ -127,7 +128,7 @@ describe('report-definition', () => {
   });
 
   it('answers 503 until the server is connected to SharePoint', async () => {
-    const res = await netlifyFunction(new Request(URL_));
+    const res = await viaApi(new Request(URL_));
     expect(res.status).toBe(503);
   });
 });

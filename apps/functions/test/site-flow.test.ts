@@ -3,7 +3,7 @@ import { MemorySiteFlowStore } from '@maginhawa/core';
 import { createSiteFlowHandler } from '../src/site-flow-handler';
 import type { Caller } from '../src/handler';
 
-const url = 'https://ops.example/.netlify/functions/site-flow';
+const url = 'https://ops.example/api/site-flow';
 const post = (body: unknown) => new Request(url, { method: 'POST', body: typeof body === 'string' ? body : JSON.stringify(body) });
 const headOffice: Caller = { name: '[Finance]', siteCodes: ['BUN'], role: 'headoffice' };
 

@@ -64,13 +64,13 @@ The finance team's current EOD form is a **single static page on Netlify**. It p
 |---|---|---|
 | 1 | **UK market**, UK English, £, UK law | |
 | 2 | **Devices: phone, tablet (iPad) and desktop** | Shared kitchen iPad plus managers' own phones and laptops |
-| 3 | **SharePoint is the data store; our own Netlify Functions are the back end** (changed 26 Oct 2026, replacing Power Automate) | Microsoft is used for SharePoint (data), Graph (access) and Entra ID (sign-in). **Power Automate is allowed only as an optional add-on (29 Oct 2026, the user's call):** flows start from the FlowOutbox list and post or alert. They never work out figures or save reports, and the app never calls a flow (no trigger URL). No Power Apps. Logic lives in our repo, so calculations are written once in `packages/core`. No database of our own; the Postgres/Supabase design stays as the fallback (`docs/tech-plan/postgres-option/`) |
+| 3 | **SharePoint is the data store; our own back end runs on Cloudflare Pages Functions, plus one Worker for timed and queued jobs** (changed 26 Oct 2026, replacing Power Automate; **moved from Netlify to Cloudflare Pages at `app.mgnhw.com` on 12 Nov 2026, user's call, not built yet: see `docs/tech-plan/cloudflare-and-email-sign-in.md`**) | Microsoft is used for SharePoint (data), Graph (access) and Entra ID (sign-in). **Power Automate is allowed only as an optional add-on (29 Oct 2026, the user's call):** flows start from the FlowOutbox list and post or alert. They never work out figures or save reports, and the app never calls a flow (no trigger URL). No Power Apps. Logic lives in our repo, so calculations are written once in `packages/core`. No database of our own; the Postgres/Supabase design stays as the fallback (`docs/tech-plan/postgres-option/`) |
 | 4 | **We code our own user-facing apps** | Not Power Apps |
 | 5 | **Managers type the numbers in** | No till/EPOS integration in v1. The forecast works from the typed figures |
 | 6 | **Web framework: React Router v7 in SPA mode (Vite, TypeScript)**, hosted on Netlify, installable as a PWA | Next.js was rejected: the app is a client-side SPA, and the only server code is a few small Netlify Functions. **Expo** (React Native) is only for a later native app, if one is needed |
 | 7 | **Design direction:** Apple-like. **One main card per screen**, then **Monzo/Revolut-style lists**, with **Things 3-style progress circles**. **12 Nov 2026 redesign (user's call; first pass built):** each site has its own colour (editable in settings), and the main card is a slowly moving, grainy gradient made from that colour (no black), with soft shadows and Apple-style corners | See §7 and `design/design-language.md` › Redesign. The user rejected other directions; don't drift back to them |
 | 8 | **Sections can be filled in any order** from a hub ("Today's close"), not a strict wizard | Backed by research: same users every night |
-| 9 | **Sign-in:** Microsoft 365 work account (Entra ID via MSAL) on phone and desktop; **shared iPad = photo grid of today's rota + 4-digit PIN**, plus a badge/QR alternative | A site device account sits underneath the shared-iPad login |
+| 9 | **Sign-in (changed 12 Nov 2026, user's call, not built yet):** any email on the Staff list, proved with a 6-digit emailed code (no Microsoft account needed; Entra ID is only the back end's key to SharePoint and mail). Plan: `docs/tech-plan/cloudflare-and-email-sign-in.md`. *Was:* Microsoft 365 work account (Entra ID via MSAL) on phone and desktop; **shared iPad = photo grid of today's rota + 4-digit PIN**, plus a badge/QR alternative | A site device account sits underneath the shared-iPad login |
 | 10 | **Forecasts:** same weekday over the last 6 weeks, nudged by bookings and the recent trend | Shown to managers (Trends) and to head office (Forecast tab). No AI needed |
 
 ---
@@ -138,7 +138,8 @@ Any new shared data (food safety, templates, people once they sync) follows the 
 - **"Maginhawa App Checklists" library (for people, read-only):** `{Restaurant}/{yyyy-MM}/` with one PDF per restaurant per day (missed days too, e.g. `2026-11-05 Bunso – Thu – MISSED.pdf`) and one monthly XLSX rebuilt nightly. Remade after a correction; versions keep the old copy. EHO gets a view-only link that expires.
 - **Photos library:** `{Restaurant}/{yyyy-MM}/{yyyy-MM-dd}/{Checklist name}/Walk-in chiller – 09:12.jpg`. Write-once; the app links by `PhotoId`, never by path.
 - **Open decisions (in the team email):** per-restaurant folder permissions; keep checks 3 years (`DEFAULT_KEEP` still says 24 months until agreed); photos about 12 months unless tied to an incident.
-- **Tenant tests before building:** `Sites.Selected` with write access can upload, PATCH columns, replace and delete files; `createLink`; replacing a workbook while someone has it open; index creation at 5,001 items.
+- **One site, no test site (user's decision, 9 Nov 2026):** everything lives on a new private site "Maginhawa App" (`/sites/MaginhawaApp`, team site without a Microsoft 365 group), not in the Maginhawa.Group › Operations folder (lists need a site; app access is per site; that group is public). Run the tenant tests on it while it is still empty, then clear the test data before go-live. Deploy previews and local work leave `SHAREPOINT_SITE_ID` unset and use the in-memory store (`DEV_SHARED_STORE`), so only production writes to the site.
+- **Tenant tests before go-live:** `Sites.Selected` with write access can upload, PATCH columns, replace and delete files; `createLink`; replacing a workbook while someone has it open; index creation at 5,001 items.
 
 **Volume estimate:** about 1,250 items a day across 8 sites, about 410k a year, and about 9 GB of photos a year.
 
@@ -228,6 +229,15 @@ All figures in the designs are **made-up examples**.
 ## 7. Design language (follow exactly)
 
 **Redesign, 12 Nov 2026 (designed; first pass built in the app the same day: site colours, gradient card, tabs, More, Sites and colours).** The user found the app too plain and hard to follow. New canvas: **https://claude.ai/artifact/2SaS5mXwouxhbg23YspRVV** ("Maginhawa Ops redesign": direction, 7 phone screens, 3 desktop screens, motion demos, research). Local copy: `design/redesign-canvas/project/`. What changed (full rules in `design/design-language.md` › Redesign):
+- **A colour per site**, set by head office in Settings › Sites and colours (12 tested swatches + a hue slider, text colour picked automatically). It shows on the site badge, main card, selected tab and progress circles. Green, amber and red still mean status only.
+- **Main card = moving gradient** made from the site colour with OKLCH (no black base, smooth blobs, film grain, 12–15 s drift, still under reduce motion). The user rejected a streaky version.
+- **Softer, colour-tinted shadows; Apple-style continuous corners; more whitespace** (24px phone margins, 64–68px rows, 34px titles).
+- **Navigation:** phone tabs Today · Close · Checks · More with search on every screen; Today = Needs you → Later today with one "Up next"; Close has a "what's left" bar; desktop sidebar grouped Today · Records · Team · Site.
+- Research behind it (Linear, Radix, 7shifts, Trail, Things 3, Family, Arc/Slack, Apple HIG): the canvas's Research board.
+
+Where the bullets below say "dark card" or rule out gradients, the redesign wins for the main card. The rest still holds.
+
+**What the user liked:**
 - Apple-like, minimal, sleek and premium.
 - **One main dark card per screen**; everything else is **plain lists** like Monzo/Revolut (round icon, title, grey subtitle, amount on the right, hairline dividers).
 - **Things 3 progress circles.**
@@ -408,7 +418,8 @@ HANDOFF.md / HANDOFF.pdf      ← this brief
 research/
   2026-10-research-findings.md   UX, market and competitor research (Oct 2026) with sources
 design/
-  design-language.md          tokens, components, do/don't
+  design-language.md          tokens, components, do/don't (incl. the Nov 2026 redesign)
+  redesign-canvas/            Nov 2026 redesign boards (.dc.html), local copy of the canvas
   eod-canvas/                 every screen's source (.dc.html) + canvas.json
 docs/
   eho/                        brief for an environmental health officer (HTML + PDF)

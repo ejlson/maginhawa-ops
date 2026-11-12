@@ -20,19 +20,21 @@
 
 *Indexed (2):* SiteCode, Active
 
-**Staff**: Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts. Role and sites decide what the server lets them open. *Written by:* Head office (sites, roles) / Manager (own site's people).
+**Staff**: Everyone who uses the apps, incl. kiosk-only staff with no email (PIN only). Role and sites decide what the server lets them open. *Written by:* Head office (sites, roles) / Manager (own site's people).
 
 | Column | Type | Notes |
 |---|---|---|
 | `Title` *(required)* | Text | Full name |
-| `Email` *(indexed)* | Text | Microsoft account (blank for kiosk-only staff) |
+| `Email` *(indexed)* | Text | Any email they can read (work or personal), stored lower case; they sign in with a code sent to it. Blank for kiosk-only staff. One active row per email |
+| `EmailVerifiedAt` *(set by server)* | DateTime | When they first typed a code sent to this email |
+| `SessionsValidAfter` | DateTime | Sign-ins from before this stop working: 'sign out everywhere', an email change, a lost phone |
 | `HomeSite` *(indexed)* | Lookup → Sites | Main site: where they land after signing in |
 | `OtherSites` | Lookup → Sites (multi) | Other sites they work at. Head office only |
 | `AllSites` | Yes/No | Every open site, including ones opened later. Head office only |
 | `Department` | Choice | Kitchen / FOH / Management / Finance / Admin |
 | `Position` | Choice | Head chef, Sous chef, CDP, Commis, KP, Floor manager, Senior waiter, Waiter, Runner, Host, Bartender, RM, GM, AM, Duty manager, Supervisor |
 | `AppRole` *(required)* | Choice | Staff / Supervisor / Manager / Head office (head office always has every site) |
-| `PinHash` | Text | argon2 hash of 4-digit kiosk PIN (never the PIN) |
+| `PinHash` | Text | PBKDF2-SHA-256 hash and salt of the 4-digit kiosk PIN (never the PIN; packages/core pin.ts) |
 | `PreferredLanguage` | Text | en-GB default |
 | `Active` *(indexed)* | Yes/No |  |
 
@@ -108,6 +110,33 @@
 
 *Indexed (2):* Title, Nation
 
+**SignInLog**: Sign-ins, codes asked for, wrong codes, kitchen iPads set up and sign-outs. Never the code itself. Kept 12 months. *Written by:* Server (sign-in routes) only.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(required)* | Text | action\|email\|timestamp |
+| `Action` *(indexed)* | Choice | Code sent / Code not sent / Signed in / Wrong code / Locked / Kitchen iPad set up / Signed out |
+| `Email` *(indexed)* | Text | Lower case |
+| `SiteCode` | Text | For kitchen iPads |
+| `At` *(indexed)* | DateTime | Server time |
+| `NetworkAddress` | Text | From Cloudflare; personal data, so kept 12 months only |
+
+*Indexed (3):* Action, Email, At
+
+**Devices**: Kitchen iPads set up by a manager. Turning one off stops it at once; it also stops if that manager leaves or loses the site. *Written by:* Server; managers turn them off in the app.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | DeviceId (random, from the sign-in cookie) |
+| `SiteCode` *(indexed)* | Text |  |
+| `SetUpBy` | Text | Manager's email |
+| `SetUpAt` | DateTime |  |
+| `Label` | Text | e.g. Kitchen iPad by the pass |
+| `RevokedAt` *(indexed)* | DateTime | Blank = in use |
+| `RevokedBy` | Text |  |
+
+*Indexed (3):* Title, SiteCode, RevokedAt
+
 #### Checklists
 
 **ChecklistTemplates**: Checklist definitions (opening, closing, cleaning, food safety, custom). *Written by:* Admin / Manager (console builder).
@@ -181,7 +210,7 @@
 | `FailedCount` *(set by server)* | Number |  |
 | `OpenFixes` *(set by server)* | Number |  |
 | `SubmittedAt` *(set by server)* | DateTime | Last run finished (server time) |
-| `SubmittedById` *(set by server)* | Text | Entra object id (not a person column) |
+| `SubmittedById` *(set by server)* | Text | Staff list item id (not a person column) |
 | `SubmittedByName` *(set by server)* | Text |  |
 | `MissedDetectedAt` *(set by server)* | DateTime | Set once by the nightly job; never cleared, even by a late submission |
 | `DayHash` *(set by server)* | Text | SHA-256 over the finished runs' RunHash values |
@@ -214,7 +243,7 @@
 | `Seq` *(set by server)* | Number | Raised on every successful write; the Finish 'seen' check compares against it |
 | `RecheckOf` | Text | RunKey\|checkpointId of the failed answer |
 | `CompletedAt` *(set by server)* | DateTime | Server time |
-| `CompletedById` *(set by server)* | Text | Entra object id |
+| `CompletedById` *(set by server)* | Text | Staff list item id |
 | `CompletedByName` *(set by server)* | Text |  |
 | `DurationSeconds` *(set by server)* | Number | Pencil-whip signal |
 | `FailedCount` *(set by server)* | Number |  |
@@ -253,7 +282,7 @@
 | `PhotoIds` | Text | PhotoId values (; separated). Replaces PhotoUrl: links expire, ids don't |
 | `PhotoItemIds` | Text | driveItem ids in the Photos library |
 | `PhotoSha256` | Text | Detects reused photos |
-| `AnsweredById` | Text | Entra object id |
+| `AnsweredById` | Text | Staff list item id |
 | `AnsweredByName` | Text |  |
 | `AnsweredAt` | DateTime | Capped at server time |
 | `ReceivedAt` | DateTime | Server time the answer reached us (offline answers arrive later) |
@@ -277,7 +306,7 @@
 | `Status` *(indexed)* | Choice | Open / Action taken / Verified / Escalated |
 | `RecheckDue` *(indexed)* | Date/Time |  |
 | `WorkOrder` | Lookup → WorkOrders | Set when escalated |
-| `VerifiedById` | Text | Entra object id |
+| `VerifiedById` | Text | Staff list item id |
 | `VerifiedByName` | Text |  |
 
 *Indexed (5):* AnswerKey, DayKey, SiteCode, Status, RecheckDue
@@ -290,7 +319,7 @@
 | `DayKey` *(indexed)* | Text |  |
 | `Action` *(required)* | Choice | Soft delete / Restore / Move / Hard delete started / Hard delete finished |
 | `Reason` *(required)* | Text |  |
-| `ById` *(required)* | Text | Entra object id |
+| `ById` *(required)* | Text | Staff list item id |
 | `ByName` | Text |  |
 | `At` *(required)* | DateTime | Server time |
 | `Counts` | Text | JSON: runs, rows, photos, corrective actions affected |

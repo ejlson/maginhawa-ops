@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, MemoryChecklistStore, MemoryPresence, MemoryStore, type RunStart } from '@maginhawa/core';
 import { createSubmitHandler, type Caller } from '../src/handler';
 import { createChecklistSyncHandler, createEodDraftHandler, createPresenceHandler } from '../src/sync-handlers';
-import eodDraftFunction from '../netlify/functions/eod-draft';
-import checklistFunction from '../netlify/functions/checklist-sync';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
 import { INDEX_TRUST_MS, MemoryVersionIndex } from '../src/version-index';
+import { createApi } from '../src/api';
+const viaApi = (r: Request) => createApi(process.env)(r);
 
 const people: Record<string, Caller> = { jo: { name: 'Jo', siteCodes: ['BUN'], role: 'manager' }, sam: { name: 'Sam', siteCodes: ['BUN'], role: 'staff' } };
 const authenticate = async (req: Request) => people[(req.headers.get('Authorization') ?? '').replace('Bearer ', '')] ?? null;
 const req = (method: string, path: string, who: string, body?: unknown, headers: Record<string, string> = {}) =>
-  new Request(`https://ops.example/.netlify/functions/${path}`, {
+  new Request(`https://ops.example/api/${path}`, {
     method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${who}`, ...headers },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
@@ -124,8 +124,8 @@ describe('presence', () => {
 
 describe('before SharePoint is connected', () => {
   it('the new functions answer 503 too', async () => {
-    expect((await eodDraftFunction(req('GET', 'eod-draft?site=BUN', 'jo'))).status).toBe(503);
-    expect((await checklistFunction(req('GET', 'checklist-sync?site=BUN', 'jo'))).status).toBe(503);
+    expect((await viaApi(req('GET', 'eod-draft?site=BUN', 'jo'))).status).toBe(503);
+    expect((await viaApi(req('GET', 'checklist-sync?site=BUN', 'jo'))).status).toBe(503);
   });
 });
 

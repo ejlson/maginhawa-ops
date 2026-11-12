@@ -7,6 +7,23 @@ import type { FigureType } from './report-definition';
 export interface EmailMessage {
   subject: string;
   text: string;
+  /** Who it goes to. Left out = the usual finance list (MAIL_TO). */
+  to?: string[];
+}
+
+/** The sign-in code email. Says who it's from, how long the code lasts, and what to do if it wasn't them. */
+export function signInCodeEmail(to: string, code: string, minutes: number): EmailMessage {
+  return {
+    to: [to],
+    subject: `${code} is your Maginhawa sign-in code`,
+    text: [
+      `Your Maginhawa sign-in code is ${code}`,
+      '',
+      `Type it into the app within ${minutes} minutes. It works once.`,
+      '',
+      "If you didn't ask for it, ignore this email. Nobody can sign in without the code, and nobody from Maginhawa will ever ask you for it.",
+    ].join('\n'),
+  };
 }
 
 export function eodSummaryEmail(r: StoredReport, settings: Pick<SiteSettings, 'siteName'>): EmailMessage {

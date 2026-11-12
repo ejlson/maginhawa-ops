@@ -91,6 +91,18 @@
         "/Users/ethanjameslegson/Work/Maginhawa/MaginhawaApp/design/redesign-canvas/project"
       ],
       "port": 4195
+    },
+    {
+      "name": "eod-web-email-signin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:shared"
+      ],
+      "env": {
+        "VITE_SIGN_IN": "email"
+      },
+      "port": 5180
     }
   ]
 }

@@ -10,7 +10,7 @@ This folder is the handoff for an internal restaurant operations app for **Magin
 ## Hard rules
 - **Never reproduce the old Power Automate trigger URL or its signature**, even though it appears in the live Netlify form. Refer to it only as "the exposed trigger URL (to be regenerated)".
 - Do not re-open the decisions in `HANDOFF.md` §3 unless the user asks. In particular:
-  - SharePoint is the data store; our own Netlify Functions are the back end (changed 26 Oct 2026). Power Automate only as an optional add-on that starts from the FlowOutbox list and posts or alerts (29 Oct 2026, `flows/`); never figures, saving, or a trigger URL.
+  - SharePoint is the data store; our own back end runs on Cloudflare Pages Functions, plus one Worker for timed and queued jobs (Netlify until 12 Nov 2026). Sign-in is any Staff-list email proved with an emailed code, not Entra ID (12 Nov 2026; plan in `docs/tech-plan/cloudflare-and-email-sign-in.md`, not built yet). Power Automate only as an optional add-on that starts from the FlowOutbox list and posts or alerts (29 Oct 2026, `flows/`); never figures, saving, or a trigger URL.
   - We code our own apps.
   - Managers type the figures in (no EPOS integration in v1).
   - React Router v7 SPA on Vite + TypeScript.

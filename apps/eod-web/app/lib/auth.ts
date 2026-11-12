@@ -1,6 +1,6 @@
 /**
  * Who is signed in. Demo mode: pick a name and site on this device.
- * Connected mode will use Microsoft sign-in (MSAL, Entra ID) behind the same useUser() hook.
+ * Connected mode signs in with an emailed code (lib/session.ts) behind the same useAuth() hook.
  */
 import { createContext, useContext } from 'react';
 import { accessOf, findPerson, OPEN_SITE_CODES } from '@maginhawa/core';

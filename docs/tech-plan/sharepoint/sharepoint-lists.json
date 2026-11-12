@@ -91,7 +91,7 @@
     {
       "group": "Reference",
       "name": "Staff",
-      "purpose": "Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts. Role and sites decide what the server lets them open",
+      "purpose": "Everyone who uses the apps, incl. kiosk-only staff with no email (PIN only). Role and sites decide what the server lets them open",
       "written_by": "Head office (sites, roles) / Manager (own site's people)",
       "columns": [
         {
@@ -103,8 +103,20 @@
         {
           "name": "Email",
           "type": "Text",
-          "notes": "Microsoft account (blank for kiosk-only staff)",
+          "notes": "Any email they can read (work or personal), stored lower case; they sign in with a code sent to it. Blank for kiosk-only staff. One active row per email",
           "flags": "I"
+        },
+        {
+          "name": "EmailVerifiedAt",
+          "type": "DateTime",
+          "notes": "When they first typed a code sent to this email",
+          "flags": "F"
+        },
+        {
+          "name": "SessionsValidAfter",
+          "type": "DateTime",
+          "notes": "Sign-ins from before this stop working: 'sign out everywhere', an email change, a lost phone",
+          "flags": ""
         },
         {
           "name": "HomeSite",
@@ -145,7 +157,7 @@
         {
           "name": "PinHash",
           "type": "Text",
-          "notes": "argon2 hash of 4-digit kiosk PIN (never the PIN)",
+          "notes": "PBKDF2-SHA-256 hash and salt of the 4-digit kiosk PIN (never the PIN; packages/core pin.ts)",
           "flags": ""
         },
         {
@@ -721,7 +733,7 @@
         {
           "name": "SubmittedById",
           "type": "Text",
-          "notes": "Entra object id (not a person column)",
+          "notes": "Staff list item id (not a person column)",
           "flags": "F"
         },
         {
@@ -885,7 +897,7 @@
         {
           "name": "CompletedById",
           "type": "Text",
-          "notes": "Entra object id",
+          "notes": "Staff list item id",
           "flags": "F"
         },
         {
@@ -1085,7 +1097,7 @@
         {
           "name": "AnsweredById",
           "type": "Text",
-          "notes": "Entra object id",
+          "notes": "Staff list item id",
           "flags": ""
         },
         {
@@ -1195,7 +1207,7 @@
         {
           "name": "VerifiedById",
           "type": "Text",
-          "notes": "Entra object id",
+          "notes": "Staff list item id",
           "flags": ""
         },
         {
@@ -1239,7 +1251,7 @@
         {
           "name": "ById",
           "type": "Text",
-          "notes": "Entra object id",
+          "notes": "Staff list item id",
           "flags": "R"
         },
         {
@@ -1264,6 +1276,100 @@
           "name": "MovedTo",
           "type": "Text",
           "notes": "New DayKey after a move",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "name": "SignInLog",
+      "purpose": "Sign-ins, codes asked for, wrong codes, kitchen iPads set up and sign-outs. Never the code itself. Kept 12 months",
+      "written_by": "Server (sign-in routes) only",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "action|email|timestamp",
+          "flags": "R"
+        },
+        {
+          "name": "Action",
+          "type": "Choice",
+          "notes": "Code sent / Code not sent / Signed in / Wrong code / Locked / Kitchen iPad set up / Signed out",
+          "flags": "I"
+        },
+        {
+          "name": "Email",
+          "type": "Text",
+          "notes": "Lower case",
+          "flags": "I"
+        },
+        {
+          "name": "SiteCode",
+          "type": "Text",
+          "notes": "For kitchen iPads",
+          "flags": ""
+        },
+        {
+          "name": "At",
+          "type": "DateTime",
+          "notes": "Server time",
+          "flags": "I"
+        },
+        {
+          "name": "NetworkAddress",
+          "type": "Text",
+          "notes": "From Cloudflare; personal data, so kept 12 months only",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "name": "Devices",
+      "purpose": "Kitchen iPads set up by a manager. Turning one off stops it at once; it also stops if that manager leaves or loses the site",
+      "written_by": "Server; managers turn them off in the app",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "DeviceId (random, from the sign-in cookie)",
+          "flags": "IUR"
+        },
+        {
+          "name": "SiteCode",
+          "type": "Text",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "SetUpBy",
+          "type": "Text",
+          "notes": "Manager's email",
+          "flags": ""
+        },
+        {
+          "name": "SetUpAt",
+          "type": "DateTime",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Label",
+          "type": "Text",
+          "notes": "e.g. Kitchen iPad by the pass",
+          "flags": ""
+        },
+        {
+          "name": "RevokedAt",
+          "type": "DateTime",
+          "notes": "Blank = in use",
+          "flags": "I"
+        },
+        {
+          "name": "RevokedBy",
+          "type": "Text",
+          "notes": "",
           "flags": ""
         }
       ]

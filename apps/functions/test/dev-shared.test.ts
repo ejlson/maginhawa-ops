@@ -9,17 +9,15 @@ import {
   type ChecklistBackend, type EodRemote, type PresenceRemote, type RunStart,
 } from '@maginhawa/core';
 import { devAuthenticate, devSettingsFor, sharedDev, sharedDevRefusal } from '../src/dev-shared';
-import eodDraft from '../netlify/functions/eod-draft';
-import submitEod from '../netlify/functions/submit-eod';
-import checklistSync from '../netlify/functions/checklist-sync';
-import presence from '../netlify/functions/presence';
+import { createApi } from '../src/api';
+const viaApi = (r: Request) => createApi(process.env)(r);
 
 type Who = { name: string; role: string; siteCodes: string[] };
 const jo: Who = { name: 'Jo', role: 'manager', siteCodes: ['BUN'] };
 const sam: Who = { name: 'Sam', role: 'supervisor', siteCodes: ['BUN'] };
 
 const call = (fn: (r: Request) => Promise<Response>, path: string, who: Who | null, init: RequestInit = {}) =>
-  fn(new Request(`http://192.168.1.20:5180/.netlify/functions/${path}`, {
+  fn(new Request(`http://192.168.1.20:5180/api/${path}`, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...(who ? { [DEV_USER_HEADER]: encodeURIComponent(JSON.stringify(who)) } : {}), ...(init.headers as Record<string, string> | undefined) },
   }));
@@ -28,27 +26,27 @@ const call = (fn: (r: Request) => Promise<Response>, path: string, who: Who | nu
 function device(who: Who) {
   const eod: EodRemote = {
     async get(site, date, ifNoneMatch) {
-      const res = await call(eodDraft, `eod-draft?site=${site}&date=${date}`, who, { headers: ifNoneMatch ? { 'If-None-Match': `"${ifNoneMatch}"` } : {} });
+      const res = await call(viaApi, `eod-draft?site=${site}&date=${date}`, who, { headers: ifNoneMatch ? { 'If-None-Match': `"${ifNoneMatch}"` } : {} });
       return res.status === 304 ? 'not-modified' : (await res.json()).report;
     },
     async saveDraft(draft, opts) {
-      const res = await call(eodDraft, 'eod-draft', who, { method: 'PUT', body: JSON.stringify({ draft, baseVersion: opts.baseVersion }) });
+      const res = await call(viaApi, 'eod-draft', who, { method: 'PUT', body: JSON.stringify({ draft, baseVersion: opts.baseVersion }) });
       const body = await res.json();
       if (res.status === 409) throw new SyncError(body.code, body.error, body.current);
       return body.report;
     },
     async submit(draft, opts) {
-      const res = await call(submitEod, 'submit-eod', who, { method: 'POST', body: JSON.stringify({ draft, baseVersion: opts.baseVersion, submitId: opts.submitId }) });
+      const res = await call(viaApi, 'submit-eod', who, { method: 'POST', body: JSON.stringify({ draft, baseVersion: opts.baseVersion, submitId: opts.submitId }) });
       const body = await res.json();
       return res.ok ? { ok: true, report: body.report } : { ok: false, code: body.code, error: body.error, current: body.current };
     },
   };
   const checklists: ChecklistBackend = {
-    apply: async (siteCode, ops) => (await (await call(checklistSync, 'checklist-sync', who, { method: 'POST', body: JSON.stringify({ siteCode, ops }) })).json()).outcomes,
-    changes: async (site, date, since) => (await call(checklistSync, `checklist-sync?site=${site}&date=${date}&since=${since}`, who)).json(),
+    apply: async (siteCode, ops) => (await (await call(viaApi, 'checklist-sync', who, { method: 'POST', body: JSON.stringify({ siteCode, ops }) })).json()).outcomes,
+    changes: async (site, date, since) => (await call(viaApi, `checklist-sync?site=${site}&date=${date}&since=${since}`, who)).json(),
   };
   const here: PresenceRemote = {
-    beat: async (scope, me) => (await (await call(presence, 'presence', who, { method: 'POST', body: JSON.stringify({ scope, deviceId: me.deviceId, where: me.where }) })).json()).others,
+    beat: async (scope, me) => (await (await call(viaApi, 'presence', who, { method: 'POST', body: JSON.stringify({ scope, deviceId: me.deviceId, where: me.where }) })).json()).others,
   };
   return { eod, checklists, presence: here };
 }
@@ -83,10 +81,10 @@ describe('shared test mode guard', () => {
   it('a production function ignores the dev header and stays not connected', async () => {
     process.env.NODE_ENV = 'production';
     for (const k of ['ENTRA_TENANT_ID', 'ENTRA_CLIENT_ID', 'ENTRA_CLIENT_SECRET', 'SHAREPOINT_SITE_ID']) delete process.env[k];
-    expect((await call(eodDraft, `eod-draft?site=BUN&date=${DATE}`, jo)).status).toBe(503);
-    expect((await call(checklistSync, `checklist-sync?site=BUN&date=${DATE}&since=0`, jo)).status).toBe(503);
-    expect((await call(presence, 'presence', jo, { method: 'POST', body: '{}' })).status).toBe(503);
-    expect((await call(submitEod, 'submit-eod', jo, { method: 'POST', body: '{}' })).status).toBe(503);
+    expect((await call(viaApi, `eod-draft?site=BUN&date=${DATE}`, jo)).status).toBe(503);
+    expect((await call(viaApi, `checklist-sync?site=BUN&date=${DATE}&since=0`, jo)).status).toBe(503);
+    expect((await call(viaApi, 'presence', jo, { method: 'POST', body: '{}' })).status).toBe(503);
+    expect((await call(viaApi, 'submit-eod', jo, { method: 'POST', body: '{}' })).status).toBe(503);
   });
 
   it('reads the demo sign-in from the header, and nothing else', async () => {
@@ -96,8 +94,8 @@ describe('shared test mode guard', () => {
     expect(await devAuthenticate(req())).toBeNull();
     expect(await devAuthenticate(req('not json'))).toBeNull();
     expect(await devAuthenticate(req(encodeURIComponent(JSON.stringify({ name: 'Jo', role: 'owner', siteCodes: ['BUN'] }))))).toBeNull();
-    expect((await call(eodDraft, `eod-draft?site=BUN&date=${DATE}`, null)).status).toBe(401);
-    expect((await call(eodDraft, `eod-draft?site=RAM&date=${DATE}`, jo)).status).toBe(403);
+    expect((await call(viaApi, `eod-draft?site=BUN&date=${DATE}`, null)).status).toBe(401);
+    expect((await call(viaApi, `eod-draft?site=RAM&date=${DATE}`, jo)).status).toBe(403);
   });
 });
 
