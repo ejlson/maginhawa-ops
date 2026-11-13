@@ -2,21 +2,20 @@
  * Managers: in the morning, how last night went and what needs sorting; from the afternoon, the EOD.
  * A late checklist always comes first.
  */
-import { Link } from 'react-router';
-import { addDays, dayNet, formatPounds, lastSevenDays, reportedText, splitPounds, weekday, WEEKDAY_NAMES, type Pence } from '@maginhawa/core';
-import { can, useAuth } from '../../lib/auth';
+import { addDays, dayNet, formatPounds, lastSevenDays, SECTION_KEYS, SECTION_LABELS, sectionStatus, splitPounds, weekday, WEEKDAY_NAMES, type Pence } from '@maginhawa/core';
+import { useAuth } from '../../lib/auth';
 import { formatDay, timeHM, useDraft } from '../../lib/draft';
-import { runPath, statusPill, useChecklists } from '../../lib/checklists';
+import { runPath, useChecklists } from '../../lib/checklists';
 import { useSite } from '../../lib/site';
 import { useTradingHistory } from '../../lib/history';
-import { Icon, RowLink } from '../ui';
-import { ICONS } from '../ui-helpers';
+import { useTwoColumns } from '../../lib/wide';
+import { sectionFigure, sectionSub } from '../../lib/section-text';
+import { BigMoney, Pie, RowLink, Segments } from '../ui';
 import { TabBar } from '../TabBar';
-import { EodHero, EodIssueRows, EodRow, HomeHeader, NextChecklistHero, PhaseRows, TimelineRow } from './shared';
+import { HomeHeader } from './shared';
 import { firstName, greeting, isDaytime, useEod, useToday } from './shared-helpers';
-import { FoodSafetyRow } from '../FoodSafetyRow';
-import { Columns } from '../Columns';
 import { FirstWeek } from './FirstWeek';
+import { eodStep, LaterToday, NeedsYou, service, UpNext, YourDay, type UpNextStep, ReadHandover } from './today';
 
 interface LastNight {
   net: Pence;
@@ -55,11 +54,11 @@ function useLastNight(): LastNight | null {
   };
 }
 
-function LastNightHero({ n }: { n: LastNight }) {
+function LastNightHero({ n, next }: { n: LastNight; next: UpNextStep }) {
   const { lastDate } = useTradingHistory();
   const [p, d] = splitPounds(n.net);
   return (
-    <Link className="hero" data-tour="hero-night" to="/close/done" aria-label={`Last night, ${formatPounds(n.net)} net. ${n.status.text}`}>
+    <div className="hero mh-card" data-tour="hero-night">
       <div className="hero-row"><span className="hl">Last night · {WEEKDAY_NAMES[weekday(lastDate)]}</span><span className={`hs-small ${n.status.cls}`} style={{ fontWeight: 600 }}>{n.status.text}</span></div>
       <div className="titleblock">
         <div className="big"><b>{p}</b><i>{d}</i></div>
@@ -70,7 +69,8 @@ function LastNightHero({ n }: { n: LastNight }) {
         <span>{n.covers ?? '—'}<small>Covers</small></span>
         <span className={n.change === null ? '' : n.change >= 0 ? 'h-ok' : 'h-warn'}>{n.change === null ? '—' : `${n.change >= 0 ? '+' : '−'}${Math.abs(n.change)}%`}<small>On last {WEEKDAY_NAMES[weekday(lastDate)]}</small></span>
       </div>
-    </Link>
+      <UpNext step={next} />
+    </div>
   );
 }
 
@@ -98,105 +98,99 @@ function LastSevenDays() {
   );
 }
 
+/** The EOD as the main card: net so far, the sections as bars, and the next step. */
+function EodCard({ next, wide }: { next: UpNextStep; wide: boolean }) {
+  const eod = useEod();
+  const { result, progress } = useDraft();
+  const due = eod.due();
+  const right = [due.text, wide && result.wagePct !== null ? `wages ${result.wagePct}%` : ''].filter(Boolean).join(' · ');
+  return (
+    <div className="hero mh-card" data-tour="hero-eod">
+      <div className="hero-row"><span className="hl">{eod.submitted ? 'Net for the day' : wide ? 'Net so far tonight' : 'Net so far'}</span>{right && <span className={`hs-small ${due.cls}`}>{right}</span>}</div>
+      <BigMoney value={eod.result.totalNet} />
+      <div className="mh-progress">
+        <Segments statuses={eod.statuses} />
+        <span className="hs-small">Close · {progress.done} of {progress.active} sections done</span>
+      </div>
+      <UpNext step={next} />
+    </div>
+  );
+}
+
+/** Close the day (desktop): the eight sections in two columns, each with its circle and figure (D1). */
+function CloseGrid() {
+  const { draft, result, settings, progress } = useDraft();
+  const keys = SECTION_KEYS.filter((k) => sectionStatus(draft, k) !== 'skipped');
+  const half = Math.ceil(keys.length / 2);
+  const col = (ks: typeof keys) => (
+    <div className="sub">
+      {ks.map((k) => <RowLink key={k} to={`/close/${k}`} lead={<Pie status={sectionStatus(draft, k)} size={22} />} title={SECTION_LABELS[k]} sub={sectionSub(k, draft, result, settings)} right={<span className="amt">{sectionFigure(k, draft, result)}</span>} />)}
+    </div>
+  );
+  return (
+    <section className="grp mh-close" aria-label="Close the day">
+      <div className="hd"><h2>Close the day</h2><span>{progress.done} of {progress.active} done · {progress.left} left</span></div>
+      <div className="mh-close-cols">{col(keys.slice(0, half))}{col(keys.slice(half))}</div>
+    </section>
+  );
+}
+
+
 export function ManagerHome() {
   const { user } = useAuth();
-  const { businessDate, missedYesterday } = useChecklists();
-  const { open, handover, handoverBy, handoverRead } = useSite();
-  const { at, tasks, urgent, next } = useToday();
+  const { businessDate } = useChecklists();
+  const { handover, handoverBy, handoverRead } = useSite();
+  const { savedAt, settings } = useDraft();
+  const { at, urgent, next: nextTask } = useToday();
   const eod = useEod();
   const lastNight = useLastNight();
+  const wide = useTwoColumns();
   const morning = isDaytime(at);
 
-  // A late or due checklist always leads. Otherwise mornings look back at last night, evenings at the EOD.
-  const focus = urgent[0] ?? (morning && !lastNight && !eod.submitted && eod.statuses.every((s) => s === 'todo') ? next : undefined);
-  const unreadHandover = handover.length > 0 && !handoverRead;
-  // One main button: a late list, then last night's handover, then the next list, then the EOD.
-  const readFirst = morning && unreadHandover && !urgent.length;
-  // Late lists can still be done, so each gets a row. Missed ones can't, so they fold into one calm row:
-  // only the thing to do now should shout.
-  const lateChecks = tasks.filter((t) => t.status === 'late' && t.key !== focus?.key).slice(0, 3);
-  const missedToday = tasks.filter((t) => t.status === 'missed' && t.key !== focus?.key);
-  const showNeeds = unreadHandover || open.length > 0 || missedYesterday.length > 0 || lateChecks.length > 0 || missedToday.length > 0 || eod.issues.length > 0;
+  // One next step, in the card: a late list, then last night's handover, then the EOD (or, before
+  // anything's started in the morning, the next list).
+  const unread = handover.length > 0 && !handoverRead;
+  const step: UpNextStep = urgent[0]
+    ? { to: runPath(urgent[0].key), text: urgent[0].title, label: `${urgent[0].status === 'late' ? 'Do now' : 'Start'}: ${urgent[0].title}` }
+    : morning && unread
+      ? { to: '/handover', text: `${handoverBy ? `${firstName(handoverBy)}'s` : "Last night's"} handover`, label: `Read ${handoverBy ? `${firstName(handoverBy)}'s` : "last night's"} handover` }
+      : morning && nextTask && !lastNight && eod.statuses.every((s) => s === 'todo')
+        ? { to: runPath(nextTask.key), text: `${nextTask.title}${nextTask.dueTime ? ` · ${nextTask.dueTime}` : ''}`, label: `Start: ${nextTask.title}` }
+        : eodStep(eod);
 
+  const card = morning && lastNight ? <LastNightHero n={lastNight} next={step} /> : <EodCard next={step} wide={wide} />;
+  const title = (
+    <div className="titleblock mh-title">
+      <span className="eyebrow">{formatDay(businessDate)}{wide ? '' : service(at, settings.timezone)}</span>
+      <h1>{greeting(at)}, {firstName(user?.name ?? '')}</h1>
+    </div>
+  );
+
+  if (wide) {
+    return (
+      <main className="page tabs mh-page wide">
+        <div className="body mh-desk">
+          <div className="mh-head">{title}<span className="saved" data-tour="sync"><span className="dot" />{savedAt ? `All saved · ${timeHM(savedAt)}` : 'Saved on this device'}</span></div>
+          <div className="mh-top">{card}<div className="mh-stack"><NeedsYou at={at} /><ReadHandover /></div></div>
+          <YourDay at={at} />
+          <CloseGrid />
+          <FirstWeek />
+          {morning && <LastSevenDays />}
+        </div>
+      </main>
+    );
+  }
   return (
-    <main className="page tabs">
+    <main className="page tabs mh-page">
       <HomeHeader />
-      <Columns
-        top={<>
-          <div className="titleblock">
-            <span className="eyebrow">{formatDay(businessDate)}</span>
-            <h1>{greeting(at)}, {firstName(user?.name ?? '')}</h1>
-          </div>
-        </>}
-        hero={<>
-          {focus ? <NextChecklistHero focus={focus} /> : morning && lastNight ? <LastNightHero n={lastNight} /> : <EodHero />}
-        </>}
-        main={<>
-
-        {showNeeds && (
-          <section className="grp" data-tour="needs">
-            <div className="hd"><h2>Needs you</h2></div>
-            <div className="sub">
-              {unreadHandover && (
-                <RowLink to="/handover" lead={<span className="av link"><Icon d={ICONS.chat} /></span>} title={`Handover from ${handoverBy ?? 'last night'}`}
-                  sub={handover.map((h) => h.body).join(' · ')} right={<span className="pill p-new">New</span>} />
-              )}
-              {open.slice(0, 2).map((r) => (
-                <RowLink key={r.id} to="/repairs" lead={<span className={`av ${r.urgent ? 'bad' : 'warn'}`}><Icon d={ICONS.wrench} /></span>}
-                  title={r.title} sub={`Repair · ${reportedText(r.reportedAt, at)}`} right={<span className={`pill ${r.urgent ? 'p-bad' : 'p-warn'}`}>{r.urgent ? 'Urgent' : 'Open'}</span>} />
-              ))}
-              {open.length > 2 && <RowLink to="/repairs" lead={<span className="av"><Icon d={ICONS.wrench} /></span>} title={`${open.length - 2} more repairs`} />}
-              {lateChecks.map((t) => (
-                <RowLink key={t.key} to={runPath(t.key)} lead={<span className="av warn"><Icon d={ICONS.clock} size={17} /></span>}
-                  title={t.title} sub="Checklist · can still be done" right={<span className="pill p-warn">{statusPill(t, at).text}</span>} />
-              ))}
-              {missedToday.length > 0 && (
-                <RowLink to="/day" lead={<span className="av">{missedToday.length}</span>}
-                  title={missedToday.length === 1 ? `${missedToday[0]!.title} was missed` : `${missedToday.length} checklists missed earlier`}
-                  sub={`${missedToday.map((t) => t.title).join(', ')} · add a note`} />
-              )}
-              {missedYesterday.length > 0 && (
-                <RowLink to="/checklists" lead={<span className="av">{missedYesterday.length}</span>}
-                  title={missedYesterday.length === 1 ? `${missedYesterday[0]!.title} was missed` : `${missedYesterday.length} checklists missed`}
-                  sub={missedYesterday.length === 1 ? 'Yesterday' : `Yesterday · ${missedYesterday.map((t) => t.title).join(', ')}`} />
-              )}
-              <EodIssueRows issues={eod.issues} />
-            </div>
-          </section>
-        )}
-
+      <div className="body mh-phone">
+        {title}
+        {card}
+        <NeedsYou at={at} />
+        <LaterToday at={at} />
         <FirstWeek />
         {morning && <LastSevenDays />}
-        </>}
-        side={<>
-        <section className="grp">
-          <div className="hd"><h2>Today</h2>{user && can.editChecklists(user.role) && <Link className="linkbtn" to="/checklists/edit">Edit lists</Link>}</div>
-          <div className="sub">
-            <div className="sl"><span>Checklists</span></div>
-            <PhaseRows />
-            <TimelineRow />
-            <FoodSafetyRow />
-          </div>
-          <div className="sub">
-            <div className="sl"><span>End of day</span></div>
-            <EodRow />
-            {handover.length > 0 && !unreadHandover && <RowLink to="/handover" lead={<span className="av"><Icon d={ICONS.chat} /></span>} title="Handover from last night" sub={handover.map((h) => h.body).join(' · ')} />}
-          </div>
-        </section>
-        </>}
-        actions={<>
-        {readFirst ? (
-          <>
-            <Link className="btn b1" to="/handover">Read {handoverBy ? `${firstName(handoverBy)}'s` : "last night's"} handover</Link>
-          </>
-        ) : focus ? (
-          // One button. The EOD stays one tap away in "Today" and the tab bar.
-          <Link className="btn b1" to={runPath(focus.key)}>{focus.status === 'late' ? 'Do now' : 'Start'}: {focus.title}</Link>
-        ) : (
-          <Link className="btn b1" to={eod.to}>{eod.label}</Link>
-        )}
-        </>}
-      />
+      </div>
       <TabBar />
     </main>
   );

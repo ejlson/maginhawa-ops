@@ -11,28 +11,40 @@ describe('checklists are available all day, separate from the end-of-day report'
   it('in the morning, home puts the late checklist first', () => {
     at('2026-10-05T09:00:00Z'); // 10:00 BST, opening was due 09:30
     renderApp('/');
-    expect(screen.getByRole('link', { name: 'Do now: Opening checks' })).toBeInTheDocument();
-    // One button only; the EOD stays one tap away as a row.
-    expect(screen.queryByRole('link', { name: "Start today's EOD" })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /^End-of-day report/ })).toBeInTheDocument();
-    // The top card shows it, once; it isn't repeated under Needs you.
-    expect(screen.getByRole('link', { name: 'Next checklist: Opening checks, 30 min late' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Needs you' })).not.toBeInTheDocument();
+    // The one Up next pill in the main card goes straight to the late list.
+    expect(screen.getByRole('link', { name: /^Do\ now:\ Opening\ checks,/ })).toHaveAttribute('href', opening);
+    // No separate EOD button; the EOD stays one tap away as a row.
+    expect(screen.queryByRole('link', { name: /Start (lunch|today's EOD)/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^End-of-day report/ })).toHaveAttribute('href', '/close');
+    // Needs you lists it as a row, with how late it is.
+    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
+    expect(needs).toHaveTextContent('1 late');
+    expect(within(needs).getByRole('link', { name: /^Opening checks.*30 min late$/ })).toHaveAttribute('href', opening);
   });
 
   it('during the day, before anything is due, the top card shows the next checklist', () => {
     at('2026-10-05T07:00:00Z'); // 08:00 BST
     renderApp('/');
-    expect(screen.getByRole('link', { name: /^Next checklist: Opening checks/ })).toBeInTheDocument();
+    const up = screen.getByRole('link', { name: /^Start:\ Opening\ checks,/ });
+    expect(up).toHaveAttribute('href', opening);
+    expect(up).toHaveTextContent('Up nextOpening checks · 09:30');
+    // Nothing is late yet, so nothing needs the manager.
+    // Nothing urgent: Needs you is either gone or holds only food safety (which has its own reminders).
+    const needsHd = screen.queryByRole('heading', { name: 'Needs you' });
+    if (needsHd) expect(within(needsHd.closest('section')!).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^Food safety/)]);
   });
 
   it('in the evening, the end-of-day report is the main button and checklists stay open', () => {
     renderApp('/'); // 22:00 BST
-    expect(screen.getByRole('link', { name: "Start today's EOD" })).toHaveClass('b1');
-    // Today groups checklists by part of the day. One list opens directly; several open the filtered list.
-    expect(screen.getByRole('link', { name: /^To do ?Opening/ })).toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|opening|09:30'));
-    expect(screen.getByRole('link', { name: /Mid-shift/ })).toHaveAttribute('href', '/checklists?phase=mid-shift');
-    expect(screen.getByRole('link', { name: /^To do ?Closing/ })).toHaveTextContent('Closing checks · 23:00');
+    // Up next is the EOD's next step.
+    expect(screen.getByRole('link', { name: /^Start\ lunch,/ })).toHaveAttribute('href', '/close/lunch');
+    expect(screen.queryByRole('link', { name: /^(Do now|Start): / })).not.toBeInTheDocument();
+    // The closing list is still to come and opens directly from Later today.
+    const later = screen.getByRole('heading', { name: 'Later today' }).closest('section')!;
+    expect(within(later).getByRole('link', { name: /^23:00Closing checks/ })).toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|closing|23:00'));
+    // Lists missed earlier stay reachable from Needs you, to add a note.
+    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
+    expect(within(needs).getByRole('link', { name: /^Opening checks.*Missed$/ })).toHaveAttribute('href', '/day');
   });
 
   it('a phase opens the checklists filtered to it', () => {

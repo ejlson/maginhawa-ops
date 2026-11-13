@@ -15,7 +15,7 @@ describe('sign-in', () => {
     await user.type(screen.getByPlaceholderText('e.g. Jo'), 'Sam');
     await user.click(screen.getByRole('button', { name: /Continue/ }));
     expect(await screen.findByRole('heading', { name: /, Sam$/ })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: "Start today's EOD" })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^Start\ lunch,/ })).toHaveAttribute('href', '/close/lunch');
   });
 });
 
@@ -38,10 +38,10 @@ describe('tab bar', () => {
 
 describe('home', () => {
   it('shows today\'s EOD and the trading day', () => {
-    renderApp('/');
-    expect(screen.getByText('Monday 5 October')).toBeInTheDocument();
-    expect(screen.getByText('8 sections to go')).toBeInTheDocument();
-    expect(screen.getByText('Start lunch')).toBeInTheDocument();
+    renderApp('/'); // 22:00 BST
+    expect(screen.getByText(/^Monday 5 October( · dinner service)?$/)).toBeInTheDocument();
+    expect(screen.getByText('Close · 0 of 8 sections done')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^Start\ lunch,/ })).toHaveTextContent('Up nextLunch · from the till report');
   });
 });
 
@@ -57,7 +57,9 @@ describe('roles', () => {
   it('staff are sent home from the EOD screens', () => {
     renderApp('/close/lunch', staff);
     expect(screen.queryByLabelText('Gross sales')).not.toBeInTheDocument();
-    expect(screen.getByText('Monday 5 October')).toBeInTheDocument();
+    // They land on their own home (22:00 BST, so the date line names the service).
+    expect(screen.getByRole('heading', { name: 'Hi Sam' })).toBeInTheDocument();
+    expect(screen.getByText('Monday 5 October · dinner service')).toBeInTheDocument();
   });
 
   it('only head office sees all sites', () => {

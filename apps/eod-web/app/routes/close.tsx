@@ -11,6 +11,7 @@ import { Columns } from '../components/Columns';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { AWAY_MS, readResume, resumePath } from '../lib/resume';
 import { now } from '../lib/clock';
+import { sectionFigure, sectionSub } from '../lib/section-text';
 
 const SALES: SectionKey[] = ['lunch', 'dinner', 'delivery', 'promotions'];
 const TEAM: SectionKey[] = ['wages', 'tips', 'feedback', 'handover'];
@@ -20,26 +21,8 @@ export default function Close() {
   const { draft, result, progress, savedAt, update, status, settings } = useDraft();
   const locked = !isEditable(status);
 
-  const sub = (k: SectionKey): string => {
-    const st = sectionStatus(draft, k);
-    if (st === 'skipped') return "Didn't run today";
-    if (k === 'lunch' || k === 'dinner') {
-      const s = result.sessions[k];
-      return st === 'done' ? (s.covers ? `Completed · ${s.covers} covers` : 'Completed') : st === 'started' ? 'In progress' : 'From the till report';
-    }
-    if (k === 'delivery') return settings.platforms.filter((p) => p.active).map((p) => p.name).join(', ');
-    if (k === 'promotions') return 'Offers, events, anything unusual';
-    if (k === 'wages') return result.wagePct !== null ? `${result.wagePct}% of net` : 'From the rota';
-    if (k === 'tips') return 'Card tips, cash tips, tronc';
-    if (k === 'feedback') return draft.feedback.length ? `${draft.feedback.length} notes` : 'Guests, staff, repairs';
-    return draft.handover.length ? `${draft.handover.length} for the opener` : 'Notes for the opener';
-  };
-  const right = (k: SectionKey) => {
-    if ((k === 'lunch' || k === 'dinner') && sectionStatus(draft, k) === 'done') return formatPounds(result.sessions[k].net);
-    if (k === 'delivery' && sectionStatus(draft, k) === 'done') return formatPounds(result.deliveryNet);
-    if (k === 'wages' && draft.wages.wageCost !== null) return formatPounds(draft.wages.wageCost);
-    return '';
-  };
+  const sub = (k: SectionKey) => sectionSub(k, draft, result, settings);
+  const right = (k: SectionKey) => sectionFigure(k, draft, result);
   const row = (k: SectionKey) => {
     const st = sectionStatus(draft, k);
     return (

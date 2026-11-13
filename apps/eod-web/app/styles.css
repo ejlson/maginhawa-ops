@@ -1241,7 +1241,7 @@ h1 { font-size: 34px; letter-spacing: -.038em; }
 @media (prefers-reduced-motion: reduce) { .searchfield:active { transform: none; } }
 
 /* ==== Redesign, part 3: head office "All sites" (design/redesign-canvas, Option C) ==== */
-.ho-head { position: relative; z-index: 5; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 24px; flex-wrap: wrap; }
+.ho-head { position: relative; z-index: 4; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 24px; flex-wrap: wrap; }
 .ho-head-r { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ho-approve { width: auto; height: 44px; padding: 0 20px; font-size: 15px; }
 
@@ -1452,3 +1452,102 @@ a.chip.stk-chip { display: inline-flex; align-items: center; text-decoration: no
   @keyframes barIn { from { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; } to { background: var(--nav); backdrop-filter: saturate(180%) blur(24px); -webkit-backdrop-filter: saturate(180%) blur(24px); box-shadow: 0 .5px 0 var(--sep); } }
 }
 @media (prefers-reduced-motion: reduce) { .backbtn:active { transform: none; } }
+
+/* ---- Manager home (designs P1 phone, D1 desktop) ---- */
+.mh-phone { gap: 28px; padding-top: 4px; }
+.mh-title h1 { font-size: 34px; letter-spacing: -.038em; line-height: 1.1; }
+.mh-card { border-radius: 34px; padding: 24px; gap: 14px; min-height: 300px; }
+.mh-card .big { margin-top: -6px; }
+.mh-card .big b { font-size: 54px; }
+.mh-progress { display: flex; flex-direction: column; gap: 8px; }
+.mh-progress .segs span { height: 5px; border-radius: 3px; }
+.upnext { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 54px; padding: 0 8px 0 20px;
+  border-radius: 999px; background: rgba(255,248,240,.92); color: #1d1d1f; text-decoration: none; text-shadow: none;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: transform .12s cubic-bezier(.23,1,.32,1); }
+.upnext:active { transform: scale(.97); }
+.upnext-t { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.upnext-t small { font-size: 12px; font-weight: 500; color: #6e6e73; }
+.upnext-t b { font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.upnext-go { width: 38px; height: 38px; border-radius: 999px; background: #1d1d1f; color: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
+.mh-page .grp .hd h2 { font-size: 22px; letter-spacing: -.025em; }
+.mh-now { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: var(--sec); text-decoration: none; }
+.mh-time { width: 42px; flex: none; text-align: center; font-size: 14px; font-weight: 600; color: var(--sec); font-variant-numeric: tabular-nums; display: flex; justify-content: center; }
+.mh-later .li + .li::before { left: 56px; }
+@media (prefers-reduced-motion: reduce) { .upnext:active { transform: none; } }
+
+/* Phone top bar on Home: the site as a pill, the account as a dark circle (P1). */
+@media (max-width: 899px) {
+  .mh-page .homenav { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; padding: env(safe-area-inset-top, 0px) 24px 0 !important; min-height: 64px; }
+  .mh-page .homenav .saved { display: none; }
+  .mh-page .homenav .sitetitle { padding: 4px 12px 4px 4px; min-height: 0; height: 40px; gap: 10px; border-radius: 999px; background: color-mix(in srgb, var(--bg) 70%, transparent); box-shadow: inset 0 0 0 1px var(--sep); }
+  .mh-page .homenav .who { font-size: 0; gap: 0; padding: 0; height: 40px; background: none; }
+  .mh-page .homenav .who .caret { display: none; }
+  .mh-page .homenav .who .av { width: 40px !important; height: 40px !important; font-size: 14px !important; }
+}
+
+/* Desktop (D1): card and Needs you side by side, then the day and the sections. */
+.mh-desk { gap: 36px; padding-top: 40px; }
+.mh-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.mh-head .saved { color: var(--ok); font-weight: 500; }
+.mh-top { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.mh-desk .mh-card { padding: 32px; gap: 18px; min-height: 320px; }
+.mh-desk .mh-card .big b { font-size: 64px; }
+.mh-desk .mh-card .big i { font-size: 30px; }
+.mh-desk .mh-progress { max-width: 420px; }
+.mh-desk .upnext { align-self: flex-start; }
+.mh-desk .upnext-t b { font-size: 16px; }
+.mh-desk .grp .hd h2 { font-size: 20px; }
+.mh-track { --pad: 24px; position: relative; height: 112px; border-radius: 26px; background: var(--side); corner-shape: superellipse(1.6); }
+.mh-line, .mh-fill { position: absolute; left: var(--pad); top: 40px; height: 4px; border-radius: 2px; }
+.mh-line { right: var(--pad); background: var(--sep); }
+.mh-fill { width: calc((100% - 2 * var(--pad)) * var(--now)); background: var(--site); }
+.mh-nowline { position: absolute; left: calc(var(--pad) + (100% - 2 * var(--pad)) * var(--now)); top: 22px; bottom: 16px; width: 2px; border-radius: 1px; background: var(--text); }
+.mh-nowtag { position: absolute; left: calc(var(--pad) + (100% - 2 * var(--pad)) * var(--now)); transform: translateX(-50%); top: 4px; font-size: 11px; font-weight: 700; background: var(--text); color: var(--bg); border-radius: 999px; padding: 1px 7px; }
+.mh-mark { position: absolute; left: calc(var(--pad) + (100% - 2 * var(--pad)) * var(--x) - 9px); top: 33px; width: 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; }
+.mh-mark.first { align-items: flex-start; } .mh-mark.last { align-items: flex-end; }
+.mh-dot { width: 18px; height: 18px; border-radius: 999px; box-sizing: border-box; background: var(--bg); border: 2px solid var(--sec); }
+.mh-mark.done .mh-dot { background: var(--site); border: 0; }
+.mh-mark.late .mh-dot { border: 3px solid var(--warn); }
+.mh-mark.bad .mh-dot { border: 3px solid var(--bad); }
+.mh-lab { font-size: 12px; font-weight: 500; color: var(--sec); white-space: nowrap; }
+.mh-mark.low .mh-lab { margin-top: 18px; }
+.mh-mark:hover .mh-lab { color: var(--text); }
+.mh-close-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 48px; }
+.mh-close .li { min-height: 52px; }
+.mh-close .li + .li::before { left: 38px; }
+@media (max-width: 899px) {
+  @supports (animation-timeline: scroll()) { .mh-page .homenav { animation: barIn linear both; animation-timeline: scroll(root); animation-range: 0 48px; } }
+  @supports not (animation-timeline: scroll()) { .mh-page .homenav { background: var(--nav); backdrop-filter: saturate(180%) blur(24px); -webkit-backdrop-filter: saturate(180%) blur(24px); } }
+}
+
+/* Head office on phones: search and Approve take the full width, no keyboard hint, results under the box.
+   (.ho-head sits one layer under the top bar so the account menu opens over it.) */
+@media (max-width: 899px) {
+  .ho-head-r { width: 100%; flex-direction: column; align-items: stretch; }
+  .hosearch-box { width: 100%; }
+  .hosearch-box .kbd { display: none; }
+  .hosearch-list { left: 0; right: 0; width: auto; max-width: none; }
+  .ho-approve { width: 100%; height: 50px; }
+}
+.mh-card .segs span.bad { background: var(--heroBad); }
+.mh-card .big i { font-size: 24px; }
+.mh-stack { display: flex; flex-direction: column; gap: 28px; }
+
+/* Loading skeleton: phone shape by default, sidebar + desktop shape from 900px. */
+.skel { min-height: 100dvh; display: flex; }
+.skel-main { flex: 1; min-width: 0; }
+.skel-side { display: none; }
+.sk-card { min-height: 300px; }
+.sk-pill { margin-top: auto; display: flex; align-items: center; justify-content: space-between; height: 54px; padding: 0 8px 0 20px; border-radius: 999px; background: rgba(255,255,255,.14); }
+.skel-top-grid { display: flex; flex-direction: column; gap: 28px; }
+.skel-tabs .tab { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 8px; }
+@media (min-width: 900px) {
+  .skel-side { display: flex; flex-direction: column; gap: 12px; width: 260px; flex: none; padding: 24px 16px; background: var(--side); }
+  .skel-site { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 10px 0 6px; border-radius: 18px; background: var(--bg); }
+  .skel-site .tx { display: flex; flex-direction: column; gap: 5px; }
+  .skel-top, .skel-tabs { display: none !important; }
+  .skel-main { max-width: none; }
+  .skel-body { padding: 40px 56px; gap: 36px; max-width: 1200px; }
+  .skel-top-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+  .skel-ho .skel-body { padding-top: 40px; }
+}
