@@ -80,8 +80,10 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .lab{font-size:13px;font-weight:600;color:#6E6E73;letter-spacing:.02em;margin-bottom:8px}
 .banner{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:16px;font-size:14px;line-height:1.4}
 .step{width:36px;height:36px;border-radius:999px;background:#F2F2F5;display:inline-flex;align-items:center;justify-content:center}
-.stepper{display:flex;align-items:center;gap:8px}
-.stepper b{min-width:64px;text-align:center;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+/* − amount + as one compact control, so the name side keeps its room. */
+.stepper{display:flex;align-items:center;gap:2px;flex-shrink:0;background:#F2F2F5;border-radius:999px;padding:3px}
+.stepper .step{width:32px;height:32px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.stepper b{min-width:66px;text-align:center;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .segs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;margin-top:-12px}
 .segs span{height:4px;border-radius:999px;background:#E5E5EA}
 .segs span.on{background:#F59F00}
@@ -133,9 +135,9 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
     <div class="sec">
       <div class="h2">Filled in for you<small>Change anything</small></div>
       <sc-for list="{{items}}" as="it" hint-placeholder-count="6">
-        <div class="row" style="min-height:62px">
+        <div class="row" style="min-height:62px;gap:16px">
           <span class="tx" style="gap:6px"><b style="font-size:16px">{{it.name}}</b>
-            <span style="display:flex;align-items:center;gap:8px"><span style="width:72px;height:6px;border-radius:999px;background:#F2F2F5;position:relative;overflow:hidden"><span style="position:absolute;left:0;top:0;bottom:0;width:{{it.fill}};background:{{it.barC}};border-radius:999px"></span></span><span style="font-size:13px;color:#6E6E73">{{it.left}}</span></span></span>
+            <span style="display:flex;align-items:center;gap:8px"><span style="width:44px;flex-shrink:0;height:6px;border-radius:999px;background:#F2F2F5;position:relative;overflow:hidden"><span style="position:absolute;left:0;top:0;bottom:0;width:{{it.fill}};background:{{it.barC}};border-radius:999px"></span></span><span style="font-size:13px;color:#6E6E73;white-space:nowrap">{{it.left}}</span></span></span>
           <span class="stepper"><button class="step press" onClick="{{it.minus}}" aria-label="{{it.less}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"></path></svg></button><b>{{it.qty}}</b><button class="step press" onClick="{{it.plus}}" aria-label="{{it.more}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12M12 6v12"></path></svg></button></span>
         </div>
       </sc-for>
@@ -168,7 +170,7 @@ class Component extends DCLogic {
       items: I.map((it, k) => {
         const share = it.have / it.usual;
         return { name: it.name, fill: Math.max(4, Math.round(share * 100)) + '%', barC: share < 0.3 ? '#FF9500' : '#8E8E93',
-          left: it.have === 0 ? 'None left' : it.have + ' of ' + it.usual + ' ' + it.unit + ' left',
+          left: it.have === 0 ? 'None left' : it.have + ' of ' + it.usual + ' ' + it.unit,
           qty: s.q[k] + ' ' + (s.q[k] === 1 ? it.pack : it.packs), minus: set(k, -1), plus: set(k, 1),
           less: 'One less ' + it.pack + ' of ' + it.name, more: 'One more ' + it.pack + ' of ' + it.name };
       }),
