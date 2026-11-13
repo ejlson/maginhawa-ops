@@ -1400,9 +1400,10 @@ a.chip.stk-chip { display: inline-flex; align-items: center; text-decoration: no
 .ord-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--sec); opacity: .55; }
 .ord-bar > span.low { background: var(--warn); opacity: 1; }
 /* − amount + as one compact control, so the item's name and level keep their room. */
-.ord-step { gap: 2px; flex: none; background: var(--fill); border-radius: 14px; corner-shape: superellipse(1.6); padding: 3px; margin-left: 16px; }
-.ord-step b { min-width: 66px; text-align: center; font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ord-step .stk-step.sm { width: 32px; height: 32px; border-radius: 11px; corner-shape: superellipse(1.6); background: var(--bg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.ord-step { gap: 0; flex: none; width: 148px; height: 38px; background: var(--fill); border-radius: 12px; corner-shape: superellipse(1.6); margin-left: 16px; }
+.ord-step b { flex: 1; min-width: 0; text-align: center; font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ord-step .stk-step.sm { width: 38px; height: 38px; flex: none; border-radius: 12px; corner-shape: superellipse(1.6); background: transparent; box-shadow: none; }
+.ord-step .stk-step.sm:active { background: color-mix(in srgb, var(--text) 8%, transparent); }
 .ord-left { white-space: nowrap; }
 .stk-step.sm { width: 36px; height: 36px; }
 .stk-step:disabled { opacity: .4; cursor: default; }
