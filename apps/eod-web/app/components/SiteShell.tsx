@@ -36,10 +36,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
   // Grouped so it reads like the shift: what's on today, the records you keep, and the team.
   const groups: { title: string; links: NavLinkItem[] }[] = [
     { title: 'Today', links: [
-      { to: '/', label: 'Home', icon: ICONS.home, on: pathname === '/' },
-      { to: '/day', label: 'Timeline', icon: ICONS.clock, on: pathname === '/day' },
+      { to: '/', label: 'Today', icon: ICONS.home, on: pathname === '/' },
+      ...(canDoEod(user) ? [{ to: '/close', label: 'End of day', icon: ICONS.list, on: pathname.startsWith('/close'), meta: `${progress.done} of ${progress.active}` }] : []),
       { to: '/checklists', label: 'Checklists', icon: ICONS.check, on: pathname.startsWith('/checklists'), badge: counts.checklists },
-      ...(canDoEod(user) ? [{ to: '/close', label: "Today's EOD", icon: ICONS.list, on: pathname.startsWith('/close'), meta: `${progress.done} of ${progress.active}` }] : []),
+      { to: '/day', label: 'Timeline', icon: ICONS.clock, on: pathname === '/day' },
     ] },
     { title: 'Records', links: [
       { to: '/food-safety', label: 'Food safety', icon: ICONS.thermo, on: pathname.startsWith('/food-safety'), badge: counts.foodSafety },
@@ -57,7 +57,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   return (
     <div className="ho-shell site-shell">
       <nav className="ho-side" aria-label="Main">
-        <SitePicker place="side" title={inEod ? "Today's close" : undefined} />
+        <SitePicker place="side" />
         <button type="button" className="ho-search" onClick={() => menu.setOpen(true)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
           Search or jump to<span className="kbd">⌘K</span>
@@ -96,21 +96,23 @@ function useCounts(): Record<'checklists' | 'repairs' | 'handover' | 'foodSafety
   const { open, handover, handoverRead } = useSite();
   const { site, data, siteCode } = useFoodSafety();
   const late = tasks.filter(isOverdue).length;
+  const lateN = tasks.filter((t) => t.status === 'late').length;
+  const missedN = late - lateN;
   const due = tasks.filter((t) => t.status === 'due').length;
   const urgent = open.filter((r) => r.urgent).length;
   const fs = user ? attentionFor(site, data, siteCode, { today: businessDate, now: now(), role: user.role, person: user.name }) : [];
   const fsBad = fs.some((i) => i.level === 'bad');
   return {
-    checklists: late ? { n: late, level: 'bad', label: `${late} late or missed` } : due ? { n: due, level: 'warn', label: `${due} due now` } : null,
+    checklists: late ? { n: late, level: 'bad', label: [lateN && `${lateN} late`, missedN && `${missedN} missed`].filter(Boolean).join(' · ') } : due ? { n: due, level: 'warn', label: `${due} due` } : null,
     repairs: urgent ? { n: urgent, level: 'bad', label: `${urgent} urgent` } : open.length ? { n: open.length, level: 'warn', label: `${open.length} open` } : null,
-    handover: handover.length && !handoverRead ? { n: 0, level: 'warn', label: 'Not read yet' } : null,
-    foodSafety: fs.length ? { n: fs.length, level: fsBad ? 'bad' : 'warn', label: `${fs.length} need${fs.length === 1 ? 's' : ''} you` } : null,
+    handover: handover.length && !handoverRead ? { n: 0, level: 'warn', label: 'New' } : null,
+    foodSafety: fs.length ? { n: fs.length, level: fsBad ? 'bad' : 'warn', label: `${fs.length} to do` } : null,
   };
 }
 
 function Badge({ b }: { b: Count }) {
   if (!b) return null;
-  return b.n ? <span className={`cnt ${b.level}`} aria-label={b.label}>{b.n}</span> : <span className="cdot" role="img" aria-label={b.label} />;
+  return <small className={`sn ${b.level}`}>{b.label}</small>;
 }
 
 /** Every EOD section with its Things-style circle, so you can jump between them. */
@@ -140,8 +142,9 @@ function EodSections() {
   return (
     <div className="eod-side" aria-label="EOD sections">
       {group('Sales', EOD_SALES)}
-      {group('Team & notes', EOD_TEAM)}
-      {!locked && <Link to="/close/review" className={`si${pathname === '/close/review' ? ' on' : ''}`}><Icon d={ICONS.check} size={20} />Review and submit</Link>}
+      {group('Team', EOD_TEAM.slice(0, 2))}
+      {group('Wrap up', EOD_TEAM.slice(2))}
+      {!locked && <Link to="/close/review" className={`si${pathname === '/close/review' ? ' on' : ''}`}><Icon d={ICONS.check} size={20} />Review and send</Link>}
     </div>
   );
 }

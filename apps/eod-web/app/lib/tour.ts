@@ -26,11 +26,11 @@ export interface TourStep {
   tryIt?: boolean;
 }
 
-const HERO_EOD: TourStep = { id: 'hero-eod', target: 'hero-eod', title: 'Close the day here', body: 'Your end-of-day report. Do the sections in any order; each bar fills as you finish one.', icon: 'list', demo: 'segs' };
+const HERO_EOD: TourStep = { id: 'hero-eod', target: 'hero-eod', title: 'Your end of day', body: 'Your end-of-day report. Do the sections in any order; each bar fills as you finish one.', icon: 'list', demo: 'segs' };
 /** Managers see one of these dark cards, depending on the time of day; only the one on screen is shown. */
 const HERO_CHECK: TourStep = { id: 'hero-check', target: 'hero-check', title: "What's due now", body: 'The card always shows the most urgent thing first. Tap Up next to start.', icon: 'list' };
 const HERO_NIGHT: TourStep = { id: 'hero-night', target: 'hero-night', title: 'How last night went', body: 'Net sales, wages and covers from the last close, against the week before.', icon: 'chart' };
-const NEEDS: TourStep = { id: 'needs', target: 'needs', title: 'Things that need you', body: 'Late checklists, repairs and warnings land here. Red means today.', icon: 'bang' };
+const NEEDS: TourStep = { id: 'needs', target: 'needs', title: 'Checklists', body: 'What is still to do comes first, late ones at the top. What has been done sits underneath.', icon: 'bang' };
 const SYNC: TourStep = { id: 'sync', target: 'sync', title: 'Saved, then sent', body: 'Everything saves on this device first, so a bad signal never loses work.', icon: 'check', demo: 'sync' };
 const TABS: TourStep = { id: 'tabs', target: 'tabs', title: 'Checklists and the EOD', body: "They're always one tap away. Home brings you back here.", icon: 'home' };
 

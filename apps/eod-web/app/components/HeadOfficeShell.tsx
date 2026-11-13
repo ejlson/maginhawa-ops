@@ -14,7 +14,7 @@ const SEARCH = 'M8.5 3.5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12.2 12.2L16.5 16.5';
 const SITES_ICON = 'M3 17V8l7-4 7 4v9M8 17v-5h4v5';
 const BUILDER_ICON = 'M3 4h5v5H3zM12 11h5v5h-5zM8 6.5h2.5a1.5 1.5 0 0 1 1.5 1.5v3';
 
-/** Phones get four tabs, like the sites' Today · Close · Checks · More; everything else is in More. */
+/** Phones get four tabs, like the sites' Today · EOD · Checklists · More; everything else is in More. */
 const PHONE_TABS = [
   { to: '/head-office', label: 'Today', icon: ICONS.home },
   { to: '/head-office/days', label: 'Days', icon: ICONS.cal },

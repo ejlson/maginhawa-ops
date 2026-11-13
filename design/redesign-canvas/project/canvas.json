@@ -39,7 +39,7 @@
       "y": 1680,
       "w": 390,
       "h": 844,
-      "title": "2 \u00b7 Close the day: the sections left",
+      "title": "2 \u00b7 End of day: the sections left",
       "radius": 48
     },
     "P4-Lunch.dc.html": {
@@ -496,7 +496,7 @@
       "x": 6182,
       "y": 1680,
       "w": 340,
-      "text": "Today \u2192 Close the day \u2192 fill in each section \u2192 ready to send? \u2192 day closed.\n\nOnly a section not done stops sending; anything unusual is a tap on It's right. The send button names the day and the figure.\n\nPhone first; the desktop board is the same day on a laptop.",
+      "text": "Today \u2192 End of day \u2192 fill in each section \u2192 ready to send? \u2192 day closed.\n\nOnly a section not done stops sending; anything unusual is a tap on It's right. The send button names the day and the figure.\n\nPhone first; the desktop board is the same day on a laptop.",
       "fill": "blue",
       "size": "m"
     },
