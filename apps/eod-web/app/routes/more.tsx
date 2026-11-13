@@ -44,6 +44,7 @@ export default function More() {
           <div className="hd"><h2>Records</h2></div>
           <div className="sub">
             <RowLink to="/food-safety" lead={lead(ICONS.thermo)} title="Food safety" sub="Temperatures, allergens, deliveries" />
+            <RowLink to="/stock" lead={lead(ICONS.box)} title="Stock" sub="Count what's on the shelves" />
             {can.fixRepairs(user.role)
               ? <RowLink to="/repairs" lead={lead(ICONS.wrench)} title="Repairs"
                   sub={urgent ? `${urgent} urgent` : open.length ? `${open.length} open` : 'Nothing open'} />

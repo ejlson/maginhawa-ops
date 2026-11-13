@@ -54,6 +54,12 @@ import { deviceStore } from '../app/lib/store';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
 import HoSites from '../app/routes/ho-sites';
 import More from '../app/routes/more';
+import Stock from '../app/routes/stock';
+import StockCountPage from '../app/routes/stock-count';
+import StockSend from '../app/routes/stock-send';
+import StockArea from '../app/routes/stock-area';
+import HoStock from '../app/routes/ho-stock';
+import HoStockItems from '../app/routes/ho-stock-items';
 
 export const manager: User = { name: 'Jo', initials: 'J', role: 'manager', siteCode: 'BUN' };
 export const admin: User = { name: 'Ana', initials: 'A', role: 'headoffice', siteCode: 'BUN' };
@@ -109,6 +115,12 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="head-office/report-builder" element={<ReportBuilder />} />
             <Route path="head-office/sites" element={<HoSites />} />
             <Route path="more" element={<More />} />
+            <Route path="stock" element={<Stock />} />
+            <Route path="stock/count/:id" element={<StockCountPage />} />
+            <Route path="stock/count/:id/send" element={<StockSend />} />
+            <Route path="stock/count/:id/area/:area" element={<StockArea />} />
+            <Route path="head-office/stock" element={<HoStock />} />
+            <Route path="head-office/stock/items" element={<HoStockItems />} />
             <Route path="head-office/:site" element={<HeadOfficeSite />} />
           </Route>
         </Routes>

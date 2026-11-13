@@ -21,6 +21,7 @@ const LINKS = [
   { to: '/head-office/reports', label: 'Reports', icon: SEARCH },
   { to: '/head-office#trends', label: 'Trends', icon: ICONS.chart },
   { to: '/food-safety', label: 'Food safety', icon: ICONS.thermo },
+  { to: '/head-office/stock', label: 'Stock', icon: ICONS.box },
 ] as const;
 
 /** Fixed presets for now. Each person's own saved searches need storing in SharePoint first. */
@@ -44,7 +45,8 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
 
   const isOn = (to: string) => {
     const [path, h] = to.split('#');
-    if (path === '/head-office' && h === 'sites' && /^\/head-office\/(?!reports$|days$|report-builder$|sites$)[^/]+(\/|$)/.test(pathname)) return true;
+    if (path === '/head-office' && h === 'sites' && /^\/head-office\/(?!reports$|days$|report-builder$|sites$|stock(\/|$))[^/]+(\/|$)/.test(pathname)) return true;
+    if (path === '/head-office/stock') return pathname.startsWith(path);
     if (path !== pathname) return false;
     if (path === '/head-office/reports') return !saved;
     return h ? hash === `#${h}` : !hash;

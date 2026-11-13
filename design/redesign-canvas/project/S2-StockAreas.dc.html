@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Full stocktake</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.sw,.qa,.ic,.pill,.chip,.btn{corner-shape:round}
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-70px,34px) scale(1.25) rotate(25deg)}66%{transform:translate(50px,-24px) scale(.9) rotate(-12deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+@keyframes driftB{0%{transform:translate(0,0) scale(1.05) rotate(0deg)}33%{transform:translate(64px,-28px) scale(.88) rotate(-20deg)}66%{transform:translate(-44px,30px) scale(1.2) rotate(14deg)}100%{transform:translate(0,0) scale(1.05) rotate(0deg)}}
+@keyframes live{0%,100%{opacity:1}50%{opacity:.35}}
+.rise{animation:rise .45s cubic-bezier(.23,1,.32,1) both}
+.blob{position:absolute;border-radius:50%;z-index:-1}
+.ba{animation:driftA 12s ease-in-out infinite}
+.bb{animation:driftB 15s ease-in-out infinite}
+.grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:.75}
+.live{animation:live 1.6s ease-in-out infinite}
+.press{transition:transform .12s cubic-bezier(.23,1,.32,1)}
+.press:active{transform:scale(.97)}
+@media (prefers-reduced-motion: reduce){.rise,.ba,.bb,.live{animation:none}.press:active{transform:none}}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em">
+  <div style="padding:24px 24px 0;display:flex;flex-direction:column;gap:28px">
+    <a href="S1-Stock.dc.html" aria-label="Back to Stock" style="width:40px;height:40px;border-radius:999px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;color:#1D1D1F"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></a>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-top:-12px">
+      <span style="font-size:34px;font-weight:700;letter-spacing:-0.038em;line-height:1.1">Full stocktake</span>
+      <span style="font-size:15px;color:#6E6E73">2 of 5 areas done</span>
+    </div>
+
+    <div class="rise" style="position:relative;overflow:hidden;isolation:isolate;border-radius:32px;padding:26px 24px 20px;background:oklch(from #F59F00 .17 calc(c * .6) calc(h - 35));color:#F5F5F7;display:flex;flex-direction:column;gap:22px;box-shadow:0 18px 50px -26px rgba(217,72,15,.32)">
+      <div aria-hidden="true" class="blob ba" style="left:-70px;top:-90px;width:400px;height:287px;background:oklch(from #F59F00 .1 calc(c * .4) calc(h - 35));filter:blur(40px)"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-80px;top:-70px;width:325px;height:262px;background:#F59F00;filter:blur(42px)"></div>
+      <div aria-hidden="true" class="blob ba" style="right:60px;bottom:-110px;width:337px;height:225px;background:oklch(from #F59F00 calc(l - .04) calc(c * 1.1) calc(h - 40));filter:blur(44px);opacity:.9"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-40px;bottom:-110px;width:212px;height:162px;background:oklch(from #FFE8A3 .95 calc(c * .6) h);filter:blur(36px);opacity:.5"></div>
+      <svg aria-hidden="true" class="grain"><filter id="gs2"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#gs2)"></rect></svg>
+      <div style="display:flex;flex-direction:column;gap:6px;text-shadow:0 1px 10px rgba(0,0,0,.18)">
+        <span style="font-size:14px;color:rgba(245,245,247,.72)">Next area</span>
+        <span style="font-size:34px;font-weight:600;letter-spacing:-0.04em;line-height:1.1">Dry store</span>
+        <span style="font-size:15px;color:rgba(245,245,247,.8)">64 items</span>
+      </div>
+      <a href="S3-StockCount.dc.html" class="press" style="height:52px;border-radius:999px;background:rgba(255,248,240,.92);color:#1D1D1F;display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 22px;text-decoration:none;font-size:17px;font-weight:600">
+        Start counting
+        <span style="width:40px;height:40px;border-radius:999px;background:#1D1D1F;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+      </a>
+    </div>
+
+    <div class="rise" style="display:flex;flex-direction:column;animation-delay:80ms">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+        <a href="{{r.href}}" style="display:flex;align-items:center;gap:14px;height:62px;color:inherit;text-decoration:none;background:linear-gradient(rgba(0,0,0,.07),rgba(0,0,0,.07)) 38px 100%/calc(100% - 38px) 1px no-repeat">
+          <svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="{{r.stateLabel}}" style="flex-shrink:0">
+            <sc-if value="{{r.done}}" hint-placeholder-val="{{false}}"><circle cx="12" cy="12" r="11" fill="#F59F00"></circle><path d="M7.5 12.3l3 3 6-6.3" fill="none" stroke="#1D1D1F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></sc-if>
+            <sc-if value="{{r.half}}" hint-placeholder-val="{{false}}"><circle cx="12" cy="12" r="10.5" fill="none" stroke="#F59F00" stroke-width="1.8"></circle><path d="M12 4.5A7.5 7.5 0 0 1 12 19.5z" fill="#F59F00"></path></sc-if>
+            <sc-if value="{{r.todo}}" hint-placeholder-val="{{true}}"><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7C7CC" stroke-width="1.8"></circle></sc-if>
+          </svg>
+          <span style="flex:1;font-size:17px;font-weight:600">{{r.title}}</span>
+          <span style="font-size:14px;color:#6E6E73;display:flex;align-items:center;gap:6px"><sc-if value="{{r.live}}" hint-placeholder-val="{{false}}"><span class="live" style="width:7px;height:7px;border-radius:50%;background:#34C759"></span></sc-if>{{r.sub}}</span>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const row = (title, sub, st, live, href) => ({ title, sub, live: !!live, href: href || '#', done: st === 'd', half: st === 'h', todo: st === 't',
+      stateLabel: st === 'd' ? 'Done' : st === 'h' ? 'In progress' : 'To do' });
+    return { rows: [
+      row('Walk-in chiller', 'Jo', 'd'),
+      row('Freezer', 'Jo', 'd'),
+      row('Bar', 'Sam is counting', 'h', true),
+      row('Dry store', '64 items', 't', false, 'S3-StockCount.dc.html'),
+      row('Cellar', '45 items', 't')
+    ] };
+  }
+}
+</script>
+</body>
+</html>

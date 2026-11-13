@@ -141,6 +141,48 @@
       "title": "Option C \u00b7 Finance table (search, click a site)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "S1-Stock.dc.html": {
+      "x": 0,
+      "y": 7264,
+      "w": 390,
+      "h": 844,
+      "title": "Phone \u00b7 Stock: tonight's count first",
+      "radius": 48
+    },
+    "S2-StockAreas.dc.html": {
+      "x": 470,
+      "y": 7264,
+      "w": 390,
+      "h": 844,
+      "title": "Phone \u00b7 Full stocktake: next area first",
+      "radius": 48
+    },
+    "S3-StockCount.dc.html": {
+      "x": 940,
+      "y": 7264,
+      "w": 390,
+      "h": 844,
+      "title": "Phone \u00b7 Count one item at a time (try it)",
+      "radius": 48,
+      "is_interactive": true
+    },
+    "S4-StockReview.dc.html": {
+      "x": 1410,
+      "y": 7264,
+      "w": 390,
+      "h": 844,
+      "title": "Phone \u00b7 Ready to send? (try it)",
+      "radius": 48,
+      "is_interactive": true
+    },
+    "S5-StockHeadOffice.dc.html": {
+      "x": 1880,
+      "y": 7264,
+      "w": 1440,
+      "h": 960,
+      "title": "Desktop \u00b7 Head office, Stock and GP",
+      "expand": "fill"
     }
   },
   "order": [
@@ -159,7 +201,12 @@
     "R1-Research.dc.html",
     "H1-ActionList.dc.html",
     "H2-NightBoard.dc.html",
-    "H3-FinanceTable.dc.html"
+    "H3-FinanceTable.dc.html",
+    "S1-Stock.dc.html",
+    "S2-StockAreas.dc.html",
+    "S3-StockCount.dc.html",
+    "S4-StockReview.dc.html",
+    "S5-StockHeadOffice.dc.html"
   ],
   "notes": {
     "phone": {
@@ -204,6 +251,21 @@
       "w": 340,
       "text": "A \u00b7 Action list (recommended): what needs you first, then sites as rows grouped by status, detail panel on the right.\n\nB \u00b7 Night board: sites move across Not started \u2192 Closing \u2192 Sent \u2192 Approved.\n\nC \u00b7 Finance table: taller card with tonight's graph, search in the header, a sortable table, and a details panel when you click a site.\n\nAll three: one main card, site colour only on the badges, status always in words.",
       "fill": "blue",
+      "size": "m"
+    },
+    "stock": {
+      "x": 0,
+      "y": 7004,
+      "text": "Stock counts (draft, 12 Nov 2026)",
+      "kind": "title1",
+      "maxW": 3320
+    },
+    "stock-note": {
+      "x": 3400,
+      "y": 7264,
+      "w": 340,
+      "text": "Anyone can count: staff, supervisors, managers and head office. Corrections after sending need supervisor or above.\n\nSimpler pass (12 Nov): one action per screen. The card always says what to do next. Counting is one item at a time with big - and + buttons, like Lunch. Only two things can come up before sending: items not counted (must fix) and a big change from last time (tap It's right).\n\nHead office: GP% per site per period and the biggest swings.\n\nAll names and figures are made-up examples.",
+      "fill": "orange",
       "size": "m"
     }
   },

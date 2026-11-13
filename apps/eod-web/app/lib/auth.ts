@@ -39,6 +39,15 @@ export const can = {
   setKeepPeriods: (r: Role) => r === 'headoffice',
   /** Add people, change roles, reset PINs, mark leavers: own site, or any site for head office. */
   managePeople: (r: Role) => r === 'manager' || r === 'headoffice',
+  // Stock counts (docs/reports/stock-count-scope.md).
+  /** Anyone can count stock and send a count (user's decision, 12 Nov 2026). */
+  countStock: (_r: Role) => true,
+  /** Change a figure on a sent count; the old figure is kept. */
+  correctStock: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
+  /** See what stock is worth. Staff count without the money. */
+  seeStockValue: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
+  /** The group item list and costs. */
+  editStockItems: (r: Role) => r === 'headoffice',
 };
 
 /** Where each role lands after signing in. */

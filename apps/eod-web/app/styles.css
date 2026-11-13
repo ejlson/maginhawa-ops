@@ -1341,3 +1341,52 @@ h1 { font-size: 34px; letter-spacing: -.038em; }
   .ho-line, .ho-area, .ho-pulse, .ho-panel, .ho-back, .hosearch-list { animation: none; }
   .ho-line { stroke-dasharray: none; }
 }
+
+/* ==== Stock counts (design/redesign-canvas S1–S5, docs/reports/stock-count-scope.md) ==== */
+.stk-hero { gap: 8px; }
+.stk-title { font-size: 32px; font-weight: 600; letter-spacing: -.04em; line-height: 1.1; }
+.stk-sub { font-size: 15px; color: var(--herosec); }
+.stk-hero .upnext { margin-top: 14px; }
+button.upnext { border: 0; font: inherit; width: 100%; cursor: pointer; text-align: left; transition: transform .12s var(--ease-out); }
+button.upnext:active, a.upnext:active { transform: var(--press); }
+.stk-item { padding-top: 26px; padding-bottom: 26px; }
+.stk-meta { font-size: 14px; color: var(--sec); }
+.stk-link { align-self: flex-start; font-size: 15px; font-weight: 500; color: var(--link); text-decoration: none; background: none; border: 0; padding: 4px 0; cursor: pointer; font-family: inherit; }
+.stk-link.center { align-self: center; display: block; margin: 8px auto 0; }
+.stk-segs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; margin-top: -12px; }
+.stk-segs span { height: 4px; border-radius: 999px; background: var(--fill); transition: background-color .3s ease; }
+.stk-segs span.here { background: color-mix(in oklch, var(--site) 30%, transparent); }
+.stk-segs span.on { background: var(--site); }
+.stk-body { gap: 24px; }
+.stk-counter { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 8px; }
+.stk-row { display: flex; align-items: center; gap: 12px; }
+.stk-step { width: 60px; height: 60px; border-radius: 999px; border: 0; background: var(--fill); color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .12s var(--ease-out); }
+.stk-step:active { transform: scale(.92); }
+.stk-num { width: 170px; height: 96px; border: 0; background: transparent; font: inherit; font-size: 80px; font-weight: 600; letter-spacing: -.05em; text-align: center; font-variant-numeric: tabular-nums; color: var(--text); outline: none; border-radius: 24px; transition: background-color .15s ease, box-shadow .15s ease; }
+.stk-num:focus { background: var(--side, var(--fill)); }
+.stk-num::placeholder { color: var(--sep); }
+.stk-num.bad { box-shadow: 0 0 0 2px var(--bad); }
+.stk-unit { font-size: 17px; color: var(--sec); }
+.stk-note { margin-top: 14px; padding: 10px 16px; font-size: 14px; color: var(--sec); border-radius: 999px; text-align: center; min-height: 20px; }
+.stk-note.warn { background: var(--warnbg); color: var(--warn); font-weight: 500; }
+.stk-note.bad { background: var(--badbg); color: var(--bad); font-weight: 500; }
+.t-bad { color: var(--bad) !important; } .t-warn { color: var(--warn) !important; }
+a.chip.stk-chip { display: inline-flex; align-items: center; text-decoration: none; }
+.stk-clear { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 500; color: var(--ok); margin: 0; }
+.stk-lock { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--sec); margin: -12px 0 0; }
+.stk-fix { display: flex; flex-direction: column; gap: 10px; padding: 14px 0; border-top: .5px solid var(--sep); }
+.stk-fix > small { color: var(--sec); margin-top: -6px; }
+.stk-fixrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; }
+.stk-fixbtns { display: flex; gap: 8px; justify-content: flex-end; }
+.stk-problem { color: var(--warn); }
+.stk-hohead { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.stk-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.stk-cols { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+@media (max-width: 899px) { .stk-cols { grid-template-columns: minmax(0, 1fr); } }
+.stk-stack { flex-direction: column; align-items: flex-end; gap: 4px; }
+.stk-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px; align-items: end; }
+.stk-form label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--sec); }
+.stk-form .in { width: 100%; text-align: left; }
+.stk-toggle { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+.stk-add { grid-column: 1 / -1; width: auto; justify-self: start; }
+@media (max-width: 599px) { .stk-form { grid-template-columns: minmax(0, 1fr); } .stk-add { width: 100%; } }
