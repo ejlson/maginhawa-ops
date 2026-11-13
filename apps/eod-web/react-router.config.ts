@@ -1,6 +1,6 @@
 import type { Config } from '@react-router/dev/config';
 
-// SPA mode: no server of our own. Netlify serves the static build; the only server code is in apps/functions.
+// SPA mode: no server of our own. Cloudflare Pages serves the static build; the only server code is /api (apps/functions).
 export default {
   appDirectory: 'app',
   ssr: false,

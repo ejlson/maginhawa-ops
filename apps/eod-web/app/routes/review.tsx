@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
-import { canSubmit, formatPounds, SECTION_LABELS, sectionStatus, type Issue } from '@maginhawa/core';
-import { useAuth } from '../lib/auth';
+import { canSubmit, formatPounds, isEditable, SECTION_LABELS, sectionStatus, type Issue } from '@maginhawa/core';
+import { recordedAs, useAuth } from '../lib/auth';
+import { tour } from '../lib/tour';
 import { formatDay, useDraft, useWhere } from '../lib/draft';
 import { AlreadySent, EodSyncNotice, SyncState } from '../components/Sync';
-import { BigMoney, Foot, Icon, ICONS, Nav, RowLink } from '../components/ui';
+import { BigMoney, Foot, Icon, Nav, RowLink } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
+import { AddedFigures } from '../sections/AddedInputs';
 
 function IssueRow({ i }: { i: Issue }) {
   const cls = i.level === 'block' ? 'bad' : i.level === 'warn' ? 'warn' : 'ok';
@@ -29,7 +32,7 @@ export default function Review() {
   useWhere('Review');
   // Someone else sent it first: say so, with a link, instead of jumping away.
   if (sync.alreadySent && sync.notice) return <Sent text={sync.notice} />;
-  if (status === 'submitted' || status === 'approved') return <Navigate to="/close/done" replace />;
+  if (!isEditable(status)) return <Navigate to="/close/done" replace />;
 
   const blocks = issues.filter((i) => i.level === 'block');
   const warns = issues.filter((i) => i.level === 'warn');
@@ -42,9 +45,9 @@ export default function Review() {
   const send = async () => {
     setSending(true);
     setError(null);
-    const res = await submit(user?.name ?? 'Manager');
+    const res = await submit(user ? recordedAs(user) : 'Manager');
     setSending(false);
-    if (res.ok) navigate('/close/done');
+    if (res.ok) { if (user) tour.did(user, 'close'); navigate('/close/done', { state: { justSent: true } }); }
     else setError(res.error);
   };
 
@@ -98,6 +101,8 @@ export default function Review() {
             {sectionStatus(draft, 'promotions') !== 'todo' && <RowLink to="/close/promotions" lead={<span className="av"><Icon d={ICONS.star} /></span>} title="Promotions & other" sub={draft.promotions.notes} />}
           </div>
         </section>
+
+        <AddedFigures />
 
         <section className="grp quiet">
           <label className="check">

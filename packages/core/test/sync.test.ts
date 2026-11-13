@@ -4,7 +4,7 @@
  * Times: 5 October 2026 is BST, so 20:14Z shows as 21:14.
  */
 import { describe, expect, it } from 'vitest';
-import { MemoryStore } from '../src/store';
+import { MemoryStore, reviewedMessage } from '../src/store';
 import { submitReport } from '../src/submit';
 import { newDraft } from '../src/schema';
 import { changedSections, mergeDrafts, SyncError } from '../src/sync';
@@ -253,6 +253,57 @@ describe('submit', () => {
   });
 });
 
+describe('head office review', () => {
+  async function sent() {
+    const store = new MemoryStore();
+    const now = new Date('2026-10-06T08:12:00Z');
+    const res = await submitReport(verifiedDraft(), { store, settings, submittedBy: 'Jo', now });
+    if (!res.ok) throw new Error(res.error);
+    return { store, now, report: res.report };
+  }
+
+  it('two reviewers at once: exactly one wins, the other is told who', async () => {
+    const { store, now, report } = await sent();
+    const results = await Promise.allSettled([
+      store.setStatus('BUN', '2026-10-05', 'approved', { baseVersion: report.version, by: 'Sam', now }),
+      store.setStatus('BUN', '2026-10-05', 'sent-back', { baseVersion: report.version, by: 'Alex', now }),
+    ]);
+    expect(results.map((r) => r.status)).toEqual(['fulfilled', 'rejected']);
+    const lost = (results[1] as PromiseRejectedResult).reason as SyncError;
+    expect(lost.code).toBe('conflict');
+    expect(lost.message).toBe('Approved by Sam at 09:12');
+    expect((await store.get('BUN', '2026-10-05'))?.status).toBe('approved');
+  });
+
+  it('cannot approve a report that was re-sent since the reviewer looked', async () => {
+    const { store, now, report } = await sent();
+    await store.setStatus('BUN', '2026-10-05', 'sent-back', { baseVersion: report.version, by: 'Sam', now });
+    // Still on the old screen: approving the figures Sam just sent back is refused.
+    await expect(store.setStatus('BUN', '2026-10-05', 'approved', { baseVersion: report.version, by: 'Alex', now })).rejects.toThrow('Sent back by Sam at 09:12');
+  });
+
+  it('cannot approve a report the manager is fixing, even with its current version', async () => {
+    const { store, now, report } = await sent();
+    const back = await store.setStatus('BUN', '2026-10-05', 'sent-back', { baseVersion: report.version, by: 'Sam', now });
+    await expect(store.setStatus('BUN', '2026-10-05', 'approved', { baseVersion: back.version, by: 'Sam', now })).rejects.toBeInstanceOf(SyncError);
+  });
+
+  it('"sent back by" stays while the manager edits, and a resubmit starts a fresh review and email', async () => {
+    const { store, now, report } = await sent();
+    await store.markEmailed('BUN', '2026-10-05', now);
+    const back = await store.setStatus('BUN', '2026-10-05', 'sent-back', { baseVersion: report.version, by: 'Sam', now });
+    const draft = { ...back.draft, confirmed: true };
+    const edited = await store.saveDraft(draft, { baseVersion: back.version, by: 'Jo', now });
+    expect(edited.reviewedBy).toBe('Sam');
+    const again = await submitReport(edited.draft, { store, settings, submittedBy: 'Jo', now, baseVersion: edited.version, submitId: 'second-press' });
+    expect(again.ok && again.report).toMatchObject({ status: 'submitted', reviewedBy: null, emailedAt: null });
+  });
+
+  it('says what happened in words', () => {
+    expect(reviewedMessage({ status: 'sent-back', reviewedBy: 'Sam', reviewedAt: '2026-10-06T08:12:00Z', submittedBy: 'Jo', submittedAt: null })).toBe('Sent back by Sam at 09:12');
+  });
+});
+
 describe('offline', () => {
   it('queues saves on the device and replays them, version-checked, when back', async () => {
     const b = backend();
@@ -278,6 +329,27 @@ describe('offline', () => {
     expect(stored?.draft.tips.cash).toBe(6000);
     expect(stored?.draft.sessions.lunch.walkins).toBe(16);
     expect(reopened.getState().status).toBe('saved');
+  });
+
+  it('edits made offline while someone else submitted are named, not dropped quietly', async () => {
+    const b = backend();
+    await b.store.saveDraft(verifiedDraft(), { by: 'Jo', now: b.clock.now });
+    const phone = b.device('Phone');
+    const jo = b.device('Jo');
+    await phone.refresh();
+    await jo.refresh();
+
+    b.setOnline(false);
+    await phone.edit((d) => { d.tips.cash = 6000; });
+    expect((await jo.submit()).ok).toBe(true);
+    b.setOnline(true);
+    await phone.refresh();
+
+    const s = phone.getState();
+    expect(s.status).toBe('locked');
+    expect(s.draft.tips.cash).not.toBe(6000);
+    expect(s.alreadySent).toBe(true);
+    expect(s.notice).toMatch(/^Already sent by Jo at \d\d:\d\d\. Your changes to Tips & service charge were not included\. Ask finance to reopen it\.$/);
   });
 });
 
@@ -333,6 +405,7 @@ describe('shared checklists', () => {
   it('a second Finish is a no-op that says who finished', async () => {
     const { jo, sam } = twoOnOneChecklist();
     await jo.answer(run, 'fridge', 4);
+    await sam.refresh(); // Both have seen every answer.
     const [a, b] = await Promise.all([jo.finish(run), sam.finish(run)]);
     expect([a.already, b.already].sort()).toEqual([false, true]);
     const loser = a.already ? a : b;
@@ -342,12 +415,50 @@ describe('shared checklists', () => {
     expect(jo.getState().runs[run.key]?.completedBy).toBe(sam.getState().runs[run.key]?.completedBy);
   });
 
-  it('answers sent after someone finished are refused', async () => {
+  it('answers sent after someone finished are refused, and the person is told', async () => {
     const { jo, sam } = twoOnOneChecklist();
     await jo.finish(run);
     await sam.answer(run, 'fridge', 9);
     await sam.refresh();
     expect(sam.getState().runs[run.key]?.answers.fridge).toBeUndefined();
+    expect(sam.getState().refused).toEqual([
+      { runKey: run.key, checkpointId: 'fridge', message: expect.stringMatching(/^Not saved: submitted by Jo at \d\d:\d\d before your answer arrived/) },
+    ]);
+    sam.dismissRefused(run.key);
+    expect(sam.getState().refused).toEqual([]);
+  });
+
+  it("Finish stops if someone else answered since this person last looked", async () => {
+    const { jo, sam } = twoOnOneChecklist();
+    await jo.answer(run, 'fridge', 4);
+    await sam.refresh();
+    await jo.answer(run, 'fridge', 9); // A failing temperature Sam hasn't seen yet.
+    const out = await sam.finish(run);
+    expect(out).toMatchObject({ stale: true, already: false });
+    expect(sam.getState().runs[run.key]?.completedAt).toBeNull();
+    expect(sam.getState().runs[run.key]?.answers.fridge).toBe(9); // Now on Sam's screen.
+    expect((await sam.finish(run)).stale).toBe(false); // Seen it: the second press locks.
+  });
+
+  it('the server refuses a Finish that missed an answer, even if the device did not catch up first', async () => {
+    const backend = new MemoryChecklistStore();
+    const [first] = await backend.apply('BUN', [{ kind: 'answer', run, checkpointId: 'fridge', value: 4, by: 'Sam', at: '2026-10-05T20:00:00Z' }]);
+    const seen = first!.ok ? first!.answer!.seq : 0;
+    await backend.apply('BUN', [{ kind: 'answer', run, checkpointId: 'freezer', value: -5, by: 'Jo', at: '2026-10-05T20:01:00Z' }]);
+    const [stale] = await backend.apply('BUN', [{ kind: 'finish', run, by: 'Sam', at: '2026-10-05T20:02:00Z', seen }]);
+    expect(stale).toMatchObject({ ok: false, reason: 'stale', answers: [{ checkpointId: 'freezer', answeredBy: 'Jo' }] });
+    // Sam's own answers in the same batch as the Finish count as seen.
+    const out = await backend.apply('BUN', [
+      { kind: 'answer', run, checkpointId: 'doors', value: true, by: 'Sam', at: '2026-10-05T20:03:00Z' },
+      { kind: 'finish', run, by: 'Sam', at: '2026-10-05T20:03:00Z', seen: seen + 2 },
+    ]);
+    expect(out[1]).toMatchObject({ ok: true, run: { completedBy: 'Sam' } });
+  });
+
+  it('a device clock running fast cannot claim the future', async () => {
+    const backend = new MemoryChecklistStore(() => new Date('2026-10-05T20:00:00Z'));
+    const [fast] = await backend.apply('BUN', [{ kind: 'answer', run, checkpointId: 'fridge', value: 4, by: 'Jo', at: '2026-10-05T23:59:00Z' }]);
+    expect(fast).toMatchObject({ ok: true, answer: { answeredAt: '2026-10-05T20:00:00.000Z' } });
   });
 
   it('polling only fetches what changed', async () => {

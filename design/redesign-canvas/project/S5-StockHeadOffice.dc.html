@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Stock and GP</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.sw,.qa,.ic,.pill,.chip,.btn{corner-shape:round}
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-70px,34px) scale(1.25) rotate(25deg)}66%{transform:translate(50px,-24px) scale(.9) rotate(-12deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+.rise{animation:rise .5s cubic-bezier(.23,1,.32,1) both}
+.bar{transform-origin:left;animation:grow .8s cubic-bezier(.23,1,.32,1) .2s both}
+.blob{position:absolute;border-radius:50%;z-index:-1}
+.ba{animation:driftA 12s ease-in-out infinite}
+.grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:.75}
+.nav{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:12px;font-size:14px;font-weight:500;color:#1D1D1F;text-decoration:none}
+.nav svg{color:#6E6E73;flex-shrink:0}
+.nav .n{margin-left:auto;font-size:12px;font-weight:600;color:#6E6E73}
+.nav.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)}
+.nav.on svg{color:#1D1D1F}
+.grp{font-size:11px;font-weight:600;color:#8E8E93;letter-spacing:.06em;padding:0 10px;margin:18px 0 6px}
+.chip{height:34px;padding:0 14px;border-radius:999px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;background:#F2F2F5;color:#1D1D1F;border:0;font-family:inherit;cursor:pointer}
+.tr{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1.3fr) minmax(0,1.1fr) minmax(0,1.6fr) minmax(0,1.4fr);align-items:center;gap:12px;padding:0 8px}
+.row{height:60px;border-bottom:1px solid rgba(0,0,0,.06);border-radius:14px;transition:background-color .15s ease;cursor:pointer}
+.row:hover{background:#F7F7F9}
+.num{font-variant-numeric:tabular-nums;text-align:right}
+@media (prefers-reduced-motion: reduce){.rise,.bar,.ba{animation:none}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;display:flex;flex-wrap:wrap;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em">
+  <aside style="flex:1 1 248px;max-width:264px;min-width:240px;background:#F7F7F9;border-right:1px solid rgba(0,0,0,.06);padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:10px;height:48px;padding:0 10px 0 6px;border-radius:18px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)">
+      <span style="display:grid;grid-template-columns:repeat(2,14px);gap:3px;padding:0 1px"><span style="height:14px;border-radius:4px;background:#3B5BDB"></span><span style="height:14px;border-radius:4px;background:#F59F00"></span><span style="height:14px;border-radius:4px;background:#0C8599"></span><span style="height:14px;border-radius:4px;background:#D6336C"></span></span>
+      <span style="flex:1;display:flex;flex-direction:column;line-height:1.2"><span style="font-size:15px;font-weight:600">All sites</span><span style="font-size:12px;color:#6E6E73">Head office · 8 open</span></span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E6E73" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M8 10l4-4 4 4M8 14l4 4 4-4"></path></svg>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;height:36px;margin-top:12px;padding:0 10px;border-radius:12px;background:#EDEDF0;color:#8E8E93;font-size:14px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M20 20l-4-4"></path></svg>
+      <span style="flex:1">Search or jump to</span>
+      <span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:6px;background:#FFFFFF;color:#6E6E73">⌘K</span>
+    </label>
+    <div class="grp">TONIGHT</div>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="2"></rect><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"></rect><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"></rect><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"></rect></svg>All sites</a>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>To approve<span class="n">4</span></a>
+    <div class="grp">REPORTS</div>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>Past days</a>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19l5-6 4 3 7-9"></path></svg>Forecast</a>
+    <a class="nav on"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l8-4 8 4v8l-8 4-8-4zM4 8l8 4 8-4M12 12v8"></path></svg>Stock and GP<span class="n" style="color:#B25000">2 to look at</span></a>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18H6z"></path><path d="M9 8h6M9 12h6M9 16h3"></path></svg>Report builder</a>
+    <div class="grp">GROUP</div>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12V5h7l9 9-7 7zM8 8.5h.01"></path></svg>Items and costs<span class="n" style="color:#B25000">2 no cost</span></a>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="3.5"></circle><path d="M3 19c.8-3 3.2-4.5 6-4.5s5.2 1.5 6 4.5"></path></svg>People and access</a>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"></path></svg>Settings</a>
+  </aside>
+
+  <main style="flex:999 1 640px;min-width:0;padding:40px 56px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+      <div><div style="font-size:14px;color:#6E6E73">Period 3 · Sun 2 Nov to Sat 29 Nov</div><div style="font-size:34px;font-weight:700;letter-spacing:-0.035em">Stock and GP</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="chip">Period 2</button>
+        <button class="chip" style="background:#1D1D1F;color:#fff">Period 3</button>
+        <button class="chip">Export CSV</button>
+      </div>
+    </div>
+
+    <div class="rise" style="position:relative;overflow:hidden;isolation:isolate;border-radius:34px;padding:30px 32px;background:#2B1E4A;color:#F5F5F7;display:flex;flex-direction:column;gap:20px">
+      <div aria-hidden="true" class="blob ba" style="right:-120px;top:-160px;width:650px;height:400px;background:#3B5BDB;opacity:.9;filter:blur(70px)"></div>
+      <div aria-hidden="true" class="blob ba" style="right:220px;bottom:-200px;width:525px;height:350px;background:#D6336C;opacity:.8;filter:blur(70px)"></div>
+      <div aria-hidden="true" class="blob ba" style="right:-60px;bottom:-180px;width:450px;height:325px;background:#F59F00;opacity:.85;filter:blur(70px)"></div>
+      <div aria-hidden="true" class="blob ba" style="left:-120px;top:-140px;width:700px;height:375px;background:#160F2B;opacity:.9;filter:blur(60px)"></div>
+      <svg aria-hidden="true" class="grain"><filter id="gs5"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#gs5)"></rect></svg>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;text-shadow:0 1px 10px rgba(0,0,0,.15)">
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;color:rgba(245,245,247,.66)">Group gross profit · 7 of 8 counted</span><span style="font-variant-numeric:tabular-nums"><span style="font-size:56px;font-weight:600;letter-spacing:-0.055em">70.4</span><span style="font-size:28px;color:rgba(245,245,247,.6)">%</span></span><span style="font-size:14px;color:rgba(245,245,247,.8)">Target 70% · 0.6 points up on period 2</span></div>
+        <div style="display:flex;gap:32px;font-variant-numeric:tabular-nums">
+          <div style="display:flex;flex-direction:column"><span style="font-size:13px;color:rgba(245,245,247,.66)">Net sales</span><span style="font-size:22px;font-weight:600">£412,860</span></div>
+          <div style="display:flex;flex-direction:column"><span style="font-size:13px;color:rgba(245,245,247,.66)">Cost of sales</span><span style="font-size:22px;font-weight:600">£122,207</span></div>
+          <div style="display:flex;flex-direction:column"><span style="font-size:13px;color:rgba(245,245,247,.66)">Stock on hand</span><span style="font-size:22px;font-weight:600">£56,547</span></div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:rgba(245,245,247,.7)">Cost of sales = opening stock + purchases − closing stock. Net sales come from the submitted EODs.</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start">
+      <div class="rise" style="display:flex;flex-direction:column;animation-delay:100ms">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span style="font-size:20px;font-weight:700;letter-spacing:-0.025em">Sites</span><span style="font-size:13px;color:#6E6E73">Lowest GP first</span></div>
+        <div class="tr" style="height:32px;font-size:12px;font-weight:600;color:#8E8E93;border-bottom:1px solid rgba(0,0,0,.08)"><span>Site</span><span class="num">Stock value</span><span class="num">GP</span><span>vs 70% target</span><span style="text-align:right">Count</span></div>
+        <sc-for list="{{sites}}" as="s" hint-placeholder-count="8">
+          <div class="tr row">
+            <span style="display:flex;align-items:center;gap:10px;min-width:0"><span style="width:30px;height:30px;border-radius:10px;background:{{s.c}};color:{{s.on}};font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">{{s.mono}}</span><span style="font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{s.name}}</span></span>
+            <span class="num" style="font-size:15px;font-weight:500">{{s.value}}</span>
+            <span class="num" style="font-size:15px;font-weight:600">{{s.gp}}</span>
+            <span style="display:flex;align-items:center;gap:8px"><span style="position:relative;flex:1;height:6px;border-radius:999px;background:#F2F2F5"><span class="bar" style="position:absolute;left:0;top:0;bottom:0;width:{{s.w}};border-radius:999px;background:{{s.barC}}"></span><span style="position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:#1D1D1F;border-radius:1px"></span></span><span style="font-size:12px;color:{{s.dCol}};font-weight:600;width:62px;text-align:right">{{s.delta}}</span></span>
+            <span style="display:flex;justify-content:flex-end"><span class="pill" style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;color:{{s.stCol}};background:{{s.stBg}};white-space:nowrap">{{s.status}}</span></span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div class="rise" style="display:flex;flex-direction:column;animation-delay:160ms">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span style="font-size:20px;font-weight:700;letter-spacing:-0.025em">Biggest swings</span><span style="font-size:13px;color:#6E6E73">vs last count</span></div>
+        <sc-for list="{{swings}}" as="w" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:12px;min-height:64px;border-bottom:1px solid rgba(0,0,0,.06);padding:8px 0;box-sizing:border-box">
+            <span style="width:30px;height:30px;border-radius:10px;background:{{w.c}};color:{{w.on}};font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">{{w.mono}}</span>
+            <span style="flex:1;display:flex;flex-direction:column;min-width:0"><span style="font-size:15px;font-weight:600">{{w.item}}</span><span style="font-size:13px;color:#6E6E73">{{w.sub}}</span></span>
+            <span style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">{{w.amt}}</span><span style="font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;color:{{w.stCol}};background:{{w.stBg}}">{{w.status}}</span></span>
+          </div>
+        </sc-for>
+        <span style="font-size:13px;color:#6E6E73;margin-top:12px;line-height:1.4">A swing is a count more than half above or below the item's last count. Sites can mark it as right with a note.</span>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ok = ['#1F7A35','rgba(52,199,89,.14)'], warn = ['#B25000','rgba(255,149,0,.16)'], bad = ['#D70015','rgba(255,59,48,.12)'], neu = ['#6E6E73','#F2F2F5'];
+    const site = { BN: ['Bintang','#3B5BDB','#FFFFFF'], GB: ['Guanabana','#5C940D','#FFFFFF'], BL: ['Belly','#9C36B5','#FFFFFF'], HW: ['Hoodwood','#A0612A','#FFFFFF'], BU: ['Bunso','#F59F00','#1D1D1F'], CM: ['Cafe Mama & Sons','#D6336C','#FFFFFF'], KT: ['Mamasons Kentish Town','#0C8599','#FFFFFF'], CT: ['Mamasons China Town','#C92A2A','#FFFFFF'] };
+    const S = [
+      ['KT', '£7,905.10', 66.4, 'Sent Sun 30', ok],
+      ['BL', '£6,310.50', 68.2, '1 day late', warn],
+      ['CT', '£6,744.00', 69.8, 'Sent Sun 30', ok],
+      ['BU', '£8,236.40', null, 'Counting · 2 of 5', neu],
+      ['GB', '£7,120.00', 70.4, 'Sent Sun 30', ok],
+      ['HW', '£5,980.00', 71.0, 'Sent Sun 30', ok],
+      ['BN', '£9,840.20', 72.1, 'Sent Sun 30', ok],
+      ['CM', '£4,410.80', 73.3, 'Sent Sun 30', ok]
+    ];
+    const sites = S.map((x) => {
+      const m = site[x[0]], gp = x[2];
+      const d = gp == null ? null : gp - 70;
+      return {
+        mono: x[0], name: m[0], c: m[1], on: m[2], value: x[1],
+        gp: gp == null ? 'Waiting' : gp.toFixed(1) + '%',
+        w: gp == null ? '0%' : Math.max(0, Math.min(100, (gp - 60) * 5)) + '%',
+        barC: d == null ? '#C7C7CC' : d < -1.5 ? '#D70015' : d < 0 ? '#FF9500' : '#34C759',
+        delta: d == null ? '' : (d >= 0 ? d.toFixed(1) + ' up' : Math.abs(d).toFixed(1) + ' low'),
+        dCol: d == null ? '#6E6E73' : d < -1.5 ? '#D70015' : d < 0 ? '#B25000' : '#1F7A35',
+        status: x[3], stCol: x[4][0], stBg: x[4][1]
+      };
+    });
+    const sw = (k, item, sub, amt, status, st) => ({ mono: k, c: site[k][1], on: site[k][2], item, sub, amt, status, stCol: st[0], stBg: st[1] });
+    return { sites, swings: [
+      sw('KT', 'Ribeye 8oz', '11 portions · last 30', '£168.30 less', 'Ask the site', bad),
+      sw('BU', 'Prosecco DOC', '4 bottles · last 18', '£99.40 less', 'Site: it’s right', neu),
+      sw('BL', 'Tanduay rum', '2.1 bottles · last 7.0', '£69.58 less', 'Ask the site', warn),
+      sw('CT', 'Chicken thigh 5kg', '9 bags · last 4', '£76.00 more', 'Site: delivery late', neu)
+    ] };
+  }
+}
+</script>
+</body>
+</html>

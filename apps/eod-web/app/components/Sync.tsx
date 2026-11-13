@@ -6,7 +6,8 @@
 import { Link } from 'react-router';
 import { presenceText, type Presence } from '@maginhawa/core';
 import { useDraft } from '../lib/draft';
-import { Icon, ICONS } from './ui';
+import { Icon } from './ui';
+import { ICONS } from './ui-helpers';
 
 const OFFLINE = 'No signal. Your changes are saved on this device and will send when you are back online.';
 

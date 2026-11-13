@@ -3,7 +3,7 @@
  * SharePoint People list, so it's the same on every device. Rules are in @maginhawa/core (people.ts).
  */
 import { useSyncExternalStore } from 'react';
-import { findPerson, isActive, type Person, type PersonRole } from '@maginhawa/core';
+import { findPerson, worksAt, type Person, type PersonRole } from '@maginhawa/core';
 import { storage } from './storage';
 import { now } from './clock';
 
@@ -39,9 +39,9 @@ function seed(siteCode: string, all: Person[]): Person[] {
 }
 
 export const people = {
-  /** Everyone at a site, including people who've left. */
+  /** Everyone at a site, including people who've left and people whose main site is elsewhere. */
   at(siteCode: string): Person[] {
-    return seed(siteCode, read()).filter((p) => p.siteCode === siteCode);
+    return seed(siteCode, read()).filter((p) => worksAt(p, siteCode));
   },
   all: read,
   add(p: Omit<Person, 'id' | 'addedAt' | 'leftAt'>): Person {
@@ -76,5 +76,3 @@ export function usePeople(siteCode: string): Person[] {
   );
   return people.at(siteCode);
 }
-
-export const activePeople = (list: Person[]) => list.filter(isActive);

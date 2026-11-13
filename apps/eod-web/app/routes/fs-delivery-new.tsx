@@ -5,9 +5,8 @@ import { useAuth } from '../lib/auth';
 import { useFoodSafety } from '../lib/food-safety';
 import { useChecklists } from '../lib/checklists';
 import { now } from '../lib/clock';
-import { Foot, Icon, ICONS, Nav, TempInput, Toggle } from '../components/ui';
-
-const parse = (t: string) => { const n = parseFloat(t.replace('−', '-')); return Number.isFinite(n) ? n : null; };
+import { ChipRadio, Foot, Icon, Nav, TempInput, Toggle } from '../components/ui';
+import { ICONS, parseTemp } from '../components/ui-helpers';
 
 /** Check in a delivery: supplier, chilled temperature, packaging, and each item's batch and use-by. */
 export default function FsDeliveryNew() {
@@ -20,7 +19,7 @@ export default function FsDeliveryNew() {
   const [packagingOk, setPackagingOk] = useState(true);
   const [items, setItems] = useState<DeliveryItem[]>([{ name: '', batch: '', useBy: '' }]);
   const [rejected, setRejected] = useState<string[]>([]);
-  const c = parse(chilled);
+  const c = parseTemp(chilled);
   const filled = items.filter((i) => i.name.trim());
   const accepted = filled.filter((i) => !rejected.includes(i.name));
   const problems = deliveryProblems({ supplier, chilledC: c, packagingOk, items: accepted }, data.approvedSuppliers, today);
@@ -33,7 +32,7 @@ export default function FsDeliveryNew() {
         <section className="grp">
           <div className="gh"><h2>Supplier</h2></div>
           <div className="chips" role="radiogroup" aria-label="Supplier">
-            {data.approvedSuppliers.map((s) => <button key={s} type="button" role="radio" className="chip" aria-checked={supplier === s} aria-pressed={supplier === s} onClick={() => setSupplier(s)}>{s}</button>)}
+            {data.approvedSuppliers.map((s) => <ChipRadio key={s} checked={supplier === s} onClick={() => setSupplier(s)}>{s}</ChipRadio>)}
           </div>
         </section>
         <section className="grp">

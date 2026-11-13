@@ -10,12 +10,13 @@
  * - Submit is one conditional write with a per-press id, so retries are safe.
  */
 import type { EodDraft, SectionKey } from './schema';
-import { isEditable, type StoredReport } from './store';
+import { isEditable, type EodStore, type StoredReport } from './store';
 import type { SubmitResult } from './submit';
 import {
   alreadySentMessage, changedByMessage, changedSections, copySection, isSyncError, mergeDrafts, sameSection,
 } from './sync';
 import type { KeyValue, Presence, PresenceRemote } from './live';
+import { SECTION_LABELS } from './checks';
 
 /** What the device talks to: the Netlify Functions in connected mode, a local store in demo mode. */
 export interface EodRemote {
@@ -76,7 +77,15 @@ export interface EodClientOptions {
   now?: () => Date;
 }
 
+/** "Wages", "Wages and Tips", "Lunch, Wages and Tips" */
+function listSections(keys: SectionKey[]) {
+  const names = keys.map((k) => SECTION_LABELS[k]);
+  return names.length === 1 ? names[0]! : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+}
+
 const differs = (a: EodDraft, b: EodDraft) => changedSections(a, b).length > 0 || a.confirmed !== b.confirmed;
+
+const NO_CONNECTION = 'No connection. It is saved on this device; try again when you have signal.';
 
 export class EodSyncClient {
   private base: StoredReport | null;
@@ -118,8 +127,13 @@ export class EodSyncClient {
     return () => { this.listeners.delete(fn); };
   };
 
+  /** The stored copy is sent (or otherwise closed), so nothing more can be saved. */
+  private locked(): boolean {
+    return this.base !== null && !isEditable(this.base.status);
+  }
+
   private status(): EodSyncStatus {
-    if (this.base && !isEditable(this.base.status)) return 'locked';
+    if (this.locked()) return 'locked';
     if (this.clashes.length) return 'clash';
     if (this.dirty && this.offline) return 'offline';
     if (this.dirty || this.flushing) return 'saving';
@@ -145,7 +159,7 @@ export class EodSyncClient {
 
   /** Applies a change on screen at once, then saves it. Ignored once the day is sent. */
   edit(change: (d: EodDraft) => void): Promise<void> {
-    if (this.base && !isEditable(this.base.status)) return Promise.resolve();
+    if (this.locked()) return Promise.resolve();
     const next = structuredClone(this.draft);
     change(next);
     next.updatedAt = this.now().toISOString();
@@ -165,7 +179,7 @@ export class EodSyncClient {
   }
 
   private async runFlush() {
-    while (this.dirty && !this.clashes.length && !(this.base && !isEditable(this.base.status))) {
+    while (this.dirty && !this.clashes.length && !this.locked()) {
       const sent = this.draft;
       try {
         const saved = await this.o.remote.saveDraft(sent, { baseVersion: this.base?.version ?? null, by: this.o.user });
@@ -195,12 +209,14 @@ export class EodSyncClient {
     this.epoch++;
     const before = this.base?.draft ?? null;
     if (!isEditable(incoming.status)) {
+      // Our edits that never reached the server and aren't in what was sent: say so, don't drop them quietly.
+      const lost = this.dirty ? changedSections(before, this.draft).filter((k) => !sameSection(this.draft, incoming.draft, k)) : [];
       this.base = incoming;
       this.draft = incoming.draft;
       this.dirty = false;
       this.clashes = [];
-      if (incoming.submittedBy && incoming.submittedBy !== this.o.user) {
-        this.notice = alreadySentMessage(incoming);
+      if ((incoming.submittedBy && incoming.submittedBy !== this.o.user) || lost.length) {
+        this.notice = alreadySentMessage(incoming) + (lost.length ? `. Your changes to ${listSections(lost)} were not included. Ask finance to reopen it.` : '');
         this.alreadySent = true;
       }
       return;
@@ -279,7 +295,7 @@ export class EodSyncClient {
   async submit(): Promise<SubmitResult> {
     await this.flush();
     if (this.clashes.length) return { ok: false, code: 'conflict', error: 'Choose whose changes to keep first.' };
-    if (this.dirty) return { ok: false, code: 'failed', error: 'No connection. It is saved on this device; try again when you have signal.' };
+    if (this.dirty) return { ok: false, code: 'failed', error: NO_CONNECTION };
     // One id per press of Submit, kept until the server answers, so a retry after lost signal is a no-op.
     this.submitId ??= this.o.newId?.() ?? `${this.o.deviceId}-${this.now().getTime()}`;
     let res: SubmitResult;
@@ -288,7 +304,7 @@ export class EodSyncClient {
     } catch {
       this.offline = true;
       this.changed();
-      return { ok: false, code: 'failed', error: 'No connection. It is saved on this device; try again when you have signal.' };
+      return { ok: false, code: 'failed', error: NO_CONNECTION };
     }
     this.submitId = null;
     this.offline = false;
@@ -311,7 +327,7 @@ export class EodSyncClient {
 
 /** Wraps a store (MemoryStore, DeviceStore) as a remote: demo mode and tests. */
 export function storeRemote(
-  store: import('./store').EodStore,
+  store: EodStore,
   submit: (draft: EodDraft, opts: { baseVersion: string | null; submitId: string; by: string }) => Promise<SubmitResult>,
   now?: () => Date,
 ): EodRemote {

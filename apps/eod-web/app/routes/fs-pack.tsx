@@ -1,9 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Navigate, useSearchParams } from 'react-router';
-import {
-  ALLERGENS, alertMatches, ALERT_ACTIONS, calibrationResult, certStatus, complaintForInspector, coolingStatus, currentVersion, inRange,
-  PACK_LABELS, PACK_NOTES, PACK_SECTIONS, SITES, validRange, type PackSection,
-} from '@maginhawa/core';
+import { ALERT_ACTIONS, alertMatches, ALLERGENS, calibrationResult, certStatus, complaintForInspector, coolingStatus, currentVersion, inRange, PACK_LABELS, PACK_NOTES, PACK_SECTIONS, siteName as nameOfSite, validRange, type PackSection } from '@maginhawa/core';
 import { can, useAuth } from '../lib/auth';
 import { useChecklists } from '../lib/checklists';
 import { useTemplates } from '../lib/templates';
@@ -50,7 +47,7 @@ export default function FsPack() {
   if (!user || !can.compileRecords(user.role)) return <Navigate to="/" replace />;
   if (validRange(range, today)) return <Navigate to="/food-safety/records" replace />;
   const site = forSite(siteCode);
-  const siteName = SITES.find((s) => s.code === siteCode)?.name ?? siteCode;
+  const siteName = nameOfSite(siteCode);
   const d = (iso: string) => shortDate(iso, today);
   const has = (s: PackSection) => sections.includes(s);
   const madeAt = now();

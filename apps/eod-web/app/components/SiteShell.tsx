@@ -5,67 +5,87 @@
  */
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
-import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
-import { can, useAuth } from '../lib/auth';
-import { formatDay, useDraft } from '../lib/draft';
-import { Icon, ICONS, Pie } from './ui';
+import { formatPounds, isEditable, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
+import { can, canDoEod, useAuth } from '../lib/auth';
+import { useDraft } from '../lib/draft';
+import { Icon, Pie } from './ui';
+import { ICONS } from './ui-helpers';
 import { useWide } from '../lib/wide';
-import { useChecklists } from '../lib/checklists';
+import { isOverdue, useChecklists } from '../lib/checklists';
 import { useSite } from '../lib/site';
 import { useFoodSafety } from '../lib/food-safety';
 import { attentionFor } from '../lib/food-safety-attention';
 import { now } from '../lib/clock';
 import { WhoMenu } from './home/WhoMenu';
-import { CommandMenu, useCommandMenu } from './CommandMenu';
+import { CommandMenu } from './CommandMenu';
+import { useCommandMenu } from './command-menu-helpers';
+import { EOD_SALES, EOD_TEAM } from './site-shell-helpers';
+import { InSiteBar, SitePicker, SwitchToast } from './SitePicker';
 
-export const EOD_SALES: SectionKey[] = ['lunch', 'dinner', 'delivery', 'promotions'];
-export const EOD_TEAM: SectionKey[] = ['wages', 'tips', 'feedback', 'handover'];
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { pathname } = useLocation();
-  const { draft, settings, progress } = useDraft();
+  const { progress } = useDraft();
   const wide = useWide();
   const counts = useCounts();
   const menu = useCommandMenu();
-  if (!user || !wide) return <>{children}</>;
+  if (!user) return <>{children}</>;
+  if (!wide) return <><InSiteBar />{children}<SwitchToast /></>;
 
-  const links = [
-    { to: '/', label: 'Home', icon: ICONS.home, on: pathname === '/' },
-    { to: '/day', label: 'Timeline', icon: ICONS.clock, on: pathname === '/day' },
-    { to: '/checklists', label: 'Checklists', icon: ICONS.check, on: pathname.startsWith('/checklists'), badge: counts.checklists },
-    ...(can.doEod(user.role) ? [{ to: '/close', label: "Today's EOD", icon: ICONS.list, on: pathname.startsWith('/close'), meta: `${progress.done} of ${progress.active}` }] : []),
-    ...(can.fixRepairs(user.role) ? [{ to: '/repairs', label: 'Repairs', icon: ICONS.wrench, on: pathname.startsWith('/repairs'), badge: counts.repairs }] : []),
-    ...(can.managePeople(user.role) ? [{ to: '/people', label: 'People', icon: ICONS.people, on: pathname.startsWith('/people') }] : []),
-    { to: '/handover', label: 'Handover', icon: ICONS.handover, on: pathname.startsWith('/handover'), badge: counts.handover },
-    { to: '/food-safety', label: 'Food safety', icon: ICONS.thermo, on: pathname.startsWith('/food-safety'), badge: counts.foodSafety },
+  // Grouped so it reads like the shift: what's on today, the records you keep, and the team.
+  const groups: { title: string; links: NavLinkItem[] }[] = [
+    { title: 'Today', links: [
+      { to: '/', label: 'Home', icon: ICONS.home, on: pathname === '/' },
+      { to: '/day', label: 'Timeline', icon: ICONS.clock, on: pathname === '/day' },
+      { to: '/checklists', label: 'Checklists', icon: ICONS.check, on: pathname.startsWith('/checklists'), badge: counts.checklists },
+      ...(canDoEod(user) ? [{ to: '/close', label: "Today's EOD", icon: ICONS.list, on: pathname.startsWith('/close'), meta: `${progress.done} of ${progress.active}` }] : []),
+    ] },
+    { title: 'Records', links: [
+      { to: '/food-safety', label: 'Food safety', icon: ICONS.thermo, on: pathname.startsWith('/food-safety'), badge: counts.foodSafety },
+      { to: '/stock', label: 'Stock', icon: ICONS.box, on: pathname.startsWith('/stock') },
+      { to: '/safety', label: 'Health and safety', icon: ICONS.bang, on: pathname.startsWith('/safety') },
+      { to: '/maintenance', label: 'Maintenance', icon: ICONS.wrench, on: pathname.startsWith('/maintenance') },
+      { to: '/recipes', label: 'Recipes', icon: ICONS.list, on: pathname.startsWith('/recipes') },
+      ...(can.fixRepairs(user.role) ? [{ to: '/repairs', label: 'Repairs', icon: ICONS.wrench, on: pathname.startsWith('/repairs'), badge: counts.repairs }] : []),
+      { to: '/handover', label: 'Handover', icon: ICONS.handover, on: pathname.startsWith('/handover'), badge: counts.handover },
+    ] },
+    ...(can.managePeople(user.role) ? [{ title: 'Team', links: [{ to: '/people', label: 'People', icon: ICONS.people, on: pathname.startsWith('/people') }] }] : []),
   ];
-  const inEod = pathname.startsWith('/close') && can.doEod(user.role);
+  const inEod = pathname.startsWith('/close') && canDoEod(user);
 
   return (
     <div className="ho-shell site-shell">
       <nav className="ho-side" aria-label="Main">
-        <div className="ho-brand"><span>{settings.siteName} · {formatDay(draft.businessDate, { weekday: 'short', day: 'numeric', month: 'short' })}</span><b>{inEod ? "Today's close" : settings.siteName}</b></div>
+        <SitePicker place="side" title={inEod ? "Today's close" : undefined} />
         <button type="button" className="ho-search" onClick={() => menu.setOpen(true)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
           Search or jump to<span className="kbd">⌘K</span>
         </button>
-        <div className="ho-links">
-          {links.map((l) => (
-            <Link key={l.to} to={l.to} className={`si${l.on ? ' on' : ''}`} aria-current={l.on ? 'page' : undefined}>
-              <Icon d={l.icon} size={20} />{l.label}{'meta' in l && l.meta && <small>{l.meta}</small>}{'badge' in l && l.badge && <Badge b={l.badge} />}
-            </Link>
+        <div className="ho-links" data-tour="tabs">
+          {groups.map((g) => (
+            <div key={g.title} role="group" aria-labelledby={`nav-${g.title}`} style={{ display: 'contents' }}>
+              <div className="sgh" id={`nav-${g.title}`}>{g.title}</div>
+              {g.links.map((l) => (
+                <Link key={l.to} to={l.to} className={`si${l.on ? ' on' : ''}`} aria-current={l.on ? 'page' : undefined}>
+                  <Icon d={l.icon} size={20} />{l.label}{l.meta && <small>{l.meta}</small>}{l.badge && <Badge b={l.badge} />}
+                </Link>
+              ))}
+            </div>
           ))}
         </div>
         {inEod && <EodSections />}
         {/* Switch person, staff PINs, sign out (and, in demo mode, see the app as another role). */}
         <div className="ho-me"><WhoMenu /></div>
       </nav>
-      <div className="ho-main">{children}</div>
+      <div className="ho-main"><InSiteBar />{children}</div>
+      <SwitchToast />
       {menu.open && <CommandMenu onClose={() => menu.setOpen(false)} />}
     </div>
   );
 }
+
+type NavLinkItem = { to: string; label: string; icon: string; on: boolean; meta?: string; badge?: Count };
 
 /** What each sidebar item is waiting on: a red count when something is late or urgent, an orange dot when it needs a look. */
 type Count = { n: number; level: 'bad' | 'warn'; label: string } | null;
@@ -75,7 +95,7 @@ function useCounts(): Record<'checklists' | 'repairs' | 'handover' | 'foodSafety
   const { tasks, businessDate } = useChecklists();
   const { open, handover, handoverRead } = useSite();
   const { site, data, siteCode } = useFoodSafety();
-  const late = tasks.filter((t) => t.status === 'late' || t.status === 'missed').length;
+  const late = tasks.filter(isOverdue).length;
   const due = tasks.filter((t) => t.status === 'due').length;
   const urgent = open.filter((r) => r.urgent).length;
   const fs = user ? attentionFor(site, data, siteCode, { today: businessDate, now: now(), role: user.role, person: user.name }) : [];
@@ -97,7 +117,7 @@ function Badge({ b }: { b: Count }) {
 function EodSections() {
   const { pathname } = useLocation();
   const { draft, result, status } = useDraft();
-  const locked = status === 'submitted' || status === 'approved';
+  const locked = !isEditable(status);
   const amount = (k: SectionKey) => {
     if (sectionStatus(draft, k) !== 'done') return null;
     if (k === 'lunch' || k === 'dinner') return formatPounds(result.sessions[k].net);

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Head office · all sites</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.sw,.qa,.ic,.pill,.chip,.btn{corner-shape:round}
+
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-70px,34px) scale(1.25) rotate(25deg)}66%{transform:translate(50px,-24px) scale(.9) rotate(-12deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+.rise{animation:rise .5s cubic-bezier(.23,1,.32,1) both}
+.bar{transform-origin:left;animation:grow .8s cubic-bezier(.23,1,.32,1) .2s both}
+.blob{position:absolute;border-radius:50%;z-index:-1}
+.ba{animation:driftA 12s ease-in-out infinite}
+.grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:.75}
+.nav{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:12px;font-size:14px;font-weight:500;color:#1D1D1F;text-decoration:none}
+.nav svg{color:#6E6E73;flex-shrink:0}
+.nav .n{margin-left:auto;font-size:12px;font-weight:600;color:#6E6E73}
+.nav.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)}
+.nav.on svg{color:#1D1D1F}
+.grp{font-size:11px;font-weight:600;color:#8E8E93;letter-spacing:.06em;padding:0 10px;margin:18px 0 6px}
+.chip{height:34px;padding:0 14px;border-radius:999px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;background:#F2F2F5;color:#1D1D1F;border:0;font-family:inherit}
+.card{border-radius:28px;overflow:hidden;background:#FFFFFF;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 10px 36px -20px rgba(0,0,0,.12);display:flex;flex-direction:column;transition:transform .2s cubic-bezier(.23,1,.32,1),box-shadow .2s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 0 0 1px rgba(0,0,0,.06),0 18px 48px -22px rgba(0,0,0,.16)}
+@media (prefers-reduced-motion: reduce){.rise,.bar,.ba{animation:none}.card:hover{transform:none}}
+@keyframes pan{0%{background-position:0% 0%}100%{background-position:100% 100%}}
+.pan{background-size:170% 170% !important;animation:pan 9s ease-in-out infinite alternate}
+@media (prefers-reduced-motion: reduce){.pan{animation:none}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;display:flex;flex-wrap:wrap;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em">
+  <aside style="flex:1 1 248px;max-width:264px;min-width:240px;background:#F7F7F9;border-right:1px solid rgba(0,0,0,.06);padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:10px;height:48px;padding:0 10px 0 6px;border-radius:18px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)">
+      <span style="display:grid;grid-template-columns:repeat(2,14px);gap:3px;padding:0 1px"><span style="height:14px;border-radius:4px;background:#3B5BDB"></span><span style="height:14px;border-radius:4px;background:#F59F00"></span><span style="height:14px;border-radius:4px;background:#0C8599"></span><span style="height:14px;border-radius:4px;background:#D6336C"></span></span>
+      <span style="flex:1;display:flex;flex-direction:column;line-height:1.2"><span style="font-size:15px;font-weight:600">All sites</span><span style="font-size:12px;color:#6E6E73">Head office · 8 open</span></span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6E6E73" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M8 10l4-4 4 4M8 14l4 4 4-4"></path></svg>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;height:36px;margin-top:12px;padding:0 10px;border-radius:12px;background:#EDEDF0;color:#8E8E93;font-size:14px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M20 20l-4-4"></path></svg>
+      <span style="flex:1">Search or jump to</span>
+      <span style="font-size:11px;font-weight:600;padding:2px 6px;border-radius:6px;background:#FFFFFF;color:#6E6E73">⌘K</span>
+    </label>
+    <div class="grp">TONIGHT</div>
+    <a class="nav on"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="2"></rect><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"></rect><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"></rect><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"></rect></svg>All sites<span class="n" style="color:#B25000">3 to look at</span></a>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>To approve<span class="n">4</span></a>
+    <div class="grp">REPORTS</div>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>Past days</a>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19l5-6 4 3 7-9"></path></svg>Forecast</a>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18H6z"></path><path d="M9 8h6M9 12h6M9 16h3"></path></svg>Report builder</a>
+    <div class="grp">GROUP</div>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="3.5"></circle><path d="M3 19c.8-3 3.2-4.5 6-4.5s5.2 1.5 6 4.5"></path></svg>People and access</a>
+    <a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"></path></svg>Settings</a>
+  </aside>
+
+  <main style="flex:999 1 640px;min-width:0;padding:40px 56px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap">
+      <div><div style="font-size:14px;color:#6E6E73">Thursday 12 November · 22:15</div><div style="font-size:34px;font-weight:700;letter-spacing:-0.035em">All sites tonight</div></div>
+      <button style="height:44px;padding:0 20px;border-radius:999px;border:0;background:#1D1D1F;color:#fff;font:inherit;font-size:15px;font-weight:600">Approve 4 clean closes</button>
+    </div>
+
+    <div class="rise" style="position:relative;overflow:hidden;isolation:isolate;border-radius:34px;padding:30px 32px;background:#2B1E4A;color:#F5F5F7;display:flex;flex-direction:column;gap:18px">
+      <div aria-hidden="true" class="blob ba" style="right:-120px;top:-160px;width:650px;height:400px;background:#3B5BDB;opacity:.9;filter:blur(70px)"></div>
+      <div aria-hidden="true" class="blob ba" style="right:220px;bottom:-200px;width:525px;height:350px;background:#D6336C;opacity:.8;filter:blur(70px)"></div>
+      <div aria-hidden="true" class="blob ba" style="right:-60px;bottom:-180px;width:450px;height:325px;background:#F59F00;opacity:.85;filter:blur(70px)"></div>
+      <div aria-hidden="true" class="blob ba" style="left:-120px;top:-140px;width:700px;height:375px;background:#160F2B;opacity:.9;filter:blur(60px)"></div>
+      <svg aria-hidden="true" class="grain"><filter id="gd2"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#gd2)"></rect></svg>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;color:rgba(245,245,247,.66)">Group net so far</span><span style="font-variant-numeric:tabular-nums"><span style="font-size:56px;font-weight:600;letter-spacing:-0.055em">£14,820</span><span style="font-size:26px;color:rgba(245,245,247,.6)">.00</span></span></div>
+        <div style="display:flex;gap:32px;font-variant-numeric:tabular-nums">
+          <div style="display:flex;flex-direction:column"><span style="font-size:13px;color:rgba(245,245,247,.66)">vs forecast</span><span style="font-size:22px;font-weight:600">96%</span></div>
+          <div style="display:flex;flex-direction:column"><span style="font-size:13px;color:rgba(245,245,247,.66)">Wages</span><span style="font-size:22px;font-weight:600">29.1%</span></div>
+          <div style="display:flex;flex-direction:column"><span style="font-size:13px;color:rgba(245,245,247,.66)">Closes in</span><span style="font-size:22px;font-weight:600">2 of 8</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="bar" style="display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px">
+          <sc-for list="{{sites}}" as="s" hint-placeholder-count="8"><span style="flex:{{s.share}};background:{{s.c}}"></span></sc-for>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:rgba(245,245,247,.75)">
+          <sc-for list="{{sites}}" as="s" hint-placeholder-count="8"><span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:{{s.c}}"></span>{{s.short}}</span></sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="chip" style="background:#1D1D1F;color:#fff">All 8</button>
+      <button class="chip"><span style="width:7px;height:7px;border-radius:50%;background:#FF9500"></span>Needs a look · 3</button>
+      <button class="chip">Sent · 2</button>
+      <button class="chip">In progress · 4</button>
+      <button class="chip">Not started · 2</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px">
+      <sc-for list="{{sites}}" as="s" hint-placeholder-count="8">
+        <div class="card rise" style="animation-delay:{{s.delay}}">
+          <div class="pan" style="position:relative;isolation:isolate;overflow:hidden;height:68px;padding:14px 18px;box-sizing:border-box;background:radial-gradient(60% 120% at 100% 0%, {{s.c}} 0%, transparent 80%), radial-gradient(60% 140% at 60% 130%, oklch(from {{s.c}} calc(l - .04) calc(c * 1.1) calc(h - 40)) 0%, transparent 70%), radial-gradient(35% 90% at 100% 110%, {{s.light}} 0%, transparent 70%), oklch(from {{s.c}} .17 calc(c * .6) calc(h - 35));display:flex;align-items:center;gap:10px;color:#F5F5F7">
+            <svg aria-hidden="true" class="grain"><filter id="{{s.fid}}"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#{{s.fid}})"></rect></svg>
+            <span style="width:32px;height:32px;border-radius:12px;background:rgba(255,255,255,.18);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)">{{s.mono}}</span>
+            <span style="font-size:14px;font-weight:600;line-height:1.2">{{s.name}}</span>
+          </div>
+          <div style="padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:22px;font-weight:600;letter-spacing:-0.035em;font-variant-numeric:tabular-nums">{{s.net}}</span><span style="font-size:12px;color:#6E6E73">{{s.vs}}</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;color:{{s.stCol}};background:{{s.stBg}}">{{s.status}}</span>
+              <span style="font-size:12px;color:#6E6E73">Wages {{s.wages}}</span>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ok = ['#1F7A35','rgba(52,199,89,.14)'], warn = ['#B25000','rgba(255,149,0,.16)'], bad = ['#D70015','rgba(255,59,48,.12)'], neu = ['#1D1D1F','#F2F2F5'];
+    const S = [
+      ['Bintang','Bintang','BN','#3B5BDB','#A5B8FF','#141C66','£2,684.00','104%','Sent',ok,'28.0%',2684],
+      ['Guanabana','Guanabana','GB','#5C940D','#D8F5A2','#1F3D0A','£1,920.50','93%','Closing · 5 of 8',neu,'30.4%',1920],
+      ['Belly','Belly','BL','#9C36B5','#F3C4FF','#3B0F5C','£1,610.00','88%','Not started',warn,'31.9%',1610],
+      ['Hoodwood','Hoodwood','HW','#A0612A','#F5D0A9','#4A2410','£1,402.00','90%','2 checks late',warn,'29.2%',1402],
+      ['Bunso','Bunso','BU','#F59F00','#FFE8A3','#D9480F','£1,840.50','80%','Closing · 3 of 8',neu,'27.4%',1840],
+      ['Cafe Mama & Sons','Cafe M&S','CM','#D6336C','#FFC9DE','#5C0F2E','£1,288.00','101%','Sent',ok,'26.8%',1288],
+      ['Mamasons Kentish Town','Kentish Town','KT','#0C8599','#99E9F2','#073B4C','£2,240.00','99%','£20.00 short',bad,'28.7%',2240],
+      ['Mamasons China Town','China Town','CT','#C92A2A','#FFB37A','#5C0A0A','£1,835.00','97%','Not started',warn,'36.2%',1835]
+    ];
+    return { sites: S.map((x, i) => ({ name: x[0], short: x[1], mono: x[2], c: x[3], light: x[4], deep: x[5], net: x[6], vs: x[7] + ' of forecast', status: x[8], stCol: x[9][0], stBg: x[9][1], wages: x[10], share: x[11], fid: 'gs' + i, delay: (120 + i * 40) + 'ms' })) };
+  }
+}
+</script>
+</body>
+</html>

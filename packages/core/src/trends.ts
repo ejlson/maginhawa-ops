@@ -6,7 +6,7 @@
  */
 import { addDays, cleanSeries, daysBetween, weekday, WEEKDAY_NAMES, type DayValue } from './data-quality';
 import { backtest, forecastV1, v1Method, type ForecastPoint } from './forecast';
-import type { Pence } from './money';
+import { percent, type Pence } from './money';
 
 /** One site's trading day, from its submitted EOD (official figures). */
 export interface TradingDayRow {
@@ -190,7 +190,7 @@ export function periodStats(rows: TradingDayRow[], from: string, to: string): Pe
   return {
     net, covers, split, cashDiff, cashShortNights: shortDays.size,
     spendPerHead: covers ? Math.round(dineIn / covers) : null,
-    wagePct: wagedNet ? Math.round((wages / wagedNet) * 1000) / 10 : null,
+    wagePct: percent(wages, wagedNet),
     days: new Set(inRange.map((r) => r.date)).size,
   };
 }

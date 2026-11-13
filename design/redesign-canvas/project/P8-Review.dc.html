@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Review and send</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.sw,.qa,.ic,.pill,.chip,.btn{corner-shape:round}
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-70px,34px) scale(1.25) rotate(25deg)}66%{transform:translate(50px,-24px) scale(.9) rotate(-12deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+@keyframes driftB{0%{transform:translate(0,0) scale(1.05) rotate(0deg)}33%{transform:translate(64px,-28px) scale(.88) rotate(-20deg)}66%{transform:translate(-44px,30px) scale(1.2) rotate(14deg)}100%{transform:translate(0,0) scale(1.05) rotate(0deg)}}
+.blob{position:absolute;border-radius:50%;z-index:-1}
+.ba{animation:driftA 12s ease-in-out infinite}
+.bb{animation:driftB 15s ease-in-out infinite}
+.grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:.75}
+.press{transition:transform .12s cubic-bezier(.23,1,.32,1)}
+.press:active{transform:scale(.97)}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+@media (prefers-reduced-motion: reduce){.ba,.bb{animation:none}.press:active{transform:none}}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em">
+  <div style="padding:24px 24px 0;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;height:40px">
+      <a href="P3-Close.dc.html" aria-label="Back to Close the day" style="width:40px;height:40px;border-radius:999px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;color:#1D1D1F"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></a>
+      <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:#1F7A35;font-weight:500"><span style="width:7px;height:7px;border-radius:50%;background:#34C759"></span>Saved on this phone</span>
+    </div>
+    <div style="font-size:34px;font-weight:700;letter-spacing:-0.038em;line-height:1.1;margin-top:-8px">Ready to send?</div>
+
+    <div style="position:relative;overflow:hidden;isolation:isolate;border-radius:32px;padding:22px 24px 18px;background:oklch(from #F59F00 .17 calc(c * .6) calc(h - 35));color:#F5F5F7;display:flex;flex-direction:column;gap:14px;box-shadow:0 18px 50px -26px rgba(217,72,15,.32)">
+      <div aria-hidden="true" class="blob ba" style="left:-70px;top:-90px;width:400px;height:287px;background:oklch(from #F59F00 .1 calc(c * .4) calc(h - 35));filter:blur(40px)"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-80px;top:-70px;width:325px;height:262px;background:#F59F00;filter:blur(42px)"></div>
+      <div aria-hidden="true" class="blob ba" style="right:60px;bottom:-110px;width:337px;height:225px;background:oklch(from #F59F00 calc(l - .04) calc(c * 1.1) calc(h - 40));filter:blur(44px);opacity:.9"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-40px;bottom:-110px;width:212px;height:162px;background:oklch(from #FFE8A3 .95 calc(c * .6) h);filter:blur(36px);opacity:.5"></div>
+      <svg aria-hidden="true" class="grain"><filter id="g8"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#g8)"></rect></svg>
+      <div style="display:flex;flex-direction:column;gap:2px;text-shadow:0 1px 10px rgba(0,0,0,.18)">
+        <span style="font-size:13px;color:rgba(245,245,247,.7)">Thursday 12 Nov · day net</span>
+        <span style="font-variant-numeric:tabular-nums"><span style="font-size:48px;font-weight:600;letter-spacing:-0.055em">£2,687</span><span style="font-size:24px;color:rgba(245,245,247,.6)">.50</span></span>
+        <span style="font-size:14px;color:rgba(245,245,247,.82)">Wages 29.8% · on track</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid rgba(255,255,255,.16);padding-top:12px;font-variant-numeric:tabular-nums;text-shadow:0 1px 10px rgba(0,0,0,.18)">
+        <a href="P4-Lunch.dc.html" style="display:flex;flex-direction:column;color:inherit;text-decoration:none"><span style="font-size:12px;color:rgba(245,245,247,.66)">Lunch</span><span style="font-size:16px;font-weight:600">£850.00</span></a>
+        <span style="display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,.16);padding-left:12px"><span style="font-size:12px;color:rgba(245,245,247,.66)">Dinner</span><span style="font-size:16px;font-weight:600">£1,700.00</span></span>
+        <span style="display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,.16);padding-left:12px"><span style="font-size:12px;color:rgba(245,245,247,.66)">Delivery</span><span style="font-size:16px;font-weight:600">£137.50</span></span>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column">
+      <span style="font-size:20px;font-weight:700;letter-spacing:-0.025em;margin-bottom:2px">{{checksTitle}}</span>
+      <sc-for list="{{checks}}" as="c" hint-placeholder-count="2">
+        <div style="display:flex;align-items:center;gap:14px;height:68px;border-bottom:1px solid rgba(0,0,0,.07)">
+          <span style="flex:1;display:flex;flex-direction:column;min-width:0"><span style="font-size:17px;font-weight:600">{{c.title}}</span><span style="font-size:14px;color:{{c.subCol}}">{{c.sub}}</span></span>
+          <button class="press btn" onClick="{{c.act}}" style="height:36px;padding:0 16px;border-radius:999px;background:#F2F2F5;font-size:15px;font-weight:600">{{c.btn}}</button>
+        </div>
+      </sc-for>
+      <sc-if value="{{allClear}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex;align-items:center;gap:10px;height:52px;font-size:17px;font-weight:500;color:#1F7A35"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Everything checks out</div>
+      </sc-if>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:24px;right:24px;bottom:30px;display:flex;flex-direction:column;gap:16px">
+    <button class="press" onClick="{{toggle}}" style="display:flex;align-items:center;gap:12px;text-align:left">
+      <span style="width:26px;height:26px;border-radius:999px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:{{tickBg}};box-shadow:inset 0 0 0 1.8px {{tickRing}};transition:background-color .2s ease"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity:{{tickOp}}"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+      <span style="font-size:15px;line-height:1.35">These figures are right, as far as I know</span>
+    </button>
+    <sc-if value="{{canSend}}" hint-placeholder-val="{{false}}">
+      <a href="P9-Sent.dc.html" class="press" style="height:56px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;text-decoration:none">Send Thursday · £2,687.50</a>
+    </sc-if>
+    <sc-if value="{{cantSend}}" hint-placeholder-val="{{true}}">
+      <span style="height:56px;border-radius:999px;background:#E5E5EA;color:#8E8E93;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center">Send Thursday · £2,687.50</span>
+    </sc-if>
+    <span style="font-size:14px;color:#6E6E73;text-align:center;margin-top:-6px">{{note}}</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { tips: false, comps: false, tick: false }; }
+  renderVals() {
+    const s = this.state;
+    const checks = [];
+    if (!s.tips) checks.push({ title: 'Tips and service charge', sub: 'Not done yet', subCol: '#D70015', btn: 'Finish', act: () => this.setState({ tips: true }) });
+    if (!s.comps) checks.push({ title: 'Comps £68.00', sub: 'Usually about £30 on a Thursday', subCol: '#B25000', btn: "It's right", act: () => this.setState({ comps: true }) });
+    const ready = s.tips && s.tick;
+    return {
+      checks, checksTitle: checks.length ? 'Before you send' : 'Checks', allClear: checks.length === 0,
+      toggle: () => this.setState({ tick: !s.tick }),
+      tickBg: s.tick ? '#F59F00' : 'transparent', tickRing: s.tick ? '#F59F00' : '#C7C7CC', tickOp: s.tick ? 1 : 0,
+      canSend: ready, cantSend: !ready,
+      note: !s.tips ? 'Finish tips and service charge first' : !s.tick ? 'Tick to say the figures are right' : 'Goes to head office straight away'
+    };
+  }
+}
+</script>
+</body>
+</html>

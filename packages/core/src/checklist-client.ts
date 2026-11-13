@@ -31,11 +31,23 @@ export interface ChecklistSyncState {
   queued: number;
   offline: boolean;
   others: Presence[];
+  /** This device's changes the server turned down because someone else got there first. Newest last. */
+  refused: Refusal[];
+}
+
+export interface Refusal {
+  runKey: string;
+  /** The item, when an answer or fix was refused. */
+  checkpointId: string | null;
+  /** "Your answer arrived after Jo submitted this list at 22:04." */
+  message: string;
 }
 
 export interface FinishOutcome {
   /** Someone else finished it first; this Finish did nothing. */
   already: boolean;
+  /** Someone else answered since this person last looked; nothing was locked. Check, then finish again. */
+  stale: boolean;
   /** "Submitted by Jo at 21:02" */
   message: string;
   /** No signal: it is queued on this device. */
@@ -55,6 +67,9 @@ export class ChecklistSyncClient {
   private queue: ChecklistOp[];
   private offline = false;
   private others: Presence[] = [];
+  private refused: Refusal[] = [];
+  /** What the server said about each op, so finish() can read its own answer. */
+  private outcomes = new WeakMap<ChecklistOp, OpOutcome>();
   private where: string | null = null;
   private flushing: Promise<void> | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
@@ -119,7 +134,7 @@ export class ChecklistSyncClient {
 
   private makeSnapshot(): ChecklistSyncState {
     const v = this.view();
-    return { runs: buildRuns(Object.values(v.runs), Object.values(v.answers)), queued: this.queue.length, offline: this.offline, others: this.others };
+    return { runs: buildRuns(Object.values(v.runs), Object.values(v.answers)), queued: this.queue.length, offline: this.offline, others: this.others, refused: this.refused };
   }
 
   private changed() {
@@ -167,14 +182,39 @@ export class ChecklistSyncClient {
 
   /** Finishing is conditional: if someone else already finished, this is a no-op that says who. */
   async finish(run: RunStart): Promise<FinishOutcome> {
-    const op: ChecklistOp = { kind: 'finish', run, by: this.o.user, at: this.now().toISOString() };
+    // Catch up first, so the person sees anything answered elsewhere in the last few seconds.
+    if (this.queue.length) await this.flush();
+    const before = this.othersAnswers(run.key);
+    // A device that has never fetched has nothing on screen to compare with: its first look counts as seen.
+    const looked = this.cursor > 0;
+    if (!this.queue.length) await this.fetchChanges();
+    const arrived = looked ? [...this.othersAnswers(run.key)].filter(([k, seq]) => before.get(k) !== seq).length : 0;
+    if (arrived > 0) {
+      this.changed();
+      return { already: false, stale: true, queued: false, message: staleMessage(arrived) };
+    }
+    const op: ChecklistOp = { kind: 'finish', run, by: this.o.user, at: this.now().toISOString(), seen: this.cursor };
     this.queue.push(op);
     this.changed();
     await this.flush();
+    const out = this.outcomes.get(op);
+    if (out && !out.ok && out.reason === 'stale') {
+      return { already: false, stale: true, queued: false, message: staleMessage(out.answers?.length ?? 1) };
+    }
     const r = this.confirmed.runs[run.key];
-    if (!r?.completedAt) return { already: false, queued: true, message: 'Saved on this device. It will send when you have signal.' };
+    if (!r?.completedAt) return { already: false, stale: false, queued: true, message: 'Saved on this device. It will send when you have signal.' };
     const already = r.completedBy !== this.o.user || r.completedAt !== op.at;
-    return { already, queued: false, message: finishedByMessage(r) };
+    return { already, stale: false, queued: false, message: finishedByMessage(r) };
+  }
+
+  /** Items on this list someone else answered, with the change cursor of each, as far as this device knows. */
+  private othersAnswers(runKey: string) {
+    return new Map(Object.entries(this.confirmed.answers).filter(([, a]) => a.runKey === runKey && a.answeredBy !== this.o.user).map(([k, a]) => [k, a.seq]));
+  }
+
+  dismissRefused(runKey?: string) {
+    this.refused = runKey ? this.refused.filter((r) => r.runKey !== runKey) : [];
+    this.changed();
   }
 
   /** Sends waiting changes in one batch, in order. Without signal they stay queued. */
@@ -197,12 +237,28 @@ export class ChecklistSyncClient {
       }
       this.offline = false;
       this.queue = this.queue.slice(batch.length);
-      for (const r of out) {
+      out.forEach((r, i) => {
+        const op = batch[i]!;
+        this.outcomes.set(op, r);
         const runs = r.ok && r.recheck ? [r.run, r.recheck] : [r.run];
-        this.take(runs, r.ok && r.answer ? [r.answer] : []);
-      }
+        this.take(runs, r.ok && r.answer ? [r.answer] : r.ok ? [] : r.answers ?? []);
+        if (!r.ok) this.noteRefusal(op, r);
+      });
       this.changed();
     }
+  }
+
+  /** Says why a change didn't stick, instead of it quietly disappearing from the screen. */
+  private noteRefusal(op: ChecklistOp, r: Extract<OpOutcome, { ok: false }>) {
+    const checkpointId = 'checkpointId' in op ? op.checkpointId : null;
+    let message: string | null = null;
+    if (r.reason === 'finished' && (op.kind === 'answer' || op.kind === 'fix')) {
+      message = `Not saved: ${finishedByMessage(r.run).replace(/^Submitted/, 'submitted')} before your ${op.kind === 'fix' ? 'fix' : 'answer'} arrived. A supervisor can correct it.`;
+    } else if (r.reason === 'stale' && op.kind === 'finish') {
+      message = `Not submitted: ${staleMessage(r.answers?.length ?? 1)}`;
+    }
+    if (!message) return;
+    this.refused = [...this.refused.filter((x) => !(x.runKey === r.run.key && x.checkpointId === checkpointId)), { runKey: r.run.key, checkpointId, message }];
   }
 
   /** What this person has open, for presence on other devices. */
@@ -210,9 +266,7 @@ export class ChecklistSyncClient {
     this.where = where;
   }
 
-  /** Sends waiting changes, then fetches what changed since last time. Called on each poll or push. */
-  async refresh(): Promise<void> {
-    if (this.queue.length) await this.flush();
+  private async fetchChanges() {
     try {
       const c = await this.o.backend.changes(this.o.siteCode, this.o.businessDate, this.cursor);
       this.offline = false;
@@ -221,6 +275,12 @@ export class ChecklistSyncClient {
     } catch {
       this.offline = true;
     }
+  }
+
+  /** Sends waiting changes, then fetches what changed since last time. Called on each poll or push. */
+  async refresh(): Promise<void> {
+    if (this.queue.length) await this.flush();
+    await this.fetchChanges();
     if (this.o.presence) {
       try {
         this.others = await this.o.presence.beat(`${this.o.siteCode}|${this.o.businessDate}|checklists`, {
@@ -231,3 +291,6 @@ export class ChecklistSyncClient {
     this.changed();
   }
 }
+
+const staleMessage = (n: number) =>
+  `${n === 1 ? 'An item was' : 'Items were'} just answered on another device. Check ${n === 1 ? 'it' : 'them'}, then submit again.`;

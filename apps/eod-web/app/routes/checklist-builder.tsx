@@ -1,27 +1,15 @@
 import { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
-import {
-  addOnFor, ANSWER_LABELS, ANSWER_TYPES, canAddChecks, latestVersion, moveCheckpoint, newCheckpoint, nextDay, PHASE_LABELS, PHASES,
-  recordIssues, recordStatus, ruleText, scheduleText, SITES, STATUS_LABELS, uniqueId, type AnswerType, type Checkpoint,
-} from '@maginhawa/core';
+import { addOnFor, ANSWER_LABELS, ANSWER_TYPES, canAddChecks, latestVersion, moveCheckpointTo, newCheckpoint, nextDay, PHASE_LABELS, PHASES, recordIssues, recordStatus, ruleText, scheduleText, siteName as nameOfSite, SITES, STATUS_LABELS, uniqueId, type AnswerType, type Checkpoint } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
 import { checkPath, editPath, useListEditor } from '../lib/templates';
-import { ANSWER_ICONS, Foot, Icon, ICONS, Nav, RowLink, Toggle } from '../components/ui';
-
-const TYPE_HINTS: Record<AnswerType, string> = {
-  yesno: 'A quick tick, e.g. "Ice machine cleaned?"',
-  temp: 'A °C reading with a pass range',
-  number: 'Any amount with a unit: £, kg, pH, count',
-  text: 'A short note or a longer comment',
-  photo: 'Taken live with the camera',
-  choice: 'One or several options you write',
-  date: 'e.g. a use-by date',
-  sign: 'Signed with a finger',
-};
+import { ANSWER_ICONS, ICONS, TYPE_HINTS } from '../components/ui-helpers';
+import { ChipRadio, Foot, Icon, Nav, RowLink, Toggle } from '../components/ui';
+import { ReorderList } from '../components/ReorderList';
 
 const WINDOWS = [15, 30, 45, 60, 90, 120];
 
-const siteName = (code?: string) => SITES.find((s) => s.code === code)?.name ?? code ?? '';
+const siteName = (code?: string) => (code ? nameOfSite(code) : '');
 const checkSub = (c: Checkpoint) => [ANSWER_LABELS[c.type], ruleText(c), c.required ? null : 'Optional', c.section].filter(Boolean).join(' · ');
 const checkLead = (c: Checkpoint) => <span className="av"><Icon d={ANSWER_ICONS[c.type]} /></span>;
 
@@ -114,34 +102,27 @@ export default function ChecklistBuilder() {
         <section className="grp">
           <div className="hd">
             <h2>{group ? `${siteName(rec.siteCode)}'s own checks` : 'Checks'}</h2>
-            {editable && n > 1 && <button type="button" className="linkbtn" onClick={() => setReorder(!reorder)}>{reorder ? 'Done' : 'Reorder'}</button>}
+            {editable && n > 1 && !reorder && <button type="button" className="linkbtn" onClick={() => { setPicking(false); setReorder(true); }}>Reorder</button>}
           </div>
           <div className="sub">
             {group && !n && <p className="note" style={{ margin: 0 }}>Staff do these after head office's checks, at {siteName(rec.siteCode)} only.</p>}
-            {t.checkpoints.map((c, i) => {
-              const sub = checkSub(c);
-              const lead = checkLead(c);
+            {reorder ? (
+              <ReorderList onMove={(cid, to) => edit((d) => moveCheckpointTo(d, cid, to))}
+                items={t.checkpoints.map((c, i) => ({
+                  id: c.id, label: c.title || `check ${i + 1}`, sub: checkSub(c),
+                  title: c.title || <span className="muted">Check {i + 1} · no question yet</span>,
+                }))} />
+            ) : t.checkpoints.map((c, i) => {
               const title = c.title || <span className="muted">Check {i + 1} · no question yet</span>;
-              if (reorder) {
-                return (
-                  <div className="li" key={c.id}>
-                    {lead}<span className="tx"><span>{title}</span><small>{sub}</small></span>
-                    <span className="rt">
-                      <button type="button" className="mini" aria-label={`Move ${c.title || `check ${i + 1}`} up`} disabled={i === 0} onClick={() => edit((d) => moveCheckpoint(d, c.id, -1))}><Icon d={ICONS.up} size={16} /></button>
-                      <button type="button" className="mini" aria-label={`Move ${c.title || `check ${i + 1}`} down`} disabled={i === n - 1} onClick={() => edit((d) => moveCheckpoint(d, c.id, 1))}><Icon d={ICONS.down} size={16} /></button>
-                    </span>
-                  </div>
-                );
-              }
-              return <RowLink key={c.id} to={editable ? checkPath(id, c.id) : undefined} lead={lead} title={title} sub={sub} />;
+              return <RowLink key={c.id} to={editable ? checkPath(id, c.id) : undefined} lead={checkLead(c)} title={title} sub={checkSub(c)} />;
             })}
             {editable && !reorder && !picking && (
               <RowLink onClick={() => setPicking(true)} lead={<span className="av dash"><Icon d={ICONS.plus} /></span>} title={<span style={{ color: 'var(--link)' }}>Add a check</span>} />
             )}
           </div>
           {picking && (
-            <div className="panel" role="group" aria-label="What kind of answer?">
-              <div className="hd"><h2 style={{ fontSize: 17 }}>What kind of answer?</h2><button type="button" className="linkbtn" onClick={() => setPicking(false)}>Cancel</button></div>
+            <div className="panel" role="group" aria-label="What type of answer?">
+              <div className="hd"><h2 style={{ fontSize: 17 }}>What type of answer?</h2><button type="button" className="linkbtn" onClick={() => setPicking(false)}>Cancel</button></div>
               <div className="sub">
                 {ANSWER_TYPES.map((type) => (
                   <RowLink key={type} onClick={() => addCheck(type)} lead={<span className="av" style={{ background: 'var(--bg)' }}><Icon d={ANSWER_ICONS[type]} /></span>} title={ANSWER_LABELS[type]} sub={TYPE_HINTS[type]} />
@@ -200,7 +181,7 @@ export default function ChecklistBuilder() {
           )}
           <div className="field"><span id="phase">Part of the day</span>
             <div className="chips" role="radiogroup" aria-labelledby="phase">
-              {PHASES.map((p) => <button key={p} type="button" className="chip" role="radio" aria-checked={t.phase === p} aria-pressed={t.phase === p} disabled={!editable} onClick={() => edit((d) => ({ ...d, phase: p }))}>{PHASE_LABELS[p]}</button>)}
+              {PHASES.map((p) => <ChipRadio key={p} checked={t.phase === p} disabled={!editable} onClick={() => edit((d) => ({ ...d, phase: p }))}>{PHASE_LABELS[p]}</ChipRadio>)}
             </div>
           </div>
           <div className="fr"><span className="tx"><span>Set times each day</span><small>Turn off for lists done when needed, like a delivery</small></span>
@@ -230,7 +211,7 @@ export default function ChecklistBuilder() {
             </div>
             <div className="field"><span id="window">Counts as missed after</span>
               <div className="chips" role="radiogroup" aria-labelledby="window">
-                {WINDOWS.map((m) => <button key={m} type="button" className="chip" role="radio" aria-checked={t.windowMinutes === m} aria-pressed={t.windowMinutes === m} disabled={!editable} onClick={() => edit((d) => ({ ...d, windowMinutes: m }))}>{m < 60 ? `${m} min` : `${m / 60} hr`}</button>)}
+                {WINDOWS.map((m) => <ChipRadio key={m} checked={t.windowMinutes === m} disabled={!editable} onClick={() => edit((d) => ({ ...d, windowMinutes: m }))}>{m < 60 ? `${m} min` : `${m / 60} hr`}</ChipRadio>)}
               </div>
             </div>
           </>}
@@ -246,7 +227,12 @@ export default function ChecklistBuilder() {
         )}
       </div>
 
-      {editable && hasDraft && (
+      {/* While reordering, the one thing to do next is finish; publishing comes after. */}
+      {reorder ? (
+        <Foot>
+          <button type="button" className="btn b1" onClick={() => setReorder(false)}>Finished editing</button>
+        </Foot>
+      ) : editable && hasDraft && (
         <Foot>
           <button type="button" className="btn b1" disabled={issues.length > 0} onClick={() => { store.publish(id, businessDate, user.name); setConfirm(null); }}>
             {issues.length ? `${issues.length} ${issues.length === 1 ? 'thing' : 'things'} to finish first` : 'Publish · starts tomorrow'}

@@ -29,6 +29,10 @@ export interface SiteSettings {
   /** Warn when net differs from the same weekday last week by more than this. */
   netSwingWarnPct: number;
   platforms: DeliveryPlatform[];
+  /** Values for settings finance added in the report builder, by figure id (e.g. a card fee rate as 0.0175). */
+  definitionSettings?: Record<string, number>;
+  /** When head office switched Power Automate on for this site. Unset = off. Reports sent before it don't go to the flow. */
+  flowFrom?: string | null;
 }
 
 /** Example settings for local and demo use. Real values come from SharePoint (Sites, DeliveryPlatforms, RulesThresholds). */
@@ -50,17 +54,36 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   ],
 };
 
-export const SITES = [
-  { code: 'BIN', name: 'Bintang' },
-  { code: 'GUA', name: 'Guanabana' },
-  { code: 'BEL', name: 'Belly' },
-  { code: 'RAM', name: 'Ramo' },
-  { code: 'HOO', name: 'Hoodwood' },
-  { code: 'BUN', name: 'Bunso' },
-  { code: 'CAF', name: 'Cafe Mamasons' },
-  { code: 'MKT', name: 'Mamasons Kentish Town' },
-  { code: 'MCT', name: 'Mamasons China Town' },
+/**
+ * Every site the group has had, including closed ones, so old records still show a name.
+ * A closed site keeps its code; it just drops out of pickers, counts and forecasts.
+ */
+export const ALL_SITES = [
+  { code: 'BIN', name: 'Bintang', open: true },
+  { code: 'GUA', name: 'Guanabana', open: true },
+  { code: 'BEL', name: 'Belly', open: true },
+  { code: 'RAM', name: 'Ramo', open: false },
+  { code: 'HOO', name: 'Hoodwood', open: true },
+  { code: 'BUN', name: 'Bunso', open: true },
+  { code: 'CAF', name: 'Cafe Mama & Sons', open: true },
+  { code: 'MKT', name: 'Mamasons Kentish Town', open: true },
+  { code: 'MCT', name: 'Mamasons China Town', open: true },
 ] as const;
+
+export type Site = (typeof ALL_SITES)[number];
+
+/** The sites trading now: what pickers, "7 of 8 in" counts and forecasts use. */
+export const SITES: readonly Site[] = ALL_SITES.filter((s) => s.open);
+
+export const OPEN_SITE_CODES: readonly string[] = SITES.map((s) => s.code);
+
+export const isOpenSite = (code: string) => OPEN_SITE_CODES.includes(code);
+
+/** A site by code, open or closed. */
+export const findSite = (code: string): Site | undefined => ALL_SITES.find((s) => s.code === code.toUpperCase());
+
+/** A site's name for any record, including a closed site's old ones. */
+export const siteName = (code: string) => findSite(code)?.name ?? code;
 
 export const CASH_REASONS = [
   'Refund paid in cash',

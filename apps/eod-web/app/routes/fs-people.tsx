@@ -3,7 +3,7 @@ import { backToWorkAt, CERT_KINDS, certStatus, EXPIRY_WARN_DAYS, type CertState 
 import { shortDate, useFoodSafety } from '../lib/food-safety';
 import { useChecklists } from '../lib/checklists';
 import { now } from '../lib/clock';
-import { Foot, Nav } from '../components/ui';
+import { ChipRadio, Foot, Nav } from '../components/ui';
 
 const PILL: Record<CertState, string> = { ok: 'p-ok', expiring: 'p-warn', expired: 'p-bad', missing: 'p-bad' };
 const ORDER: CertState[] = ['expired', 'missing', 'expiring', 'ok'];
@@ -77,8 +77,8 @@ export default function FsPeople() {
         {adding && (
           <section className="grp">
             <div className="gh"><h2>Add a certificate</h2></div>
-            <div className="chips" role="radiogroup" aria-label="Person">{site.staff.map((s) => <button key={s.name} type="button" role="radio" className="chip" aria-checked={person === s.name} aria-pressed={person === s.name} onClick={() => setPerson(s.name)}>{s.name}</button>)}</div>
-            <div className="chips" role="radiogroup" aria-label="Certificate">{CERT_KINDS.map((k) => <button key={k} type="button" role="radio" className="chip" aria-checked={kind === k} aria-pressed={kind === k} onClick={() => setKind(k)}>{k}</button>)}</div>
+            <div className="chips" role="radiogroup" aria-label="Person">{site.staff.map((s) => <ChipRadio key={s.name} checked={person === s.name} onClick={() => setPerson(s.name)}>{s.name}</ChipRadio>)}</div>
+            <div className="chips" role="radiogroup" aria-label="Certificate">{CERT_KINDS.map((k) => <ChipRadio key={k} checked={kind === k} onClick={() => setKind(k)}>{k}</ChipRadio>)}</div>
             <div className="sub"><label className="fr"><span>Expires</span><input className="in wide-in" type="date" aria-label="Expires" value={expires} onChange={(e) => setExpires(e.target.value)} /></label></div>
           </section>
         )}

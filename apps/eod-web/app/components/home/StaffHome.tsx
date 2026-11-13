@@ -2,11 +2,13 @@
 import { Link, useLocation } from 'react-router';
 import { useAuth } from '../../lib/auth';
 import { formatDay } from '../../lib/draft';
-import { runPath, useChecklists } from '../../lib/checklists';
+import { isDone, runPath, useChecklists } from '../../lib/checklists';
 import { useSite } from '../../lib/site';
-import { Icon, ICONS } from '../ui';
+import { Icon } from '../ui';
+import { ICONS } from '../ui-helpers';
 import { TabBar } from '../TabBar';
-import { AllDoneHero, firstName, HomeHeader, isDone, NextChecklistHero, TaskRow, TimelineRow, useToday } from './shared';
+import { AllDoneHero, HomeHeader, NextChecklistHero, TaskRow, TimelineRow } from './shared';
+import { firstName, useToday } from './shared-helpers';
 import { FoodSafetyRow } from '../FoodSafetyRow';
 import { Columns } from '../Columns';
 
@@ -37,7 +39,7 @@ export function StaffHome() {
         main={<>
 
         {(left.length > 0 || done.length > 0) && (
-          <section className="grp">
+          <section className="grp" data-tour="todo">
             <div className="hd"><h2>Still to do</h2><span>{left.length ? `${left.length} left` : 'All done'}</span></div>
             <div className="sub">
               {left.map((t) => <TaskRow key={t.key} t={t} />)}
@@ -60,7 +62,7 @@ export function StaffHome() {
         )}
         </>}
         actions={<>
-        {focus && <Link className="btn b1" to={runPath(focus.key)}>{focus.status === 'late' || focus.status === 'missed' ? 'Do now' : 'Start'}: {focus.title}</Link>}
+        {focus && <Link className="btn b1" data-tour="next" to={runPath(focus.key)}>{focus.status === 'late' || focus.status === 'missed' ? 'Do now' : 'Start'}: {focus.title}</Link>}
         <Link className="btn b2" to="/report"><Icon d={ICONS.wrench} size={17} />Report a problem</Link>
         </>}
       />

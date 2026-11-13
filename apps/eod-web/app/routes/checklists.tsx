@@ -1,9 +1,10 @@
 import { Link, useSearchParams } from 'react-router';
 import { PHASE_LABELS, PHASES, type Phase } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
-import { runPath, useChecklists } from '../lib/checklists';
+import { isDone, isScheduled, runPath, useChecklists } from '../lib/checklists';
 import { Foot, Nav } from '../components/ui';
-import { groupTasks, SplitFrame, SubmitLists, TaskRow } from '../components/ChecklistSplit';
+import { groupTasks } from '../components/checklist-split-helpers';
+import { SplitFrame, SubmitLists, TaskRow } from '../components/ChecklistSplit';
 import { useTwoColumns } from '../lib/wide';
 import { TabBar } from '../components/TabBar';
 import { can, useAuth } from '../lib/auth';
@@ -16,21 +17,29 @@ export default function Checklists() {
   const tasks = phase ? all.filter((t) => t.template.phase === phase) : all;
   const title = phase ? `${PHASE_LABELS[phase]} checklists` : 'Checklists';
   const { now, missed, later, anytime, ready, done, next } = groupTasks(tasks);
-  const scheduled = tasks.filter((t) => t.status !== 'anytime');
+  const scheduled = tasks.filter(isScheduled);
   const two = useTwoColumns();
+  const lateOrMissed = now.filter((t) => t.status === 'late').length + missed.length;
+  const fixedToday = done.filter((t) => t.status === 'failed').length;
 
   const hero = (
-    <div className="hero" role="status">
-      <span className="hl">Done today</span>
+    // Compact, like the card on a list: what's done, one bar per list, and only what needs attention.
+    <div className="hero lists-hero" role="status">
+      <div className="hero-row">
+        <span className="hl">Done today</span>
+        <span className="hl">{next ? `Next due ${next.dueTime ?? 'now'}` : 'Nothing else due'}</span>
+      </div>
       <div className="big"><b>{done.length}</b><i>&nbsp;of {scheduled.length}</i></div>
-      <div className="segs" aria-hidden="true">
-        {scheduled.map((t) => <span key={t.key} className={t.status === 'done' || t.status === 'failed' ? 'd' : ''} style={t.status === 'missed' ? { background: 'var(--heroBad)' } : undefined} />)}
+      <div className="qbars" aria-hidden="true">
+        {scheduled.map((t) => <i key={t.key} className={isDone(t) ? 'done' : t.status === 'missed' || t.status === 'late' ? 'fail' : ''} />)}
       </div>
-      <div className="hm">
-        <span className={now.some((t) => t.status === 'late') || missed.length ? 'h-bad' : ''}>{now.filter((t) => t.status === 'late').length + missed.length}<small>Late or missed</small></span>
-        <span>{done.filter((t) => t.status === 'failed').length}<small>Problems fixed</small></span>
-        <span>{next?.dueTime ?? (next ? 'Now' : '—')}<small>Next due</small></span>
-      </div>
+      {(lateOrMissed > 0 || fixedToday > 0) && (
+        <span className="hl">
+          {lateOrMissed > 0 && <span className="h-bad" style={{ fontWeight: 600 }}>{lateOrMissed} late or missed</span>}
+          {lateOrMissed > 0 && fixedToday > 0 && ' · '}
+          {fixedToday > 0 && `${fixedToday} ${fixedToday === 1 ? 'problem' : 'problems'} fixed`}
+        </span>
+      )}
     </div>
   );
 
@@ -51,7 +60,7 @@ export default function Checklists() {
   }
 
   return (
-    <main className="page tabs">
+    <main className="page tabs lists-page">
       <Nav back={phase ? '/checklists' : undefined} backLabel="All" title={title}
         right={user && can.editChecklists(user.role) ? <Link className="back" to="/checklists/edit" style={{ padding: 0 }}>Edit lists</Link> : undefined} />
       <div className="body">

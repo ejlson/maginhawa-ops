@@ -1,0 +1,342 @@
+<title>Maginhawa Ops System Design</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one dark hero card, then Monzo-style lists and one wide diagram. Tokens from design/design-language.md */
+:root {
+  --bg: #FFFFFF; --side: #F7F7F9; --hero: #1D1D1F; --onhero: #F5F5F7; --herosec: rgba(245,245,247,.6); --heroline: rgba(245,245,247,.14);
+  --fill: #F2F2F5; --text: #1D1D1F; --sec: #6E6E73; --sep: rgba(0,0,0,.08);
+  --ink: #1D1D1F; --onink: #FFFFFF; --link: #0066CC;
+  --ok: #1F7A35; --okbg: rgba(52,199,89,.14); --warn: #B25000; --warnbg: rgba(255,149,0,.16); --bad: #D70015; --badbg: rgba(255,59,48,.12);
+  --box: #FFFFFF; --boxedge: rgba(0,0,0,.14);
+  --font: -apple-system, BlinkMacSystemFont, 'Geist', 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121214; --side: #1B1B1F; --hero: #232328; --onhero: #F5F5F7; --herosec: rgba(245,245,247,.66); --heroline: rgba(245,245,247,.14);
+  --fill: #2A2A2F; --text: #F2F2F4; --sec: #A3A3AB; --sep: rgba(255,255,255,.12);
+  --ink: #F2F2F4; --onink: #121214; --link: #4AA3FF;
+  --ok: #4CD964; --okbg: rgba(76,217,100,.16); --warn: #FFB340; --warnbg: rgba(255,179,64,.16); --bad: #FF6B60; --badbg: rgba(255,107,96,.16);
+  --box: #232328; --boxedge: rgba(255,255,255,.16);
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #121214; --side: #1B1B1F; --hero: #232328; --onhero: #F5F5F7; --herosec: rgba(245,245,247,.66); --heroline: rgba(245,245,247,.14);
+  --fill: #2A2A2F; --text: #F2F2F4; --sec: #A3A3AB; --sep: rgba(255,255,255,.12);
+  --ink: #F2F2F4; --onink: #121214; --link: #4AA3FF;
+  --ok: #4CD964; --okbg: rgba(76,217,100,.16); --warn: #FFB340; --warnbg: rgba(255,179,64,.16); --bad: #FF6B60; --badbg: rgba(255,107,96,.16);
+  --box: #232328; --boxedge: rgba(255,255,255,.16);
+  color-scheme: dark; }
+
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 16px; line-height: 1.5; letter-spacing: -0.012em; font-variant-numeric: tabular-nums; }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 40px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 48px; }
+h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.035em; line-height: 1.12; margin: 0; text-wrap: balance; }
+h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.025em; margin: 0; text-wrap: balance; }
+h3 { font-size: 16px; font-weight: 650; margin: 0; letter-spacing: -0.015em; }
+p { margin: 0; max-width: 68ch; }
+.sec { color: var(--sec); }
+.small { font-size: 14px; }
+code { font-family: var(--mono); font-size: .86em; background: var(--fill); padding: 1px 6px; border-radius: 6px; }
+section { display: grid; gap: 16px; min-width: 0; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+
+/* Hero */
+.hero { background: var(--hero); color: var(--onhero); border-radius: 26px; padding: 28px; display: grid; gap: 22px; box-shadow: 0 24px 48px -24px rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.07); }
+.hero .eyebrow { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--herosec); font-weight: 600; }
+.hero h1 { color: var(--onhero); }
+.hero p { color: var(--herosec); }
+.meta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--heroline); padding-top: 18px; gap: 16px; }
+.meta div { display: grid; gap: 2px; min-width: 0; }
+.meta b { font-size: 28px; font-weight: 600; letter-spacing: -0.04em; }
+.meta span { font-size: 13px; color: var(--herosec); }
+
+/* Diagram */
+.diagram { overflow-x: auto; background: var(--side); border-radius: 20px; padding: 16px; }
+.diagram svg { display: block; min-width: 760px; width: 100%; height: auto; }
+.d-box { fill: var(--box); stroke: var(--boxedge); stroke-width: 1; }
+.d-zone { fill: none; stroke: var(--boxedge); stroke-dasharray: 4 5; }
+.d-dark { fill: var(--hero); }
+.d-t { fill: var(--text); font: 600 14px var(--font); letter-spacing: -0.01em; }
+.d-s { fill: var(--sec); font: 12px var(--font); }
+.d-z { fill: var(--sec); font: 600 11px var(--font); letter-spacing: .08em; text-transform: uppercase; }
+.d-on { fill: var(--onhero); font: 600 14px var(--font); }
+.d-onsec { fill: var(--herosec); font: 12px var(--font); }
+.d-line { stroke: var(--sec); stroke-width: 1.5; fill: none; }
+.d-dash { stroke: var(--sec); stroke-width: 1.5; fill: none; stroke-dasharray: 5 5; }
+.d-arrow { fill: var(--sec); }
+.d-pill { fill: var(--fill); }
+.d-ptxt { fill: var(--text); font: 600 11px var(--mono); }
+
+/* Lists */
+.list { display: grid; }
+.row { display: grid; grid-template-columns: 42px minmax(0,1fr) auto; gap: 14px; align-items: center; padding: 12px 0; min-height: 56px; position: relative; }
+.row + .row::before { content: ""; position: absolute; top: 0; left: 56px; right: 0; border-top: 1px solid var(--sep); }
+.ic { width: 42px; height: 42px; border-radius: 50%; background: var(--fill); display: grid; place-items: center; font: 600 12px var(--mono); color: var(--text); }
+.row .t { display: grid; gap: 2px; min-width: 0; }
+.row .t span { color: var(--sec); font-size: 14px; }
+.row .r { text-align: right; font-size: 14px; color: var(--sec); max-width: 230px; }
+.pill { display: inline-block; font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.ok { background: var(--okbg); color: var(--ok); }
+.warn { background: var(--warnbg); color: var(--warn); }
+.bad { background: var(--badbg); color: var(--bad); }
+.neutral { background: var(--fill); color: var(--sec); }
+
+/* Steps */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 42px minmax(0,1fr); gap: 14px; padding: 12px 0; position: relative; }
+.steps li + li::after { content: ""; position: absolute; top: 0; left: 56px; right: 0; border-top: 1px solid var(--sep); }
+.steps li::before { content: counter(s); width: 32px; height: 32px; margin: 2px 5px; border-radius: 50%; background: var(--ink); color: var(--onink); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+.steps li div { display: grid; gap: 2px; min-width: 0; }
+.steps li span { color: var(--sec); font-size: 14px; }
+
+/* Two columns */
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.panel { background: var(--side); border-radius: 20px; padding: 20px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.panel ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+.panel li { font-size: 15px; }
+.panel li span { color: var(--sec); }
+
+/* Table */
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th { text-align: left; font-size: 13px; color: var(--sec); font-weight: 600; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--sep); }
+td { padding: 12px 12px 12px 0; border-bottom: 1px solid var(--sep); vertical-align: top; }
+td:first-child { font-weight: 600; width: 34%; }
+
+.note { font-size: 13px; color: var(--sec); }
+footer { font-size: 13px; color: var(--sec); border-top: 1px solid var(--sep); padding-top: 16px; display: grid; gap: 4px; }
+
+@media (max-width: 720px) {
+  .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cols { grid-template-columns: minmax(0, 1fr); }
+  .row { grid-template-columns: 42px minmax(0,1fr); }
+  .row .r { grid-column: 2; text-align: left; max-width: none; }
+  h1 { font-size: 28px; }
+  .hero { padding: 22px; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Maginhawa Ops · System design · October 2026</div>
+    <div style="display:grid;gap:10px">
+      <h1>How a request travels from a site's iPad to SharePoint</h1>
+      <p>Every request goes from the app on the device, through one of our Netlify Functions, to SharePoint via Microsoft Graph. Devices never talk to SharePoint directly. Several people can work on the same report or checklist at once.</p>
+    </div>
+    <div class="meta">
+      <div><b>8</b><span>sites</span></div>
+      <div><b>7</b><span>Netlify Functions</span></div>
+      <div><b>~1k</b><span>writes a day (estimate)</span></div>
+      <div><b>~10 s</b><span>between live updates</span></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="head"><h2>The parts</h2><span class="sec small">Scroll sideways on a phone</span></div>
+    <div class="diagram" role="img" aria-label="Devices send HTTPS requests with an Entra ID token to Netlify Functions. The functions check the caller, validate with packages/core, and write to SharePoint lists and libraries through Microsoft Graph with an If-Match ETag. Functions also email finance through the shared mailbox and keep presence in Netlify Blobs. Scheduled functions run at 05:15 and 05:30 UTC.">
+      <svg viewBox="0 0 960 470" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-arrow"/></marker>
+        </defs>
+
+        <!-- Zones -->
+        <rect x="10" y="20" width="250" height="430" rx="18" class="d-zone"/>
+        <text x="28" y="44" class="d-z">At the site</text>
+        <rect x="350" y="20" width="270" height="430" rx="18" class="d-zone"/>
+        <text x="368" y="44" class="d-z">Netlify</text>
+        <rect x="710" y="20" width="240" height="430" rx="18" class="d-zone"/>
+        <text x="728" y="44" class="d-z">Microsoft 365</text>
+
+        <!-- Devices -->
+        <rect x="28" y="62" width="214" height="62" rx="14" class="d-box"/>
+        <text x="44" y="89" class="d-t">Kitchen iPad</text>
+        <text x="44" y="108" class="d-s">Checklists, shared screen</text>
+        <rect x="28" y="136" width="214" height="62" rx="14" class="d-box"/>
+        <text x="44" y="163" class="d-t">Managers' phones</text>
+        <text x="44" y="182" class="d-s">EOD report, sign-off</text>
+
+        <rect x="28" y="222" width="214" height="210" rx="16" class="d-dark"/>
+        <text x="44" y="250" class="d-on">Sync client</text>
+        <text x="44" y="268" class="d-onsec">packages/core, same code as tests</text>
+        <text x="44" y="300" class="d-onsec">• Shows each edit straight away</text>
+        <text x="44" y="322" class="d-onsec">• Queues edits with no signal</text>
+        <text x="44" y="344" class="d-onsec">• Batches checklist answers</text>
+        <text x="44" y="366" class="d-onsec">• Asks "what changed?" ~10 s</text>
+        <text x="44" y="388" class="d-onsec">• Merges others' changes</text>
+        <text x="44" y="410" class="d-onsec">  section by section</text>
+        <path d="M135 198 L135 220" class="d-line" marker-end="url(#ar)"/>
+
+        <!-- Arrows device <-> functions -->
+        <path d="M244 290 L366 290" class="d-line" marker-end="url(#ar)"/>
+        <rect x="262" y="262" width="86" height="20" rx="10" class="d-pill"/>
+        <text x="305" y="276" text-anchor="middle" class="d-ptxt">HTTPS + token</text>
+        <path d="M366 340 L244 340" class="d-line" marker-end="url(#ar)"/>
+        <rect x="262" y="348" width="86" height="20" rx="10" class="d-pill"/>
+        <text x="305" y="362" text-anchor="middle" class="d-ptxt">200 304 409</text>
+
+        <!-- Functions -->
+        <rect x="368" y="62" width="234" height="234" rx="16" class="d-box"/>
+        <text x="384" y="88" class="d-t">Functions (request)</text>
+        <text x="384" y="114" class="d-s">eod-draft  ·  GET / PUT</text>
+        <text x="384" y="136" class="d-s">submit-eod  ·  POST</text>
+        <text x="384" y="158" class="d-s">checklist-sync  ·  GET / POST</text>
+        <text x="384" y="180" class="d-s">presence  ·  POST</text>
+        <text x="384" y="202" class="d-s">report-definition  ·  GET / PUT</text>
+        <line x1="384" y1="220" x2="586" y2="220" stroke="var(--sep)"/>
+        <text x="384" y="242" class="d-s">Each one: check token → check site</text>
+        <text x="384" y="262" class="d-s">→ validate → conditional write</text>
+        <text x="384" y="282" class="d-s">→ email or PDF</text>
+
+        <rect x="368" y="312" width="234" height="56" rx="14" class="d-box"/>
+        <text x="384" y="336" class="d-t">Netlify Blobs</text>
+        <text x="384" y="354" class="d-s">Who is where, 30-second expiry</text>
+        <path d="M485 296 L485 310" class="d-line" marker-end="url(#ar)"/>
+
+        <rect x="368" y="380" width="234" height="56" rx="14" class="d-box"/>
+        <text x="384" y="404" class="d-t">Scheduled functions</text>
+        <text x="384" y="422" class="d-s">05:15 bookings · 05:30 forecasts (UTC)</text>
+
+        <!-- Arrow functions -> M365 -->
+        <path d="M604 150 L726 150" class="d-line" marker-end="url(#ar)"/>
+        <rect x="618" y="122" width="96" height="20" rx="10" class="d-pill"/>
+        <text x="666" y="136" text-anchor="middle" class="d-ptxt">Graph If-Match</text>
+        <path d="M604 408 C660 408 670 160 726 160" class="d-dash" marker-end="url(#ar)"/>
+        <path d="M604 250 L726 380" class="d-line" marker-end="url(#ar)"/>
+
+        <!-- M365 -->
+        <rect x="728" y="62" width="204" height="168" rx="16" class="d-box"/>
+        <text x="744" y="88" class="d-t">SharePoint lists</text>
+        <text x="744" y="112" class="d-s">TradingDays · TradingSessions</text>
+        <text x="744" y="132" class="d-s">ChecklistRuns · Responses</text>
+        <text x="744" y="152" class="d-s">Staff · Sites · Targets …</text>
+        <text x="744" y="180" class="d-s">Each item has an ETag</text>
+        <text x="744" y="200" class="d-s">(its version number)</text>
+
+        <rect x="728" y="244" width="204" height="100" rx="16" class="d-box"/>
+        <text x="744" y="270" class="d-t">Libraries</text>
+        <text x="744" y="294" class="d-s">Photos (~300 KB each)</text>
+        <text x="744" y="314" class="d-s">Reports (EOD PDFs)</text>
+
+        <rect x="728" y="358" width="204" height="78" rx="16" class="d-box"/>
+        <text x="744" y="384" class="d-t">Shared mailbox</text>
+        <text x="744" y="406" class="d-s">Summary email to finance</text>
+
+        <!-- Entra -->
+        <text x="830" y="459" text-anchor="middle" class="d-s">Entra ID signs everyone in and supplies roles</text>
+      </svg>
+    </div>
+  </section>
+
+  <section>
+    <h2>What happens on every request</h2>
+    <ol class="steps">
+      <li><div><b>The device sends the change with the person's sign-in token</b><span>The token comes from Entra ID. It also says which version of the record the device started from.</span></div></li>
+      <li><div><b>The function checks who is calling</b><span>The name and role come from the token, never from the request. Someone can only reach their own sites. Otherwise they get 403.</span></div></li>
+      <li><div><b>The function checks the figures with packages/core</b><span>The same code the app uses. Totals are worked out again on the server, and the device's totals are only for display.</span></div></li>
+      <li><div><b>It writes to SharePoint only if nothing changed in between</b><span>Graph write with If-Match on the item's ETag. If someone saved first, the answer is 409, and the device merges and tries again.</span></div></li>
+      <li><div><b>Then any follow-up runs</b><span>The finance email or the PDF. The report is already saved, so if the email fails, the manager doesn't have to submit again.</span></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="head"><h2>Endpoints</h2><span class="sec small">apps/functions</span></div>
+    <div class="list">
+      <div class="row"><div class="ic">GET</div><div class="t"><b>/eod-draft</b><span>Fetches today's report. If-None-Match returns 304 when nothing has changed.</span></div><div class="r"><span class="pill ok">Cheap to poll</span></div></div>
+      <div class="row"><div class="ic">PUT</div><div class="t"><b>/eod-draft</b><span>Saves the draft against the version it started from.</span></div><div class="r"><span class="pill neutral">409 then merge</span></div></div>
+      <div class="row"><div class="ic">POST</div><div class="t"><b>/submit-eod</b><span>Final submit. Recalculates, stores the official totals, emails finance. Each button press has its own id.</span></div><div class="r"><span class="pill ok">Exactly one wins</span></div></div>
+      <div class="row"><div class="ic">POST</div><div class="t"><b>/checklist-sync</b><span>A batch of answers, fixes and finishes in one call (one Graph $batch).</span></div><div class="r"><span class="pill neutral">One call per batch</span></div></div>
+      <div class="row"><div class="ic">GET</div><div class="t"><b>/checklist-sync?since=</b><span>Only what changed since this device last asked.</span></div><div class="r"><span class="pill ok">Cheap to poll</span></div></div>
+      <div class="row"><div class="ic">POST</div><div class="t"><b>/presence</b><span>"Jo is in Dinner". Kept in Netlify Blobs, not SharePoint.</span></div><div class="r"><span class="pill neutral">30 s expiry</span></div></div>
+      <div class="row"><div class="ic">CRON</div><div class="t"><b>nightly-snapshot, nightly-forecast</b><span>Bookings for the next 14 days, then forecasts. No user involved.</span></div><div class="r">05:15 and 05:30 UTC</div></div>
+    </div>
+  </section>
+
+  <section id="live">
+    <h2>Working together live</h2>
+    <p class="sec">Several people can fill in the same EOD report or checklist from different devices at the same time. Each device shows its own edits straight away. Every ~10 seconds while the screen is on, it asks the server what changed, and again whenever the app comes back into view or the signal returns.</p>
+    <div class="cols">
+      <div class="panel">
+        <h3>EOD report: one record, merged by section</h3>
+        <ul>
+          <li>The whole day is one TradingDays item with a version (its ETag). <span>Every save says which version it started from.</span></li>
+          <li>If someone saved in between, the server answers 409 with what is stored now. <span>The device merges the 8 sections: Lunch, Dinner, Delivery, Promotions, Wages, Tips, Feedback, Handover.</span></li>
+          <li>Different sections merge on their own. <span>"Jo changed Dinner at 21:14" appears, and nothing is lost.</span></li>
+          <li>Only the same section changed by two people is a clash. <span>The person picks which version to keep.</span></li>
+          <li>Incoming changes never overwrite the section you are typing in.</li>
+          <li>Submit is one conditional write. <span>The second person sees "Already sent by Jo at 23:48".</span></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Checklists: one record per answer</h3>
+        <ul>
+          <li>Each answer is its own Responses row (run + checkpoint). <span>Two people ticking different items never clash.</span></li>
+          <li>The same item: the latest answer wins, by when it was answered. <span>A phone coming back online can't overwrite a newer answer.</span></li>
+          <li>The screen shows who answered each item.</li>
+          <li>Finish is conditional. <span>The second Finish does nothing and shows "Submitted by Jo at 21:02".</span></li>
+          <li>After Finish, only supervisors and above can correct an answer, with a reason. <span>The old answer stays on record.</span></li>
+          <li>Answers go in batches, and polling asks for changes since a cursor.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>When this happens</th><th>What people see</th></tr></thead>
+        <tbody>
+          <tr><td>Jo edits Dinner while Sam edits Wages</td><td>Both changes are kept. Each sees the other's section update within about 10 seconds.</td></tr>
+          <tr><td>Jo and Sam both change Dinner</td><td>The second save is told about the clash and picks which Dinner to keep.</td></tr>
+          <tr><td>Two people tick different checklist items</td><td>No conflict. Both ticks appear on both screens.</td></tr>
+          <tr><td>Two people answer the same item</td><td>The later answer is kept, with the name of who gave it.</td></tr>
+          <tr><td>Two people press Submit or Finish</td><td>One wins. The other is told who sent it and when.</td></tr>
+          <tr><td>The iPad loses signal mid-checklist</td><td>Answers stay on the iPad and are sent in order when signal returns. The screen shows how many are waiting.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="limits">
+    <h2>Rate limits</h2>
+    <p class="sec">The app keeps its own request count low on the device. Nothing yet limits requests on the server, and Microsoft's throttling isn't handled in code.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Control</th><th>What it does</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Checklist batching</td><td>Answers are collected for 1 second, then sent in one call. One call becomes one Graph $batch (up to 20 requests).</td><td><span class="pill ok">Built</span></td></tr>
+          <tr><td>EOD save coalescing</td><td>Only one save is in flight at a time. Edits made during it go out together in the next save, not one call per keystroke.</td><td><span class="pill ok">Built</span></td></tr>
+          <tr><td>Polling only while visible</td><td>About every 10 s while in use, every 30 s after 2 minutes untouched, and none in the background. The answer is 304 or "changes since" when nothing has changed.</td><td><span class="pill ok">Built</span></td></tr>
+          <tr><td>PIN lockout</td><td>5 wrong tries locks the person out for 5 minutes. This is checked on the device only.</td><td><span class="pill ok">Built</span></td></tr>
+          <tr><td>Retry after failure</td><td>Any failure counts as "offline". The device tries again on the next poll, or on focus or when signal returns, at a fixed ~10 s with no backoff.</td><td><span class="pill warn">Basic</span></td></tr>
+          <tr><td>Microsoft Graph 429 + Retry-After</td><td>Planned as rule 7 in the tech plan, and the place for it is marked in submit-eod. Nothing waits for Retry-After yet.</td><td><span class="pill bad">Not built</span></td></tr>
+          <tr><td>Per-user or per-device limit on our functions</td><td>No function returns 429. A faulty or abused device could call as often as it likes.</td><td><span class="pill bad">Not built</span></td></tr>
+          <tr><td>Clash retry limit</td><td>After a 409, the EOD client merges and saves again in a loop with no cap.</td><td><span class="pill warn">No cap</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h3>What to add before going live</h3>
+      <ul>
+        <li><b>Graph wrapper:</b> on 429 or 503, wait for Retry-After, then retry up to 3 times. If it still fails, return 503 with Retry-After to the device. <span>The work is already saved on the device, so nothing is lost.</span></li>
+        <li><b>Device backoff with jitter:</b> after failures, wait 10 s, then 20 s, 40 s, up to 2 min, plus a random 0–3 s. <span>This stops 8 sites retrying in step around 23:00.</span></li>
+        <li><b>Per-user limit in the functions:</b> for example 60 writes and 30 polls a minute per person, counted in Netlify Blobs. Above that, return 429 with Retry-After.</li>
+        <li><b>Version cache:</b> keep each site's current version in Blobs, so a poll that finds nothing new never reaches Graph.</li>
+        <li><b>PIN tries on the server</b> once Entra and SharePoint are connected, so clearing the device can't reset them.</li>
+        <li><b>Cap clash retries at 3,</b> then ask the person.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Status and weak spots</h2>
+    <div class="list">
+      <div class="row"><div class="ic">1</div><div class="t"><b>Rules are built and tested, but not connected yet</b><span>Merging, conditional writes and batching run in packages/core and are tested with two clients sharing one store. The functions answer 503 until Entra ID and SharePoint are connected. Until then the app runs in demo mode on the device.</span></div><div class="r"><span class="pill warn">Not live yet</span></div></div>
+      <div class="row"><div class="ic">2</div><div class="t"><b>Live means about 10 seconds, not instant</b><span>It's polling, not push. Azure Web PubSub can replace it later through the LiveTransport interface, without changing any screens.</span></div><div class="r"><span class="pill neutral">By design</span></div></div>
+      <div class="row"><div class="ic">3</div><div class="t"><b>Polling is most of the traffic</b><span>Each site's current version is kept in Netlify Blobs, so a poll with nothing new never reaches Graph (at most one check per site per minute). Screens left untouched poll every 30 s instead of 10 s.</span></div><div class="r"><span class="pill ok">Built</span></div></div>
+      <div class="row"><div class="ic">4</div><div class="t"><b>SharePoint can't make a batch all-or-nothing</b><span>The in-memory store applies a batch atomically, but a Graph $batch isn't a transaction. The SharePoint store needs If-Match on each answer, and a unique Title on ChecklistRuns and Responses so two devices can't create the same run twice.</span></div><div class="r"><span class="pill warn">Design for it</span></div></div>
+      <div class="row"><div class="ic">5</div><div class="t"><b>"Latest answer wins" uses the device's clock</b><span>A device with the wrong time could win or lose unfairly. Fix: stamp the time on the server, keeping the device time only for answers that were queued offline.</span></div><div class="r"><span class="pill warn">To do</span></div></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>All volumes are estimates for 8 sites using the demo checklists, not real data.</span>
+    <span>Sources: apps/functions/src, packages/core/src (sync.ts, checklist-sync.ts, eod-client.ts, live.ts), HANDOFF.md.</span>
+  </footer>
+</div>

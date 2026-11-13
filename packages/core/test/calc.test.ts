@@ -31,6 +31,10 @@ describe('verified example (HANDOFF.md §5)', () => {
     expect(day.covers).toBe(105);
     expect(day.perHeadDineIn).toBe(2429);
   });
+  it('£34.29 gross a head dine-in, £30.00 for lunch', () => {
+    expect(day.perHeadGrossDineIn).toBe(3429);
+    expect(day.sessions.lunch.perHeadGross).toBe(3000);
+  });
   it('total gross includes delivery that traded only', () => {
     expect(day.totalGross).toBe(120000 + 240000 + 30000);
   });

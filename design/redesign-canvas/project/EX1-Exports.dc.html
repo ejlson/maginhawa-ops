@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Records and exports</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+/* Circles and pills stay perfectly round (beats the squircle rule above, which is more specific). */
+.ic,.pill,.chip,.circle,.step,.back,.primary,.upnext,.arrow,.btn{corner-shape:round !important}
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-70px,34px) scale(1.25) rotate(25deg)}66%{transform:translate(50px,-24px) scale(.9) rotate(-12deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+@keyframes driftB{0%{transform:translate(0,0) scale(1.05) rotate(0deg)}33%{transform:translate(64px,-28px) scale(.88) rotate(-20deg)}66%{transform:translate(-44px,30px) scale(1.2) rotate(14deg)}100%{transform:translate(0,0) scale(1.05) rotate(0deg)}}
+.blob{position:absolute;border-radius:50%;z-index:-1}
+.ba{animation:driftA 12s ease-in-out infinite}
+.bb{animation:driftB 15s ease-in-out infinite}
+.grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:.75}
+.press{transition:transform .12s cubic-bezier(.23,1,.32,1)}
+.press:active{transform:scale(.97)}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+.ph{width:390px;height:844px;position:relative;overflow:hidden;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em}
+.wrap{padding:24px 24px 0;display:flex;flex-direction:column;gap:22px}
+.top{display:flex;align-items:center;justify-content:space-between;height:40px}
+.top b{font-size:17px;font-weight:600}
+.back{width:40px;height:40px;border-radius:999px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;color:#1D1D1F}
+.where{display:flex;align-items:center;gap:8px;font-size:14px;color:#6E6E73}
+.bu{width:22px;height:22px;border-radius:7px;background:#F59F00;color:#1D1D1F;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.h1{font-size:34px;font-weight:700;letter-spacing:-0.038em;line-height:1.1}
+.card{position:relative;overflow:hidden;isolation:isolate;border-radius:32px;padding:24px;background:oklch(from #F59F00 .17 calc(c * .6) calc(h - 35));color:#F5F5F7;display:flex;flex-direction:column;gap:6px;box-shadow:0 18px 50px -26px rgba(217,72,15,.32);text-shadow:0 1px 10px rgba(0,0,0,.18)}
+.hl{font-size:14px;color:rgba(245,245,247,.72)}
+.ct{font-size:32px;font-weight:600;letter-spacing:-0.04em;line-height:1.1}
+.cs{font-size:15px;color:rgba(245,245,247,.84)}
+.cm{display:flex;border-top:1px solid rgba(255,255,255,.16);padding-top:12px;margin-top:10px;font-variant-numeric:tabular-nums}
+.cm span{flex:1;display:flex;flex-direction:column;font-size:17px;font-weight:600}
+.cm span + span{border-left:1px solid rgba(255,255,255,.16);padding-left:14px}
+.cm small{font-size:12px;font-weight:400;color:rgba(245,245,247,.66)}
+.upnext{margin-top:14px;height:52px;border-radius:999px;background:rgba(255,248,240,.92);color:#1D1D1F;display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 22px;text-decoration:none;font-size:17px;font-weight:600;text-shadow:none}
+.upnext:hover{color:#1D1D1F}
+.arrow{width:40px;height:40px;border-radius:999px;background:#1D1D1F;display:flex;align-items:center;justify-content:center}
+.sec{display:flex;flex-direction:column}
+.h2{font-size:20px;font-weight:700;letter-spacing:-0.025em;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.h2 small{font-size:13px;font-weight:400;color:#6E6E73;letter-spacing:0}
+.row{display:flex;align-items:center;gap:14px;min-height:62px;color:inherit;text-decoration:none;padding:8px 0;box-sizing:border-box;width:100%;text-align:left;position:relative}
+/* Dividers start where the text starts: after an icon (56px), after a progress circle (38px), or at the edge. */
+.row + .row::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(0,0,0,.07)}
+.row:has(> .ic) + .row:has(> .ic)::before,.row:has(> .mono) + .row:has(> .mono)::before{left:56px}
+.row:has(> svg:first-child) + .row:has(> svg:first-child)::before{left:38px}
+.row:hover{color:inherit}
+.tx{flex:1;display:flex;flex-direction:column;min-width:0}
+.tx b{font-size:17px;font-weight:600}
+.tx span{font-size:14px;color:#6E6E73;line-height:1.35}
+.tx b{line-height:1.3}
+.ic{width:42px;height:42px;border-radius:50%;background:#F2F2F5;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pill{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.ok{color:#1F7A35;background:rgba(52,199,89,.14)}.warn{color:#B25000;background:rgba(255,149,0,.16)}.bad{color:#D70015;background:rgba(255,59,48,.12)}.mut{color:#6E6E73;background:#F2F2F5}
+.t-ok{color:#1F7A35 !important}.t-warn{color:#B25000 !important}.t-bad{color:#D70015 !important}
+.amt{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.meta{font-size:14px;color:#6E6E73;white-space:nowrap}
+.foot{position:absolute;left:24px;right:24px;bottom:30px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.fade{position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(rgba(255,255,255,0),#FFFFFF 45%);pointer-events:none}
+.primary{width:100%;height:56px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.primary:hover{color:#FFFFFF}
+.primary.off{background:#E5E5EA;color:#8E8E93;cursor:default}
+.note{font-size:14px;color:#6E6E73;text-align:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{height:40px;padding:0 16px;border-radius:999px;background:#F2F2F5;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:6px;color:#1D1D1F;text-decoration:none}
+.chip.on{background:#1D1D1F;color:#FFFFFF}
+.chip.sm{height:34px;padding:0 13px;font-size:14px}
+.q{font-size:22px;font-weight:600;letter-spacing:-0.025em;line-height:1.25}
+.yn{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.yn button{height:64px;border-radius:22px;background:#F2F2F5;font-size:19px;font-weight:600}
+.field{height:48px;border-radius:14px;background:#F2F2F5;border:0;padding:0 14px;font:inherit;font-size:17px;color:#1D1D1F;outline:none;width:100%;box-sizing:border-box}
+.field:focus{box-shadow:0 0 0 2px #F59F00,0 0 0 5px rgba(245,159,0,.2)}
+.lab{font-size:13px;font-weight:600;color:#6E6E73;letter-spacing:.02em;margin-bottom:8px}
+.banner{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:16px;font-size:14px;line-height:1.4}
+.step{width:36px;height:36px;border-radius:999px;background:#F2F2F5;display:inline-flex;align-items:center;justify-content:center}
+/* − amount + as one compact control, so the name side keeps its room. */
+/* One quiet control: − and + drawn straight onto a grey bar, the same width on every row so they line up. */
+.stepper{display:flex;align-items:center;flex-shrink:0;width:148px;height:38px;background:#F2F2F5;border-radius:12px;corner-shape:superellipse(1.6) !important}
+.stepper .step{width:38px;height:38px;flex-shrink:0;background:transparent;border-radius:12px;corner-shape:superellipse(1.6) !important;font-size:21px;font-weight:500;line-height:1;color:#1D1D1F;display:flex;align-items:center;justify-content:center}
+.stepper .step:active{background:rgba(0,0,0,.06)}
+.stepper b{flex:1;min-width:0;text-align:center;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* − and + as text, not drawn lines: the canvas editor treats a one-line drawing as an editable arrow. */
+.glyph{font-size:28px;font-weight:400;line-height:1}
+.segs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;margin-top:-12px}
+.segs span{height:4px;border-radius:999px;background:#E5E5EA}
+.segs span.on{background:#F59F00}
+/* desktop */
+.dk{width:100%;min-height:900px;display:flex;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em}
+.side{flex:0 0 256px;background:#F7F7F9;border-right:1px solid rgba(0,0,0,.06);padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column}
+.brand{display:flex;flex-direction:column;padding:0 10px 8px}
+.brand span{font-size:12px;color:#6E6E73}.brand b{font-size:20px;font-weight:700;letter-spacing:-0.02em}
+.grp{font-size:11px;font-weight:600;color:#8E8E93;letter-spacing:.06em;padding:0 10px;margin:18px 0 6px}
+.nav{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:12px;font-size:14px;font-weight:500;color:#1D1D1F;text-decoration:none}
+.nav svg{color:#6E6E73;flex-shrink:0}
+.nav.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)}
+.nav.on svg{color:#1D1D1F}
+.nav .n{margin-left:auto;font-size:12px;font-weight:600;color:#B25000}
+.main{flex:1;min-width:0;padding:40px 56px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px}
+.dh{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.eyebrow{font-size:14px;color:#6E6E73}
+.gcard{position:relative;overflow:hidden;isolation:isolate;border-radius:34px;padding:30px 32px;background:#2B1E4A;color:#F5F5F7;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;text-shadow:0 1px 10px rgba(0,0,0,.15)}
+.big{font-size:56px;font-weight:600;letter-spacing:-0.055em;line-height:1;font-variant-numeric:tabular-nums}
+.big i{font-style:normal;font-size:26px;color:rgba(245,245,247,.6)}
+.stats{display:flex;gap:32px;font-variant-numeric:tabular-nums}
+.stats span{display:flex;flex-direction:column;font-size:22px;font-weight:600}
+.stats small{font-size:13px;font-weight:400;color:rgba(245,245,247,.66)}
+.cols{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:40px;align-items:start}
+.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tbl th{font-size:12px;font-weight:600;color:#8E8E93;text-align:left;padding:0 8px 8px;border-bottom:1px solid rgba(0,0,0,.08)}
+.tbl td{padding:0 8px;height:56px;border-bottom:1px solid rgba(0,0,0,.06);font-size:15px}
+.tbl .r{text-align:right}
+.tbl tr.sel td{background:#F7F7F9}
+.mono{width:30px;height:30px;border-radius:10px;corner-shape:superellipse(1.6) !important;color:#FFFFFF;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.panel{border-radius:28px;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 10px 36px -20px rgba(0,0,0,.12);padding:24px;display:flex;flex-direction:column;gap:14px}
+.btn{height:44px;padding:0 20px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-size:15px;font-weight:600;display:inline-flex;align-items:center}
+@media (prefers-reduced-motion: reduce){.ba,.bb{animation:none}.press:active{transform:none}}
+</style>
+</helmet>
+<div class="dk">
+  <aside class="side"><div class="brand"><span>Maginhawa · 8 sites</span><b>Head office</b></div><div class="grp">TONIGHT</div><a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6.5v6.5H4zM13.5 4H20v6.5h-6.5zM4 13.5h6.5V20H4zM13.5 13.5H20V20h-6.5z"></path></svg>All sites</a><a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>To approve</a><div class="grp">RECORDS</div><a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 13.5V5a2 2 0 0 0-4 0v8.5a4 4 0 1 0 4 0z"></path></svg>Food safety</a><a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path></svg>Health and safety</a><a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4a4.5 4.5 0 0 0-4.2 6l-6.6 6.6a1.8 1.8 0 0 0 2.6 2.6l6.6-6.6a4.5 4.5 0 0 0 6-4.2l-2.6 2.6-2.4-.4-.4-2.4z"></path></svg>Maintenance</a><a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9"></path></svg>Stock</a><a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h11v10H3zM14 9h4l3 3v4h-7M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path></svg>Ordering</a><a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 14v6h10v-6M7 14a4 4 0 0 1-1-7.8A5 5 0 0 1 16 5a4 4 0 0 1 1 9z"></path></svg>Menu costing</a><div class="grp">GROUP</div><a class="nav on"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"></path></svg>Records and exports</a><a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 20c.8-3.2 3.3-5 6-5s5.2 1.8 6 5M16 4.5a3.5 3.5 0 0 1 0 6.5M18 15c1.6.7 2.7 2.4 3 5"></path></svg>People</a><a class="nav"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"></path></svg>Settings</a></aside>
+  <main class="main" style="max-width:1180px">
+    <div class="dh"><div><div class="eyebrow">Head office · all sites</div><div class="h1">Records and exports</div></div></div>
+    <div><div class="lab">WHO IS IT FOR?</div>
+      <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px">
+        <sc-for list="{{kinds}}" as="k" hint-placeholder-count="5">
+          <button class="press" onClick="{{k.pick}}" style="text-align:left;border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:6px;min-height:112px;background:{{k.bg}};color:{{k.fg}};box-shadow:0 0 0 1px rgba(0,0,0,.06)">
+            <b style="font-size:16px;font-weight:600">{{k.title}}</b><span style="font-size:13px;opacity:.75;line-height:1.35">{{k.sub}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+    <div class="cols" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)">
+      <section class="sec" aria-label="What's included">
+        <div class="h2">What's included<small>And how long we keep it</small></div>
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+          <div class="row"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"></path></svg></span><span class="tx"><b style="font-size:16px">{{r.what}}</b><span>{{r.law}}</span></span><span class="meta">{{r.keep}}</span></div>
+        </sc-for>
+        <span class="note" style="text-align:left;margin-top:12px">{{privacy}}</span>
+      </section>
+      <section class="panel" aria-label="Export">
+        <div class="lab" style="margin:0">SITES</div>
+        <div class="chips"><span class="chip sm on">All 8 sites</span><span class="chip sm">Pick sites</span></div>
+        <div class="lab" style="margin:6px 0 0">DATES</div>
+        <div class="chips"><sc-for list="{{ranges}}" as="g" hint-placeholder-count="3"><button class="chip sm {{g.on}}" onClick="{{g.pick}}">{{g.label}}</button></sc-for></div>
+        <div class="lab" style="margin:6px 0 0">YOU'LL GET</div>
+        <span style="font-size:15px">{{format}}</span>
+        <a class="primary press" style="height:52px;margin-top:8px">Export</a>
+        <span class="note">Saved to the Exports folder in SharePoint, with a link you can share that expires.</span>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { k: 0, r: 1 }; }
+  renderVals() {
+    const K = [
+      { title: 'Food safety inspector', sub: 'EHO visit or a complaint', format: 'One PDF per site, ready to print',
+        rows: [['Temperatures and checks, with corrections', 'Food Safety Act 1990 · showing due diligence', 'No set time · we keep 2 years'],
+               ['Allergen matrix and every change', 'Food Information Regs 2014', '3 years'], ['Deliveries, batch codes, recalls', 'General Food Law, traceability', '2 years'],
+               ['Training certificates', 'Food Hygiene Regs 2013', 'While employed + 2 years'], ['Customer complaints (no contact details)', 'Due diligence', '3 years']],
+        privacy: 'Health answers and customer details are always left out.' },
+      { title: 'Accountant or HMRC', sub: 'Year end, VAT, an HMRC check', format: 'Excel workbook: one sheet per record type',
+        rows: [['Daily sales: EODs, cash, card, delivery', 'Companies Act 2006 · HMRC record rules', '6 years'], ['VAT on sales and purchases', 'VAT: 6 years from the end of the period', '6 years'],
+               ['Purchases, invoices, credits', 'HMRC record rules', '6 years'], ['Stock counts and waste', 'Year-end stock valuation', '6 years'], ['Tips and service charge shared out', 'Tips Act 2023', '3 years']],
+        privacy: 'Staff are named only where the law needs it (tips).' },
+      { title: 'HSE, fire officer, insurer', sub: 'An inspection, a claim, renewal', format: 'One PDF per site, certificates attached',
+        rows: [['Accident book and RIDDOR reports', 'RIDDOR 2013 · Social Security Regs', '3 years (we keep 6)'], ['Fire checks, drills, fire risk assessment', 'Fire Safety Order 2005', 'Latest + 3 years'],
+               ['Service certificates: gas, electrics, extraction', 'Gas Safety Regs 1998 · EAWR 1989 · insurer', 'Latest + 1 before'], ['Risk assessments and who read them', 'Management Regs 1999', 'Latest + 3 years'],
+               ['Waste transfer notes', 'Environmental Protection Act 1990, duty of care', '2 years']],
+        privacy: 'Injured people are named; their health details stay manager-only.' },
+      { title: 'Staff and pay', sub: 'A request, a tribunal, the Fair Work Agency', format: 'Excel workbook, or one PDF for one person',
+        rows: [['Tips paid to each person', 'Tips Act 2023 · within 4 weeks of a request', '3 years'], ['Holiday taken and paid (from payroll)', 'Employment Rights Act 2025 (from 6 April 2026)', '6 years'],
+               ['Hours worked (from the rota)', 'Working Time Regs 1998', '2 years'], ['Right to work checks (planned)', 'Immigration Order 2016', 'Employment + 2 years'], ['Minimum wage evidence', 'NMW Regs, HMRC', '6 years']],
+        privacy: 'Only head office and managers can export this. Each export is logged.' },
+      { title: 'Everything for one site', sub: 'Selling, closing or moving a site', format: 'A zip: PDFs for inspectors, Excel for finance',
+        rows: [['All of the above for one site', 'Each record keeps its own keep period', 'As above'], ['Photos and certificates', 'Kept with the record they belong to', 'As above'],
+               ['Who changed what, and when', 'Corrections are never written over', 'As above']],
+        privacy: 'Ask a manager before sending this outside the company.' }
+    ];
+    const R = ['Last 3 months', 'Last 12 months', 'Everything kept'];
+    const s = this.state, k = K[s.k];
+    return {
+      kinds: K.map((x, i) => ({ title: x.title, sub: x.sub, pick: () => this.setState({ k: i }), bg: i === s.k ? '#1D1D1F' : '#FFFFFF', fg: i === s.k ? '#FFFFFF' : '#1D1D1F' })),
+      rows: k.rows.map(([what, law, keep]) => ({ what, law, keep })),
+      privacy: k.privacy, format: k.format,
+      ranges: R.map((label, i) => ({ label, on: i === s.r ? 'on' : '', pick: () => this.setState({ r: i }) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

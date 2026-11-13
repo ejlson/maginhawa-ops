@@ -1,7 +1,7 @@
 """Single source of truth for the SharePoint site design.
 Generates sharepoint-lists.json (for provisioning) and lists.md (tables for the tech plan).
 Column notation: (InternalName, Type, Notes, flags) where flags may include
-  I = indexed, U = unique (enforce unique values; requires index), R = required, F = written by a flow (read-only in apps)
+  I = indexed, U = unique (enforce unique values; requires index), R = required, F = set by the server, our Netlify Functions (read-only in apps)
 """
 import json, os
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -22,16 +22,21 @@ lst("Reference", "Sites", "One row per restaurant; drives rules, targets and set
  ("WageAmberPct", "Number", "Amber above (default 30)", ""),
  ("NetSalesRule", "Choice", "GrossMinusSCTaxDiscounts (default) / GrossMinusSCTax — confirm with finance", ""),
  ("DayCloseTime", "Text", "e.g. 23:30 — when EOD/missed-check jobs run", ""),
- ("Active", "Yes/No", "", "I"),
+ ("PowerAutomateFrom", "DateTime", "When head office switched the EOD flow on for this site; blank = off. Reports sent before it aren't sent to the flow", ""),
+ ("Active", "Yes/No", "Open and trading. A closed site (e.g. Ramo) stays for its old records but drops out of pickers, counts and access", "I"),
 ])
-lst("Reference", "Staff", "Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts", "Admin / Manager", [
+lst("Reference", "Staff", "Everyone who uses the apps, incl. kiosk-only staff with no email (PIN only). Role and sites decide what the server lets them open", "Head office (sites, roles) / Manager (own site's people)", [
  ("Title", "Text", "Full name", "R"),
- ("Email", "Text", "Microsoft account (blank for kiosk-only staff)", "I"),
- ("HomeSite", "Lookup → Sites", "", "I"),
+ ("Email", "Text", "Any email they can read (work or personal), stored lower case; they sign in with a code sent to it. Blank for kiosk-only staff. One active row per email", "I"),
+ ("EmailVerifiedAt", "DateTime", "When they first typed a code sent to this email", "F"),
+ ("SessionsValidAfter", "DateTime", "Sign-ins from before this stop working: 'sign out everywhere', an email change, a lost phone", ""),
+ ("HomeSite", "Lookup → Sites", "Main site: where they land after signing in", "I"),
+ ("OtherSites", "Lookup → Sites (multi)", "Other sites they work at. Head office only", ""),
+ ("AllSites", "Yes/No", "Every open site, including ones opened later. Head office only", ""),
  ("Department", "Choice", "Kitchen / FOH / Management / Finance / Admin", ""),
  ("Position", "Choice", "Head chef, Sous chef, CDP, Commis, KP, Floor manager, Senior waiter, Waiter, Runner, Host, Bartender, RM, GM, AM, Duty manager, Supervisor", ""),
- ("AppRole", "Choice", "Staff / Manager / Admin / Finance / Owner", "R"),
- ("PinHash", "Text", "argon2 hash of 4-digit kiosk PIN (never the PIN)", ""),
+ ("AppRole", "Choice", "Staff / Supervisor / Manager / Head office (head office always has every site)", "R"),
+ ("PinHash", "Text", "PBKDF2-SHA-256 hash and salt of the 4-digit kiosk PIN (never the PIN; packages/core pin.ts)", ""),
  ("PreferredLanguage", "Text", "en-GB default", ""),
  ("Active", "Yes/No", "", "I"),
 ])
@@ -43,7 +48,7 @@ lst("Reference", "Devices", "Registered kiosk tablets and phones", "Admin", [
  ("LastSeen", "Date/Time", "Updated by app", ""),
  ("Revoked", "Yes/No", "Revoked devices are refused by the app", "I"),
 ])
-lst("Reference", "Targets", "Daily targets per site (imported from finance Excel or edited in console)", "Flow F09 / Finance", [
+lst("Reference", "Targets", "Daily targets per site (imported from finance Excel or edited in console)", "Nightly targets import (Netlify Scheduled Function) / Finance", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd", "IUR"),
  ("Site", "Lookup → Sites", "", "I"),
  ("TargetDate", "Date", "", "I"),
@@ -84,14 +89,16 @@ lst("Reference", "RulesThresholds", "Food-safety limits per nation (data, not co
 # ---------------- Checklists ----------------
 lst("Checklists", "ChecklistTemplates", "Checklist definitions (opening, closing, cleaning, food safety, custom)", "Admin / Manager (console builder)", [
  ("Title", "Text", "Name", "R"),
+ ("TemplateId", "Text", "Stable id used in run keys, e.g. closing", "IUR"),
  ("Kind", "Choice", "Opening / Closing / Cleaning / Food safety / Delivery / Handover / Custom", "I"),
  ("CurrentVersion", "Number", "Bumped on publish; runs store the version used", ""),
  ("Status", "Choice", "Draft / Published / Archived", "I"),
- ("Sites", "Lookup (multi) → Sites", "Where it applies", ""),
+ ("SiteCodes", "Text", "Where it applies, e.g. BUN;HOX (blank = every site). Text, not a lookup", ""),
 ])
 lst("Checklists", "Checkpoints", "Questions inside a template version — the customisable checkpoints with media", "Admin / Manager (builder)", [
  ("Title", "Text", "Prompt, e.g. Walk-in chiller temperature", "R"),
- ("Template", "Lookup → ChecklistTemplates", "", "I"),
+ ("CheckpointId", "Text", "Stable id used in answer keys, e.g. walkin-temp (never reused)", "IR"),
+ ("TemplateId", "Text", "ChecklistTemplates.TemplateId (text, not a lookup)", "I"),
  ("TemplateVersion", "Number", "Published versions are never edited", "I"),
  ("Position", "Number", "", ""),
  ("Section", "Text", "", ""),
@@ -107,8 +114,8 @@ lst("Checklists", "Checkpoints", "Questions inside a template version — the cu
 ])
 lst("Checklists", "Schedules", "When each checklist is due at each site", "Admin / Manager", [
  ("Title", "Text", "Description", ""),
- ("Template", "Lookup → ChecklistTemplates", "", "I"),
- ("Site", "Lookup → Sites", "", "I"),
+ ("TemplateId", "Text", "ChecklistTemplates.TemplateId", "I"),
+ ("SiteCode", "Text", "Sites.SiteCode", "I"),
  ("DueTime", "Text", "e.g. 08:00", "R"),
  ("Days", "Choice (multi)", "Mon–Sun", ""),
  ("WindowMinutes", "Number", "Late after this", ""),
@@ -116,59 +123,134 @@ lst("Checklists", "Schedules", "When each checklist is due at each site", "Admin
  ("AssignedRole", "Choice", "", ""),
  ("PausedFrom", "Date", "Closures / refurb", ""),
  ("PausedUntil", "Date", "", ""),
+ ("EffectiveFrom", "Text", "yyyy-MM-dd. Missed-day checks use the schedule that applied on that date", "R"),
+ ("EffectiveTo", "Text", "yyyy-MM-dd; blank = still in use. Change a schedule by ending it and adding a new one", ""),
 ])
-lst("Checklists", "ChecklistRuns", "One instance of a checklist on a day (created each morning by flow F02)", "Flow F02 creates; app completes", [
- ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|ScheduleId", "IUR"),
- ("Site", "Lookup → Sites", "", "I"),
- ("BusinessDate", "Date", "", "I"),
- ("Template", "Lookup → ChecklistTemplates", "", ""),
+lst("Checklists", "ChecklistDays", "One header per open site per date: groups the day's runs and records misses (replaces DayClosures)", "Morning job creates; checklist-sync updates; nightly and weekly jobs mark Missed", [
+ ("Title", "Text", "DayKey = SiteCode|yyyy-MM-dd, e.g. BUN|2026-11-06", "IUR"),
+ ("Label", "Text", "For people and list search, e.g. Bunso · Fri 6 Nov 2026", ""),
+ ("SiteCode", "Text", "", "I"),
+ ("BusinessDateKey", "Text", "yyyy-MM-dd; keys and range filters (Date columns shift a day in British Summer Time)", "I"),
+ ("BusinessDate", "Date", "Display and Power BI date tables only; never filter on it", ""),
+ ("Status", "Choice", "Due / In progress / Submitted / Late / Missed / Not trading / Deleted / Deleting. Filter by date first, then status in code", "I"),
+ ("NotTradingReason", "Text", "Head office: closure, refurb, holiday", ""),
+ ("ExpectedRuns", "Number", "", "F"),
+ ("CompletedRuns", "Number", "", "F"),
+ ("MissedRuns", "Number", "", "F"),
+ ("FailedCount", "Number", "", "F"),
+ ("OpenFixes", "Number", "", "F"),
+ ("SubmittedAt", "DateTime", "Last run finished (server time)", "F"),
+ ("SubmittedById", "Text", "Staff list item id (not a person column)", "F"),
+ ("SubmittedByName", "Text", "", "F"),
+ ("MissedDetectedAt", "DateTime", "Set once by the nightly job; never cleared, even by a late submission", "F"),
+ ("DayHash", "Text", "SHA-256 over the finished runs' RunHash values", "F"),
+ ("Stats", "Multi-line text", "JSON: completion %, failures, open fixes, faults", "F"),
+ ("ReportItemId", "Text", "driveItem id of the day PDF in Maginhawa App Checklists (never a URL)", "F"),
+ ("ReportBuiltAt", "DateTime", "When the day PDF was last made; remade after any correction", "F"),
+ ("DeletedAt", "DateTime", "Soft delete", "F"),
+ ("DeletedById", "Text", "", "F"),
+ ("DeletedByName", "Text", "", "F"),
+ ("DeletedReason", "Text", "Required to delete; 'Moved to …' after a move", "F"),
+ ("StatusBeforeDelete", "Text", "Restore puts this back", "F"),
+])
+lst("Checklists", "ChecklistRuns", "One checklist (template + due time) on a day; holds the live answers while open", "checklist-sync (Netlify Function); scheduled jobs create and mark Missed", [
+ ("Title", "Text", "RunKey = SiteCode|yyyy-MM-dd|templateId|HH:MM (or |any), e.g. BUN|2026-11-06|closing|22:30", "IUR"),
+ ("DayKey", "Text", "ChecklistDays key; all runs for a day = one filter on this", "I"),
+ ("SiteCode", "Text", "", "I"),
+ ("BusinessDateKey", "Text", "yyyy-MM-dd", "I"),
+ ("TemplateId", "Text", "", ""),
  ("TemplateVersion", "Number", "", ""),
- ("DueAt", "Date/Time", "", ""),
- ("Status", "Choice", "Scheduled / In progress / Completed / Missed / Auto-closed / Cancelled", "I"),
- ("CompletedBy", "Lookup → Staff", "", ""),
- ("CompletedAt", "Date/Time", "", ""),
- ("DurationSeconds", "Number", "Pencil-whip signal", ""),
- ("FailedCount", "Number", "Set by flow F04", "F"),
+ ("DueTime", "Text", "HH:MM or blank", ""),
+ ("DueAt", "DateTime", "", ""),
+ ("Status", "Choice", "Scheduled / In progress / Completed / Missed / Auto-closed / Cancelled / Deleted", "I"),
+ ("AnswersJson", "Multi-line text (plain)", "Snapshot of the run's answers: value, who, when, fix, corrections, per-answer seq. Saved with If-Match; the server refuses more than about 50,000 characters. Photos and signatures are ids, never base64", "F"),
+ ("SchemaVersion", "Number", "Version of the AnswersJson shape", "F"),
+ ("Seq", "Number", "Raised on every successful write; the Finish 'seen' check compares against it", "F"),
+ ("RecheckOf", "Text", "RunKey|checkpointId of the failed answer", ""),
+ ("CompletedAt", "DateTime", "Server time", "F"),
+ ("CompletedById", "Text", "Staff list item id", "F"),
+ ("CompletedByName", "Text", "", "F"),
+ ("DurationSeconds", "Number", "Pencil-whip signal", "F"),
+ ("FailedCount", "Number", "", "F"),
+ ("RunHash", "Text", "SHA-256 of the canonical finished AnswersJson", "F"),
+ ("RowsStatus", "Choice", "Pending / Written: queue for the background writer of Responses_{yyyy} rows", "I"),
+ ("DeletedAt", "DateTime", "Soft delete of one run", "F"),
+ ("DeletedById", "Text", "", "F"),
+ ("DeletedReason", "Text", "", "F"),
 ])
-lst("Checklists", "Responses", "Every answer — the compliance record (largest list)", "App (append-only by convention + Purview record label)", [
- ("Title", "Text", "ClientId — UUID from the device; makes offline retries idempotent", "IUR"),
- ("Run", "Lookup → ChecklistRuns", "", "I"),
- ("Site", "Lookup → Sites", "", "I"),
- ("BusinessDate", "Date", "", "I"),
- ("CheckpointId", "Number", "Checkpoint item id", ""),
- ("ValueNumber", "Number", "", ""),
- ("ValueText", "Multi-line text", "Text / select / signature JSON", ""),
- ("Passed", "Yes/No", "App preview; confirmed by flow F04", "I"),
+lst("Checklists", "Responses_{yyyy}", "One list per business-date year (Responses_2026, Responses_2027…): one row per final answer, written at Finish and on each correction, never edited. Create every index before go-live: SharePoint Online can refuse a new index once a list passes 5,000 items, and this list passes that in about 4 days", "Background writer (Netlify Function) only; create-only", [
+ ("Title", "Text", "RowKey = AnswerKey|rev (rev 0 = original, 1… = corrections). A retried write gets 409, not a duplicate", "IUR"),
+ ("AnswerKey", "Text", "RunKey|checkpointId", "I"),
+ ("DayKey", "Text", "Answers for one day", "I"),
+ ("BusinessDateKey", "Text", "yyyy-MM-dd; date-range exports", "I"),
+ ("CheckpointId", "Text", "One question over a year (about 2,920 rows)", "I"),
+ ("SiteCode", "Text", "", ""),
+ ("RunKey", "Text", "", ""),
+ ("TemplateId", "Text", "", ""),
+ ("TemplateVersion", "Number", "", ""),
+ ("CheckpointTitle", "Text", "Snapshot, so later template edits don't rewrite history", ""),
+ ("AnswerType", "Choice", "yesno / temp / number / text / photo / choice / date / sign (ANSWER_TYPES)", ""),
+ ("ValueNumber", "Number", "temp, number", ""),
+ ("ValueBool", "Choice", "Yes / No / blank (a Yes/No column can't be blank)", ""),
+ ("ValueText", "Multi-line text", "text, choice", ""),
+ ("ValueDateKey", "Text", "yyyy-MM-dd", ""),
+ ("ValueDisplay", "Text", "Readable value for Excel, whatever the type", ""),
+ ("Result", "Choice", "Pass / Fail / None (replaces Passed)", ""),
  ("ThresholdSnapshot", "Text", "Min/max/legal basis used, frozen", ""),
  ("Source", "Choice", "Manual / Bluetooth probe / Camera OCR", ""),
- ("PhotoUrl", "Hyperlink", "Photos library", ""),
- ("PhotoSha256", "Text", "Detects reused photos", ""),
  ("CapturedLive", "Yes/No", "In-app camera, not gallery", ""),
- ("RecordedBy", "Lookup → Staff", "", ""),
- ("Device", "Lookup → Devices", "", ""),
- ("ClientRecordedAt", "Date/Time", "Device clock (Created = server time)", ""),
- ("Supersedes", "Number", "Id of the response this corrects (never edit in place)", ""),
- ("CorrectionReason", "Text", "", ""),
- ("AnswerKey", "Text", "runKey|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who)", "I"),
+ ("PhotoIds", "Text", "PhotoId values (; separated). Replaces PhotoUrl: links expire, ids don't", ""),
+ ("PhotoItemIds", "Text", "driveItem ids in the Photos library", ""),
+ ("PhotoSha256", "Text", "Detects reused photos", ""),
+ ("AnsweredById", "Text", "Staff list item id", ""),
+ ("AnsweredByName", "Text", "", ""),
+ ("AnsweredAt", "DateTime", "Capped at server time", ""),
+ ("ReceivedAt", "DateTime", "Server time the answer reached us (offline answers arrive later)", ""),
+ ("Rev", "Number", "0 = original", ""),
+ ("Supersedes", "Text", "RowKey of the row this corrects", ""),
+ ("CorrectionReason", "Text", "Required when Rev > 0", ""),
+ ("CorrectedAt", "DateTime", "Server time", ""),
 ])
-lst("Checklists", "CorrectiveActions", "What was done about a failed check", "App + flows F04/F05", [
+lst("Checklists", "CorrectiveActions", "What was done about a failed check", "App + Netlify Functions (checklist check, re-check and escalation)", [
  ("Title", "Text", "Short description", "R"),
- ("Response", "Lookup → Responses", "", "I"),
- ("Site", "Lookup → Sites", "", "I"),
+ ("AnswerKey", "Text", "RunKey|checkpointId of the failed answer (replaces the Response lookup)", "I"),
+ ("DayKey", "Text", "", "I"),
+ ("SiteCode", "Text", "", "I"),
  ("ActionTaken", "Multi-line text", "", ""),
  ("FoodDisposed", "Yes/No", "", ""),
  ("Status", "Choice", "Open / Action taken / Verified / Escalated", "I"),
  ("RecheckDue", "Date/Time", "", "I"),
  ("WorkOrder", "Lookup → WorkOrders", "Set when escalated", ""),
- ("VerifiedBy", "Lookup → Staff", "", ""),
+ ("VerifiedById", "Text", "Staff list item id", ""),
+ ("VerifiedByName", "Text", "", ""),
 ])
-lst("Checklists", "DayClosures", "Ops end-of-day sign-off per site", "App + flow F01", [
- ("Title", "Text", "Key = SiteCode|yyyy-mm-dd", "IUR"),
- ("Site", "Lookup → Sites", "", "I"),
- ("BusinessDate", "Date", "", "I"),
- ("ClosedBy", "Lookup → Staff", "Blank = auto-closed", ""),
- ("Stats", "Multi-line text", "JSON: completion %, failures, open CAs, faults", "F"),
- ("ReportLink", "Hyperlink", "PDF in Reports library", "F"),
+lst("Checklists", "ChecklistAudit", "Restores, moves and hard deletes of checklist days; kept when the day itself is hard-deleted", "Netlify Functions only", [
+ ("Title", "Text", "DayKey|action|timestamp", "IUR"),
+ ("DayKey", "Text", "", "I"),
+ ("Action", "Choice", "Soft delete / Restore / Move / Hard delete started / Hard delete finished", "R"),
+ ("Reason", "Text", "", "R"),
+ ("ById", "Text", "Staff list item id", "R"),
+ ("ByName", "Text", "", ""),
+ ("At", "DateTime", "Server time", "R"),
+ ("Counts", "Text", "JSON: runs, rows, photos, corrective actions affected", ""),
+ ("MovedTo", "Text", "New DayKey after a move", ""),
+])
+lst("Reference", "SignInLog", "Sign-ins, codes asked for, wrong codes, kitchen iPads set up and sign-outs. Never the code itself. Kept 12 months", "Server (sign-in routes) only", [
+ ("Title", "Text", "action|email|timestamp", "R"),
+ ("Action", "Choice", "Code sent / Code not sent / Signed in / Wrong code / Locked / Kitchen iPad set up / Signed out", "I"),
+ ("Email", "Text", "Lower case", "I"),
+ ("SiteCode", "Text", "For kitchen iPads", ""),
+ ("At", "DateTime", "Server time", "I"),
+ ("NetworkAddress", "Text", "From Cloudflare; personal data, so kept 12 months only", ""),
+])
+lst("Reference", "Devices", "Kitchen iPads set up by a manager. Turning one off stops it at once; it also stops if that manager leaves or loses the site", "Server; managers turn them off in the app", [
+ ("Title", "Text", "DeviceId (random, from the sign-in cookie)", "IUR"),
+ ("SiteCode", "Text", "", "I"),
+ ("SetUpBy", "Text", "Manager's email", ""),
+ ("SetUpAt", "DateTime", "", ""),
+ ("Label", "Text", "e.g. Kitchen iPad by the pass", ""),
+ ("RevokedAt", "DateTime", "Blank = in use", "I"),
+ ("RevokedBy", "Text", "", ""),
 ])
 lst("Checklists", "HandoverNotes", "Shift handover log", "App", [
  ("Title", "Text", "Summary", ""),
@@ -179,7 +261,7 @@ lst("Checklists", "HandoverNotes", "Shift handover log", "App", [
 ])
 
 # ---------------- Food safety (HANDOFF.md §8a) ----------------
-# Corrections to checklist answers are new Responses rows (Supersedes + CorrectionReason; Created = server time).
+# Corrections to checklist answers are new Responses_{yyyy} rows (Rev + Supersedes + CorrectionReason; server time).
 # Staff certificates and fit-to-work answers are in StaffCertificates and FitnessToWork (People & handbook).
 lst("Food safety", "Dishes", "Every dish on a menu, for the allergen matrix", "Manager / Head office", [
  ("Title", "Text", "Dish name", "R"),
@@ -310,7 +392,7 @@ lst("Food safety", "SafetyReviews", "4-weekly food-safety review per site", "Man
 ])
 lst("Food safety", "KeepPeriods", "How long each kind of record is kept; nothing is cleared without head office approval", "Head office", [
  ("Title", "Text", "Record type: checks, faults, allergens, complaints, training, fitness, inspections", "IUR"),
- ("Months", "Number", "Suggested defaults in packages/core DEFAULT_KEEP", "R"),
+ ("Months", "Number", "Suggested defaults in packages/core DEFAULT_KEEP. Proposed: checks 36 (3 years: Food Safety Act s.34 prosecutions and injury claims both have 3-year limits; DEFAULT_KEEP still says 24 until agreed); check photos 12 unless tied to an incident", "R"),
  ("FromLeaving", "Yes/No", "Counted from when the person leaves", ""),
 ])
 
@@ -334,14 +416,14 @@ lst("Maintenance", "Contractors", "Refrigeration, gas, electrical, extraction, p
  ("GasSafeNumber", "Text", "", ""),
  ("Accreditation", "Text", "e.g. BESA TR19", ""),
 ])
-lst("Maintenance", "WorkOrders", "Repairs: from fault report, failed check, statutory due or EOD note", "App + flows F05/F06", [
+lst("Maintenance", "WorkOrders", "Repairs: from fault report, failed check, statutory due or EOD note", "App + Netlify Functions (escalation, contractor emails)", [
  ("Title", "Text", "Reference WO-2026-00123", "IUR"),
  ("Site", "Lookup → Sites", "", "I"),
  ("Asset", "Lookup → Assets", "", "I"),
  ("Summary", "Text", "", "R"),
  ("Description", "Multi-line text", "", ""),
  ("Source", "Choice", "Fault report / Failed check / Statutory / Planned / EOD note / AI warning", ""),
- ("SourceResponse", "Number", "Response id when source = failed check", ""),
+ ("SourceAnswerKey", "Text", "AnswerKey (RunKey|checkpointId) when source = failed check", ""),
  ("Priority", "Choice", "Low / Normal / High / Urgent", "I"),
  ("Status", "Choice", "Reported / Triaged / Dispatched / Scheduled / In progress / Awaiting parts / Resolved / Closed / Cancelled", "I"),
  ("Contractor", "Lookup → Contractors", "", ""),
@@ -350,7 +432,7 @@ lst("Maintenance", "WorkOrders", "Repairs: from fault report, failed check, stat
  ("PhotoUrls", "Multi-line text", "", ""),
  ("History", "Multi-line text (append)", "Timeline notes (append changes on)", ""),
 ])
-lst("Maintenance", "ComplianceItems", "Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest", "Admin / flow F07", [
+lst("Maintenance", "ComplianceItems", "Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest", "Admin / reminders (Netlify Scheduled Function)", [
  ("Title", "Text", "Requirement name", "R"),
  ("Site", "Lookup → Sites", "", "I"),
  ("Asset", "Lookup → Assets", "Optional", ""),
@@ -383,28 +465,46 @@ lst("Maintenance", "VisitorLog", "Contractor and visitor sign-in", "App", [
 ])
 
 # ---------------- Trading / EOD ----------------
-lst("Trading (EOD)", "TradingDays", "One per site per service date — replaces the Netlify form's Excel row", "App creates; flow F01 writes official totals", [
+lst("Trading (EOD)", "TradingDays", "One per site per service date — replaces the Netlify form's Excel row", "App creates; submit-eod (Netlify Function) writes official totals", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd (blocks duplicates)", "IUR"),
  ("Site", "Lookup → Sites", "", "I"),
  ("BusinessDate", "Date", "", "I"),
- ("Status", "Choice", "Draft / Submitted / Checked / Approved / Reopened", "I"),
+ ("Status", "Choice", "Draft / Submitted / Checked / Approved / SentBack / Reopened. The app writes Draft, Submitted, Approved and SentBack", "I"),
  ("WageCost", "Currency", "", ""),
  ("NextShiftNotes", "Multi-line text", "", ""),
  ("SubmittedBy", "Lookup → Staff", "Signed-in user, not typed", ""),
  ("SubmittedAt", "Date/Time", "", ""),
- ("ApprovedBy", "Lookup → Staff", "Finance sign-off", ""),
+ ("ApprovedBy", "Lookup → Staff", "Who last approved or sent it back. Set only with If-Match, so two reviewers can't both win", ""),
+ ("ReviewedAt", "Date/Time", "When it was approved or sent back", "F"),
  ("TotalGross", "Currency", "", "F"), ("TotalNet", "Currency", "", "F"),
  ("DineInNet", "Currency", "", "F"), ("Covers", "Number", "", "F"),
- ("ASPHNet", "Currency", "", "F"), ("FoodPct", "Number", "", "F"), ("DrinkPct", "Number", "", "F"),
+ ("ASPHNet", "Currency", "", "F"), ("ASPHGross", "Currency", "", "F"), ("FoodPct", "Number", "", "F"), ("DrinkPct", "Number", "", "F"),
  ("WagePct", "Number", "", "F"), ("WageRAG", "Choice", "Green / Amber / Red", "F"),
  ("NetVsTarget", "Currency", "", "F"),
- ("CheckIssues", "Multi-line text", "Problems found by flow (e.g. discount lines ≠ EPOS total)", "F"),
+ ("CheckIssues", "Multi-line text", "Problems found by the server (e.g. discount lines ≠ EPOS total)", "F"),
  ("CalcVersion", "Text", "Formula version used", "F"),
  ("DraftJson", "Multi-line text", "The whole report between saves. Every save is PATCH with If-Match: <item ETag>, so a stale save gets 412 and is merged by section", ""),
  ("SectionStamps", "Multi-line text", "JSON: who last changed each section, and when (e.g. Jo changed Dinner at 21:14)", ""),
  ("SubmitId", "Text", "The submit press that won; a retry of the same press is a no-op", ""),
 ])
-lst("Trading (EOD)", "TradingSessions", "Lunch / dinner figures and cash", "App; flow F01 adds net & variance", [
+lst("Trading (EOD)", "EmailLog", "One row per EOD summary emailed to finance. Separate from TradingDays so stamping it never changes the report's ETag", "submit-eod and the email-retry job (Netlify Functions)", [
+ ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|SubmitId: one email per submit, a second insert fails (unique)", "IUR"),
+ ("TradingDay", "Lookup → TradingDays", "", "I"),
+ ("SentAt", "Date/Time", "Server time", "FR"),
+])
+lst("Trading (EOD)", "FlowOutbox", "One message per submitted EOD for the Power Automate flow \"EOD submitted\" (flows/MaginhawaOps). The server never calls a flow: the flow starts on a new row, so there is no trigger URL and no Premium licence", "submit-eod and the email-retry job add rows; the flow sets Status, ProcessedAt, RunId and Error", [
+ ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|SubmitId: one message per submit, a second insert fails (unique)", "IUR"),
+ ("SiteCode", "Text", "", "F"),
+ ("BusinessDate", "Date", "", "F"),
+ ("Schema", "Text", "e.g. maginhawa.eod.submitted/1; the flow refuses one it doesn't know", "F"),
+ ("Payload", "Multi-line text", "The message as JSON (flowMessage in packages/core/src/flow.ts). No handover notes. Not required in SharePoint, so the flow's Update item only sends Title and Status", "F"),
+ ("Status", "Choice", "Queued / Done / Failed. The flow's trigger only takes Queued", "IR"),
+ ("QueuedAt", "Date/Time", "Server time", "F"),
+ ("ProcessedAt", "Date/Time", "Set by the flow", ""),
+ ("RunId", "Text", "The flow run, to find it in run history", ""),
+ ("Error", "Multi-line text", "Set by the flow when it fails; fix, then set Status back to Queued to run it again", ""),
+])
+lst("Trading (EOD)", "TradingSessions", "Lunch / dinner figures and cash", "App; submit-eod adds net & variance", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|Session", "IUR"),
  ("TradingDay", "Lookup → TradingDays", "", "I"),
  ("Site", "Lookup → Sites", "", "I"),
@@ -435,7 +535,7 @@ lst("Trading (EOD)", "Adjustments", "Discounts, comps and voids as rows (were te
  ("ApprovedBy", "Lookup → Staff", "Real user", ""),
  ("Notes", "Multi-line text", "", ""),
 ])
-lst("Trading (EOD)", "DeliverySales", "Per platform per day", "App; flow F01 adds estimated net", [
+lst("Trading (EOD)", "DeliverySales", "Per platform per day", "App; submit-eod adds estimated net", [
  ("Title", "Text", "Key = SiteCode|yyyy-mm-dd|Platform", "IUR"),
  ("TradingDay", "Lookup → TradingDays", "", "I"),
  ("Platform", "Lookup → DeliveryPlatforms", "", ""),
@@ -460,12 +560,12 @@ lst("Trading (EOD)", "ShiftStaff", "Who worked each session (fixes lunch manager
  ("Position", "Choice", "", ""),
  ("Hours", "Number", "", ""),
 ])
-lst("Trading (EOD)", "Feedback", "Service, kitchen, staff, complaints, maintenance notes", "App; flow F01 links work orders", [
+lst("Trading (EOD)", "Feedback", "Service, kitchen, staff, complaints, maintenance notes", "App; submit-eod links work orders", [
  ("Title", "Text", "Category", ""),
  ("TradingDay", "Lookup → TradingDays", "", "I"),
  ("Category", "Choice", "Service / Kitchen / Staff / Complaints / Maintenance", "I"),
  ("Body", "Multi-line text", "", "R"),
- ("WorkOrder", "Lookup → WorkOrders", "Created by F01 for urgent maintenance", "F"),
+ ("WorkOrder", "Lookup → WorkOrders", "Created by submit-eod for urgent maintenance", "F"),
 ])
 
 # ---------------- Forecasting ----------------
@@ -525,13 +625,14 @@ lst("People & handbook", "FitnessToWork", "Illness exclusion / return to work �
 ])
 
 LIBS = [
- ("Photos", "Check, fault and work-order photos", "Folders Site/yyyy/mm; images compressed on device (~300 KB)"),
+ ("Maginhawa App Checklists", "For people: one PDF per restaurant per day (missed days too) and one Excel file per restaurant per month, made from the lists", "Read-only for everyone; only Netlify Functions write. Folders {Site name}/{yyyy-MM}, e.g. Bunso/2026-11/. Files: '2026-11-06 Bunso – Fri.pdf', '2026-11-05 Bunso – Thu – MISSED.pdf', 'Bunso – Checklists – Nov 2026.xlsx'. Day PDF made after closing by a background function (PDFKit or react-pdf), remade after a correction (versions keep the old one); monthly XLSX rebuilt nightly (ExcelJS) and replaced whole. Columns: SiteCode (I), BusinessDateKey (I, blank on the monthly file), Kind Day PDF/Month XLSX (I), DayStatus (I), DayKey, BuiltAt. Automatic version limits; no sensitivity labels (they stop the app reading files). Inspectors get a view-only createLink with an expiry. Per-restaurant folder permissions: open decision. Keep 3 years proposed (KeepPeriods)"),
+ ("Photos", "Check, signature, fault and work-order photos", "Write-once, uploaded with conflictBehavior=fail; compressed on device (~300 KB). Folders {Site name}/{yyyy-MM}/{yyyy-MM-dd}/{Checklist name}/, e.g. Bunso/2026-11/2026-11-06/Opening checks/. Readable file names '{Checkpoint title} – HH:MM.jpg', ' (2)' added on a clash; folder and file names are set at upload and never renamed (a renamed checklist keeps old folders). The app links by PhotoId, never by path. Faults and work orders use {Site name}/{yyyy-MM}/{yyyy-MM-dd}/Faults/. Columns: PhotoId (IU), Kind (I), Status Active/Removed (I), RemovedAt/ById/Reason, SiteCode, BusinessDateKey, DayKey (I), RunKey, CheckpointId, AnswerKey (I), Sha256, CapturedAt, UploadedAt, UploadedById. Shown through /api/photos; URLs never stored. Small copies printed in the day PDF and inspection pack. Keep about 12 months unless tied to an incident (open decision)"),
  ("HowToMedia", "Images and short videos attached to checkpoints", "Read-only for staff"),
- ("Policies", "Handbook and policies (Word/PDF) with metadata: Category, RequiresAck, AppliesToRoles", "Major versions only; publishing a major version triggers flow F08"),
+ ("Policies", "Handbook and policies (Word/PDF) with metadata: Category, RequiresAck, AppliesToRoles", "Major versions only; publishing a major version sends sign-off requests (Netlify Function)"),
  ("Certificates", "Staff and contractor certificates (gas CP42, TR19, EICR…)", "Linked from StaffCertificates / ComplianceItems"),
  ("Invoices", "Contractor invoice PDFs", "Finance + Admin only"),
- ("Reports", "Generated EOD, day-closure and EHO pack PDFs", "Written by flows"),
- ("Archive", "Yearly CSV/list exports for archived years", "Created by flow F12"),
+ ("Reports", "Generated EOD and EHO inspection-pack PDFs (checklist day PDFs live in Maginhawa App Checklists)", "Written by Netlify Functions"),
+ ("Archive", "Yearly CSV/list exports for archived years", "Created by the yearly archive (Netlify Scheduled Function)"),
 ]
 
 spec = dict(site="Maginhawa Ops", version="0.1", lists=L, libraries=[dict(name=a, purpose=b, notes=c) for a, b, c in LIBS])
@@ -553,7 +654,7 @@ for g in dict.fromkeys(x["group"] for x in L):
             if "U" in c["flags"]: tags.append("unique")
             if "I" in c["flags"] and "U" not in c["flags"]: tags.append("indexed")
             if "R" in c["flags"]: tags.append("required")
-            if "F" in c["flags"]: tags.append("set by flow")
+            if "F" in c["flags"]: tags.append("set by server")
             t = f" *({', '.join(tags)})*" if tags else ""
             out.append(f"| `{c['name']}`{t} | {esc(c['type'])} | {esc(c['notes'])} |")
         warn = f" ⚠ {len(idx)} indexes, over the 20 limit" if len(idx) > 20 else ""

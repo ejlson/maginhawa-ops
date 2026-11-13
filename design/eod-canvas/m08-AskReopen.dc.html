@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ask to reopen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0066cc}a:hover{color:#004f9e}
+.ph{--bg:#ffffff;--side:#f7f7f9;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.16);--heroOk:#30d158;--link:#0066cc;--ok:#1f7a35;--okbg:rgba(52,199,89,.14);--warn:#b25000;--warnbg:rgba(255,149,0,.16);--warnfill:#ff9500;--scrim:rgba(0,0,0,.28);position:relative;overflow:hidden;width:390px;height:844px;box-sizing:border-box;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:17px;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.ph.dark{--bg:#121214;--side:#1b1b1f;--text:#f2f2f4;--sec:#a3a3ab;--sep:rgba(255,255,255,.12);--fill:#2a2a2f;--ink:#f2f2f4;--onink:#121214;--hero:#232328;--heroline:rgba(255,255,255,.12);--link:#4aa3ff;--ok:#4cd964;--okbg:rgba(76,217,100,.16);--warn:#ffb340;--warnbg:rgba(255,179,64,.16);--warnfill:#ffb340;--scrim:rgba(0,0,0,.55)}
+.ph.dark .sheet{background:var(--side)}
+.ph.dark .hero{box-shadow:0 24px 48px -24px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.07)}
+.hero{background:var(--hero);color:var(--onhero);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:14px;box-shadow:0 24px 48px -24px rgba(0,0,0,.4)}
+.li{display:flex;align-items:center;gap:12px;min-height:62px;position:relative}
+.li + .li::before{content:'';position:absolute;top:0;left:54px;right:0;height:.5px;background:var(--sep)}
+.ic{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none}
+.tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.tx small{font-size:14px;color:var(--sec)}
+.scrim{position:absolute;inset:0;background:var(--scrim)}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:54px;background:var(--bg);border-radius:24px 24px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -10px 40px -10px rgba(0,0,0,.3)}
+.grab{width:36px;height:5px;border-radius:3px;background:var(--sep);margin:8px auto 0;flex:none}
+.sh-head{padding:10px 20px 12px;display:flex;align-items:flex-start;gap:12px;border-bottom:.5px solid var(--sep)}
+.x{width:32px;height:32px;border-radius:16px;border:0;background:var(--fill);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.sh-body{flex:1;overflow-y:auto;padding:0 20px 20px;display:flex;flex-direction:column;gap:20px;scrollbar-width:thin}
+.sec-t{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:16px 0 2px}
+.sec-t h3{margin:0;font-size:20px;font-weight:700;letter-spacing:-.025em}
+.sec-t span{font-size:13px;color:var(--sec)}
+.pick{width:100%;display:flex;align-items:center;gap:12px;min-height:58px;padding:4px 0;border:0;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;position:relative}
+.pick + .pick::before{content:'';position:absolute;top:0;left:54px;right:0;height:.5px;background:var(--sep)}
+.circ{width:24px;height:24px;flex:none}
+.note{width:100%;box-sizing:border-box;min-height:96px;resize:none;border:0;border-radius:12px;background:var(--fill);color:var(--text);font:inherit;font-size:17px;line-height:1.35;padding:12px 14px;outline:none}
+.note:focus{box-shadow:0 0 0 2px var(--link)}
+.sh-foot{padding:12px 20px 30px;border-top:.5px solid var(--sep);display:flex;flex-direction:column;gap:6px}
+.go{height:54px;border-radius:999px;border:0;background:var(--ink);color:var(--onink);font:inherit;font-size:17px;font-weight:600;cursor:pointer}
+.go:disabled{opacity:.3;cursor:default}
+.hint{font-size:13px;color:var(--sec);text-align:center}
+.lk{border:0;background:transparent;color:var(--link);font:inherit;font-size:17px;cursor:pointer;height:44px;padding:0}
+</style>
+</helmet>
+<div class="ph {{theme}}">
+<div style="padding: 58px 20px 0; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; color: var(--sec)">Bunso · Monday 5 October</span><h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.035em">Day closed</h1></div>
+<div class="hero">
+<span style="font-size: 15px; color: var(--herosec)">Day net</span>
+<div style="display: flex; align-items: baseline; line-height: 1"><span style="font-size: 56px; font-weight: 600; letter-spacing: -0.055em">£2,687</span><span style="font-size: 28px; font-weight: 500; color: var(--herosec)">.50</span></div>
+<span style="font-size: 14px; font-weight: 600; color: var(--heroOk); padding-top: 12px; border-top: 0.5px solid var(--heroline)">Received by head office 00:31</span>
+</div>
+<div>
+<div class="li"><span class="ic" style="background: var(--okbg); color: var(--ok)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span><span class="tx"><span style="font-weight: 600">On time</span><small>26 of 28 this month</small></span></div>
+<sc-if value="{{asked}}" hint-placeholder-val="{{ false }}">
+<div class="li"><span class="ic" style="background: var(--warnbg)"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.75" fill="none" stroke="var(--warnfill)" stroke-width="1.5"></circle><path d="M12 4.5a7.5 7.5 0 0 1 0 15z" fill="var(--warnfill)"></path></svg></span><span class="tx"><span style="font-weight: 600">Asked 09:20 · waiting for head office</span><small>Your report stays as sent until they say yes</small></span></div>
+<button class="lk" style="align-self: flex-start; margin-left: 54px" onClick="{{cancel}}">Cancel request</button>
+</sc-if>
+<sc-if value="{{notAsked}}" hint-placeholder-val="{{ true }}">
+<div class="li"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 1 2.3 5.6"></path><path d="M4 18v-5h5"></path></svg></span><span class="tx"><span style="font-weight: 600">Something wrong?</span><small>Head office can open it again for you</small></span><button class="lk" onClick="{{openSheet}}">Ask to reopen</button></div>
+</sc-if>
+</div>
+</div>
+
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+<div class="scrim" onClick="{{closeSheet}}"></div>
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="aTitle">
+<div class="grab"></div>
+<div class="sh-head">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><h2 id="aTitle" style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.03em">Ask head office to reopen Monday?</h2><span style="font-size: 14px; color: var(--sec)">Sent 00:31 · £2,687.50</span></div>
+<button class="x" aria-label="Close" onClick="{{closeSheet}}"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9"></path></svg></button>
+</div>
+<div class="sh-body">
+<div>
+<div class="sec-t"><h3>What needs changing</h3><span>{{pickedCount}}</span></div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<button class="pick" aria-pressed="{{r.pressed}}" onClick="{{r.toggle}}">
+<span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.d}}"></path></svg></span>
+<span class="tx"><span style="font-weight: 600">{{r.title}}</span><small>{{r.sub}}</small></span>
+<sc-if value="{{r.on}}" hint-placeholder-val="{{ false }}"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="var(--ink)"></circle><path d="M7 12.4l3.2 3.1L17 8.8" fill="none" stroke="var(--onink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+<sc-if value="{{r.off}}" hint-placeholder-val="{{ true }}"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.75" fill="none" stroke="var(--sec)" stroke-opacity=".5" stroke-width="1.5"></circle></svg></sc-if>
+</button>
+</sc-for>
+</div>
+<div>
+<div class="sec-t"><h3><label for="aNote">What happened?</label></h3><span>Required</span></div>
+<textarea id="aNote" class="note" placeholder="e.g. I missed two staff meals off the discounts" value="{{note}}" onChange="{{setNote}}"></textarea>
+<p style="margin: 10px 0 0; font-size: 14px; color: var(--sec); line-height: 1.4">Head office sees your note and opens it again if they agree. Until then your report stays as sent.</p>
+</div>
+</div>
+<div class="sh-foot">
+<button class="go" disabled="{{notReady}}" onClick="{{ask}}">Ask to reopen</button>
+<sc-if value="{{notReady}}" hint-placeholder-val="{{ true }}"><span class="hint">{{hint}}</span></sc-if>
+</div>
+</section>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: true, asked: false, picked: {}, note: '' };
+  }
+  renderVals() {
+    const st = this.state;
+    const defs = [
+      { id: 'disc', title: 'Discounts & comps', sub: '£27.40 listed', d: 'M3 12V4h8l10 10-8 8z M7.5 7.5h.01' },
+      { id: 'cash', title: 'Cash', sub: '£20.00 short', d: 'M3 7h18v10H3z M12 9.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5' },
+      { id: 'lunch', title: 'Lunch', sub: '£850.00 net', d: 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8 M12 2v2 M12 20v2 M4.9 4.9l1.4 1.4 M17.7 17.7l1.4 1.4 M2 12h2 M20 12h2 M4.9 19.1l1.4-1.4 M17.7 6.3l1.4-1.4' },
+      { id: 'dinner', title: 'Dinner', sub: '£1,837.50 net', d: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z' },
+      { id: 'wages', title: 'Wages', sub: '29.8%', d: 'M9 11a3.5 3.5 0 1 0 0-7a3.5 3.5 0 1 0 0 7 M2.5 20a6.5 6.5 0 0 1 13 0 M16 4.5a3.5 3.5 0 0 1 0 6.5 M18 14.5a6.5 6.5 0 0 1 3.5 5.5' },
+      { id: 'tips', title: 'Tips & service charge', sub: '£186.00', d: 'M12 3c4.4 0 8 1.3 8 3s-3.6 3-8 3s-8-1.3-8-3s3.6-3 8-3z M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6 M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6' }
+    ];
+    const rows = defs.map((r) => {
+      const on = !!st.picked[r.id];
+      return { ...r, on, off: !on, pressed: on ? 'true' : 'false',
+        toggle: () => this.setState({ picked: { ...this.state.picked, [r.id]: !this.state.picked[r.id] } }) };
+    });
+    const count = rows.filter((r) => r.on).length;
+    const notReady = count === 0 || !st.note.trim();
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      rows, open: st.open, asked: st.asked, notAsked: !st.asked, note: st.note,
+      pickedCount: count === 0 ? 'Pick at least one' : count + ' picked',
+      setNote: (e) => this.setState({ note: e.target.value }),
+      notReady,
+      hint: count === 0 ? 'Pick what needs changing' : 'Say what happened so head office can decide',
+      ask: () => this.setState({ open: false, asked: true }),
+      cancel: () => this.setState({ asked: false }),
+      openSheet: () => this.setState({ open: true }),
+      closeSheet: () => this.setState({ open: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

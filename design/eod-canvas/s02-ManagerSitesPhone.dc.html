@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Manager · switch site (phone)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.ph{--bg:#ffffff;--side:#f7f7f9;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.16);--link:#0066cc;--warn:#b25000;--bad:#d70015;--badbg:rgba(255,59,48,.12);--scrim:rgba(0,0,0,.28);position:relative;overflow:hidden;width:390px;height:844px;box-sizing:border-box;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:17px;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.ph.dark{--bg:#121214;--side:#1b1b1f;--text:#f2f2f4;--sec:#a3a3ab;--sep:rgba(255,255,255,.12);--fill:#2a2a2f;--ink:#f2f2f4;--onink:#121214;--hero:#232328;--heroline:rgba(255,255,255,.12);--link:#4aa3ff;--warn:#ffb340;--bad:#ff6b60;--badbg:rgba(255,107,96,.16);--scrim:rgba(0,0,0,.55)}
+.ph.dark .sheet{background:var(--side)}
+.ph.dark .hero{box-shadow:0 24px 48px -24px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.07)}
+.top{display:flex;flex-direction:column;align-items:flex-start;gap:2px;border:0;background:transparent;color:var(--text);font:inherit;text-align:left;padding:0;cursor:pointer}
+.top span{font-size:15px;color:var(--sec)}
+.top h1{margin:0;font-size:34px;font-weight:700;letter-spacing:-.035em;display:flex;align-items:center;gap:6px}
+.top h1 svg{color:var(--sec)}
+.hero{background:var(--hero);color:var(--onhero);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 48px -24px rgba(0,0,0,.4)}
+.li{display:flex;align-items:center;gap:12px;min-height:62px;position:relative}
+.li + .li::before{content:'';position:absolute;top:0;left:36px;right:0;height:.5px;background:var(--sep)}
+.tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.tx small{font-size:14px;color:var(--sec)}
+.tx small.bad{color:var(--bad)}
+.circ{width:24px;height:24px;flex:none}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:11px;font-size:12px;font-weight:600;background:var(--badbg);color:var(--bad)}
+.scrim{position:absolute;inset:0;background:var(--scrim)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-radius:24px 24px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -10px 40px -10px rgba(0,0,0,.3);padding-bottom:30px}
+.grab{width:36px;height:5px;border-radius:3px;background:var(--sep);margin:8px auto 0}
+.sh-head{padding:10px 20px 4px;display:flex;align-items:flex-start;gap:12px}
+.x{width:32px;height:32px;border-radius:16px;border:0;background:var(--fill);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.opt{display:flex;align-items:center;gap:12px;min-height:68px;padding:0 20px;border:0;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;width:100%;position:relative}
+.opt + .opt::before{content:'';position:absolute;top:0;left:74px;right:0;height:.5px;background:var(--sep)}
+.av{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;font-size:13px;font-weight:700}
+.foot{font-size:14px;color:var(--sec);padding:10px 20px 0;line-height:1.4}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:84px;border-top:.5px solid var(--sep);background:var(--bg);display:flex;justify-content:space-around;padding-top:8px;font-size:11px;color:var(--sec)}
+.tabbar span{display:flex;flex-direction:column;align-items:center;gap:4px}
+.tabbar .on{color:var(--text);font-weight:600}
+</style>
+</helmet>
+<div class="ph {{theme}}">
+<div style="padding: 58px 20px 0; display: flex; flex-direction: column; gap: 20px">
+<button class="top" aria-haspopup="dialog" onClick="{{openSheet}}">
+<span>Tuesday 27 October</span>
+<h1>{{site.name}}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9.5l6 6 6-6"></path></svg></h1>
+</button>
+<div class="hero">
+<span style="font-size: 15px; color: var(--herosec)">Today's EOD</span>
+<span style="font-size: 44px; font-weight: 600; letter-spacing: -0.05em; line-height: 1">{{site.eod}}</span>
+<span style="font-size: 14px; color: var(--herosec); padding-top: 12px; border-top: 0.5px solid var(--heroline)">sections done · saved as you go</span>
+</div>
+<div>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.025em">Still to do</h2><span style="font-size: 14px; color: var(--sec)">{{site.left}}</span></div>
+<sc-for list="{{site.todo}}" as="t" hint-placeholder-count="3">
+<div class="li"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.75" fill="none" stroke="var(--sec)" stroke-opacity=".5" stroke-width="1.5"></circle></svg><span class="tx"><span style="font-weight: 600">{{t.t}}</span><small>{{t.s}}</small></span></div>
+</sc-for>
+</div>
+</div>
+<div class="tabbar"><span class="on">Home</span><span>Checklists</span><span>EOD</span><span>More</span></div>
+
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+<div class="scrim" onClick="{{closeSheet}}"></div>
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sTitle">
+<div class="grab"></div>
+<div class="sh-head">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px"><h2 id="sTitle" style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.03em">Your sites</h2><span style="font-size: 14px; color: var(--sec)">Pick where you're working</span></div>
+<button class="x" aria-label="Close" onClick="{{closeSheet}}"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9"></path></svg></button>
+</div>
+<sc-for list="{{sites}}" as="s" hint-placeholder-count="2">
+<button class="opt" aria-pressed="{{s.selected}}" onClick="{{s.pick}}">
+<span class="av">{{s.code}}</span>
+<span class="tx"><span style="font-weight: 600">{{s.name}}</span><small class="{{s.tone}}">{{s.sub}}</small></span>
+<sc-if value="{{s.on}}" hint-placeholder-val="{{ false }}"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="var(--ink)"></circle><path d="M7 12.4l3.2 3.1L17 8.8" fill="none" stroke="var(--onink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+</button>
+</sc-for>
+<p class="foot">Each site keeps its own EOD and checklists, saved as you go.</p>
+</section>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: true, cur: 'BUN' };
+  }
+  renderVals() {
+    const data = {
+      BUN: { code: 'BU', name: 'Bunso', sub: 'EOD 3 of 8 · 3 checklists late', tone: 'bad', eod: '3 of 8', left: '5 left',
+        todo: [{ t: 'Opening checks', s: 'Missed · Kitchen' }, { t: 'Hot holding · 12:00', s: 'Missed · Kitchen' }, { t: 'Closing checks', s: '23:00 · Closing manager' }] },
+      GUA: { code: 'GU', name: 'Guanabana', sub: 'EOD not started · on track', tone: '', eod: '0 of 8', left: '2 left',
+        todo: [{ t: 'Closing checks', s: '23:00 · Closing manager' }, { t: 'Delivery check', s: 'When needed' }] }
+    };
+    const cur = this.state.cur;
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      site: data[cur], open: this.state.open,
+      sites: Object.keys(data).map((k) => ({ ...data[k], on: k === cur, selected: k === cur ? 'true' : 'false', pick: () => this.setState({ cur: k, open: false }) })),
+      openSheet: () => this.setState({ open: true }),
+      closeSheet: () => this.setState({ open: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

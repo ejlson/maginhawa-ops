@@ -3,10 +3,15 @@ import { Link, Navigate, useParams } from 'react-router';
 import { clockTime, evaluate, summariseRun } from '@maginhawa/core';
 import { can, useAuth } from '../lib/auth';
 import { runPath, useChecklists } from '../lib/checklists';
-import { Foot, Icon, ICONS, Nav } from '../components/ui';
+import { timeHM } from '../lib/draft';
+import { Foot, Icon, Nav, Pie } from '../components/ui';
+import { blockingLabel, finishStats, nextToDo, rowState } from '../components/checklist-run-helpers';
+import { FixInRow } from '../components/FixInRow';
+import { ICONS } from '../components/ui-helpers';
 import { Answer } from '../components/Answer';
 import { PresenceLine } from '../components/Sync';
-import { nextAfter, SplitFrame } from '../components/ChecklistSplit';
+import { nextAfter } from '../components/checklist-split-helpers';
+import { SplitFrame } from '../components/ChecklistSplit';
 import { TempSheet } from '../components/TempSheet';
 import { useTouch, useTwoColumns } from '../lib/wide';
 
@@ -14,7 +19,7 @@ export default function ChecklistRun() {
   const { key: raw = '' } = useParams();
   const key = decodeURIComponent(raw);
   const { user } = useAuth();
-  const { templateFor, runFor, answer, businessDate, tasks, sync, setWhere } = useChecklists();
+  const { templateFor, runFor, answer, businessDate, tasks, sync, setWhere, dismissRefused } = useChecklists();
   const two = useTwoColumns();
   const touch = useTouch();
   // The big temperature entry, open for one check at a time.
@@ -23,6 +28,20 @@ export default function ChecklistRun() {
   const title = template?.title ?? null;
   // Other devices see "Jo is in Closing checks".
   useEffect(() => { setWhere(title); return () => setWhere(null); }, [title, setWhere]);
+  // The first check still to do gets a blue ring. After a tap answer (Yes/No, a choice), bring it into
+  // view if it's below the fold; never while someone is typing, so the keyboard isn't pulled away.
+  const nextId = template ? nextToDo(template.checkpoints, runFor(key)?.answers ?? {}, businessDate) : null;
+  useEffect(() => {
+    if (!nextId) return;
+    const typing = document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement;
+    const row = document.querySelector<HTMLElement>('.run .qrow.cur');
+    if (typing || !row) return;
+    const r = row.getBoundingClientRect();
+    if (r.bottom > window.innerHeight - 140 || r.top < 80) {
+      const smooth = !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      row.scrollIntoView?.({ block: 'center', behavior: smooth ? 'smooth' : 'auto' });
+    }
+  }, [nextId]);
   if (!template) return <Navigate to="/checklists" replace />;
   const run = runFor(key);
   const task = tasks.find((t) => t.key === key);
@@ -32,6 +51,7 @@ export default function ChecklistRun() {
 
   const sections = [...new Set(template.checkpoints.map((c) => c.section ?? ''))];
   const here = sync.others.filter((p) => p.where === template.title);
+  const refused = sync.refused.filter((r) => r.runKey === key);
   // Answers save as you go. Lists are locked together by the Submit under the checklists.
   const after = nextAfter(tasks, key);
   const bigCheck = big ? template.checkpoints.find((c) => c.id === big) : undefined;
@@ -42,18 +62,48 @@ export default function ChecklistRun() {
   const content = (
     <>
       <Nav back="/checklists" backLabel="Checklists" title={task?.recheckOf ? 'Re-check' : template.title} right={<span className="saved"><span className="dot" />Saved</span>} />
-      <div className="body form">
-        <div className="hero" role="status" aria-live="polite">
-          <span className="hl">{task?.title ?? template.title}</span>
-          <div className="big"><b>{s.answered}</b><i>&nbsp;of {s.total} done</i></div>
-          <div className="hm">
-            <span>{task?.dueTime ?? (task?.dueAt ? task.dueAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : 'Any time')}<small>{done ? 'Was due' : 'Due'}</small></span>
-            <span className={s.failures.length ? 'h-bad' : ''}>{s.failures.length}<small>Failed</small></span>
-            <span>{template.who}<small>Who does it</small></span>
+      <div className="body form run">
+        {/* Finished (everything answered, failures dealt with, not yet submitted): a proper ending. */}
+        {s.canFinish && !done && run ? (() => {
+          const f = finishStats(run);
+          return (
+            <div className="hero run-hero finish" role="status" aria-live="polite">
+              <div className="finish-head">
+                <span className="finish-tick" aria-hidden="true"><Icon d={ICONS.check} size={22} /></span>
+                <div className="finish-title"><b>All {s.answered} checks done</b><span className="hl">{template.title}{template.who ? ` · ${template.who}` : ''}</span></div>
+              </div>
+              <div className="hm">
+                <span>{f.minutes ? `${f.minutes} min` : '—'}<small>Took</small></span>
+                <span>{f.fixed}<small>{f.fixed === 1 ? 'Problem fixed' : 'Problems fixed'}</small></span>
+                <span>{f.recheckAt ? timeHM(f.recheckAt) : 'None'}<small>Re-check due</small></span>
+              </div>
+            </div>
+          );
+        })() : (
+        /* Calm list: a small summary card, so the checks themselves get the screen. */
+        <div className="hero run-hero" role="status" aria-live="polite">
+          <div className="hero-row">
+            <span className="hl">{task?.title ?? template.title}{template.who ? ` · ${template.who}` : ''}</span>
+            <span className="hl">{done ? 'Was due' : 'Due'} {task?.dueTime ?? (task?.dueAt ? timeHM(task.dueAt) : 'any time')}</span>
           </div>
+          <div className="big"><b>{s.answered}</b><i>&nbsp;of {s.total} done</i></div>
+          <div className="qbars" aria-hidden="true">
+            {template.checkpoints.map((c) => <i key={c.id} className={rowState(evaluate(c, run?.answers[c.id], businessDate), Boolean(run?.fixes[c.id]))} />)}
+          </div>
+          {s.unfixed > 0 && <span className="hl h-bad">{s.unfixed} {s.unfixed === 1 ? 'needs' : 'need'} action</span>}
         </div>
+        )}
         {here.length > 0 && <PresenceLine others={here} />}
-        {done && <div className="banner"><Icon d={ICONS.lock} size={16} /><span>Submitted at {new Date(run!.completedAt!).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} by {run!.completedBy}. Locked: {canCorrect ? 'a correction keeps the old answer and needs a reason.' : "answers can't be changed."}</span></div>}
+        {refused.length > 0 && (
+          <div className="sync-card" role="alert">
+            <span className="av warn"><Icon d={ICONS.people} size={16} /></span>
+            <span className="tx">{refused.map((r) => (
+              <span key={r.checkpointId ?? 'list'}>{r.checkpointId && <b>{template.checkpoints.find((c) => c.id === r.checkpointId)?.title ?? 'An item'}. </b>}{r.message}</span>
+            ))}</span>
+            <button type="button" className="sync-x" aria-label="Dismiss" onClick={() => dismissRefused(key)}><Icon d={ICONS.x} size={14} /></button>
+          </div>
+        )}
+        {done && <div className="banner"><Icon d={ICONS.lock} size={16} /><span>Submitted at {timeHM(new Date(run!.completedAt!))} by {run!.completedBy}. Locked: {canCorrect ? 'a correction keeps the old answer and needs a reason.' : "answers can't be changed."}</span></div>}
 
         {sections.map((sec) => (
           <section className="grp" key={sec || 'all'}>
@@ -64,25 +114,30 @@ export default function ChecklistRun() {
                 const e = evaluate(c, v, businessDate);
                 const fixed = run?.fixes[c.id];
                 const by = run?.answeredBy?.[c.id];
+                const state = rowState(e, Boolean(fixed));
                 return (
-                  <div key={c.id} className="qrow">
-                    <Answer c={c} value={v} set={(x) => answer(key, c.id, x)} today={businessDate} disabled={done}
+                  <div key={c.id} className={`qrow circ ${state}${state === 'done' && e.passed !== false ? ' dim' : ''}${!done && c.id === nextId ? ' cur' : ''}`}>
+                    <span className="qmark"><Pie status={state} size={22} /></span>
+                    <div className="qbody">
+                    {/* Who answered and when, on every answered row, so a shared list stays attributable. */}
+                    <Answer c={c} value={v} set={(x) => answer(key, c.id, x)} today={businessDate} disabled={done} quiet
+                      note={by && e.answered ? `${by.by === user?.name ? 'You' : by.by} ${clockTime(by.at)}` : undefined}
                       onBig={touch && !done && c.type === 'temp' ? () => setBig(c.id) : undefined} />
-                    {by && by.by !== user?.name && <small className="ans-by">{by.by} · {clockTime(by.at)}</small>}
                     {run?.corrections?.[c.id]?.map((x, i) => (
                       <small key={i} className="ans-by">Corrected from {String(x.previous).replace('-', '−')}{c.type === 'temp' ? '°C' : ''} by {x.by} · {clockTime(x.at)} · “{x.reason}”</small>
                     ))}
                     {canCorrect && v !== undefined && v !== null && <Link className="how" to={`${runPath(key)}/correct/${c.id}`} aria-label={`Correct ${c.title}`}>Correct</Link>}
                     {e.passed === false && (
                       fixed ? (
-                        <div className="banner" style={{ marginBottom: 8 }}><Icon d={ICONS.check} size={16} /><span>Dealt with: {fixed.actions.join(', ').toLowerCase()}. Re-check in {fixed.recheckInMinutes} min{fixed.reportFault ? ' · fault reported' : ''}.</span></div>
+                        <div className="banner qnote"><Icon d={ICONS.check} size={16} /><span>Dealt with: {fixed.actions.join(', ').toLowerCase()}. Re-check in {fixed.recheckInMinutes} min{fixed.reportFault ? ' · fault reported' : ''}.</span></div>
+                      ) : done ? (
+                        <div className="qfail"><span className="tx"><span>{e.reason}</span><small>Not dealt with before it was submitted.</small></span></div>
                       ) : (
-                        <div style={{ display: 'flex', gap: 14, alignItems: 'center', padding: 14, borderRadius: 16, background: 'var(--badbg)', marginBottom: 8 }}>
-                          <span className="tx"><span style={{ fontWeight: 600 }}>{e.reason}</span><small style={{ color: 'var(--text)', opacity: .75 }}>Say what you did about it before it's submitted.</small></span>
-                          {!done && <Link className="chip" style={{ background: 'var(--bad)', color: '#fff', display: 'flex', alignItems: 'center', textDecoration: 'none' }} to={`${runPath(key)}/fix/${c.id}`}>Fix this</Link>}
-                        </div>
+                        // Dealt with right here: what was done, when to check again, and a fault report.
+                        <FixInRow runKey={key} c={c} reason={e.reason} />
                       )
                     )}
+                    </div>
                   </div>
                 );
               })}
@@ -94,7 +149,7 @@ export default function ChecklistRun() {
         <Foot>
           {s.canFinish
             ? <Link className="btn b1" to={after ? runPath(after.key) : '/checklists'}>{after ? `Next: ${after.title}` : 'Back to checklists'}</Link>
-            : <button type="button" className="btn b1" disabled>{s.unfixed ? `Fix ${s.unfixed} failed ${s.unfixed === 1 ? 'check' : 'checks'} first` : `${s.requiredLeft} left to answer`}</button>}
+            : <button type="button" className="btn b1" disabled>{blockingLabel(s)}</button>}
           <p className="note">{s.canFinish ? 'Saved. Submit it with the others under the checklists.' : 'Answers save as you go.'}</p>
         </Foot>
       )}

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Manager · switch site</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0066cc}
+.ad{--bg:#ffffff;--side:#f7f7f9;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--sel:rgba(0,0,0,.06);--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.16);--link:#0066cc;--ok:#1f7a35;--okbg:rgba(52,199,89,.14);--warn:#b25000;--warnbg:rgba(255,149,0,.16);--warnfill:#ff9500;--bad:#d70015;--badbg:rgba(255,59,48,.12);--pop:#ffffff;position:relative;overflow:hidden;width:1440px;height:1000px;box-sizing:border-box;display:flex;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:15px;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.ad.dark{--bg:#121214;--side:#1b1b1f;--text:#f2f2f4;--sec:#a3a3ab;--sep:rgba(255,255,255,.12);--fill:#2a2a2f;--sel:rgba(255,255,255,.08);--ink:#f2f2f4;--onink:#121214;--hero:#232328;--heroline:rgba(255,255,255,.12);--link:#4aa3ff;--ok:#4cd964;--okbg:rgba(76,217,100,.16);--warn:#ffb340;--warnbg:rgba(255,179,64,.16);--warnfill:#ffb340;--bad:#ff6b60;--badbg:rgba(255,107,96,.16);--pop:#232328}
+.ad.dark .hero{box-shadow:0 24px 48px -24px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.07)}
+.ad.dark .pop{box-shadow:0 24px 60px -16px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.08)}
+.side{width:260px;flex:none;box-sizing:border-box;background:var(--side);display:flex;flex-direction:column;gap:24px;padding:28px 14px;position:relative}
+.brand{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:6px 12px 8px;margin:-6px 0 0;border:0;border-radius:12px;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;width:100%}
+.brand:hover,.brand[aria-expanded="true"]{background:var(--sel)}
+.brand span{font-size:14px;color:var(--sec)}
+.brand b{font-size:26px;font-weight:700;letter-spacing:-.035em;display:flex;align-items:center;gap:8px}
+.brand b svg{color:var(--sec)}
+.search{display:flex;align-items:center;gap:10px;height:40px;padding:0 12px;border-radius:10px;background:var(--bg);color:var(--sec);font-size:14px;box-shadow:0 0 0 .5px var(--sep)}
+.kbd{margin-left:auto;font-size:12px;border:1px solid currentColor;border-radius:5px;padding:1px 5px;opacity:.6}
+.links{display:flex;flex-direction:column;gap:2px}
+.si{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--text);font-size:15px}
+.si svg{color:var(--sec);flex:none}
+.si.on{background:var(--sel);font-weight:600}.si.on svg{color:var(--text)}
+.cnt{margin-left:auto;min-width:20px;height:20px;border-radius:10px;background:var(--bad);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.si small{margin-left:auto;font-size:13px;color:var(--sec)}
+.me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:0 10px;height:48px;font-size:14px}
+.av{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;font-size:13px;font-weight:700;letter-spacing:-.02em;color:var(--text)}
+.av.sm{width:32px;height:32px;font-size:12px}
+.pop{position:absolute;top:96px;left:14px;width:340px;background:var(--pop);border-radius:18px;box-shadow:0 24px 60px -16px rgba(0,0,0,.28),0 0 0 .5px var(--sep);padding:8px;z-index:3;display:flex;flex-direction:column}
+.pop-h{display:flex;justify-content:space-between;align-items:baseline;padding:8px 10px 6px;font-size:13px;color:var(--sec)}
+.pop-h b{color:var(--text);font-size:13px}
+.opt{display:flex;align-items:center;gap:12px;min-height:60px;padding:6px 10px;border:0;border-radius:12px;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;width:100%}
+.opt:hover{background:var(--sel)}
+.tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.tx small{font-size:13px;color:var(--sec)}
+.tx small.warn{color:var(--warn)}.tx small.bad{color:var(--bad)}
+.circ{width:24px;height:24px;flex:none}
+.pop-f{font-size:13px;color:var(--sec);padding:10px 10px 6px;border-top:.5px solid var(--sep);margin-top:6px;line-height:1.4}
+.main{flex:1;min-width:0;display:flex;gap:40px;padding:56px 48px;align-items:flex-start}
+.col{flex:1;min-width:0;display:flex;flex-direction:column;gap:20px}
+.rail{width:340px;flex:none}
+.hd{display:flex;justify-content:space-between;align-items:baseline}
+.hd h2{margin:0;font-size:20px;font-weight:700;letter-spacing:-.025em}
+.hd span{font-size:14px;color:var(--sec)}
+.li{display:flex;align-items:center;gap:14px;min-height:62px;position:relative}
+.li + .li::before{content:'';position:absolute;top:0;left:38px;right:0;height:.5px;background:var(--sep)}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:11px;font-size:12px;font-weight:600}
+.pill.bad{background:var(--badbg);color:var(--bad)}.pill.m{background:var(--fill);color:var(--sec)}
+.hero{background:var(--hero);color:var(--onhero);border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 48px -24px rgba(0,0,0,.4)}
+.go{height:54px;border-radius:999px;border:0;background:var(--ink);color:var(--onink);font:inherit;font-size:17px;font-weight:600;cursor:pointer;width:100%;margin-top:16px}
+.toast{position:absolute;left:calc(50% + 130px);bottom:28px;transform:translateX(-50%);display:flex;align-items:center;gap:18px;background:var(--hero);color:var(--onhero);border-radius:999px;padding:12px 12px 12px 22px;box-shadow:0 18px 40px -12px rgba(0,0,0,.45);font-size:15px;white-space:nowrap}
+.toast button{height:36px;padding:0 16px;border-radius:18px;border:0;background:rgba(245,245,247,.16);color:var(--onhero);font:inherit;font-weight:600;cursor:pointer}
+.note{position:absolute;right:24px;top:20px;font-size:12px;color:var(--sec)}
+</style>
+</helmet>
+<div class="ad {{theme}}">
+<nav class="side" aria-label="Main">
+<button class="brand" aria-haspopup="listbox" aria-expanded="{{expanded}}" onClick="{{toggle}}">
+<span>{{site.name}} · Tue 27 Oct</span>
+<b>{{site.name}}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9.5l4-4 4 4M8 14.5l4 4 4-4"></path></svg></b>
+</button>
+<div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Search or jump to<span class="kbd">⌘K</span></div>
+<div class="links">
+<div class="si on"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5L12 4l8 6.5V20h-5v-6h-6v6H4z"></path></svg>Home</div>
+<div class="si"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>Timeline</div>
+<div class="si"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Checklists<sc-if value="{{site.late}}" hint-placeholder-val="{{ true }}"><span class="cnt">{{site.late}}</span></sc-if></div>
+<div class="si"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 5h12M6 12h12M6 19h12"></path></svg>Today's EOD<small>{{site.eod}}</small></div>
+<div class="si"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6.5a4 4 0 0 0-5 5L4 17v3h3l5.5-5.5a4 4 0 0 0 5-5l-2.5 2.5-2.5-2.5z"></path></svg>Repairs</div>
+<div class="si"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path></svg>People</div>
+</div>
+<div class="me"><span class="av sm">TS</span><span class="tx"><span style="font-weight: 600">[Manager name]</span><small>Manager · 2 sites</small></span></div>
+
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+<div class="pop" role="listbox" aria-label="Your sites">
+<div class="pop-h"><b>Your sites</b><span>Today</span></div>
+<sc-for list="{{sites}}" as="s" hint-placeholder-count="2">
+<button class="opt" role="option" aria-selected="{{s.selected}}" onClick="{{s.pick}}">
+<span class="av">{{s.code}}</span>
+<span class="tx"><span style="font-weight: 600">{{s.name}}</span><small class="{{s.tone}}">{{s.sub}}</small></span>
+<sc-if value="{{s.on}}" hint-placeholder-val="{{ false }}"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="var(--ink)"></circle><path d="M7 12.4l3.2 3.1L17 8.8" fill="none" stroke="var(--onink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+</button>
+</sc-for>
+<div class="pop-f">Each site keeps its own EOD and checklists, saved as you go. Head office sets which sites you work at.</div>
+</div>
+</sc-if>
+</nav>
+
+<main class="main">
+<div class="col">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; color: var(--sec)">Tuesday 27 October</span><h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.035em">Hi [Manager]</h1></div>
+<div>
+<div class="hd"><h2>Still to do</h2><span>{{site.left}}</span></div>
+<sc-for list="{{site.todo}}" as="t" hint-placeholder-count="4">
+<div class="li"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.75" fill="none" stroke="var(--sec)" stroke-opacity=".5" stroke-width="1.5"></circle></svg><span class="tx"><span style="font-weight: 600">{{t.t}}</span><small>{{t.s}}</small></span><span class="pill {{t.tone}}">{{t.p}}</span></div>
+</sc-for>
+</div>
+</div>
+<div class="rail">
+<div class="hero">
+<span style="font-size: 15px; color: var(--herosec)">{{site.name}} · today's EOD</span>
+<span style="font-size: 44px; font-weight: 600; letter-spacing: -0.05em; line-height: 1">{{site.eod}}</span>
+<span style="font-size: 14px; color: var(--herosec); padding-top: 12px; border-top: 0.5px solid var(--heroline)">sections done · saved 21:42</span>
+</div>
+<button class="go">Continue {{site.name}}'s EOD</button>
+</div>
+</main>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{ false }}">
+<div class="toast" role="status">Now in {{site.name}}<button onClick="{{back}}">Back to {{prev}}</button></div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: true, cur: 'BUN', prev: null };
+  }
+  renderVals() {
+    const st = this.state;
+    const data = {
+      BUN: { code: 'BU', name: 'Bunso', sub: "EOD 3 of 8 · 3 checklists late", tone: 'bad', late: 3, eod: '3 of 8', left: '5 left',
+        todo: [{ t: 'Opening checks', s: '7 checks · Kitchen', p: 'Missed', tone: 'bad' }, { t: 'Hot holding · 12:00', s: '3 checks · Kitchen', p: 'Missed', tone: 'bad' }, { t: 'Bar opening', s: '8 checks · Bar team', p: 'Missed', tone: 'bad' }, { t: 'Closing checks', s: '4 checks · Closing manager', p: '23:00', tone: 'm' }] },
+      GUA: { code: 'GU', name: 'Guanabana', sub: 'EOD not started · on track', tone: '', late: 0, eod: '0 of 8', left: '2 left',
+        todo: [{ t: 'Closing checks', s: '4 checks · Closing manager', p: '23:00', tone: 'm' }, { t: 'Delivery check', s: '3 checks · Whoever receives it', p: 'When needed', tone: 'm' }] }
+    };
+    const site = data[st.cur];
+    const sites = Object.keys(data).map((k) => ({ ...data[k], on: k === st.cur, selected: k === st.cur ? 'true' : 'false',
+      pick: () => this.setState({ open: false, cur: k, prev: k === this.state.cur ? null : this.state.cur }) }));
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      site, sites, open: st.open, expanded: st.open ? 'true' : 'false',
+      toast: !!st.prev, prev: st.prev ? data[st.prev].name : '',
+      toggle: () => this.setState({ open: !this.state.open }),
+      back: () => this.setState({ cur: this.state.prev, prev: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

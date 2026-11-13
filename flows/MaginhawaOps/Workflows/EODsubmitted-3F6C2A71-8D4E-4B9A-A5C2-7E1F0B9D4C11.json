@@ -1,0 +1,284 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": { "connectionReferenceLogicalName": "mgn_SharePointOps" },
+        "api": { "name": "shared_sharepointonline" }
+      },
+      "shared_teams": {
+        "runtimeSource": "embedded",
+        "connection": { "connectionReferenceLogicalName": "mgn_TeamsOps" },
+        "api": { "name": "shared_teams" }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": { "connectionReferenceLogicalName": "mgn_OutlookOps" },
+        "api": { "name": "shared_office365" }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": { "defaultValue": {}, "type": "Object" },
+        "$authentication": { "defaultValue": {}, "type": "SecureObject" },
+        "Ops site URL (mgn_OpsSiteUrl)": { "defaultValue": "", "type": "String", "metadata": { "schemaName": "mgn_OpsSiteUrl" } },
+        "FlowOutbox list (mgn_FlowOutboxList)": { "defaultValue": "FlowOutbox", "type": "String", "metadata": { "schemaName": "mgn_FlowOutboxList" } },
+        "Ops team (mgn_OpsTeamId)": { "defaultValue": "", "type": "String", "metadata": { "schemaName": "mgn_OpsTeamId" } },
+        "Ops channel (mgn_OpsChannelId)": { "defaultValue": "", "type": "String", "metadata": { "schemaName": "mgn_OpsChannelId" } },
+        "Ops manager email (mgn_OpsManagerEmail)": { "defaultValue": "", "type": "String", "metadata": { "schemaName": "mgn_OpsManagerEmail" } }
+      },
+      "triggers": {
+        "When_a_message_is_queued": {
+          "description": "A new or re-queued FlowOutbox row. Setting Status back to Queued runs it again.",
+          "recurrence": { "interval": 1, "frequency": "Minute" },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "conditions": [
+            { "expression": "@equals(triggerBody()?['Status']?['Value'], 'Queued')" }
+          ],
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetOnUpdatedItems"
+            },
+            "parameters": {
+              "dataset": "@parameters('Ops site URL (mgn_OpsSiteUrl)')",
+              "table": "@parameters('FlowOutbox list (mgn_FlowOutboxList)')"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Try": {
+          "runAfter": {},
+          "type": "Scope",
+          "actions": {
+            "Read_the_message": {
+              "runAfter": {},
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@triggerBody()?['Payload']",
+                "schema": {
+                  "type": "object",
+                  "required": ["schema", "key", "site", "businessDate", "dayLabel", "summary", "figures", "toLookAt"],
+                  "properties": {
+                    "schema": { "type": "string" },
+                    "key": { "type": "string" },
+                    "site": {
+                      "type": "object",
+                      "required": ["code", "name"],
+                      "properties": { "code": { "type": "string" }, "name": { "type": "string" } }
+                    },
+                    "businessDate": { "type": "string" },
+                    "dayLabel": { "type": "string" },
+                    "submittedAt": { "type": ["string", "null"] },
+                    "submittedBy": { "type": ["string", "null"] },
+                    "summary": {
+                      "type": "object",
+                      "required": ["net", "netText", "covers", "wagePct", "wageRag", "netVsTarget", "netVsTargetText"],
+                      "properties": {
+                        "net": { "type": "integer" },
+                        "netText": { "type": "string" },
+                        "covers": { "type": "integer" },
+                        "wagePct": { "type": ["number", "null"] },
+                        "wageRag": { "type": ["string", "null"] },
+                        "netVsTarget": { "type": ["integer", "null"] },
+                        "netVsTargetText": { "type": ["string", "null"] }
+                      }
+                    },
+                    "figures": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["name", "type", "value", "text"],
+                        "properties": {
+                          "name": { "type": "string" },
+                          "type": { "type": "string" },
+                          "value": { "type": ["number", "null"] },
+                          "text": { "type": "string" }
+                        }
+                      }
+                    },
+                    "toLookAt": { "type": "array", "items": { "type": "string" } },
+                    "definitionVersion": { "type": ["integer", "null"] }
+                  }
+                }
+              }
+            },
+            "Known_format": {
+              "runAfter": { "Read_the_message": ["Succeeded"] },
+              "type": "If",
+              "expression": {
+                "equals": ["@body('Read_the_message')?['schema']", "maginhawa.eod.submitted/1"]
+              },
+              "actions": {
+                "Figure_lines": {
+                  "runAfter": {},
+                  "type": "Select",
+                  "inputs": {
+                    "from": "@body('Read_the_message')?['figures']",
+                    "select": "@concat('<li>', replace(replace(replace(item()?['name'], '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), ': ', item()?['text'], '</li>')"
+                  }
+                },
+                "Look_at_lines": {
+                  "runAfter": { "Figure_lines": ["Succeeded"] },
+                  "type": "Select",
+                  "inputs": {
+                    "from": "@body('Read_the_message')?['toLookAt']",
+                    "select": "@concat('<li>', replace(replace(replace(item(), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'), '</li>')"
+                  }
+                },
+                "Wages_text": {
+                  "runAfter": { "Look_at_lines": ["Succeeded"] },
+                  "type": "Compose",
+                  "inputs": "@if(equals(body('Read_the_message')?['summary']?['wagePct'], null), 'no wage cost yet', concat(string(body('Read_the_message')?['summary']?['wagePct']), '% (', body('Read_the_message')?['summary']?['wageRag'], ')'))"
+                },
+                "Post_to_the_ops_channel": {
+                  "runAfter": { "Wages_text": ["Succeeded"] },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_teams",
+                      "connectionName": "shared_teams",
+                      "operationId": "PostMessageToConversation"
+                    },
+                    "parameters": {
+                      "poster": "Flow bot",
+                      "location": "Channel",
+                      "body/recipient/groupId": "@parameters('Ops team (mgn_OpsTeamId)')",
+                      "body/recipient/channelId": "@parameters('Ops channel (mgn_OpsChannelId)')",
+                      "body/messageBody": "<p><b>@{body('Read_the_message')?['site']?['name']} · @{body('Read_the_message')?['dayLabel']}</b></p><p>@{body('Read_the_message')?['summary']?['netText']} net · @{body('Read_the_message')?['summary']?['covers']} covers · wages @{outputs('Wages_text')}@{if(equals(body('Read_the_message')?['summary']?['netVsTargetText'], null), '', concat(' · ', body('Read_the_message')?['summary']?['netVsTargetText'], ' vs target'))}</p><ul>@{join(body('Figure_lines'), '')}</ul>@{if(empty(body('Look_at_lines')), '', concat('<p>To look at:</p><ul>', join(body('Look_at_lines'), ''), '</ul>'))}"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Needs_a_look": {
+                  "runAfter": { "Post_to_the_ops_channel": ["Succeeded"] },
+                  "type": "If",
+                  "expression": {
+                    "or": [
+                      { "equals": ["@body('Read_the_message')?['summary']?['wageRag']", "red"] },
+                      { "greater": ["@length(body('Read_the_message')?['toLookAt'])", 0] }
+                    ]
+                  },
+                  "actions": {
+                    "Email_the_ops_manager": {
+                      "runAfter": {},
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                          "connectionName": "shared_office365",
+                          "operationId": "SendEmailV2"
+                        },
+                        "parameters": {
+                          "emailMessage/To": "@parameters('Ops manager email (mgn_OpsManagerEmail)')",
+                          "emailMessage/Subject": "EOD to look at · @{body('Read_the_message')?['site']?['name']} · @{body('Read_the_message')?['dayLabel']}",
+                          "emailMessage/Body": "<p>@{body('Read_the_message')?['summary']?['netText']} net · wages @{outputs('Wages_text')}</p>@{if(empty(body('Look_at_lines')), '', concat('<ul>', join(body('Look_at_lines'), ''), '</ul>'))}<p>Open the report in Maginhawa Ops to approve it or send it back.</p>",
+                          "emailMessage/Importance": "High"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    }
+                  },
+                  "else": { "actions": {} }
+                },
+                "Mark_done": {
+                  "runAfter": { "Needs_a_look": ["Succeeded"] },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "PatchItem"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('Ops site URL (mgn_OpsSiteUrl)')",
+                      "table": "@parameters('FlowOutbox list (mgn_FlowOutboxList)')",
+                      "id": "@triggerBody()?['ID']",
+                      "item/Title": "@triggerBody()?['Title']",
+                      "item/Status/Value": "Done",
+                      "item/ProcessedAt": "@utcNow()",
+                      "item/RunId": "@workflow()?['run']?['name']",
+                      "item/Error": ""
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "else": {
+                "actions": {
+                  "Mark_unknown_format": {
+                    "runAfter": {},
+                    "type": "OpenApiConnection",
+                    "inputs": {
+                      "host": {
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                        "connectionName": "shared_sharepointonline",
+                        "operationId": "PatchItem"
+                      },
+                      "parameters": {
+                        "dataset": "@parameters('Ops site URL (mgn_OpsSiteUrl)')",
+                        "table": "@parameters('FlowOutbox list (mgn_FlowOutboxList)')",
+                        "id": "@triggerBody()?['ID']",
+                        "item/Title": "@triggerBody()?['Title']",
+                        "item/Status/Value": "Failed",
+                        "item/ProcessedAt": "@utcNow()",
+                        "item/RunId": "@workflow()?['run']?['name']",
+                        "item/Error": "This flow reads maginhawa.eod.submitted/1, but the message is @{body('Read_the_message')?['schema']}. Update the flow from the repo (flows/MaginhawaOps)."
+                      },
+                      "authentication": "@parameters('$authentication')"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "If_it_failed": {
+          "runAfter": { "Try": ["Failed", "TimedOut"] },
+          "type": "Scope",
+          "actions": {
+            "Mark_failed": {
+              "runAfter": {},
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "PatchItem"
+                },
+                "parameters": {
+                  "dataset": "@parameters('Ops site URL (mgn_OpsSiteUrl)')",
+                  "table": "@parameters('FlowOutbox list (mgn_FlowOutboxList)')",
+                  "id": "@triggerBody()?['ID']",
+                  "item/Title": "@triggerBody()?['Title']",
+                  "item/Status/Value": "Failed",
+                  "item/ProcessedAt": "@utcNow()",
+                  "item/RunId": "@workflow()?['run']?['name']",
+                  "item/Error": "@{take(string(result('Try')), 4000)}"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Show_as_failed_in_run_history": {
+              "runAfter": { "Mark_failed": ["Succeeded", "Failed"] },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Failed",
+                "runError": { "code": "EOD_FLOW_FAILED", "message": "The EOD message wasn't posted. The FlowOutbox row says why; set its Status back to Queued to run it again." }
+              }
+            }
+          }
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

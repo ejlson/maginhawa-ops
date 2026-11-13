@@ -2,20 +2,24 @@
  * How this device talks to the others at the site. The screens only see the sync
  * clients from @maginhawa/core; this file picks what sits behind them:
  *
- * - Connected: the Netlify Functions (eod-draft, submit-eod, checklist-sync, presence).
+ * - Connected: the /api routes on Cloudflare Pages (eod-draft, submit-eod, checklist-sync, presence).
+ * - Shared test mode: the same functions on the laptop running `npm run dev:shared`, with demo sign-in.
  * - Demo: the same rules on this device (lib/store.ts), so two tabs act as two devices.
  *
- * Live updates come through a LiveTransport: polling every 10 s and on focus for now.
+ * Live updates come through a LiveTransport: polling every 10 s (30 s when idle) and on focus for now.
  * A push service (e.g. Azure Web PubSub) can replace it here without touching the screens.
  */
+import { demoDefinitions } from './definition';
 import { useEffect } from 'react';
 import {
-  ManualTransport, PollingTransport, SyncError, storeRemote, submitReport,
+  DEV_USER_HEADER, ManualTransport, PollingTransport, SITES, SyncError, storeRemote, submitReport,
   type ChecklistBackend, type ChecklistOp, type EodDraft, type EodRemote, type LiveTransport, type PresenceRemote, type SiteSettings, type SubmitResult,
 } from '@maginhawa/core';
-import { config, isConnected } from './config';
+import { config, isSharedDev, usesServer } from './config';
 import { now } from './clock';
 import { deviceChecklistStore, devicePresence, deviceStore } from './store';
+import { storage } from './storage';
+import type { User } from './auth';
 
 export const uuid = () => (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0').slice(-12));
 
@@ -32,10 +36,19 @@ export function deviceId(): string {
   return tabId;
 }
 
-// ── connected: the Netlify Functions ───────────────────────────────────
+// ── connected: the /api routes ─────────────────────────────────────────────────────────────────────────
 
-/** Sign-in token goes here once Entra ID is connected. */
-const headers = (): Record<string, string> => ({ 'Content-Type': 'application/json' });
+/** Shared test mode: the local server trusts the demo sign-in sent in this header. */
+function devUser(): Record<string, string> {
+  if (!isSharedDev()) return {};
+  const u = storage.get<User | null>('mgh.user', null);
+  if (!u) return {};
+  const siteCodes = u.role === 'headoffice' ? SITES.map((s) => s.code) : [u.siteCode];
+  return { [DEV_USER_HEADER]: encodeURIComponent(JSON.stringify({ name: u.name, role: u.role, siteCodes })) };
+}
+
+/** The session is an HttpOnly cookie the browser sends itself (same origin). */
+const headers = (): Record<string, string> => ({ 'Content-Type': 'application/json', ...devUser() });
 
 async function call(path: string, init: RequestInit = {}): Promise<Response> {
   const res = await fetch(`${config.apiBase}/${path}`, { ...init, headers: { ...headers(), ...(init.headers as Record<string, string> | undefined) } });
@@ -44,12 +57,29 @@ async function call(path: string, init: RequestInit = {}): Promise<Response> {
   return res;
 }
 
+/** The body of a good answer. Anything else throws. */
+async function json(res: Response) {
+  if (!res.ok) throw new Error(`Server ${res.status}`);
+  return res.json();
+}
+
+/** Reads JSON from a function. Null when it answers with an error the app can ignore. */
+export async function apiGet<T>(path: string): Promise<T | null> {
+  const res = await call(path);
+  return res.ok ? (await res.json()) as T : null;
+}
+
+/** Sends JSON to a function. Throws if it says no. */
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const res = await call(path, { method: 'POST', body: JSON.stringify(body) });
+  return (await json(res)) as T;
+}
+
 const httpEod: EodRemote = {
   async get(siteCode, businessDate, ifNoneMatch) {
     const res = await call(`eod-draft?site=${encodeURIComponent(siteCode)}&date=${businessDate}`, { headers: ifNoneMatch ? { 'If-None-Match': `"${ifNoneMatch}"` } : {} });
     if (res.status === 304) return 'not-modified';
-    if (!res.ok) throw new Error(`Server ${res.status}`);
-    return (await res.json()).report;
+    return (await json(res)).report;
   },
   async saveDraft(draft, opts) {
     const res = await call('eod-draft', { method: 'PUT', body: JSON.stringify({ draft, baseVersion: opts.baseVersion }) });
@@ -69,13 +99,11 @@ const httpEod: EodRemote = {
 const httpChecklists: ChecklistBackend = {
   async apply(siteCode, ops: ChecklistOp[]) {
     const res = await call('checklist-sync', { method: 'POST', body: JSON.stringify({ siteCode, ops }) });
-    if (!res.ok) throw new Error(`Server ${res.status}`);
-    return (await res.json()).outcomes;
+    return (await json(res)).outcomes;
   },
   async changes(siteCode, businessDate, since) {
     const res = await call(`checklist-sync?site=${encodeURIComponent(siteCode)}&date=${businessDate}&since=${since}`);
-    if (!res.ok) throw new Error(`Server ${res.status}`);
-    return res.json();
+    return json(res);
   },
 };
 
@@ -89,19 +117,19 @@ const httpPresence: PresenceRemote = {
 // ── what the screens use ───────────────────────────────────────────────
 
 export function eodRemote(settingsFor: (siteCode: string) => SiteSettings): EodRemote {
-  if (isConnected()) return httpEod;
+  if (usesServer()) return httpEod;
   const store = deviceStore();
   return storeRemote(
     store,
-    (draft: EodDraft, o) => submitReport(draft, { store, settings: settingsFor(draft.siteCode), submittedBy: o.by, baseVersion: o.baseVersion, submitId: o.submitId, now: now() }),
+    (draft: EodDraft, o) => submitReport(draft, { store, settings: settingsFor(draft.siteCode), submittedBy: o.by, baseVersion: o.baseVersion, submitId: o.submitId, now: now(), definitions: demoDefinitions() }),
     now,
   );
 }
 
-export const checklistBackend = (): ChecklistBackend => (isConnected() ? httpChecklists : deviceChecklistStore());
-export const presenceRemote = (): PresenceRemote => (isConnected() ? httpPresence : devicePresence());
+export const checklistBackend = (): ChecklistBackend => (usesServer() ? httpChecklists : deviceChecklistStore());
+export const presenceRemote = (): PresenceRemote => (usesServer() ? httpPresence : devicePresence());
 /** Answers are batched for a second in connected mode (scalability rule 1), sent straight away in demo mode. */
-export const batchDelayMs = () => (isConnected() ? 1000 : 0);
+export const batchDelayMs = () => (usesServer() ? 1000 : 0);
 
 /** Tests poke this to simulate "another device changed something". */
 export const testTransport = new ManualTransport();

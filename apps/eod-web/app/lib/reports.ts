@@ -6,9 +6,10 @@
 import { useMemo } from 'react';
 import { addDays, type ReportRow } from '@maginhawa/core';
 import { useTradingHistory } from './history';
+import { demoHash } from './demo-history';
 
 const MANAGERS: Record<string, string[]> = {
-  BIN: ['Tom', 'Lea'], GUA: ['Marco', 'Jo'], BEL: ['Sam', 'Nina'], RAM: ['Chris', 'Ivy'], HOO: ['Dan', 'Mei'],
+  BIN: ['Tom', 'Lea'], GUA: ['Marco', 'Jo'], BEL: ['Sam', 'Nina'], HOO: ['Dan', 'Mei'],
   BUN: ['Ana', 'Raf'], CAF: ['Bea'], MKT: ['Priya', 'Joel'], MCT: ['Kit', 'Lou'],
 };
 
@@ -25,16 +26,12 @@ const NOTES: { note: string; discounts?: string[]; voids?: string[] }[] = [
   { note: 'Staff meal over budget, employee dining applied.', discounts: ['Employee dining 20%'] },
 ];
 
-function hash(s: string) {
-  return [...s].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 2166136261);
-}
-
 export function useReportRows(): { rows: ReportRow[]; example: boolean; lastDate: string } {
   const { rows: history, example, lastDate } = useTradingHistory();
   const rows = useMemo(() => {
     const appStart = addDays(lastDate, -55);
     return history.map((r): ReportRow => {
-      const h = hash(r.siteCode + r.date);
+      const h = demoHash(r.siteCode + r.date);
       const people = MANAGERS[r.siteCode] ?? ['Manager'];
       const extra = h % 7 === 0 || r.cashDiff ? NOTES[(h >>> 3) % NOTES.length]! : null;
       return {

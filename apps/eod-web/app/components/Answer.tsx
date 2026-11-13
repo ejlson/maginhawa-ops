@@ -1,7 +1,8 @@
 /** One checklist question and its answer control: used when doing a list and in the builder's preview. */
 import { useEffect, useRef, useState } from 'react';
 import { evaluate, ruleText, type AnswerValue, type Checkpoint } from '@maginhawa/core';
-import { Icon, ICONS, TempInput, nextOnEnter } from './ui';
+import { Icon, SignedTempInput } from './ui';
+import { ICONS, nextOnEnter, parseNumber, toggled } from './ui-helpers';
 
 /** Downscales a photo to keep it small enough to store on the device. */
 async function shrinkPhoto(file: File): Promise<string> {
@@ -18,11 +19,6 @@ async function shrinkPhoto(file: File): Promise<string> {
   }
 }
 
-const parseNumber = (t: string) => {
-  const n = parseFloat(t.replace('−', '-').replace(/[^0-9.\-]/g, ''));
-  return Number.isFinite(n) ? n : null;
-};
-
 function NumberAnswer({ c, value, onChange, invalid, disabled }: { c: Checkpoint; value: AnswerValue | undefined; onChange: (v: AnswerValue) => void; invalid: boolean; disabled: boolean }) {
   const [text, setText] = useState(typeof value === 'number' ? String(value) : '');
   const [editing, setEditing] = useState(false);
@@ -33,10 +29,12 @@ function NumberAnswer({ c, value, onChange, invalid, disabled }: { c: Checkpoint
   }, [value, editing]); // eslint-disable-line react-hooks/exhaustive-deps
   const change = (t: string) => { setText(t); onChange(parseNumber(t)); };
   if (c.type === 'temp') {
-    // A reading can only go below zero if the check allows it (no ± on hot holding at 63°C or above).
+    // A reading can only go below zero if the check allows it (no sign on hot holding at 63°C or above).
+    // Freezer checks start on "−", so staff type the number they see on the probe.
     return (
       <span onFocus={() => setEditing(true)} onBlur={() => setEditing(false)}>
-        <TempInput label={c.title} value={text} onChange={change} invalid={invalid} disabled={disabled} negative={c.min === undefined || c.min < 0} style={{ width: 104 }} />
+        <SignedTempInput label={c.title} value={text} onChange={change} invalid={invalid} disabled={disabled}
+          negative={c.min === undefined || c.min < 0} expectNegative={c.max !== undefined && c.max < 0} />
       </span>
     );
   }
@@ -73,12 +71,17 @@ function SignaturePad({ value, onChange, disabled }: { value: AnswerValue | unde
   );
 }
 
-/** `onBig` opens the big-target temperature entry (kitchen iPad). */
-export function Answer({ c, value, set, today, disabled, onBig }: { c: Checkpoint; value: AnswerValue | undefined; set: (v: AnswerValue) => void; today: string; disabled: boolean; onBig?: () => void }) {
+/**
+ * `onBig` opens the big-target temperature entry (kitchen iPad). `quiet` drops the pass/fail pill: on a
+ * checklist the row's circle, the field's red ring and the failure box under the row say it instead.
+ */
+export function Answer({ c, value, set, today, disabled, onBig, quiet = false, note }: { c: Checkpoint; value: AnswerValue | undefined; set: (v: AnswerValue) => void; today: string; disabled: boolean; onBig?: () => void; quiet?: boolean; note?: string }) {
   const e = evaluate(c, value, today);
   const rule = ruleText(c);
-  const sub = [c.help, rule].filter(Boolean).join(' · ');
-  const status = e.passed === false ? <span className="pill p-bad">{c.type === 'temp' ? (e.reason.startsWith('Too cold') ? 'Too cold' : 'Too warm') : 'Fails'}</span>
+  // `note` (who answered and when) shares the grey line with the rule, so a row has one line of detail.
+  const sub = [c.help, rule, note].filter(Boolean).join(' · ');
+  const status = quiet ? null
+    : e.passed === false ? <span className="pill p-bad">{c.type === 'temp' ? (e.reason.startsWith('Too cold') ? 'Too cold' : 'Too warm') : 'Fails'}</span>
     : e.passed === true ? <span className="pill p-ok">OK</span> : null;
   const head = <span className="tx"><span>{c.title}{!c.required && <span className="muted" style={{ fontSize: 14 }}> · optional</span>}</span>{sub && <small>{sub}</small>}</span>;
 
@@ -89,7 +92,9 @@ export function Answer({ c, value, set, today, disabled, onBig }: { c: Checkpoin
           <span className="chips" role="radiogroup" aria-label={c.title}>
             {([['Yes', true], ['No', false]] as const).map(([l, v]) => (
               <button key={l} type="button" className="chip" disabled={disabled} aria-pressed={value === v}
-                style={value === v && e.passed === false ? { background: 'var(--bad)', color: '#fff' } : undefined} onClick={() => set(v)}>{l}</button>
+                style={value === v && e.passed === false ? { background: 'var(--bad)', color: '#fff' } : undefined}
+                // Tapping the chosen answer again clears it, so a mis-tap can be taken back before submitting.
+                onClick={() => set(value === v ? null : v)}>{l}</button>
             ))}
           </span>
         </div>
@@ -112,7 +117,7 @@ export function Answer({ c, value, set, today, disabled, onBig }: { c: Checkpoin
           <div className="chips" role={c.multi ? 'group' : 'radiogroup'} aria-label={c.title}>
             {(c.options ?? []).map((o, i) => (
               <button key={`${i}:${o}`} type="button" className="chip" disabled={disabled} aria-pressed={picked.includes(o)}
-                onClick={() => set(c.multi ? (picked.includes(o) ? picked.filter((x) => x !== o) : [...picked, o]) : [o])}>{o}</button>
+                onClick={() => set(c.multi ? toggled(picked, o) : picked.includes(o) ? [] : [o])}>{o}</button>
             ))}
           </div>
         </div>
@@ -125,8 +130,8 @@ export function Answer({ c, value, set, today, disabled, onBig }: { c: Checkpoin
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             {photos.map((src, i) => <img key={i} src={src} alt={`${c.title} ${i + 1}`} style={{ width: 84, height: 84, objectFit: 'cover', borderRadius: 14 }} />)}
             {!disabled && (
-              <label style={{ width: 84, height: 84, borderRadius: 14, border: '1.5px dashed var(--sep)', display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', justifyContent: 'center', color: 'var(--link)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                <Icon d="M2 6h3l1.5-2h5L13 6h3v9H2zM9 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />{photos.length ? 'Retake' : 'Take photo'}
+              <label className="photo-add">
+                <Icon d="M2 6h3l1.5-2h5L13 6h3v9H2zM9 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" /><span>{photos.length ? 'Retake' : 'Take photo'}</span>
                 <input type="file" accept="image/*" capture="environment" aria-label={`Take a photo: ${c.title}`} style={{ display: 'none' }}
                   onChange={async (ev) => { const f = ev.target.files?.[0]; if (f) set([await shrinkPhoto(f)]); }} />
               </label>

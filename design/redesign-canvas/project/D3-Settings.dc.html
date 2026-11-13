@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Settings · sites and colours</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.sw,.qa,.ic,.pill,.chip,.btn{corner-shape:round}
+
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-70px,34px) scale(1.25) rotate(25deg)}66%{transform:translate(50px,-24px) scale(.9) rotate(-12deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+@keyframes driftB{0%{transform:translate(0,0) scale(1.05) rotate(0deg)}33%{transform:translate(64px,-28px) scale(.88) rotate(-20deg)}66%{transform:translate(-44px,30px) scale(1.2) rotate(14deg)}100%{transform:translate(0,0) scale(1.05) rotate(0deg)}}
+.blob{position:absolute;border-radius:50%;z-index:-1;transition:background-color .45s ease}
+.ba{animation:driftA 12s ease-in-out infinite}
+.bb{animation:driftB 15s ease-in-out infinite}
+.grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:.75}
+.tint{transition:background-color .35s ease,color .25s ease}
+.nav{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:12px;font-size:14px;font-weight:500;color:#1D1D1F}
+.nav.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)}
+.grp{font-size:11px;font-weight:600;color:#8E8E93;letter-spacing:.06em;padding:0 10px;margin:18px 0 6px}
+.site{width:100%;display:flex;align-items:center;gap:14px;height:64px;padding:0 14px;border-radius:18px;border:0;background:transparent;font:inherit;color:#1D1D1F;text-align:left;cursor:pointer;transition:background-color .15s ease}
+.site:hover{background:#F7F7F9}
+.sw{width:40px;height:40px;border-radius:999px;border:0;padding:0;cursor:pointer;transition:transform .15s cubic-bezier(.23,1,.32,1),box-shadow .2s ease}
+.sw:active{transform:scale(.92)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;border-radius:999px;background:linear-gradient(90deg,oklch(.68 .15 0),oklch(.68 .15 60),oklch(.68 .15 120),oklch(.68 .15 180),oklch(.68 .15 240),oklch(.68 .15 300),oklch(.68 .15 360));outline:none;margin:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:999px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.16);cursor:grab}
+@media (prefers-reduced-motion: reduce){.ba,.bb{animation:none}}
+@keyframes pan{0%{background-position:0% 0%}100%{background-position:100% 100%}}
+.pan{background-size:170% 170% !important;animation:pan 9s ease-in-out infinite alternate}
+@media (prefers-reduced-motion: reduce){.pan{animation:none}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;display:flex;flex-wrap:wrap;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em">
+  <aside style="flex:1 1 248px;max-width:264px;min-width:240px;background:#F7F7F9;border-right:1px solid rgba(0,0,0,.06);padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column">
+    <div style="font-size:22px;font-weight:700;letter-spacing:-0.03em;padding:6px 10px 0">Settings</div>
+    <div class="grp">GROUP</div>
+    <span class="nav on">Sites and colours</span>
+    <span class="nav">People and access</span>
+    <span class="nav">Targets</span>
+    <div class="grp">CLOSE THE DAY</div>
+    <span class="nav">Thresholds and checks</span>
+    <span class="nav">Discount reasons</span>
+    <span class="nav">Void codes</span>
+    <span class="nav">Delivery platforms</span>
+    <div class="grp">CHECKS</div>
+    <span class="nav">Checklists</span>
+    <span class="nav">Food safety rules</span>
+  </aside>
+
+  <main style="flex:999 1 640px;min-width:0;padding:40px 56px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px">
+    <div>
+      <div style="font-size:14px;color:#6E6E73">Settings › Group</div>
+      <div style="font-size:34px;font-weight:700;letter-spacing:-0.035em">Sites and colours</div>
+      <div style="font-size:15px;color:#6E6E73;margin-top:4px;max-width:620px;line-height:1.45">Each site's colour shows on its badge, main card and progress circles, so everyone knows where they are. Status colours (green, amber, red) never change.</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:56px;align-items:start">
+      <div style="display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#6E6E73;letter-spacing:.02em;padding:0 12px 8px"><span>8 OPEN SITES</span><span>COLOUR</span></div>
+        <sc-for list="{{sites}}" as="s" hint-placeholder-count="8">
+          <button class="site" onClick="{{s.select}}" style="background:{{s.rowBg}}">
+            <span class="tint" style="width:38px;height:38px;border-radius:13px;background:{{s.c}};color:{{s.on}};font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">{{s.mono}}</span>
+            <span style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:600">{{s.name}}</span><span style="font-size:13px;color:#6E6E73">{{s.colourName}}</span></span>
+            <span class="tint pan" style="width:56px;height:24px;border-radius:999px;background:linear-gradient(90deg, oklch(from {{s.c}} .17 calc(c * .6) calc(h - 35)), {{s.c}} 45%, oklch(from {{s.c}} calc(l - .04) calc(c * 1.1) calc(h - 40)) 80%, {{s.light}})"></span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px;position:sticky;top:24px">
+        <div style="position:relative;overflow:hidden;isolation:isolate;border-radius:32px;padding:22px 24px;height:200px;box-sizing:border-box;background:oklch(from {{cur.c}} .17 calc(c * .6) calc(h - 35));color:#F5F5F7;display:flex;flex-direction:column;justify-content:space-between">
+      <div aria-hidden="true" class="blob ba" style="left:-80px;top:-103px;width:460px;height:330px;background:oklch(from {{cur.c}} .1 calc(c * .4) calc(h - 35));filter:blur(46px)"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-92px;top:-80px;width:373px;height:301px;background:{{cur.c}};filter:blur(48px)"></div>
+      <div aria-hidden="true" class="blob ba" style="right:69px;bottom:-126px;width:387px;height:257px;background:oklch(from {{cur.c}} calc(l - .04) calc(c * 1.1) calc(h - 40));filter:blur(50px);opacity:.9"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-46px;bottom:-80px;width:243px;height:186px;background:oklch(from {{cur.light}} .95 calc(c * .6) h);filter:blur(41px);opacity:.9"></div>
+          <svg aria-hidden="true" class="grain"><filter id="gd3"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#gd3)"></rect></svg>
+          <div style="display:flex;align-items:center;gap:10px"><span class="tint" style="width:34px;height:34px;border-radius:12px;background:{{cur.c}};color:{{cur.on}};font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">{{cur.mono}}</span><span style="font-size:16px;font-weight:600">{{cur.name}}</span></div>
+          <div><div style="font-size:13px;color:rgba(245,245,247,.7)">Preview · net so far</div><div style="font-size:40px;font-weight:600;letter-spacing:-0.05em;font-variant-numeric:tabular-nums">£1,840<span style="font-size:20px;color:rgba(245,245,247,.6)">.50</span></div></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:17px;font-weight:600">Colour for {{cur.name}}</span><span style="font-size:13px;color:#6E6E73">{{cur.colourName}}</span></div>
+          <div style="display:grid;grid-template-columns:repeat(12,40px);justify-content:space-between">
+            <sc-for list="{{presets}}" as="p" hint-placeholder-count="12">
+              <button class="sw" onClick="{{p.pick}}" aria-label="{{p.name}}" style="background:radial-gradient(120% 120% at 80% 90%, {{p.light}} 0%, {{p.c}} 40%, {{p.deep}} 85%);box-shadow:{{p.ring}}"></button>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:4px"><span style="font-size:14px;font-weight:600;width:60px">Custom</span><input type="range" min="0" max="360" value="{{hue}}" onInput="{{setHue}}" aria-label="Custom colour"></div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:20px;background:#F7F7F9">
+          <span class="tint" style="width:36px;height:36px;border-radius:999px;background:{{cur.c}};color:{{cur.on}};font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">Aa</span>
+          <span style="flex:1;font-size:14px;line-height:1.4"><b>{{cur.check}}.</b> <span style="color:#6E6E73">Text on it is {{cur.onName}}, picked for you.</span></span>
+          <span style="font-size:13px;color:#6E6E73">Saved · Undo</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { sel: 6, colours: [0, 1, 2, 3, 4, 5, 6, 7], hue: 200, custom: {} };
+  }
+  renderVals() {
+    const P = [
+      ['Indigo','#3B5BDB','#A5B8FF','#141C66','#FFFFFF'], ['Leaf','#5C940D','#D8F5A2','#1F3D0A','#FFFFFF'],
+      ['Plum','#9C36B5','#F3C4FF','#3B0F5C','#FFFFFF'], ['Walnut','#A0612A','#F5D0A9','#4A2410','#FFFFFF'],
+      ['Mango','#F59F00','#FFE8A3','#D9480F','#1D1D1F'], ['Rose','#D6336C','#FFC9DE','#5C0F2E','#FFFFFF'],
+      ['Teal','#0C8599','#99E9F2','#073B4C','#FFFFFF'], ['Lantern','#C92A2A','#FFB37A','#5C0A0A','#FFFFFF'],
+      ['Ocean','#1971C2','#A5D8FF','#0B2A4A','#FFFFFF'], ['Grape','#6741D9','#D0BFFF','#24124F','#FFFFFF'],
+      ['Olive','#868E2C','#E9EDB0','#2E3010','#FFFFFF'], ['Slate','#495057','#DEE2E6','#16191C','#FFFFFF']
+    ];
+    const N = [['Bintang','BN'],['Guanabana','GB'],['Belly','BL'],['Hoodwood','HW'],['Bunso','BU'],['Cafe Mama & Sons','CM'],['Mamasons Kentish Town','KT'],['Mamasons China Town','CT']];
+    const col = (i) => {
+      const k = this.state.colours[i];
+      if (k === -1) {
+        const h = Number(this.state.custom[i] ?? 200), dark = h > 55 && h < 150;
+        return { colourName: 'Custom', c: 'oklch(.66 .15 ' + h + ')', light: 'oklch(.93 .07 ' + h + ')', deep: 'oklch(.34 .12 ' + (h - 20) + ')', on: dark ? '#1D1D1F' : '#FFFFFF', onName: dark ? 'dark' : 'white', check: 'Adjusted for readability' };
+      }
+      const x = P[k];
+      return { colourName: x[0], c: x[1], light: x[2], deep: x[3], on: x[4], onName: x[4] === '#FFFFFF' ? 'white' : 'dark', check: 'Passes contrast checks' };
+    };
+    const sel = this.state.sel;
+    const setColour = (k) => { const c = this.state.colours.slice(); c[sel] = k; this.setState({ colours: c }); };
+    return {
+      cur: Object.assign({ name: N[sel][0], mono: N[sel][1] }, col(sel)),
+      hue: this.state.custom[sel] ?? 200,
+      setHue: (e) => { const cu = Object.assign({}, this.state.custom); cu[sel] = e.target.value; const c = this.state.colours.slice(); c[sel] = -1; this.setState({ custom: cu, colours: c }); },
+      sites: N.map((n, i) => Object.assign({ name: n[0], mono: n[1], rowBg: i === sel ? '#F2F2F5' : 'transparent', select: () => this.setState({ sel: i }) }, col(i))),
+      presets: P.map((x, k) => ({ name: x[0], c: x[1], light: x[2], deep: x[3],
+        ring: this.state.colours[sel] === k ? '0 0 0 3px #FFFFFF, 0 0 0 5px #1D1D1F' : '0 0 0 1px rgba(0,0,0,.06)',
+        pick: () => setColour(k) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

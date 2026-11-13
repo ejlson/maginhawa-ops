@@ -6,11 +6,21 @@
  * - The web app wraps it with on-device storage (see apps/eod-web/app/lib/store.ts).
  * - A SharePoint store (Microsoft Graph) plugs in here once Entra and the site are connected;
  *   toSharePointFields() below already maps a report to the list columns.
+ *
+ * Rules the SharePoint store must keep, or two devices can overwrite each other in production
+ * (MemoryStore gets them for free because nothing awaits mid-write; SharePoint only gives them if asked):
+ *   1. Every update (saveDraft, submit, setStatus) is a PATCH with `If-Match: <ETag>` of the version the
+ *      caller saw. 412 Precondition Failed → re-read the item and throw SyncError with it as `current`.
+ *   2. Creating a day relies on TradingDays.Title (SiteCode|date) being unique: a duplicate-value error on
+ *      POST means someone else created it first → re-read and throw SyncError 'conflict'.
+ *   3. `version` is the item's ETag, exactly as Graph returns it. Never make one up.
+ *   4. Throttling (429/503 with Retry-After) is retried here, never surfaced as a conflict.
+ *   5. Run the conditional-write tests in packages/core/test/sync.test.ts against it before switching it on.
  */
 import type { EodDraft } from './schema';
 import type { DayResult } from './calc';
 import type { Issue } from './checks';
-import { LOCKED_MESSAGE, SyncError, stampSections, STALE_MESSAGE, type SectionStamps } from './sync';
+import { clockTime, LOCKED_MESSAGE, SyncError, stampSections, STALE_MESSAGE, type SectionStamps } from './sync';
 
 export type ReportStatus = 'draft' | 'submitted' | 'approved' | 'sent-back';
 
@@ -28,6 +38,39 @@ export interface StoredReport {
   sections?: SectionStamps;
   /** The submit attempt that won, so a retry of that attempt is a no-op. */
   submitId?: string | null;
+  /** Who last approved or sent it back, and when. Set by setStatus. */
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  /**
+   * When finance was emailed the summary. Null = not yet (the email failed, or the server stopped first).
+   * Kept beside the report, not on it (SharePoint: the EmailLog list), so stamping it never changes `version`.
+   */
+  emailedAt?: string | null;
+}
+
+export interface StatusOptions {
+  /** Change it only if the stored report is still this version. Left out = don't check (seeding and tests only). */
+  baseVersion?: string | null;
+  /** Who is approving or sending it back. */
+  by?: string;
+  now?: Date;
+}
+
+/** What head office may do to a report, and from which states. Submitting has its own path (submit). */
+const REVIEW_FROM: Partial<Record<ReportStatus, ReportStatus[]>> = {
+  approved: ['submitted'],
+  'sent-back': ['submitted', 'approved'],
+};
+
+/** "Approved by Sam at 09:12", "Sent back by Sam at 09:12", "Not sent yet" */
+export function reviewedMessage(r: Pick<StoredReport, 'status' | 'reviewedBy' | 'reviewedAt' | 'submittedBy' | 'submittedAt'>): string {
+  const at = (iso: string | null | undefined) => (iso ? ` at ${clockTime(iso)}` : '');
+  switch (r.status) {
+    case 'approved': return `Approved by ${r.reviewedBy ?? 'someone else'}${at(r.reviewedAt)}`;
+    case 'sent-back': return `Sent back by ${r.reviewedBy ?? 'someone else'}${at(r.reviewedAt)}`;
+    case 'submitted': return `Sent again by ${r.submittedBy ?? 'the manager'}${at(r.submittedAt)}`;
+    default: return 'Not sent yet';
+  }
 }
 
 export interface SaveOptions {
@@ -57,10 +100,19 @@ export interface SubmitOptions {
 export interface EodStore {
   get(siteCode: string, businessDate: string): Promise<StoredReport | null>;
   saveDraft(draft: EodDraft, opts?: SaveOptions): Promise<StoredReport>;
-  /** Returns what is stored: the new report, or the first one when this was a retry. */
-  submit(report: StoredReport, opts?: SubmitOptions): Promise<StoredReport>;
+  /** Returns what is stored: the new report, or the first one (marked `replayed`) when this was a retry. */
+  submit(report: StoredReport, opts?: SubmitOptions): Promise<StoredReport & { replayed?: true }>;
   listByDate(businessDate: string): Promise<StoredReport[]>;
-  setStatus(siteCode: string, businessDate: string, status: ReportStatus): Promise<void>;
+  /**
+   * Approve or send back. Conditional like every other write: throws SyncError 'conflict' when the
+   * report changed since the reviewer looked, or when it is no longer in a state that allows this.
+   */
+  setStatus(siteCode: string, businessDate: string, status: ReportStatus, opts?: StatusOptions): Promise<StoredReport>;
+  /**
+   * Stamps that finance has the email. Kept beside the report (SharePoint: an EmailLog row, Title =
+   * SiteCode|date|submitId, unique), so it never changes the report's version and can't cause a false conflict.
+   */
+  markEmailed(siteCode: string, businessDate: string, at: Date): Promise<void>;
 }
 
 export const reportKey = (siteCode: string, businessDate: string) => `${siteCode}|${businessDate}`;
@@ -95,6 +147,8 @@ export class MemoryStore implements EodStore {
       draft: { ...structuredClone(draft), clientId: existing?.draft.clientId ?? draft.clientId },
       status: existing?.status ?? 'draft',
       submittedAt: null, submittedBy: null, official: null, issues: [],
+      // Keeps "Sent back by Sam" on screen while the manager fixes it.
+      reviewedBy: existing?.reviewedBy ?? null, reviewedAt: existing?.reviewedAt ?? null,
       version: this.nextVersion(),
       sections: stampSections(existing?.draft ?? null, draft, existing?.sections, opts.by ?? 'Someone', opts.now ?? new Date()),
       submitId: null,
@@ -109,7 +163,7 @@ export class MemoryStore implements EodStore {
     if (existing && !isEditable(existing.status)) {
       // The same press of Submit, retried: keep the first, never duplicate.
       const attempt = (r: StoredReport) => r.submitId ?? r.draft.clientId;
-      if (attempt(existing) === (opts.submitId ?? report.draft.clientId)) return structuredClone(existing);
+      if (attempt(existing) === (opts.submitId ?? report.draft.clientId)) return { ...structuredClone(existing), replayed: true as const };
       throw new SyncError('already-submitted', LOCKED_MESSAGE, structuredClone(existing));
     }
     if (opts.baseVersion !== undefined && existing && existing.version !== undefined && existing.version !== opts.baseVersion) {
@@ -120,6 +174,8 @@ export class MemoryStore implements EodStore {
       version: this.nextVersion(),
       sections: stampSections(existing?.draft ?? null, report.draft, existing?.sections, report.submittedBy ?? 'Someone', opts.now ?? new Date()),
       submitId: opts.submitId ?? null,
+      // A resubmit after "sent back" is a new report for finance: new email, new review.
+      reviewedBy: null, reviewedAt: null, emailedAt: null,
     };
     this.rows.set(key, row);
     return structuredClone(row);
@@ -129,11 +185,22 @@ export class MemoryStore implements EodStore {
     return [...this.rows.values()].filter((r) => r.draft.businessDate === businessDate).map((r) => structuredClone(r));
   }
 
-  async setStatus(siteCode: string, businessDate: string, status: ReportStatus) {
+  async setStatus(siteCode: string, businessDate: string, status: ReportStatus, opts: StatusOptions = {}) {
     const row = this.rows.get(reportKey(siteCode, businessDate));
     if (!row) throw new Error('No report for that site and day.');
+    const stale = opts.baseVersion !== undefined && row.version !== undefined && row.version !== opts.baseVersion;
+    if (stale || !REVIEW_FROM[status]?.includes(row.status)) throw new SyncError('conflict', reviewedMessage(row), structuredClone(row));
     row.status = status;
+    row.reviewedBy = opts.by ?? 'Someone';
+    row.reviewedAt = (opts.now ?? new Date()).toISOString();
     row.version = this.nextVersion();
+    return structuredClone(row);
+  }
+
+  async markEmailed(siteCode: string, businessDate: string, at: Date) {
+    const row = this.rows.get(reportKey(siteCode, businessDate));
+    if (!row) throw new Error('No report for that site and day.');
+    row.emailedAt = at.toISOString();
   }
 }
 
@@ -150,11 +217,13 @@ export function toSharePointFields(r: StoredReport) {
     WageCost: pounds(d.wages.wageCost),
     NextShiftNotes: d.handover.map((h) => `${h.category}: ${h.body}`).join('\n'),
     SubmittedAt: r.submittedAt,
+    ReviewedAt: r.reviewedAt ?? null,
     TotalGross: pounds(o?.totalGross),
     TotalNet: pounds(o?.totalNet),
     DineInNet: pounds(o?.dineInNet),
     Covers: o?.covers ?? null,
     ASPHNet: pounds(o?.perHeadDineIn),
+    ASPHGross: pounds(o?.perHeadGrossDineIn),
     WagePct: o?.wagePct ?? null,
     WageRAG: o?.wageRag ? o.wageRag[0]!.toUpperCase() + o.wageRag.slice(1) : null,
     NetVsTarget: pounds(o?.netVsTarget),

@@ -3,13 +3,16 @@ import { Link } from 'react-router';
 import { formatPounds, whoDidWhat } from '@maginhawa/core';
 import { initialsOf, useAuth } from '../../lib/auth';
 import { formatDay, timeHM } from '../../lib/draft';
-import { runPath, statusPill, useChecklists } from '../../lib/checklists';
+import { isDone, isOverdue, runPath, statusPill, useChecklists } from '../../lib/checklists';
 import { useSite } from '../../lib/site';
-import { Icon, ICONS, RowLink } from '../ui';
+import { Icon, RowLink } from '../ui';
+import { ICONS } from '../ui-helpers';
 import { TabBar } from '../TabBar';
-import { EodRow, TimelineRow, firstName, greeting, HomeHeader, isDone, useEod, useToday } from './shared';
+import { EodIssueRows, EodRow, TimelineRow, HomeHeader } from './shared';
+import { firstName, greeting, useEod, useToday } from './shared-helpers';
 import { FoodSafetyRow } from '../FoodSafetyRow';
 import { Columns } from '../Columns';
+import { FirstWeek } from './FirstWeek';
 
 export function SupervisorHome() {
   const { user } = useAuth();
@@ -18,7 +21,7 @@ export function SupervisorHome() {
   const { at, tasks, scheduled, done, checksDone, urgent } = useToday();
   const eod = useEod();
 
-  const late = tasks.filter((t) => t.status === 'late' || t.status === 'missed');
+  const late = tasks.filter(isOverdue);
   const rechecks = tasks.filter((t) => t.recheckOf && !isDone(t));
   // Late and due lists first, re-checks with their timers, then missed ones.
   const needs = [...urgent, ...rechecks.filter((t) => !urgent.includes(t)), ...tasks.filter((t) => t.status === 'missed')];
@@ -36,7 +39,7 @@ export function SupervisorHome() {
           </div>
         </>}
         hero={<>
-          <Link className="hero" to="/checklists" aria-label={`Today so far: ${checksDone} of ${scheduled.length} checklists done, ${late.length} late or missed`}>
+          <Link className="hero" data-tour="hero-today" to="/checklists" aria-label={`Today so far: ${checksDone} of ${scheduled.length} checklists done, ${late.length} late or missed`}>
             <div className="hero-row"><span className="hl">Today so far</span><span className="hs-small">{timeHM(at)}</span></div>
             <div className="big"><b>{checksDone}</b><i>&nbsp;of {scheduled.length} checklists done</i></div>
             <div className="segs" aria-hidden="true">
@@ -52,7 +55,7 @@ export function SupervisorHome() {
         main={<>
 
         {(needs.length > 0 || open.length > 0 || eod.issues.length > 0) && (
-          <section className="grp">
+          <section className="grp" data-tour="needs">
             <div className="hd"><h2>Needs you</h2><span>{needs.length + (open.length ? 1 : 0) + eod.issues.length}</span></div>
             <div className="sub">
               {needs.map((t) => {
@@ -60,7 +63,7 @@ export function SupervisorHome() {
                 const sub = t.recheckOf ? 'Set after a failed check' : `${t.total} checks · ${t.template.who}`;
                 return (
                   <RowLink key={t.key} to={runPath(t.key)}
-                    lead={<span className={`av ${t.status === 'late' || t.status === 'missed' ? 'bad' : 'warn'}`}><Icon d={t.recheckOf ? ICONS.thermo : ICONS.bang} size={t.recheckOf ? 19 : 15} /></span>}
+                    lead={<span className={`av ${isOverdue(t) ? 'bad' : 'warn'}`}><Icon d={t.recheckOf ? ICONS.thermo : ICONS.bang} size={t.recheckOf ? 19 : 15} /></span>}
                     title={t.title} sub={sub} right={<span className={`pill ${pill.cls}`}>{t.status === 'upcoming' && t.dueAt ? `In ${Math.max(1, Math.round((t.dueAt.getTime() - at.getTime()) / 60_000))} min` : pill.text}</span>} />
                 );
               })}
@@ -69,12 +72,11 @@ export function SupervisorHome() {
                   title={open.length === 1 ? open[0]!.title : `${open.length} repairs open`} sub={open.length === 1 ? `${open[0]!.place} · reported by ${open[0]!.reportedBy}` : open.map((r) => r.title).join(' · ')}
                   right={open.some((r) => r.urgent) ? <span className="pill p-bad">Urgent</span> : <span className="pill p-warn">Open</span>} />
               )}
-              {eod.issues.map((i) => (
-                <RowLink key={i.code + i.section} to={`/close/${i.section}`} lead={<span className={`av ${i.level === 'block' ? 'bad' : 'warn'}`}><Icon d={ICONS.bang} size={15} /></span>} title={i.title} sub={i.detail} />
-              ))}
+              <EodIssueRows issues={eod.issues} />
             </div>
           </section>
         )}
+        <FirstWeek />
         </>}
         side={<>
         <section className="grp">

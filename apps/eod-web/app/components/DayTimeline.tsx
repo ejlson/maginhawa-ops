@@ -1,18 +1,18 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { buildTimeline, DAY_FILTERS, type DayEvent, type DayFilter, type TimelineHour } from '@maginhawa/core';
 import { now } from '../lib/clock';
-import { useMinuteTick } from './home/shared';
-import { Chevron, Icon, ICONS } from './ui';
+import { useMinuteTick } from './home/shared-helpers';
+import { Icon } from './ui';
+import { ICONS } from './ui-helpers';
 
 const KIND_ICON: Record<DayEvent['kind'], string> = {
   checklist: ICONS.check, missed: ICONS.bang, due: ICONS.clock, fix: ICONS.wrench, repair: ICONS.wrench, fixed: ICONS.check, eod: ICONS.list,
 };
-const TONE_AV: Record<DayEvent['tone'], string> = { ok: 'ok', warn: 'warn', bad: 'bad', mut: '' };
 const TONE_RANK: Record<DayEvent['tone'], number> = { mut: 0, ok: 1, warn: 2, bad: 3 };
 const time = (iso: string, tz: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: tz });
 
-/** The trading day hour by hour: a 24-hour strip, filters, and every event in its hour. Used for a site's own day and on head office's site pages. */
+/** The trading day as a calendar day view: a 24-hour strip, filters, then every event placed at its time. Used for a site's own day and on head office's site pages. */
 export function DayTimeline({ events, bounds, timezone, dayCloseTime, linkEvents = true }: {
   events: DayEvent[]; bounds: { start: Date; end: Date }; timezone: string; dayCloseTime: string; linkEvents?: boolean;
 }) {
@@ -22,16 +22,6 @@ export function DayTimeline({ events, bounds, timezone, dayCloseTime, linkEvents
   const day = buildTimeline(events, bounds, at, timezone, filter);
   const settings = { timezone, dayCloseTime };
   const most = Math.max(1, ...day.hours.map((h) => h.events.length));
-
-  // Quiet hours run together into one line, so the day reads at a glance.
-  const blocks: ({ quiet: true; from: string; to: string; past: boolean } | { quiet: false; hour: TimelineHour })[] = [];
-  for (const h of day.hours) {
-    const last = blocks[blocks.length - 1];
-    if (!h.events.length && !h.current) {
-      if (last?.quiet && last.past === h.past) last.to = h.label;
-      else blocks.push({ quiet: true, from: h.label, to: h.label, past: h.past });
-    } else blocks.push({ quiet: false, hour: h });
-  }
 
   return (
     <>
@@ -59,33 +49,76 @@ export function DayTimeline({ events, bounds, timezone, dayCloseTime, linkEvents
       {DAY_FILTERS.map((f) => <button key={f.id} type="button" className="chip" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>{f.label}</button>)}
     </div>
 
-    <ol className="day-list" aria-label="Hour by hour">
-      {blocks.map((b) => b.quiet ? (
-        <li key={b.from} className={`day-quiet ${b.past ? '' : 'future'}`}>
-          <span className="day-h">{b.from}{b.to !== b.from ? `–${b.to.slice(0, 2)}:59` : ''}</span>
-          <span>{b.past ? 'Nothing logged' : 'Nothing planned'}</span>
-        </li>
-      ) : (
-        <li key={b.hour.start} className={`day-hour ${b.hour.past || b.hour.current ? '' : 'future'}`}>
-          <span className="day-h">{b.hour.label}{b.hour.current && <b className="day-now">Now</b>}</span>
-          <div className="sub">
-            {b.hour.events.length ? b.hour.events.map((e, i) => <EventRow key={e.kind + e.at + i} e={linkEvents ? e : { ...e, to: undefined }} tz={settings.timezone} />)
-              : <span className="day-empty">Nothing yet this hour</span>}
-          </div>
-        </li>
-      ))}
-    </ol>
+    <DayGrid hours={day.hours} start={bounds.start} at={at} tz={settings.timezone} linkEvents={linkEvents} />
     </>
   );
 }
 
-function EventRow({ e, tz }: { e: DayEvent; tz: string }) {
+const HOUR = 64; // px per hour, like Calendar's day view
+const BLOCK = 46; // events are moments, so each gets a fixed-height block
+
+/** Lay events out like Calendar's day view: placed by time, side by side where they would overlap. */
+function place(events: DayEvent[], start: Date) {
+  const items = events.map((e) => ({ e, top: ((new Date(e.at).getTime() - start.getTime()) / 3_600_000) * HOUR, col: 0, cols: 1 }));
+  let group: typeof items = [];
+  let groupEnd = -Infinity;
+  const close = () => { const n = Math.max(...group.map((g) => g.col)) + 1; group.forEach((g) => { g.cols = n; }); };
+  for (const it of items) {
+    if (it.top >= groupEnd && group.length) { close(); group = []; }
+    const taken = new Set(group.filter((g) => g.top + BLOCK > it.top).map((g) => g.col));
+    while (taken.has(it.col)) it.col++;
+    group.push(it);
+    groupEnd = Math.max(groupEnd, it.top + BLOCK);
+  }
+  if (group.length) close();
+  return items;
+}
+
+function DayGrid({ hours, start, at, tz, linkEvents }: { hours: TimelineHour[]; start: Date; at: Date; tz: string; linkEvents: boolean }) {
+  const scroller = useRef<HTMLDivElement>(null);
+  const nowTop = ((at.getTime() - start.getTime()) / 3_600_000) * HOUR;
+  const inDay = nowTop >= 0 && nowTop < hours.length * HOUR;
+  const items = place(hours.flatMap((h) => h.events), start);
+
+  // Open on the current time, with a little of the morning above it, as Calendar does.
+  useLayoutEffect(() => {
+    const el = scroller.current;
+    if (el && inDay) el.scrollTop = Math.max(0, nowTop - HOUR * 1.5);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div className="cal" ref={scroller} role="region" aria-label="Day view" tabIndex={0}>
+      <div className="cal-grid" style={{ height: hours.length * HOUR + 16 }}>
+        {hours.map((h, i) => (
+          <div key={h.start} className="cal-hour" style={{ top: i * HOUR }}>
+            <span className={inDay && Math.abs(nowTop - i * HOUR) < 14 ? 'hide' : ''}>{h.label}</span>
+          </div>
+        ))}
+        {inDay && <div className="cal-past" style={{ height: nowTop }} aria-hidden="true" />}
+        <ol className="cal-events" aria-label="Events">
+          {items.map(({ e, top, col, cols }, i) => (
+            <li key={e.kind + e.at + i} style={{ top: top + 1, height: BLOCK - 2, left: `calc(${(col / cols) * 100}% + 2px)`, width: `calc(${100 / cols}% - 4px)` }}>
+              <EventBlock e={linkEvents ? e : { ...e, to: undefined }} tz={tz} />
+            </li>
+          ))}
+        </ol>
+        {inDay && (
+          <div className="cal-now" style={{ top: nowTop }} aria-label={`Now, ${time(at.toISOString(), tz)}`}>
+            <b>{time(at.toISOString(), tz)}</b>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EventBlock({ e, tz }: { e: DayEvent; tz: string }) {
   const inner = (
     <>
-      <span className={`av ${TONE_AV[e.tone]}`}><Icon d={KIND_ICON[e.kind]} size={17} /></span>
-      <span className="tx"><span>{e.title}</span><small>{[e.detail, e.by].filter(Boolean).join(' · ')}</small></span>
-      <span className="rt">{time(e.at, tz)}{e.to && <Chevron />}</span>
+      <span className="ct"><Icon d={KIND_ICON[e.kind]} size={13} />{e.title}</span>
+      <small>{time(e.at, tz)} · {[e.detail, e.by].filter(Boolean).join(' · ')}</small>
     </>
   );
-  return e.to ? <Link className="li" to={e.to}>{inner}</Link> : <div className="li">{inner}</div>;
+  const cls = `cal-ev t-${e.tone}`;
+  return e.to ? <Link className={cls} to={e.to}>{inner}</Link> : <div className={cls}>{inner}</div>;
 }

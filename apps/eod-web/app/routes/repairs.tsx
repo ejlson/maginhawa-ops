@@ -3,7 +3,8 @@ import { reportedText } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { useSite } from '../lib/site';
 import { now } from '../lib/clock';
-import { Icon, ICONS, Nav } from '../components/ui';
+import { Icon, Nav } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 /** Open repairs for the site. Supervisors and managers mark them fixed. */
 export default function Repairs() {

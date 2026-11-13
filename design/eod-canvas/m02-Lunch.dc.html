@@ -114,6 +114,7 @@ label.fr{cursor:text}
 <div class="sl"><span>Covers</span><span>{{coversLabel}} total</span></div>
 <label class="fr"><span>Booked</span><input class="in" type="text" inputmode="numeric" value="{{v.booked}}" onChange="{{set.booked}}"></label>
 <label class="fr"><span>Walk-ins</span><input class="in" type="text" inputmode="numeric" value="{{v.walk}}" onChange="{{set.walk}}"></label>
+<div class="fr"><span style="color: var(--sec)">Gross a head</span><span>{{perHeadGross}}</span></div>
 </div>
 <div class="sub">
 <div class="sl"><span>On shift</span><span>6 people</span></div>
@@ -177,6 +178,7 @@ class Component extends DCLogic {
       grossShort: '£' + Math.round(n(v.gross)).toLocaleString('en-GB'),
       coversLabel: String(covers),
       perHead: covers > 0 ? gbp(net / covers) : '—',
+      perHeadGross: covers > 0 ? gbp(n(v.gross) / covers) : '—',
       split: net > 0 ? Math.round(n(v.food) / net * 100) + '% food' : '',
       fd: { match: fdMatch, warn: !fdMatch && !v.fdAck, acked: !fdMatch && v.fdAck, text: gbp(Math.abs(fdGap)) + (fdGap < 0 ? ' under net' : ' over net') },
       ackFd: () => this.setState({ fdAck: true }),

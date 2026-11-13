@@ -4,7 +4,7 @@
  */
 import { addDays, weekday, WEEKDAY_NAMES } from './data-quality';
 import { dayNet, type TradingDayRow } from './trends';
-import type { Pence } from './money';
+import { percent, type Pence } from './money';
 
 // ---- who did what ----
 
@@ -61,7 +61,7 @@ export function lastSevenDays(rows: TradingDayRow[], siteCode: string, lastDate:
     days: dates.map((date) => ({ date, label: WEEKDAY_NAMES[weekday(date)]!.slice(0, 2), net: mine.has(date) ? dayNet(mine.get(date)!) : null })),
     net,
     netChange: prev.length ? pct(net, sum(prev, dayNet)) : null,
-    wagePct: wageNet > 0 ? Math.round((sum(withWages, (r) => r.wages ?? 0) / wageNet) * 1000) / 10 : null,
+    wagePct: wageNet > 0 ? percent(sum(withWages, (r) => r.wages ?? 0), wageNet) : null,
     covers: sum(week, covers),
     coversChange: prev.length ? pct(sum(week, covers), sum(prev, covers)) : null,
   };

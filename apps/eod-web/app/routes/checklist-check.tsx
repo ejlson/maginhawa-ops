@@ -3,7 +3,8 @@ import { Navigate, useNavigate, useParams } from 'react-router';
 import { ANSWER_LABELS, ANSWER_TYPES, canFail, changeType, checkpointIssues, type AnswerValue, type Checkpoint } from '@maginhawa/core';
 import { editPath, useListEditor } from '../lib/templates';
 import { Answer } from '../components/Answer';
-import { Foot, Icon, ICONS, Nav, TempInput, Toggle } from '../components/ui';
+import { ChipRadio, Foot, Icon, Nav, SignedTempInput, Toggle } from '../components/ui';
+import { ANSWER_ICONS, ICONS, nextOnEnter, parseNumber, TYPE_HINTS } from '../components/ui-helpers';
 
 /** Common limits to start from. Example values: each site checks its own. */
 const TEMP_PRESETS: { label: string; min?: number; max?: number }[] = [
@@ -12,19 +13,20 @@ const TEMP_PRESETS: { label: string; min?: number; max?: number }[] = [
   { label: 'Hot holding · 63°C or above', min: 63 },
 ];
 
-const parseNum = (s: string): number | undefined => {
-  const n = parseFloat(s.replace('−', '-').replace(/[^0-9.\-]/g, ''));
-  return Number.isFinite(n) ? n : undefined;
-};
+const parseNum = (s: string): number | undefined => parseNumber(s) ?? undefined;
 
 /** A number field that keeps what was typed ("-", "8.") while storing a number or nothing. */
-function LimitInput({ label, value, onChange, unit }: { label: string; value: number | undefined; onChange: (n: number | undefined) => void; unit: string }) {
+function LimitInput({ label, value, onChange, unit, temp }: { label: string; value: number | undefined; onChange: (n: number | undefined) => void; unit: string; temp: boolean }) {
   const [text, setText] = useState(value === undefined ? '' : String(value));
   const [last, setLast] = useState(value);
   if (value !== last) { setLast(value); if (parseNum(text) !== value) setText(value === undefined ? '' : String(value)); }
+  const change = (t: string) => { setText(t); onChange(parseNum(t)); };
   return (
     <label className="fr"><span className="tx"><span>{label}</span><small>Leave blank for no limit</small></span>
-      <TempInput label={label} placeholder={unit || 'None'} value={text} onChange={(t) => { setText(t); onChange(parseNum(t)); }} />
+      {temp
+        // The sign sits inside the field: a limit can be either side of zero (freezers, hot holding).
+        ? <SignedTempInput key={label} label={label} value={text} onChange={change} alwaysSign expectNegative={value !== undefined && value < 0} />
+        : <input className="in lim" type="text" inputMode="decimal" enterKeyHint="next" aria-label={label} placeholder={unit || 'None'} value={text} onKeyDown={nextOnEnter} onChange={(e) => change(e.target.value)} />}
     </label>
   );
 }
@@ -38,6 +40,7 @@ export default function ChecklistCheck() {
   const { template: t, status, editable, edit, businessDate } = useListEditor(id);
   const [preview, setPreview] = useState<AnswerValue>(null);
   const [removing, setRemoving] = useState(false);
+  const [picking, setPicking] = useState(false);
   const index = t?.checkpoints.findIndex((c) => c.id === checkId) ?? -1;
   if (!t || index < 0 || !editable) return <Navigate to={editPath(id)} replace />;
   const c = t.checkpoints[index]!;
@@ -51,7 +54,7 @@ export default function ChecklistCheck() {
   return (
     <main className="page">
       <Nav back={editPath(id)} backLabel={t.title || 'Checklist'} title={`Check ${index + 1} of ${t.checkpoints.length}`} right={status === 'new' || status === 'draft' ? <span className="saved"><span className="dot warn" />Draft saved</span> : undefined} />
-      <div className="body form">
+      <div className="body form edit-check">
         <div className="hero preview" aria-label="Preview">
           <span className="hl">Staff will see this · try it, nothing is saved</span>
           <div className="qrow">
@@ -74,16 +77,28 @@ export default function ChecklistCheck() {
         </section>
 
         <section className="grp">
-          <div className="gh"><h2>Kind of answer</h2></div>
-          <div className="chips" role="radiogroup" aria-label="Answer type">
-            {ANSWER_TYPES.map((type) => <button key={type} type="button" className="chip" role="radio" aria-checked={c.type === type} aria-pressed={c.type === type} onClick={() => { replace(changeType(c, type)); setPreview(null); }}>{ANSWER_LABELS[type]}</button>)}
+          <div className="gh"><h2>Type of answer</h2></div>
+          {/* One row showing the current kind; the full list only opens to change it. */}
+          <div className="kind" role="radiogroup" aria-label="Answer type">
+            {(picking ? ANSWER_TYPES : [c.type]).map((type) => (
+              <button key={type} type="button" role="radio" aria-checked={c.type === type} className={`kind-row${c.type === type ? ' on' : ''}`}
+                onClick={() => {
+                  if (!picking) return setPicking(true);
+                  if (type !== c.type) { replace(changeType(c, type)); setPreview(null); }
+                  setPicking(false);
+                }}>
+                <span className="av"><Icon d={ANSWER_ICONS[type]} /></span>
+                <span className="tx"><span>{ANSWER_LABELS[type]}</span><small>{TYPE_HINTS[type]}</small></span>
+                {!picking ? <span className="kind-change">Change</span> : c.type === type ? <Icon d={ICONS.check} size={16} /> : null}
+              </button>
+            ))}
           </div>
 
           {c.type === 'yesno' && (
             <div className="sub">
               <div className="sl"><span>Which answer is a fail?</span></div>
               <div className="chips" role="radiogroup" aria-label="Which answer is a fail?">
-                {([['no', 'No'], ['yes', 'Yes'], [undefined, 'Neither']] as const).map(([v, l]) => <button key={l} type="button" className="chip" role="radio" aria-checked={c.failOn === v} aria-pressed={c.failOn === v} onClick={() => set({ failOn: v, ...(v ? {} : { faultOnFail: false }) })}>{l}</button>)}
+                {([['no', 'No'], ['yes', 'Yes'], [undefined, 'Neither']] as const).map(([v, l]) => <ChipRadio key={l} checked={c.failOn === v} onClick={() => set({ failOn: v, ...(v ? {} : { faultOnFail: false }) })}>{l}</ChipRadio>)}
               </div>
             </div>
           )}
@@ -101,8 +116,8 @@ export default function ChecklistCheck() {
                   <input className="in" aria-label="Unit" placeholder="None" value={c.unit ?? ''} onChange={(e) => set({ unit: e.target.value || undefined })} />
                 </label>
               )}
-              <LimitInput label="Lowest" unit={c.type === 'temp' ? '°C' : c.unit ?? ''} value={c.min} onChange={(min) => set({ min })} />
-              <LimitInput label="Highest" unit={c.type === 'temp' ? '°C' : c.unit ?? ''} value={c.max} onChange={(max) => set({ max })} />
+              <LimitInput label="Lowest" temp={c.type === 'temp'} unit={c.type === 'temp' ? '°C' : c.unit ?? ''} value={c.min} onChange={(min) => set({ min })} />
+              <LimitInput label="Highest" temp={c.type === 'temp'} unit={c.type === 'temp' ? '°C' : c.unit ?? ''} value={c.max} onChange={(max) => set({ max })} />
             </div>
           )}
 

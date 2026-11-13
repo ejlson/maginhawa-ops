@@ -44,7 +44,11 @@ export interface AnswerRecord {
 export type ChecklistOp =
   | { kind: 'answer'; run: RunStart; checkpointId: string; value: AnswerValue; by: string; at: string }
   | { kind: 'fix'; run: RunStart; checkpointId: string; fix: CorrectiveAction; by: string; recheck: RunStart }
-  | { kind: 'finish'; run: RunStart; by: string; at: string }
+  /**
+   * `seen` is the change cursor this device had fetched when the person pressed Finish.
+   * Left out = don't check (older devices and tests).
+   */
+  | { kind: 'finish'; run: RunStart; by: string; at: string; seen?: number }
   /** Supervisors and above only. Works on finished runs; the old answer is kept. */
   | { kind: 'correct'; run: RunStart; checkpointId: string; value: AnswerValue; reason: string; by: string; at: string };
 
@@ -54,7 +58,11 @@ export type OpOutcome =
     /** Fix only: the re-check run it set up. */ recheck?: RunRecord;
     /** Finish only: someone had already finished it. */ already?: boolean;
   }
-  | { ok: false; reason: 'finished' | 'no-answer' | 'not-finished' | 'not-allowed' | 'invalid'; run: RunRecord };
+  | {
+    ok: false; reason: 'finished' | 'no-answer' | 'not-finished' | 'not-allowed' | 'invalid' | 'stale'; run: RunRecord;
+    /** Stale only: someone else's answers that arrived after the finisher last looked. */
+    answers?: AnswerRecord[];
+  };
 
 export interface ChecklistChanges {
   runs: RunRecord[];
@@ -94,11 +102,18 @@ export class MemoryChecklistStore implements ChecklistBackend {
     return (this.data.runs[k] ??= { ...structuredClone(start), siteCode, completedAt: null, completedBy: null, seq: ++this.data.seq });
   }
 
-  private applyOne(siteCode: string, op: ChecklistOp): OpOutcome {
+  /** `before` is the cursor when this batch started, so answers sent in the same batch count as seen. */
+  private applyOne(siteCode: string, op: ChecklistOp, before: number): OpOutcome {
     const run = this.ensure(siteCode, op.run);
     const strip = <T extends { siteCode: string }>(x: T) => { const { siteCode: _s, ...rest } = x; return structuredClone(rest); };
     if (op.kind === 'finish') {
       if (run.completedAt) return { ok: true, run: strip(run), already: true };
+      // Like the EOD's baseVersion: nobody signs off answers they haven't seen.
+      if (op.seen !== undefined) {
+        const unseen = Object.values(this.data.answers).filter((a) =>
+          a.siteCode === siteCode && a.runKey === run.key && a.seq > op.seen! && a.seq <= before && a.answeredBy !== op.by);
+        if (unseen.length) return { ok: false, reason: 'stale', run: strip(run), answers: unseen.map(strip) };
+      }
       run.completedAt = op.at;
       run.completedBy = op.by;
       run.seq = ++this.data.seq;
@@ -121,10 +136,13 @@ export class MemoryChecklistStore implements ChecklistBackend {
     if (run.completedAt) return { ok: false, reason: 'finished', run: strip(run) };
     if (op.kind === 'answer') {
       // Last write wins by when it was answered, so a late upload from a phone that was offline can't overwrite a newer answer.
-      if (existing && existing.answeredAt > op.at) return { ok: true, run: strip(run), answer: strip(existing) };
+      // A device clock running fast can't claim the future and beat every later answer.
+      const serverNow = this.clock().toISOString();
+      const at = op.at > serverNow ? serverNow : op.at;
+      if (existing && existing.answeredAt > at) return { ok: true, run: strip(run), answer: strip(existing) };
       const sameValue = existing && JSON.stringify(existing.value) === JSON.stringify(op.value);
       this.data.answers[k] = {
-        siteCode, runKey: run.key, checkpointId: op.checkpointId, value: structuredClone(op.value), answeredBy: op.by, answeredAt: op.at,
+        siteCode, runKey: run.key, checkpointId: op.checkpointId, value: structuredClone(op.value), answeredBy: op.by, answeredAt: at,
         // A changed answer may no longer fail, so its old fix no longer applies.
         fix: sameValue ? existing.fix : null,
         seq: ++this.data.seq,
@@ -140,7 +158,8 @@ export class MemoryChecklistStore implements ChecklistBackend {
 
   async apply(siteCode: string, ops: ChecklistOp[]) {
     this.load();
-    const out = ops.map((op) => this.applyOne(siteCode, op));
+    const before = this.data.seq;
+    const out = ops.map((op) => this.applyOne(siteCode, op, before));
     this.persist();
     return out;
   }

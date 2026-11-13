@@ -2,12 +2,17 @@ import { useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
 import { COINS, countedTotal, denominationLabel, formatPounds, NOTES, SECTION_LABELS } from '@maginhawa/core';
 import { useDraft } from '../lib/draft';
-import { BigMoney, CountInput, Icon, ICONS } from '../components/ui';
+import { BigMoney, CountInput, Icon } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
+import { useAuth } from '../lib/auth';
+import { tour } from '../lib/tour';
+import { FirstTimeTip } from '../components/Tour';
 
 /** Count the cash: only the notes and coins actually in the drawer. */
 export default function CashCount() {
   const { session } = useParams();
   const { draft, update, settings } = useDraft();
+  const { user } = useAuth();
   const valid = session === 'lunch' || session === 'dinner';
   // Opens on the picker when nothing has been counted yet.
   const [picker, setPicker] = useState(() => !valid || Object.keys(draft.sessions[session].cash.counted).length === 0);
@@ -26,6 +31,7 @@ export default function CashCount() {
     });
     if (n === null && !pending.includes(p)) setPending((x) => [...x, p]);
     if (n !== null) setPending((x) => x.filter((y) => y !== p));
+    if (n !== null && user) tour.did(user, 'cash');
   };
   const remove = (p: number) => {
     update((d) => { delete d.sessions[session].cash.counted[String(p)]; });
@@ -69,6 +75,7 @@ export default function CashCount() {
         <Link to={`/close/${session}`} style={{ textDecoration: 'none', fontWeight: 600 }}>Done</Link>
       </header>
       <div className="body" style={{ gap: 32 }}>
+        <FirstTimeTip id="cash" title="First time counting?">Add the notes and coins in the drawer and type how many of each. We add it up and take off the {formatPounds(settings.float)} float.</FirstTimeTip>
         <div className="hero" role="status" aria-live="polite">
           <span className="hl">{label} · in the drawer</span>
           <BigMoney value={total} />

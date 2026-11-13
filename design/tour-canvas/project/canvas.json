@@ -1,0 +1,29 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-28T12:00:00Z" },
+  "title": "First-run tour",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1440, "h": 1000, "title": "How the tour works" },
+    "t01-ManagerPhone.dc.html": { "x": 0, "y": 1380, "w": 390, "h": 844, "title": "Phone · manager & supervisor (live)", "is_interactive": true },
+    "t02-StaffTablet.dc.html": { "x": 470, "y": 1380, "w": 1194, "h": 834, "title": "iPad · kitchen staff (live)", "is_interactive": true },
+    "t03-HeadOffice.dc.html": { "x": 1744, "y": 1380, "w": 1440, "h": 1000, "title": "Desktop · head office (live)", "is_interactive": true },
+    "t04-Replay.dc.html": { "x": 3264, "y": 1380, "w": 390, "h": 844, "title": "Account · replay the tour (live)", "is_interactive": true },
+    "t05-FirstTimeTip.dc.html": { "x": 3734, "y": 1380, "w": 390, "h": 844, "title": "Tip on a new screen · cash count (live)", "is_interactive": true },
+    "t06-FirstWeek.dc.html": { "x": 4204, "y": 1380, "w": 390, "h": 844, "title": "Home · your first week (live)", "is_interactive": true }
+  },
+  "order": [
+    "Main.dc.html",
+    "t01-ManagerPhone.dc.html",
+    "t02-StaffTablet.dc.html",
+    "t03-HeadOffice.dc.html",
+    "t04-Replay.dc.html",
+    "t05-FirstTimeTip.dc.html",
+    "t06-FirstWeek.dc.html"
+  ],
+  "notes": {
+    "row": { "x": 0, "y": 1110, "text": "The tour, by role", "kind": "title1", "maxW": 4594 }
+  },
+  "designSystems": []
+}

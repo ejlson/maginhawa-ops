@@ -2,7 +2,8 @@ import { Link } from 'react-router';
 import { isSerious } from '@maginhawa/core';
 import { hm, shortDate, useFoodSafety } from '../lib/food-safety';
 import { useChecklists } from '../lib/checklists';
-import { Foot, Icon, ICONS, Nav } from '../components/ui';
+import { Foot, Icon, Nav } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 /** Customer complaints about food (HANDOFF.md §8a, item 8). */
 export default function FsComplaints() {

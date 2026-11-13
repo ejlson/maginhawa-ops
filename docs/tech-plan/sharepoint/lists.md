@@ -15,21 +15,26 @@
 | `WageAmberPct` | Number | Amber above (default 30) |
 | `NetSalesRule` | Choice | GrossMinusSCTaxDiscounts (default) / GrossMinusSCTax — confirm with finance |
 | `DayCloseTime` | Text | e.g. 23:30 — when EOD/missed-check jobs run |
-| `Active` *(indexed)* | Yes/No |  |
+| `PowerAutomateFrom` | DateTime | When head office switched the EOD flow on for this site; blank = off. Reports sent before it aren't sent to the flow |
+| `Active` *(indexed)* | Yes/No | Open and trading. A closed site (e.g. Ramo) stays for its old records but drops out of pickers, counts and access |
 
 *Indexed (2):* SiteCode, Active
 
-**Staff**: Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts. *Written by:* Admin / Manager.
+**Staff**: Everyone who uses the apps, incl. kiosk-only staff with no email (PIN only). Role and sites decide what the server lets them open. *Written by:* Head office (sites, roles) / Manager (own site's people).
 
 | Column | Type | Notes |
 |---|---|---|
 | `Title` *(required)* | Text | Full name |
-| `Email` *(indexed)* | Text | Microsoft account (blank for kiosk-only staff) |
-| `HomeSite` *(indexed)* | Lookup → Sites |  |
+| `Email` *(indexed)* | Text | Any email they can read (work or personal), stored lower case; they sign in with a code sent to it. Blank for kiosk-only staff. One active row per email |
+| `EmailVerifiedAt` *(set by server)* | DateTime | When they first typed a code sent to this email |
+| `SessionsValidAfter` | DateTime | Sign-ins from before this stop working: 'sign out everywhere', an email change, a lost phone |
+| `HomeSite` *(indexed)* | Lookup → Sites | Main site: where they land after signing in |
+| `OtherSites` | Lookup → Sites (multi) | Other sites they work at. Head office only |
+| `AllSites` | Yes/No | Every open site, including ones opened later. Head office only |
 | `Department` | Choice | Kitchen / FOH / Management / Finance / Admin |
 | `Position` | Choice | Head chef, Sous chef, CDP, Commis, KP, Floor manager, Senior waiter, Waiter, Runner, Host, Bartender, RM, GM, AM, Duty manager, Supervisor |
-| `AppRole` *(required)* | Choice | Staff / Manager / Admin / Finance / Owner |
-| `PinHash` | Text | argon2 hash of 4-digit kiosk PIN (never the PIN) |
+| `AppRole` *(required)* | Choice | Staff / Supervisor / Manager / Head office (head office always has every site) |
+| `PinHash` | Text | PBKDF2-SHA-256 hash and salt of the 4-digit kiosk PIN (never the PIN; packages/core pin.ts) |
 | `PreferredLanguage` | Text | en-GB default |
 | `Active` *(indexed)* | Yes/No |  |
 
@@ -48,7 +53,7 @@
 
 *Indexed (2):* Site, Revoked
 
-**Targets**: Daily targets per site (imported from finance Excel or edited in console). *Written by:* Flow F09 / Finance.
+**Targets**: Daily targets per site (imported from finance Excel or edited in console). *Written by:* Nightly targets import (Netlify Scheduled Function) / Finance.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -105,6 +110,33 @@
 
 *Indexed (2):* Title, Nation
 
+**SignInLog**: Sign-ins, codes asked for, wrong codes, kitchen iPads set up and sign-outs. Never the code itself. Kept 12 months. *Written by:* Server (sign-in routes) only.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(required)* | Text | action\|email\|timestamp |
+| `Action` *(indexed)* | Choice | Code sent / Code not sent / Signed in / Wrong code / Locked / Kitchen iPad set up / Signed out |
+| `Email` *(indexed)* | Text | Lower case |
+| `SiteCode` | Text | For kitchen iPads |
+| `At` *(indexed)* | DateTime | Server time |
+| `NetworkAddress` | Text | From Cloudflare; personal data, so kept 12 months only |
+
+*Indexed (3):* Action, Email, At
+
+**Devices**: Kitchen iPads set up by a manager. Turning one off stops it at once; it also stops if that manager leaves or loses the site. *Written by:* Server; managers turn them off in the app.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | DeviceId (random, from the sign-in cookie) |
+| `SiteCode` *(indexed)* | Text |  |
+| `SetUpBy` | Text | Manager's email |
+| `SetUpAt` | DateTime |  |
+| `Label` | Text | e.g. Kitchen iPad by the pass |
+| `RevokedAt` *(indexed)* | DateTime | Blank = in use |
+| `RevokedBy` | Text |  |
+
+*Indexed (3):* Title, SiteCode, RevokedAt
+
 #### Checklists
 
 **ChecklistTemplates**: Checklist definitions (opening, closing, cleaning, food safety, custom). *Written by:* Admin / Manager (console builder).
@@ -112,19 +144,21 @@
 | Column | Type | Notes |
 |---|---|---|
 | `Title` *(required)* | Text | Name |
+| `TemplateId` *(unique, required)* | Text | Stable id used in run keys, e.g. closing |
 | `Kind` *(indexed)* | Choice | Opening / Closing / Cleaning / Food safety / Delivery / Handover / Custom |
 | `CurrentVersion` | Number | Bumped on publish; runs store the version used |
 | `Status` *(indexed)* | Choice | Draft / Published / Archived |
-| `Sites` | Lookup (multi) → Sites | Where it applies |
+| `SiteCodes` | Text | Where it applies, e.g. BUN;HOX (blank = every site). Text, not a lookup |
 
-*Indexed (2):* Kind, Status
+*Indexed (3):* TemplateId, Kind, Status
 
 **Checkpoints**: Questions inside a template version — the customisable checkpoints with media. *Written by:* Admin / Manager (builder).
 
 | Column | Type | Notes |
 |---|---|---|
 | `Title` *(required)* | Text | Prompt, e.g. Walk-in chiller temperature |
-| `Template` *(indexed)* | Lookup → ChecklistTemplates |  |
+| `CheckpointId` *(indexed, required)* | Text | Stable id used in answer keys, e.g. walkin-temp (never reused) |
+| `TemplateId` *(indexed)* | Text | ChecklistTemplates.TemplateId (text, not a lookup) |
 | `TemplateVersion` *(indexed)* | Number | Published versions are never edited |
 | `Position` | Number |  |
 | `Section` | Text |  |
@@ -138,15 +172,15 @@
 | `PhotoRequired` | Yes/No |  |
 | `CorrectiveActionOnFail` | Yes/No |  |
 
-*Indexed (2):* Template, TemplateVersion
+*Indexed (3):* CheckpointId, TemplateId, TemplateVersion
 
 **Schedules**: When each checklist is due at each site. *Written by:* Admin / Manager.
 
 | Column | Type | Notes |
 |---|---|---|
 | `Title` | Text | Description |
-| `Template` *(indexed)* | Lookup → ChecklistTemplates |  |
-| `Site` *(indexed)* | Lookup → Sites |  |
+| `TemplateId` *(indexed)* | Text | ChecklistTemplates.TemplateId |
+| `SiteCode` *(indexed)* | Text | Sites.SiteCode |
 | `DueTime` *(required)* | Text | e.g. 08:00 |
 | `Days` | Choice (multi) | Mon–Sun |
 | `WindowMinutes` | Number | Late after this |
@@ -154,81 +188,144 @@
 | `AssignedRole` | Choice |  |
 | `PausedFrom` | Date | Closures / refurb |
 | `PausedUntil` | Date |  |
+| `EffectiveFrom` *(required)* | Text | yyyy-MM-dd. Missed-day checks use the schedule that applied on that date |
+| `EffectiveTo` | Text | yyyy-MM-dd; blank = still in use. Change a schedule by ending it and adding a new one |
 
-*Indexed (2):* Template, Site
+*Indexed (2):* TemplateId, SiteCode
 
-**ChecklistRuns**: One instance of a checklist on a day (created each morning by flow F02). *Written by:* Flow F02 creates; app completes.
+**ChecklistDays**: One header per open site per date: groups the day's runs and records misses (replaces DayClosures). *Written by:* Morning job creates; checklist-sync updates; nightly and weekly jobs mark Missed.
 
 | Column | Type | Notes |
 |---|---|---|
-| `Title` *(unique, required)* | Text | Key = SiteCode\|yyyy-mm-dd\|ScheduleId |
-| `Site` *(indexed)* | Lookup → Sites |  |
-| `BusinessDate` *(indexed)* | Date |  |
-| `Template` | Lookup → ChecklistTemplates |  |
+| `Title` *(unique, required)* | Text | DayKey = SiteCode\|yyyy-MM-dd, e.g. BUN\|2026-11-06 |
+| `Label` | Text | For people and list search, e.g. Bunso · Fri 6 Nov 2026 |
+| `SiteCode` *(indexed)* | Text |  |
+| `BusinessDateKey` *(indexed)* | Text | yyyy-MM-dd; keys and range filters (Date columns shift a day in British Summer Time) |
+| `BusinessDate` | Date | Display and Power BI date tables only; never filter on it |
+| `Status` *(indexed)* | Choice | Due / In progress / Submitted / Late / Missed / Not trading / Deleted / Deleting. Filter by date first, then status in code |
+| `NotTradingReason` | Text | Head office: closure, refurb, holiday |
+| `ExpectedRuns` *(set by server)* | Number |  |
+| `CompletedRuns` *(set by server)* | Number |  |
+| `MissedRuns` *(set by server)* | Number |  |
+| `FailedCount` *(set by server)* | Number |  |
+| `OpenFixes` *(set by server)* | Number |  |
+| `SubmittedAt` *(set by server)* | DateTime | Last run finished (server time) |
+| `SubmittedById` *(set by server)* | Text | Staff list item id (not a person column) |
+| `SubmittedByName` *(set by server)* | Text |  |
+| `MissedDetectedAt` *(set by server)* | DateTime | Set once by the nightly job; never cleared, even by a late submission |
+| `DayHash` *(set by server)* | Text | SHA-256 over the finished runs' RunHash values |
+| `Stats` *(set by server)* | Multi-line text | JSON: completion %, failures, open fixes, faults |
+| `ReportItemId` *(set by server)* | Text | driveItem id of the day PDF in Maginhawa App Checklists (never a URL) |
+| `ReportBuiltAt` *(set by server)* | DateTime | When the day PDF was last made; remade after any correction |
+| `DeletedAt` *(set by server)* | DateTime | Soft delete |
+| `DeletedById` *(set by server)* | Text |  |
+| `DeletedByName` *(set by server)* | Text |  |
+| `DeletedReason` *(set by server)* | Text | Required to delete; 'Moved to …' after a move |
+| `StatusBeforeDelete` *(set by server)* | Text | Restore puts this back |
+
+*Indexed (4):* Title, SiteCode, BusinessDateKey, Status
+
+**ChecklistRuns**: One checklist (template + due time) on a day; holds the live answers while open. *Written by:* checklist-sync (Netlify Function); scheduled jobs create and mark Missed.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | RunKey = SiteCode\|yyyy-MM-dd\|templateId\|HH:MM (or \|any), e.g. BUN\|2026-11-06\|closing\|22:30 |
+| `DayKey` *(indexed)* | Text | ChecklistDays key; all runs for a day = one filter on this |
+| `SiteCode` *(indexed)* | Text |  |
+| `BusinessDateKey` *(indexed)* | Text | yyyy-MM-dd |
+| `TemplateId` | Text |  |
 | `TemplateVersion` | Number |  |
-| `DueAt` | Date/Time |  |
-| `Status` *(indexed)* | Choice | Scheduled / In progress / Completed / Missed / Auto-closed / Cancelled |
-| `CompletedBy` | Lookup → Staff |  |
-| `CompletedAt` | Date/Time |  |
-| `DurationSeconds` | Number | Pencil-whip signal |
-| `FailedCount` *(set by flow)* | Number | Set by flow F04 |
+| `DueTime` | Text | HH:MM or blank |
+| `DueAt` | DateTime |  |
+| `Status` *(indexed)* | Choice | Scheduled / In progress / Completed / Missed / Auto-closed / Cancelled / Deleted |
+| `AnswersJson` *(set by server)* | Multi-line text (plain) | Snapshot of the run's answers: value, who, when, fix, corrections, per-answer seq. Saved with If-Match; the server refuses more than about 50,000 characters. Photos and signatures are ids, never base64 |
+| `SchemaVersion` *(set by server)* | Number | Version of the AnswersJson shape |
+| `Seq` *(set by server)* | Number | Raised on every successful write; the Finish 'seen' check compares against it |
+| `RecheckOf` | Text | RunKey\|checkpointId of the failed answer |
+| `CompletedAt` *(set by server)* | DateTime | Server time |
+| `CompletedById` *(set by server)* | Text | Staff list item id |
+| `CompletedByName` *(set by server)* | Text |  |
+| `DurationSeconds` *(set by server)* | Number | Pencil-whip signal |
+| `FailedCount` *(set by server)* | Number |  |
+| `RunHash` *(set by server)* | Text | SHA-256 of the canonical finished AnswersJson |
+| `RowsStatus` *(indexed)* | Choice | Pending / Written: queue for the background writer of Responses_{yyyy} rows |
+| `DeletedAt` *(set by server)* | DateTime | Soft delete of one run |
+| `DeletedById` *(set by server)* | Text |  |
+| `DeletedReason` *(set by server)* | Text |  |
 
-*Indexed (4):* Title, Site, BusinessDate, Status
+*Indexed (6):* Title, DayKey, SiteCode, BusinessDateKey, Status, RowsStatus
 
-**Responses**: Every answer — the compliance record (largest list). *Written by:* App (append-only by convention + Purview record label).
+**Responses_{yyyy}**: One list per business-date year (Responses_2026, Responses_2027…): one row per final answer, written at Finish and on each correction, never edited. Create every index before go-live: SharePoint Online can refuse a new index once a list passes 5,000 items, and this list passes that in about 4 days. *Written by:* Background writer (Netlify Function) only; create-only.
 
 | Column | Type | Notes |
 |---|---|---|
-| `Title` *(unique, required)* | Text | ClientId — UUID from the device; makes offline retries idempotent |
-| `Run` *(indexed)* | Lookup → ChecklistRuns |  |
-| `Site` *(indexed)* | Lookup → Sites |  |
-| `BusinessDate` *(indexed)* | Date |  |
-| `CheckpointId` | Number | Checkpoint item id |
-| `ValueNumber` | Number |  |
-| `ValueText` | Multi-line text | Text / select / signature JSON |
-| `Passed` *(indexed)* | Yes/No | App preview; confirmed by flow F04 |
+| `Title` *(unique, required)* | Text | RowKey = AnswerKey\|rev (rev 0 = original, 1… = corrections). A retried write gets 409, not a duplicate |
+| `AnswerKey` *(indexed)* | Text | RunKey\|checkpointId |
+| `DayKey` *(indexed)* | Text | Answers for one day |
+| `BusinessDateKey` *(indexed)* | Text | yyyy-MM-dd; date-range exports |
+| `CheckpointId` *(indexed)* | Text | One question over a year (about 2,920 rows) |
+| `SiteCode` | Text |  |
+| `RunKey` | Text |  |
+| `TemplateId` | Text |  |
+| `TemplateVersion` | Number |  |
+| `CheckpointTitle` | Text | Snapshot, so later template edits don't rewrite history |
+| `AnswerType` | Choice | yesno / temp / number / text / photo / choice / date / sign (ANSWER_TYPES) |
+| `ValueNumber` | Number | temp, number |
+| `ValueBool` | Choice | Yes / No / blank (a Yes/No column can't be blank) |
+| `ValueText` | Multi-line text | text, choice |
+| `ValueDateKey` | Text | yyyy-MM-dd |
+| `ValueDisplay` | Text | Readable value for Excel, whatever the type |
+| `Result` | Choice | Pass / Fail / None (replaces Passed) |
 | `ThresholdSnapshot` | Text | Min/max/legal basis used, frozen |
 | `Source` | Choice | Manual / Bluetooth probe / Camera OCR |
-| `PhotoUrl` | Hyperlink | Photos library |
-| `PhotoSha256` | Text | Detects reused photos |
 | `CapturedLive` | Yes/No | In-app camera, not gallery |
-| `RecordedBy` | Lookup → Staff |  |
-| `Device` | Lookup → Devices |  |
-| `ClientRecordedAt` | Date/Time | Device clock (Created = server time) |
-| `Supersedes` | Number | Id of the response this corrects (never edit in place) |
-| `CorrectionReason` | Text |  |
-| `AnswerKey` *(indexed)* | Text | runKey\|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who) |
+| `PhotoIds` | Text | PhotoId values (; separated). Replaces PhotoUrl: links expire, ids don't |
+| `PhotoItemIds` | Text | driveItem ids in the Photos library |
+| `PhotoSha256` | Text | Detects reused photos |
+| `AnsweredById` | Text | Staff list item id |
+| `AnsweredByName` | Text |  |
+| `AnsweredAt` | DateTime | Capped at server time |
+| `ReceivedAt` | DateTime | Server time the answer reached us (offline answers arrive later) |
+| `Rev` | Number | 0 = original |
+| `Supersedes` | Text | RowKey of the row this corrects |
+| `CorrectionReason` | Text | Required when Rev > 0 |
+| `CorrectedAt` | DateTime | Server time |
 
-*Indexed (6):* Title, Run, Site, BusinessDate, Passed, AnswerKey
+*Indexed (5):* Title, AnswerKey, DayKey, BusinessDateKey, CheckpointId
 
-**CorrectiveActions**: What was done about a failed check. *Written by:* App + flows F04/F05.
+**CorrectiveActions**: What was done about a failed check. *Written by:* App + Netlify Functions (checklist check, re-check and escalation).
 
 | Column | Type | Notes |
 |---|---|---|
 | `Title` *(required)* | Text | Short description |
-| `Response` *(indexed)* | Lookup → Responses |  |
-| `Site` *(indexed)* | Lookup → Sites |  |
+| `AnswerKey` *(indexed)* | Text | RunKey\|checkpointId of the failed answer (replaces the Response lookup) |
+| `DayKey` *(indexed)* | Text |  |
+| `SiteCode` *(indexed)* | Text |  |
 | `ActionTaken` | Multi-line text |  |
 | `FoodDisposed` | Yes/No |  |
 | `Status` *(indexed)* | Choice | Open / Action taken / Verified / Escalated |
 | `RecheckDue` *(indexed)* | Date/Time |  |
 | `WorkOrder` | Lookup → WorkOrders | Set when escalated |
-| `VerifiedBy` | Lookup → Staff |  |
+| `VerifiedById` | Text | Staff list item id |
+| `VerifiedByName` | Text |  |
 
-*Indexed (4):* Response, Site, Status, RecheckDue
+*Indexed (5):* AnswerKey, DayKey, SiteCode, Status, RecheckDue
 
-**DayClosures**: Ops end-of-day sign-off per site. *Written by:* App + flow F01.
+**ChecklistAudit**: Restores, moves and hard deletes of checklist days; kept when the day itself is hard-deleted. *Written by:* Netlify Functions only.
 
 | Column | Type | Notes |
 |---|---|---|
-| `Title` *(unique, required)* | Text | Key = SiteCode\|yyyy-mm-dd |
-| `Site` *(indexed)* | Lookup → Sites |  |
-| `BusinessDate` *(indexed)* | Date |  |
-| `ClosedBy` | Lookup → Staff | Blank = auto-closed |
-| `Stats` *(set by flow)* | Multi-line text | JSON: completion %, failures, open CAs, faults |
-| `ReportLink` *(set by flow)* | Hyperlink | PDF in Reports library |
+| `Title` *(unique, required)* | Text | DayKey\|action\|timestamp |
+| `DayKey` *(indexed)* | Text |  |
+| `Action` *(required)* | Choice | Soft delete / Restore / Move / Hard delete started / Hard delete finished |
+| `Reason` *(required)* | Text |  |
+| `ById` *(required)* | Text | Staff list item id |
+| `ByName` | Text |  |
+| `At` *(required)* | DateTime | Server time |
+| `Counts` | Text | JSON: runs, rows, photos, corrective actions affected |
+| `MovedTo` | Text | New DayKey after a move |
 
-*Indexed (3):* Title, Site, BusinessDate
+*Indexed (2):* Title, DayKey
 
 **HandoverNotes**: Shift handover log. *Written by:* App.
 
@@ -451,7 +548,7 @@
 | Column | Type | Notes |
 |---|---|---|
 | `Title` *(unique, required)* | Text | Record type: checks, faults, allergens, complaints, training, fitness, inspections |
-| `Months` *(required)* | Number | Suggested defaults in packages/core DEFAULT_KEEP |
+| `Months` *(required)* | Number | Suggested defaults in packages/core DEFAULT_KEEP. Proposed: checks 36 (3 years: Food Safety Act s.34 prosecutions and injury claims both have 3-year limits; DEFAULT_KEEP still says 24 until agreed); check photos 12 unless tied to an incident |
 | `FromLeaving` | Yes/No | Counted from when the person leaves |
 
 *Indexed (1):* Title
@@ -491,7 +588,7 @@
 
 *Indexed (1):* Trade
 
-**WorkOrders**: Repairs: from fault report, failed check, statutory due or EOD note. *Written by:* App + flows F05/F06.
+**WorkOrders**: Repairs: from fault report, failed check, statutory due or EOD note. *Written by:* App + Netlify Functions (escalation, contractor emails).
 
 | Column | Type | Notes |
 |---|---|---|
@@ -501,7 +598,7 @@
 | `Summary` *(required)* | Text |  |
 | `Description` | Multi-line text |  |
 | `Source` | Choice | Fault report / Failed check / Statutory / Planned / EOD note / AI warning |
-| `SourceResponse` | Number | Response id when source = failed check |
+| `SourceAnswerKey` | Text | AnswerKey (RunKey\|checkpointId) when source = failed check |
 | `Priority` *(indexed)* | Choice | Low / Normal / High / Urgent |
 | `Status` *(indexed)* | Choice | Reported / Triaged / Dispatched / Scheduled / In progress / Awaiting parts / Resolved / Closed / Cancelled |
 | `Contractor` | Lookup → Contractors |  |
@@ -514,7 +611,7 @@
 
 *Indexed (5):* Title, Site, Asset, Priority, Status
 
-**ComplianceItems**: Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest. *Written by:* Admin / flow F07.
+**ComplianceItems**: Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest. *Written by:* Admin / reminders (Netlify Scheduled Function).
 
 | Column | Type | Notes |
 |---|---|---|
@@ -566,38 +663,67 @@
 
 #### Trading (EOD)
 
-**TradingDays**: One per site per service date — replaces the Netlify form's Excel row. *Written by:* App creates; flow F01 writes official totals.
+**TradingDays**: One per site per service date — replaces the Netlify form's Excel row. *Written by:* App creates; submit-eod (Netlify Function) writes official totals.
 
 | Column | Type | Notes |
 |---|---|---|
 | `Title` *(unique, required)* | Text | Key = SiteCode\|yyyy-mm-dd (blocks duplicates) |
 | `Site` *(indexed)* | Lookup → Sites |  |
 | `BusinessDate` *(indexed)* | Date |  |
-| `Status` *(indexed)* | Choice | Draft / Submitted / Checked / Approved / Reopened |
+| `Status` *(indexed)* | Choice | Draft / Submitted / Checked / Approved / SentBack / Reopened. The app writes Draft, Submitted, Approved and SentBack |
 | `WageCost` | Currency |  |
 | `NextShiftNotes` | Multi-line text |  |
 | `SubmittedBy` | Lookup → Staff | Signed-in user, not typed |
 | `SubmittedAt` | Date/Time |  |
-| `ApprovedBy` | Lookup → Staff | Finance sign-off |
-| `TotalGross` *(set by flow)* | Currency |  |
-| `TotalNet` *(set by flow)* | Currency |  |
-| `DineInNet` *(set by flow)* | Currency |  |
-| `Covers` *(set by flow)* | Number |  |
-| `ASPHNet` *(set by flow)* | Currency |  |
-| `FoodPct` *(set by flow)* | Number |  |
-| `DrinkPct` *(set by flow)* | Number |  |
-| `WagePct` *(set by flow)* | Number |  |
-| `WageRAG` *(set by flow)* | Choice | Green / Amber / Red |
-| `NetVsTarget` *(set by flow)* | Currency |  |
-| `CheckIssues` *(set by flow)* | Multi-line text | Problems found by flow (e.g. discount lines ≠ EPOS total) |
-| `CalcVersion` *(set by flow)* | Text | Formula version used |
+| `ApprovedBy` | Lookup → Staff | Who last approved or sent it back. Set only with If-Match, so two reviewers can't both win |
+| `ReviewedAt` *(set by server)* | Date/Time | When it was approved or sent back |
+| `TotalGross` *(set by server)* | Currency |  |
+| `TotalNet` *(set by server)* | Currency |  |
+| `DineInNet` *(set by server)* | Currency |  |
+| `Covers` *(set by server)* | Number |  |
+| `ASPHNet` *(set by server)* | Currency |  |
+| `ASPHGross` *(set by server)* | Currency |  |
+| `FoodPct` *(set by server)* | Number |  |
+| `DrinkPct` *(set by server)* | Number |  |
+| `WagePct` *(set by server)* | Number |  |
+| `WageRAG` *(set by server)* | Choice | Green / Amber / Red |
+| `NetVsTarget` *(set by server)* | Currency |  |
+| `CheckIssues` *(set by server)* | Multi-line text | Problems found by the server (e.g. discount lines ≠ EPOS total) |
+| `CalcVersion` *(set by server)* | Text | Formula version used |
 | `DraftJson` | Multi-line text | The whole report between saves. Every save is PATCH with If-Match: <item ETag>, so a stale save gets 412 and is merged by section |
 | `SectionStamps` | Multi-line text | JSON: who last changed each section, and when (e.g. Jo changed Dinner at 21:14) |
 | `SubmitId` | Text | The submit press that won; a retry of the same press is a no-op |
 
 *Indexed (4):* Title, Site, BusinessDate, Status
 
-**TradingSessions**: Lunch / dinner figures and cash. *Written by:* App; flow F01 adds net & variance.
+**EmailLog**: One row per EOD summary emailed to finance. Separate from TradingDays so stamping it never changes the report's ETag. *Written by:* submit-eod and the email-retry job (Netlify Functions).
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | Key = SiteCode\|yyyy-mm-dd\|SubmitId: one email per submit, a second insert fails (unique) |
+| `TradingDay` *(indexed)* | Lookup → TradingDays |  |
+| `SentAt` *(required, set by server)* | Date/Time | Server time |
+
+*Indexed (2):* Title, TradingDay
+
+**FlowOutbox**: One message per submitted EOD for the Power Automate flow "EOD submitted" (flows/MaginhawaOps). The server never calls a flow: the flow starts on a new row, so there is no trigger URL and no Premium licence. *Written by:* submit-eod and the email-retry job add rows; the flow sets Status, ProcessedAt, RunId and Error.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Title` *(unique, required)* | Text | Key = SiteCode\|yyyy-mm-dd\|SubmitId: one message per submit, a second insert fails (unique) |
+| `SiteCode` *(set by server)* | Text |  |
+| `BusinessDate` *(set by server)* | Date |  |
+| `Schema` *(set by server)* | Text | e.g. maginhawa.eod.submitted/1; the flow refuses one it doesn't know |
+| `Payload` *(set by server)* | Multi-line text | The message as JSON (flowMessage in packages/core/src/flow.ts). No handover notes. Not required in SharePoint, so the flow's Update item only sends Title and Status |
+| `Status` *(indexed, required)* | Choice | Queued / Done / Failed. The flow's trigger only takes Queued |
+| `QueuedAt` *(set by server)* | Date/Time | Server time |
+| `ProcessedAt` | Date/Time | Set by the flow |
+| `RunId` | Text | The flow run, to find it in run history |
+| `Error` | Multi-line text | Set by the flow when it fails; fix, then set Status back to Queued to run it again |
+
+*Indexed (2):* Title, Status
+
+**TradingSessions**: Lunch / dinner figures and cash. *Written by:* App; submit-eod adds net & variance.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -617,9 +743,9 @@
 | `CashInEpos` | Currency |  |
 | `CashCollected` | Currency |  |
 | `CashExplanation` | Multi-line text | Required by app if variance > 1p |
-| `Net` *(set by flow)* | Currency | Gross − SC − tax − discounts |
-| `Covers` *(set by flow)* | Number |  |
-| `CashVariance` *(set by flow)* | Currency | Collected − EPOS |
+| `Net` *(set by server)* | Currency | Gross − SC − tax − discounts |
+| `Covers` *(set by server)* | Number |  |
+| `CashVariance` *(set by server)* | Currency | Collected − EPOS |
 
 *Indexed (4):* Title, TradingDay, Site, BusinessDate
 
@@ -644,7 +770,7 @@
 
 *Indexed (5):* Title, TradingSession, Site, BusinessDate, Kind
 
-**DeliverySales**: Per platform per day. *Written by:* App; flow F01 adds estimated net.
+**DeliverySales**: Per platform per day. *Written by:* App; submit-eod adds estimated net.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -652,7 +778,7 @@
 | `TradingDay` *(indexed)* | Lookup → TradingDays |  |
 | `Platform` | Lookup → DeliveryPlatforms |  |
 | `Gross` | Currency |  |
-| `EstimatedNet` *(set by flow)* | Currency |  |
+| `EstimatedNet` *(set by server)* | Currency |  |
 | `ActualPayout` | Currency | From platform statement (later) |
 | `CurrentPromotion` | Text |  |
 
@@ -684,7 +810,7 @@
 
 *Indexed (1):* TradingSession
 
-**Feedback**: Service, kitchen, staff, complaints, maintenance notes. *Written by:* App; flow F01 links work orders.
+**Feedback**: Service, kitchen, staff, complaints, maintenance notes. *Written by:* App; submit-eod links work orders.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -692,7 +818,7 @@
 | `TradingDay` *(indexed)* | Lookup → TradingDays |  |
 | `Category` *(indexed)* | Choice | Service / Kitchen / Staff / Complaints / Maintenance |
 | `Body` *(required)* | Multi-line text |  |
-| `WorkOrder` *(set by flow)* | Lookup → WorkOrders | Created by F01 for urgent maintenance |
+| `WorkOrder` *(set by server)* | Lookup → WorkOrders | Created by submit-eod for urgent maintenance |
 
 *Indexed (2):* TradingDay, Category
 

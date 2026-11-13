@@ -1,26 +1,36 @@
 /**
  * POST /submit-eod. Re-checks the report with @maginhawa/core, stores the official
- * figures, then emails finance. Every outside service is passed in, so the handler is
- * fully testable and the real ones (SharePoint via Graph, Entra, mail) plug in later.
+ * figures, hands the Power Automate flow its message (FlowOutbox), then emails finance.
+ * Every outside service is passed in, so the handler is fully testable and the real
+ * ones (SharePoint and mail via Graph, the session cookie) plug in at the edge (src/api.ts).
  */
-import { eodSummaryEmail, submitReport, type EmailMessage, type EodStore, type SiteSettings } from '@maginhawa/core';
+import { eodSummaryEmail, flowMessage, flowWanted, submitReport, type DefinitionRecord, type EmailMessage, type EodStore, type FlowOutbox, type SiteSettings, type StoredReport } from '@maginhawa/core';
+import { recordReport, type VersionIndex } from './version-index';
 
 export interface Caller {
   name: string;
   /** Sites this person may submit for. */
   siteCodes: string[];
-  /** From their Entra ID group. Staff can't correct a finished checklist. */
+  /** From their Staff list row. Staff can't correct a finished checklist. */
   role?: 'staff' | 'supervisor' | 'manager' | 'headoffice';
 }
 
+/** Checks the session cookie and says who is calling. Null = not signed in. */
+export type Authenticate = (req: Request) => Promise<Caller | null>;
+
 export interface SubmitDeps {
-  /** Checks the bearer token (Entra ID) and says who is calling. Null = not signed in. */
-  authenticate: (req: Request) => Promise<Caller | null>;
+  authenticate: Authenticate;
   store: EodStore;
   settingsFor: (siteCode: string) => Promise<SiteSettings | null>;
   targetNetFor?: (siteCode: string, businessDate: string) => Promise<number | null>;
   sendEmail: (msg: EmailMessage) => Promise<void>;
   now?: () => Date;
+  /** Workers KV: so other devices' polls see the submit without asking SharePoint. */
+  index?: VersionIndex;
+  /** The report builder's versions; the one approved for the report's trading day decides the figures. */
+  definitions?: () => Promise<DefinitionRecord | null>;
+  /** The FlowOutbox list the "EOD submitted" flow starts from. Left out = Power Automate isn't set up; each site then has its own switch. */
+  flow?: FlowOutbox;
 }
 
 export const json = (status: number, body: unknown) =>
@@ -49,20 +59,54 @@ export function createSubmitHandler(deps: SubmitDeps) {
     const settings = await deps.settingsFor(siteCode);
     if (!settings) return json(400, { error: 'Unknown site.' });
     const businessDate = (body as { businessDate?: string }).businessDate ?? '';
-    const targetNet = deps.targetNetFor ? await deps.targetNetFor(siteCode, businessDate) : null;
-
-    const res = await submitReport(body, { store: deps.store, settings, submittedBy: caller.name, now: deps.now?.(), targetNet, ...condition });
+    // Independent reads: ask for both at once.
+    const [targetNet, definitions] = await Promise.all([
+      deps.targetNetFor ? deps.targetNetFor(siteCode, businessDate) : null,
+      deps.definitions ? deps.definitions() : null,
+    ]);
+    const res = await submitReport(body, { store: deps.store, settings, submittedBy: caller.name, now: deps.now?.(), targetNet, definitions, ...condition });
     // 409: someone else sent it first, or changed it since this person last looked. `current` is what is stored.
-    if (!res.ok && (res.code === 'already-submitted' || res.code === 'conflict')) return json(409, { error: res.error, code: res.code, current: res.current });
-    if (!res.ok) return json(422, { error: res.error, code: res.code, issues: res.issues ?? [] });
-
-    // The report is safely stored; an email failure must not make the manager resubmit.
-    let emailed = true;
-    try {
-      await deps.sendEmail(eodSummaryEmail(res.report, settings));
-    } catch {
-      emailed = false;
+    const at = (deps.now?.() ?? new Date()).getTime();
+    if (!res.ok && (res.code === 'already-submitted' || res.code === 'conflict')) {
+      if (res.current) await recordReport(deps.index, res.current, at);
+      return json(409, { error: res.error, code: res.code, current: res.current });
     }
-    return json(200, { report: res.report, emailed });
+    if (!res.ok) return json(422, { error: res.error, code: res.code, issues: res.issues ?? [] });
+    await recordReport(deps.index, res.report, at);
+    // Before the replay shortcut: a retry may be the first attempt that got this far. Adding twice is a no-op.
+    await queueFlow(deps, res.report, settings);
+    // A retry after lost signal: finance already has the email, unless the first attempt never got that far.
+    if (res.replayed && res.report.emailedAt) return json(200, { report: res.report, replayed: true, emailed: true });
+
+    // The report is safely stored; an email failure must not make the manager resubmit (the email retry job sends it later).
+    const emailed = await emailFinance(deps, res.report, settings);
+    return json(200, { report: res.report, emailed, ...(res.replayed ? { replayed: true } : {}) });
   };
+}
+
+/** Sends finance the summary and stamps it, so it is never sent twice. False = not sent; try again later. */
+export async function emailFinance(deps: Pick<SubmitDeps, 'store' | 'sendEmail' | 'now'>, report: StoredReport, settings: SiteSettings): Promise<boolean> {
+  try {
+    await deps.sendEmail(eodSummaryEmail(report, settings));
+  } catch {
+    return false;
+  }
+  try {
+    await deps.store.markEmailed(report.draft.siteCode, report.draft.businessDate, deps.now?.() ?? new Date());
+  } catch {
+    // Sent but not stamped: the retry job may send it once more. A duplicate beats a missing one.
+  }
+  return true;
+}
+
+/** Gives the flow its message. Never fails the submit: the email retry job adds anything missing later. */
+export async function queueFlow(deps: Pick<SubmitDeps, 'flow'>, report: StoredReport, settings: SiteSettings): Promise<'added' | 'exists' | 'failed' | 'off'> {
+  if (!deps.flow || !flowWanted(report, settings)) return 'off';
+  const message = flowMessage(report, settings);
+  if (!message) return 'failed';
+  try {
+    return await deps.flow.add(message);
+  } catch {
+    return 'failed';
+  }
 }

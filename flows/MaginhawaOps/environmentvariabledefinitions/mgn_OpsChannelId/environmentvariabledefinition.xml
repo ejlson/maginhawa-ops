@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="mgn_OpsChannelId">
+  <defaultvalue></defaultvalue>
+  <description default="The channel in that team">
+    <label description="The channel in that team" languagecode="1033" />
+  </description>
+  <displayname default="Ops channel">
+    <label description="Ops channel" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>1</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

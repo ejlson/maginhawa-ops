@@ -1,27 +1,29 @@
 # Maginhawa Ops: project handoff
 
-*Last updated 27 October 2026 (desktop redesign built, §6; food-safety module built and merged, §8a; Check65 review findings, §8; EHO brief, §10 and §13; on 26 Oct the back end changed from Power Automate to our own Netlify Functions, §3 and §4). This file is the single source of truth for picking the project up in a new Claude account or by a new person. Read it top to bottom before doing anything.*
+*Last updated 27 October 2026 (desktop redesign built, §6; food-safety module built and merged, §8a; Check65 review findings, §8; EHO brief, §10 and §13; on 26 Oct the back end changed from Power Automate to our own Netlify Functions, §3 and §4; on 29 Oct Power Automate came back as an optional add-on that reads a SharePoint list, §3 and §4). This file is the single source of truth for picking the project up in a new Claude account or by a new person. Read it top to bottom before doing anything.*
 
 ---
 
 ## 1. What this project is
 
-An internal operations app for **Maginhawa**, a London restaurant group with **9 sites**. The first module replaces the finance team's current **end-of-day (EOD) report**, a web form that managers fill in after close. Later modules add opening and closing checklists, food-safety logs, repairs and maintenance, a staff handbook, and AI search over all the logs ("Ask your logs").
+An internal operations app for **Maginhawa**, a London restaurant group with **8 open sites**. The first module replaces the finance team's current **end-of-day (EOD) report**, a web form that managers fill in after close. Later modules add opening and closing checklists, food-safety logs, repairs and maintenance, a staff handbook, and AI search over all the logs ("Ask your logs").
 
-It started as a "Check65-like" product idea (Food Alert's Check65 app; the comparison is in `docs/reports/`). It narrowed to: **build our own apps, with SharePoint (in the group's existing Microsoft 365) as the data store, starting with EOD.** All business logic is our own code; no Power Automate or other Microsoft apps are used day to day.
+It started as a "Check65-like" product idea (Food Alert's Check65 app; the comparison is in `docs/reports/`). It narrowed to: **build our own apps, with SharePoint (in the group's existing Microsoft 365) as the data store, starting with EOD.** All business logic is our own code. Power Automate is used only for notifications (Teams posts, alerts), never for figures or for saving reports (§4).
 
-**Sites (9):** Bintang, Guanabana, Belly, Ramo, Hoodwood, Bunso, Cafe Mamasons, Mamasons Kentish Town, Mamasons China Town.
+**Sites (8 open):** Bintang, Guanabana, Belly, Hoodwood, Bunso, Cafe Mama & Sons, Mamasons Kentish Town, Mamasons China Town. **Ramo has closed** (29 Oct 2026): it stays in `ALL_SITES` so its old records keep their name, but it drops out of pickers, counts, forecasts and access. The list is `ALL_SITES` / `SITES` in `packages/core/src/settings.ts`.
 
 **Roles:**
 
 | Role | Sees | Can do |
 |---|---|---|
-| Staff | Their site | Checklists |
-| Supervisor | Their site | Checklists and the EOD |
-| Manager (incl. assistant managers) | Their site | Checklists and the EOD; edit their site's checklists |
-| Head office (finance, admin, operations managers) | All sites | Thresholds, targets, people; edit checklists; receives the reports |
+| Staff | Their site, or the sites head office gives them (they show on each site's iPad) | Checklists |
+| Supervisor | Their site, or the sites head office gives them | Checklists and the EOD |
+| Manager (incl. assistant managers) | One, some or all sites, as head office gives them (switch from the site name). With 2+ sites: a **My sites** overview (`/my-sites`), tonight at just theirs, without approving | Checklists and the EOD; edit their site's checklists |
+| Head office (finance, admin, operations managers) | All sites; can open any site to work in its own screens (EOD, checklists, repairs), saved under their name | Thresholds, targets, people (incl. which sites each manager works at); edit checklists; receives the reports |
 
 Permissions live in one place: `can` in `apps/eod-web/app/lib/auth.tsx`.
+
+**Site access (29 Oct 2026)** is separate from role. A person has a main site, other sites, or **All sites** (which also covers sites opened later). **Only head office changes anyone's sites**; managers add people at their own site only. Rules: `accessOf`, `canGiveSites` in `packages/core/src/people.ts`. The server works out each caller's sites from the SharePoint Staff list (`HomeSite`, `OtherSites`, `AllSites`, `AppRole`), never from the browser, and caches the answer in Netlify Blobs for 5 minutes (`apps/functions/src/access.ts`).
 
 ---
 
@@ -62,13 +64,13 @@ The finance team's current EOD form is a **single static page on Netlify**. It p
 |---|---|---|
 | 1 | **UK market**, UK English, £, UK law | |
 | 2 | **Devices: phone, tablet (iPad) and desktop** | Shared kitchen iPad plus managers' own phones and laptops |
-| 3 | **SharePoint is the data store; our own Netlify Functions are the back end** (changed 26 Oct 2026, replacing Power Automate) | No Power Automate, Power Apps, Outlook or Teams connectors. Microsoft is used only for SharePoint (data), Graph (access) and Entra ID (sign-in). Logic lives in our repo, so calculations are written once in `packages/core`. No database of our own; the Postgres/Supabase design stays as the fallback (`docs/tech-plan/postgres-option/`) |
+| 3 | **SharePoint is the data store; our own back end runs on Cloudflare Pages Functions, plus one Worker for timed and queued jobs** (changed 26 Oct 2026, replacing Power Automate; **moved from Netlify to Cloudflare Pages at `app.mgnhw.com` on 12 Nov 2026, user's call, not built yet: see `docs/tech-plan/cloudflare-and-email-sign-in.md`**) | Microsoft is used for SharePoint (data), Graph (access) and Entra ID (sign-in). **Power Automate is allowed only as an optional add-on (29 Oct 2026, the user's call):** flows start from the FlowOutbox list and post or alert. They never work out figures or save reports, and the app never calls a flow (no trigger URL). No Power Apps. Logic lives in our repo, so calculations are written once in `packages/core`. No database of our own; the Postgres/Supabase design stays as the fallback (`docs/tech-plan/postgres-option/`) |
 | 4 | **We code our own user-facing apps** | Not Power Apps |
 | 5 | **Managers type the numbers in** | No till/EPOS integration in v1. The forecast works from the typed figures |
 | 6 | **Web framework: React Router v7 in SPA mode (Vite, TypeScript)**, hosted on Netlify, installable as a PWA | Next.js was rejected: the app is a client-side SPA, and the only server code is a few small Netlify Functions. **Expo** (React Native) is only for a later native app, if one is needed |
-| 7 | **Design direction:** Apple-like. **One dark "hero" card per screen**, then **Monzo/Revolut-style lists**, with **Things 3-style progress circles** | See §7. The user rejected other directions; don't drift back to them |
+| 7 | **Design direction:** Apple-like. **One main card per screen**, then **Monzo/Revolut-style lists**, with **Things 3-style progress circles**. **12 Nov 2026 redesign (user's call; first pass built):** each site has its own colour (editable in settings), and the main card is a slowly moving, grainy gradient made from that colour (no black), with soft shadows and Apple-style corners | See §7 and `design/design-language.md` › Redesign. The user rejected other directions; don't drift back to them |
 | 8 | **Sections can be filled in any order** from a hub ("Today's close"), not a strict wizard | Backed by research: same users every night |
-| 9 | **Sign-in:** Microsoft 365 work account (Entra ID via MSAL) on phone and desktop; **shared iPad = photo grid of today's rota + 4-digit PIN**, plus a badge/QR alternative | A site device account sits underneath the shared-iPad login |
+| 9 | **Sign-in (changed 12 Nov 2026, user's call, not built yet):** any email on the Staff list, proved with a 6-digit emailed code (no Microsoft account needed; Entra ID is only the back end's key to SharePoint and mail). Plan: `docs/tech-plan/cloudflare-and-email-sign-in.md`. *Was:* Microsoft 365 work account (Entra ID via MSAL) on phone and desktop; **shared iPad = photo grid of today's rota + 4-digit PIN**, plus a badge/QR alternative | A site device account sits underneath the shared-iPad login |
 | 10 | **Forecasts:** same weekday over the last 6 weeks, nudged by bookings and the recent trend | Shown to managers (Trends) and to head office (Forecast tab). No AI needed |
 
 ---
@@ -84,8 +86,9 @@ The finance team's current EOD form is a **single static page on Netlify**. It p
 | Back end | **Netlify Functions** (TypeScript) replace Power Automate. `submit-eod` runs on submit: re-checks with `packages/core`, writes the official totals (*set by server* columns) and sends the summary email. **Netlify Scheduled Functions** run the 07:00 digest, late-report reminders and the nightly targets import |
 | Server sign-in | `@azure/msal-node`, app-only (client credentials). Secret or certificate kept in Netlify environment variables, never in the repo |
 | Identity | Microsoft Entra ID. Users sign in with MSAL (delegated access to the one site). The server uses app-only **`Sites.Selected`** granted on the "Maginhawa Ops" site, plus **`Mail.Send`** restricted to one shared mailbox (e.g. `ops@…`) |
-| Data | **SharePoint site "Maginhawa Ops"**: 49 lists (16 of them food safety, §8a) and 7 document libraries, accessed only through the **Microsoft Graph API**. Use `$batch` (up to 20 requests per call) and honour `Retry-After` |
+| Data | **SharePoint site "Maginhawa Ops"**: 51 lists (16 of them food safety, §8a) and 7 document libraries, accessed only through the **Microsoft Graph API**. Use `$batch` (up to 20 requests per call) and honour `Retry-After` |
 | Email | Graph `sendMail` from a shared mailbox (no licence needed). Resend is the fallback |
+| Power Automate (optional, 29 Oct 2026) | On submit, `submit-eod` adds one message to the **FlowOutbox** list (`flowMessage` in `packages/core/src/flow.ts`; `FLOW_OUTBOX=1` says it's set up, then **head office switch each site on or off** in the report builder's Send to Power Automate panel, stored as `PowerAutomateFrom` on the Sites list; only reports sent after that date go). The **EOD submitted** flow starts on the new row, posts to the ops Teams channel, emails the ops manager when wages are red or there's something to look at, and marks the row Done or Failed. Standard connectors only (no Premium), run by a service account. Finance choose the figures with the **Send to Power Automate** action in the report builder. The flow is kept in git as an unpacked solution: `flows/` (README there). `email-retry` adds any message a submit missed. **Not imported into Power Platform yet** |
 | Reporting | Head-office views and CSV export in our app; finance can also use Excel Power Query on the SharePoint lists. Power BI later, if wanted |
 | Quality | Vitest (unit), Playwright (end-to-end), ESLint + Prettier, pnpm workspaces. Sentry optional for error alerts |
 | Later | A Netlify Function "AI proxy" calling the Claude API (default model `claude-opus-5-5`) for Ask your logs and the summaries |
@@ -112,15 +115,33 @@ packages/core    calculations, zod schemas, Graph data module (shared, unit-test
 8. Reporting from scheduled exports, never live per-view queries over large lists.
 9. All data access in one module.
 
+**Several people, one record (sync rules).** Polling only decides how fast a screen *shows* a change; it never keeps data safe. The server does, with conditional writes:
+1. Every shared write says which version it started from (EOD drafts, submit, approve/send back: the SharePoint ETag via `If-Match`; checklist Finish: the change cursor it had seen). A stale write is refused with what is stored now, and the device merges or says who changed what.
+2. Exactly one submit wins; a retry of the same press (same `submitId`) is a no-op and never emails finance twice. Sending is logged in `EmailLog` (beside the report, so it never changes the report's version), and the `email-retry` job sends anything left unsent.
+3. Nothing a person typed disappears quietly: a refused edit or answer is named on screen ("Not saved: submitted by Jo at 22:04…").
+4. Checklist answers are last-write-wins by when they were answered, capped at the server's clock.
+5. Unique `Title` keys (e.g. `SiteCode|date`) stop two devices creating the same record.
+Any new shared data (food safety, templates, people once they sync) follows the same rules. The SharePoint store's obligations are listed at the top of `packages/core/src/store.ts`.
+
 **Limits to remember:**
 - 5,000-item list view threshold.
 - 20 indexes per list.
 - 12 lookups per query.
 - About 30M items per list.
 - Graph throttling per app and per tenant (back off on HTTP 429).
-- Netlify Functions: about 10 seconds per synchronous call (keep `submit-eod` short; use background functions for slow work).
+- Netlify Functions: 60 seconds per synchronous call by default; background functions up to 15 minutes but only a 256 KB payload (keep `submit-eod` short; use background functions for slow work such as PDFs).
+- SharePoint Online can refuse a new index once a list passes 5,000 items: create every index before go-live (`Responses_{yyyy}` passes 5,000 in about 4 days).
 
-**Volume estimate:** about 1,250 items a day across 9 sites, about 460k a year, and about 9 GB of photos a year.
+**Checklist storage (agreed 9 Nov 2026, spec updated, not built yet).** Full design: `docs/reports/Staff friendly checklist storage.md`; examples: `docs/reports/checklist-storage-examples.html`; plain-English email for the team: `docs/reports/checklist-storage-email.md`.
+- **Lists are the record; only the app writes.** `ChecklistDays` → `ChecklistRuns` → `Responses_{yyyy}` → `CorrectiveActions`, with `ChecklistAudit` for edits and deletions. Setup lives in `ChecklistTemplates`, `Checkpoints` and `Schedules`. Staff never use SharePoint; they use the app.
+- **Excel is not the store.** Graph's add-table-row call doesn't support app-only access, and one workbook can't take several saves at once.
+- **"Maginhawa App Checklists" library (for people, read-only):** `{Restaurant}/{yyyy-MM}/` with one PDF per restaurant per day (missed days too, e.g. `2026-11-05 Bunso – Thu – MISSED.pdf`) and one monthly XLSX rebuilt nightly. Remade after a correction; versions keep the old copy. EHO gets a view-only link that expires.
+- **Photos library:** `{Restaurant}/{yyyy-MM}/{yyyy-MM-dd}/{Checklist name}/Walk-in chiller – 09:12.jpg`. Write-once; the app links by `PhotoId`, never by path.
+- **Open decisions (in the team email):** per-restaurant folder permissions; keep checks 3 years (`DEFAULT_KEEP` still says 24 months until agreed); photos about 12 months unless tied to an incident.
+- **One site, no test site (user's decision, 9 Nov 2026):** everything lives on a new private site "Maginhawa App" (`/sites/MaginhawaApp`, team site without a Microsoft 365 group), not in the Maginhawa.Group › Operations folder (lists need a site; app access is per site; that group is public). Run the tenant tests on it while it is still empty, then clear the test data before go-live. Deploy previews and local work leave `SHAREPOINT_SITE_ID` unset and use the in-memory store (`DEV_SHARED_STORE`), so only production writes to the site.
+- **Tenant tests before go-live:** `Sites.Selected` with write access can upload, PATCH columns, replace and delete files; `createLink`; replacing a workbook while someone has it open; index creation at 5,001 items.
+
+**Volume estimate:** about 1,250 items a day across 8 sites, about 410k a year, and about 9 GB of photos a year.
 
 ---
 
@@ -195,7 +216,7 @@ An earlier low-fidelity version is at https://claude.ai/artifact/KxTcCMxEYiNPcvh
 | iPad · Dinner, night mode | Sidebar with circles + two-column form |
 | iPad · PIN sign-in | Photo grid of today's rota → 4-digit PIN → "Not you?"; "Scan your badge instead" |
 | Desktop · Manager | Sidebar, hero, two-column form, right rail (day so far, still to do, ⌘↵ save) |
-| Desktop · Admin, all sites today | Hero = group net (7 of 9 in), bars = 7 days actual + 7 forecast. Sites table (net, vs target, wages, cash, status). "Approve 4 clean closes" (with Undo). Needs attention with actions. Site detail panel |
+| Desktop · Admin, all sites today | Hero = group net (7 of 8 in), bars = 7 days actual + 7 forecast. Sites table (net, vs target, wages, cash, status). "Approve 4 clean closes" (with Undo). Needs attention with actions. Site detail panel |
 | Desktop · Admin settings | Thresholds & checks: wage colours (live bar), cash tolerance, float, warn-only sales checks, trading-day end, late reminders. Menu: sites, people & roles, targets, discount reasons (23), void codes (15), delivery platforms, sections & questions |
 | Desktop · Admin forecast | Group forecast next 7 days with graph (Net / Covers / Wage %), per-site sparkline + forecast + vs last week + watch note, "Watch this week", how it's worked out |
 
@@ -206,6 +227,15 @@ All figures in the designs are **made-up examples**.
 ---
 
 ## 7. Design language (follow exactly)
+
+**Redesign, 12 Nov 2026 (designed; first pass built in the app the same day: site colours, gradient card, tabs, More, Sites and colours).** The user found the app too plain and hard to follow. New canvas: **https://claude.ai/artifact/2SaS5mXwouxhbg23YspRVV** ("Maginhawa Ops redesign": direction, 7 phone screens, 3 desktop screens, motion demos, research). Local copy: `design/redesign-canvas/project/`. What changed (full rules in `design/design-language.md` › Redesign):
+- **A colour per site**, set by head office in Settings › Sites and colours (12 tested swatches + a hue slider, text colour picked automatically). It shows on the site badge, main card, selected tab and progress circles. Green, amber and red still mean status only.
+- **Main card = moving gradient** made from the site colour with OKLCH (no black base, smooth blobs, film grain, 12–15 s drift, still under reduce motion). The user rejected a streaky version.
+- **Softer, colour-tinted shadows; Apple-style continuous corners; more whitespace** (24px phone margins, 64–68px rows, 34px titles).
+- **Navigation:** phone tabs Today · Close · Checks · More with search on every screen; Today = Needs you → Later today with one "Up next"; Close has a "what's left" bar; desktop sidebar grouped Today · Records · Team · Site.
+- Research behind it (Linear, Radix, 7shifts, Trail, Things 3, Family, Arc/Slack, Apple HIG): the canvas's Research board.
+
+Where the bullets below say "dark card" or rule out gradients, the redesign wins for the main card. The rest still holds.
 
 **What the user liked:**
 - Apple-like, minimal, sleek and premium.
@@ -293,7 +323,7 @@ Full detail with sources: `research/2026-10-research-findings.md`.
 **Check65 (looked at again 27 Oct 2026):**
 - The UK App Store listing has **87 ratings averaging 2.6★**. This replaces the "2 US ratings at 4.0" in `docs/reports/`, which used it to argue the app gets few downloads.
 - The detailed reviews complain that **entering temperatures is slow** (a scroll wheel instead of the keyboard, one form per reading, no jump to the next item). We type temperatures on the keypad, Enter moves to the next field, and fields that can go below zero have a **±** button (the iPhone decimal keypad has no minus key).
-- **What Check65 has that we don't:** Bluetooth probes; push reminders for due or missed checks; offline mode with background sync; HACCP plans and a risk-assessment library; health-and-safety and fire checks; a visitor log; Food Alert's advice line and consultancy. Push reminders and offline mode matter most for 9 sites, and both are already planned. HACCP and risk assessments are content, best bought or written with an EHO, not built.
+- **What Check65 has that we don't:** Bluetooth probes; push reminders for due or missed checks; offline mode with background sync; HACCP plans and a risk-assessment library; health-and-safety and fire checks; a visitor log; Food Alert's advice line and consultancy. Push reminders and offline mode matter most for 8 sites, and both are already planned. HACCP and risk assessments are content, best bought or written with an EHO, not built.
 
 **Where we beat competitors** (Tenzo, Nory, Restaurant365, Toast, 7shifts, Trail, Jolt, Check65 and others):
 - Numbers and notes in one place.
@@ -340,7 +370,7 @@ Full detail with sources: `research/2026-10-research-findings.md`.
 | 27 Oct – 5 Dec | **Build v1** | Sign-in, hub, all sections, cash count, review/submit, offline drafts, `core` calcs with tests; `submit-eod` function (official totals + summary email) and CSV/Excel export; head office Today view and basic settings |
 | 8–19 Dec | **Pilot at 2 sites** | Run alongside the old form; compare nightly |
 | 22 Dec – 2 Jan | **Freeze** | No rollout during peak trading |
-| Jan 2027 | **Roll out to all 9** | Training per site; retire the Netlify form after 2 clean weeks; add tips, iPad PIN, approve/send back, 07:00 digest |
+| Jan 2027 | **Roll out to all 8** | Training per site; retire the Netlify form after 2 clean weeks; add tips, iPad PIN, approve/send back, 07:00 digest |
 | Feb 2027 | **Forecasts and insights** | Trends, Forecast tab, wage warnings, anomaly rules |
 | Mar–Apr 2027 | **Next modules** | Checklists, food-safety logs (scope in §8a; first version built Oct 2026), repairs log |
 | May 2027 → | **AI and extras** | Ask your logs, AI summary, handbook, delivery reconciliation; native app only if needed |
@@ -360,14 +390,14 @@ Assumes 1–2 developers.
 
 1. Which EPOS/till do the sites use? (v1 doesn't integrate, but VAT "digital links" under Making Tax Digital should be checked with the accountant if figures are re-keyed.)
 2. Actual delivery contract terms per platform (commission/retention).
-3. How long the EOD takes GMs today; interview the 9 GMs.
+3. How long the EOD takes GMs today; interview the 8 GMs.
 4. Each site's capacity (Martyn's Law tier).
 5. Who owns tips/tronc, and is there an independent troncmaster?
 6. Who builds it, and how many developers?
 7. Probe hardware (Bluetooth probes?). The food-safety scope is now agreed and built (§8a); an EHO should confirm the *(beyond the guide)* rules and the keep periods. **The brief for that meeting is ready: `docs/eho/EHO brief.pdf`** (two pages with tick boxes; fill in the contact line before sending).
 8. Which reservations system does each site use (SevenRooms, OpenTable, ResDiary…)? The nightly bookings snapshot needs read access to it.
 9. Does each site have a written HACCP-based food safety management system (usually an SFBB pack)? The app records the checks but doesn't hold the plan.
-10. Should we set up a **Primary Authority** partnership with one council? The 9 sites fall under more than one London council, and Primary Authority gives one consistent answer.
+10. Should we set up a **Primary Authority** partnership with one council? The 8 sites fall under more than one London council, and Primary Authority gives one consistent answer.
 
 ---
 
@@ -388,7 +418,8 @@ HANDOFF.md / HANDOFF.pdf      ← this brief
 research/
   2026-10-research-findings.md   UX, market and competitor research (Oct 2026) with sources
 design/
-  design-language.md          tokens, components, do/don't
+  design-language.md          tokens, components, do/don't (incl. the Nov 2026 redesign)
+  redesign-canvas/            Nov 2026 redesign boards (.dc.html), local copy of the canvas
   eod-canvas/                 every screen's source (.dc.html) + canvas.json
 docs/
   eho/                        brief for an environmental health officer (HTML + PDF)

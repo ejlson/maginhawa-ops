@@ -2,10 +2,28 @@
 import { formatPounds } from './money';
 import type { StoredReport } from './store';
 import type { SiteSettings } from './settings';
+import type { FigureType } from './report-definition';
 
 export interface EmailMessage {
   subject: string;
   text: string;
+  /** Who it goes to. Left out = the usual finance list (MAIL_TO). */
+  to?: string[];
+}
+
+/** The sign-in code email. Says who it's from, how long the code lasts, and what to do if it wasn't them. */
+export function signInCodeEmail(to: string, code: string, minutes: number): EmailMessage {
+  return {
+    to: [to],
+    subject: `${code} is your Maginhawa sign-in code`,
+    text: [
+      `Your Maginhawa sign-in code is ${code}`,
+      '',
+      `Type it into the app within ${minutes} minutes. It works once.`,
+      '',
+      "If you didn't ask for it, ignore this email. Nobody can sign in without the code, and nobody from Maginhawa will ever ask you for it.",
+    ].join('\n'),
+  };
 }
 
 export function eodSummaryEmail(r: StoredReport, settings: Pick<SiteSettings, 'siteName'>): EmailMessage {
@@ -21,9 +39,17 @@ export function eodSummaryEmail(r: StoredReport, settings: Pick<SiteSettings, 's
     `Net sales: ${formatPounds(o.totalNet)}${o.netVsTarget !== null ? ` (${o.netVsTarget >= 0 ? '+' : '−'}${formatPounds(Math.abs(o.netVsTarget))} vs target)` : ''}`,
     `Covers: ${o.covers}`,
     `Net a head (dine-in): ${o.perHeadDineIn !== null ? formatPounds(o.perHeadDineIn) : '—'}`,
+    `Gross a head (dine-in): ${o.perHeadGrossDineIn !== null ? formatPounds(o.perHeadGrossDineIn) : '—'}`,
     `Wages: ${o.wagePct !== null ? `${o.wagePct}% (${o.wageRag})` : '—'}`,
     '',
   ];
+  // Figures finance added in the report builder and put in the email.
+  const added = new Set(o.definition?.added.map((x) => x.name) ?? []);
+  const extra = (o.definition?.email ?? []).filter((x) => added.has(x.name));
+  if (extra.length) {
+    for (const x of extra) lines.push(`${x.name}: ${figureText(x.type, x.value)}`);
+    lines.push('');
+  }
   for (const k of ['lunch', 'dinner'] as const) {
     const s = o.sessions[k];
     if (!s.ran) { lines.push(`${k === 'lunch' ? 'Lunch' : 'Dinner'}: didn't run`); continue; }
@@ -44,4 +70,12 @@ export function eodSummaryEmail(r: StoredReport, settings: Pick<SiteSettings, 's
   }
   const subject = `EOD · ${settings.siteName} · ${date} · ${formatPounds(o.totalNet)} net${notes.length ? ` · ${notes.length} to look at` : ''}`;
   return { subject, text: lines.join('\n') };
+}
+
+export function figureText(type: FigureType, v: number | null): string {
+  if (v === null) return '—';
+  if (type === 'money') return formatPounds(v);
+  if (type === 'percent') return `${Math.round(v * 1000) / 10}%`;
+  if (type === 'yesno') return v ? 'Yes' : 'No';
+  return String(Math.round(v * 100) / 100);
 }

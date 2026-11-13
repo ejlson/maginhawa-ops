@@ -5,6 +5,7 @@
  * and every past run still matches the list it was done against.
  */
 import { ANSWER_TYPES, type AnswerType, type Checkpoint, type ChecklistTemplate } from './checklists';
+import { addDays } from './data-quality';
 
 export interface TemplateVersion {
   version: number;
@@ -59,9 +60,7 @@ export function canCreateList(who: Editor, scope: 'group' | 'site'): boolean {
 }
 
 export function nextDay(date: string): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + 1);
-  return d.toISOString().slice(0, 10);
+  return addDays(date, 1);
 }
 
 /** The example lists, as if they had always been published. */
@@ -178,6 +177,18 @@ export function moveCheckpoint(t: ChecklistTemplate, id: string, by: -1 | 1): Ch
   return { ...t, checkpoints: list };
 }
 
+/** Moves a check to a new position (0-based), as when it's dragged. Out-of-range positions are clamped. */
+export function moveCheckpointTo(t: ChecklistTemplate, id: string, to: number): ChecklistTemplate {
+  const i = t.checkpoints.findIndex((c) => c.id === id);
+  if (i < 0) return t;
+  const j = Math.max(0, Math.min(t.checkpoints.length - 1, Math.round(to)));
+  if (i === j) return t;
+  const list = [...t.checkpoints];
+  const [moved] = list.splice(i, 1);
+  list.splice(j, 0, moved!);
+  return { ...t, checkpoints: list };
+}
+
 /**
  * Moves a list one place up or down among the lists it's shown with (`sameGroup`), such as one
  * site's own lists. The order is the order on the Checklists screen when lists are due at the same
@@ -190,6 +201,24 @@ export function moveRecord(records: TemplateRecord[], id: string, by: -1 | 1, sa
   if (at < 0 || !to) return records;
   const next = [...records];
   [next[peers[at]!.i], next[to.i]] = [next[to.i]!, next[peers[at]!.i]!];
+  return next;
+}
+
+/**
+ * Moves a list to a new place (0-based) among the lists it's shown with, as when it's dragged. The
+ * group keeps the slots it had in the full list, so lists outside it don't move.
+ */
+export function moveRecordTo(records: TemplateRecord[], id: string, to: number, sameGroup: (r: TemplateRecord) => boolean): TemplateRecord[] {
+  const slots = records.map((r, i) => ({ r, i })).filter((x) => sameGroup(x.r));
+  const at = slots.findIndex((x) => x.r.id === id);
+  if (at < 0) return records;
+  const j = Math.max(0, Math.min(slots.length - 1, Math.round(to)));
+  if (j === at) return records;
+  const order = slots.map((x) => x.r);
+  const [moved] = order.splice(at, 1);
+  order.splice(j, 0, moved!);
+  const next = [...records];
+  slots.forEach((s, k) => { next[s.i] = order[k]!; });
   return next;
 }
 

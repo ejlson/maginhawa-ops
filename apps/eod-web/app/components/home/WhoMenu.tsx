@@ -5,15 +5,16 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { hasLeft, SITES, tradingDate } from '@maginhawa/core';
-import { can, homeFor, recentPeople, ROLE_LABELS, useAuth, type Role } from '../../lib/auth';
-import { isConnected } from '../../lib/config';
+import { hasLeft, siteName, tradingDate } from '@maginhawa/core';
+import { can, homeFor, recentPeople, ROLE_ENTRIES, ROLE_LABELS, useAuth, type Role } from '../../lib/auth';
+import { isConnected, isSharedDev } from '../../lib/config';
 import { pins } from '../../lib/pins';
 import { resetDemoChecklists, resetDemoEod } from '../../lib/store';
 import { people } from '../../lib/people';
 import { settingsFor } from '../../lib/draft';
 import { now } from '../../lib/clock';
-import { Icon, ICONS } from '../ui';
+import { Icon } from '../ui';
+import { ICONS } from '../ui-helpers';
 
 export function WhoMenu() {
   const navigate = useNavigate();
@@ -35,9 +36,9 @@ export function WhoMenu() {
   if (!user) return null;
   const shared = user.role === 'staff';
   const others = shared ? recentPeople(user.siteCode).filter((p) => p.name !== user.name && p.role === 'staff' && !hasLeft(people.at(user.siteCode), user.siteCode, p.name)).slice(0, 5) : [];
-  const site = SITES.find((s) => s.code === user.siteCode)?.name ?? user.siteCode;
+  const site = siteName(user.siteCode);
   const go = (to: string) => { setOpen(false); navigate(to); };
-  const asRole = (r: Role) => { setOpen(false); if (r !== user.role) { signIn({ ...user, role: r }); navigate(homeFor(r)); } };
+  const asRole = (r: Role) => { setOpen(false); if (r !== user.role) { signIn({ ...user, role: r, inSite: false }); navigate(homeFor(r)); } };
   // Demo mode: start today's checklists again, to try them from scratch.
   const resetChecklists = () => {
     setOpen(false);
@@ -51,7 +52,7 @@ export function WhoMenu() {
   };
 
   return (
-    <div className="whomenu" ref={box}>
+    <div className="whomenu" ref={box} data-tour="me">
       <button type="button" className="who" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}
         aria-label={shared ? `${user.name} is using this device. Switch person` : `Signed in as ${user.name}. Menu`}>
         <span className="av ink" style={{ width: 30, height: 30, fontSize: 11 }}>{user.initials}</span>{user.name}
@@ -75,19 +76,19 @@ export function WhoMenu() {
             </button>
           </> : (
             <button ref={firstItem} type="button" role="menuitem" className="menuitem" onClick={() => go('/account')}>
-              <span className="av ink">{user.initials}</span><span className="tx"><span>{user.name}</span><small>{ROLE_LABELS[user.role]} · {user.role === 'headoffice' ? 'All sites' : site}</small></span>
+              <span className="av ink">{user.initials}</span><span className="tx"><span>{user.name}</span><small>{ROLE_LABELS[user.role]} · {user.role === 'headoffice' && !user.inSite ? 'All sites' : site}</small></span>
             </button>
           )}
 
           {!isConnected() && <>
             <div className="menusep" role="separator" />
             <div className="menuhead">See the app as</div>
-            {(Object.entries(ROLE_LABELS) as [Role, string][]).map(([r, label]) => (
+            {ROLE_ENTRIES.map(([r, label]) => (
               <button key={r} type="button" role="menuitemradio" aria-checked={user.role === r} className="menuitem small plain" onClick={() => asRole(r)}>
                 {label}{user.role === r && <Icon d={ICONS.check} size={18} />}
               </button>
             ))}
-            {user.role !== 'headoffice' && <>
+            {user.role !== 'headoffice' && !isSharedDev() && <>
               <div className="menusep" role="separator" />
               <button type="button" role="menuitem" className="menuitem small" onClick={resetChecklists}>
                 <span className="tx"><span>Reset today's checklists</span><small>Demo only. Clears {site}'s answers for today</small></span>

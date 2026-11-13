@@ -92,8 +92,11 @@ describe('checklists on two devices', () => {
     await act(async () => { await sam.checklists.answer(run, 'walkin', 3); });
     await poke();
     expect(screen.getByLabelText('Walk-in fridge')).toHaveValue('3');
-    expect(screen.getByText('Sam · 09:15')).toBeInTheDocument();
-    expect(screen.getByLabelText('Freezer')).toHaveValue('-19');
+    // Who and when share the grey line under the check's name.
+    expect(screen.getByText(/· Sam 09:15$/)).toBeInTheDocument();
+    // Freezer fields keep the sign on its own button, so the field shows 19 and the button shows −.
+    expect(screen.getByLabelText('Freezer')).toHaveValue('19');
+    expect(screen.getByRole('button', { name: 'Below zero: Freezer' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('submitting a list someone else already submitted leaves their name on it', async () => {

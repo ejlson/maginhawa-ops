@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Motion</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.sw,.qa,.ic,.pill,.chip,.btn{corner-shape:round}
+
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-70px,34px) scale(1.25) rotate(25deg)}66%{transform:translate(50px,-24px) scale(.9) rotate(-12deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+@keyframes driftB{0%{transform:translate(0,0) scale(1.05) rotate(0deg)}33%{transform:translate(64px,-28px) scale(.88) rotate(-20deg)}66%{transform:translate(-44px,30px) scale(1.2) rotate(14deg)}100%{transform:translate(0,0) scale(1.05) rotate(0deg)}}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{transform:translateY(60%);opacity:0}100%{transform:none;opacity:1}}
+.blob{position:absolute;border-radius:50%;z-index:-1;transition:background-color .45s ease}
+.ba{animation:driftA 12s ease-in-out infinite}
+.bb{animation:driftB 15s ease-in-out infinite}
+.grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:.75}
+.tile{border-radius:30px;background:#F7F7F9;padding:20px;display:flex;flex-direction:column;gap:14px;min-height:0}
+.stage{flex:1;border-radius:24px;background:#FFFFFF;box-shadow:0 0 0 1px rgba(0,0,0,.05);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.lbl{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.lbl b{font-size:17px;font-weight:600}
+.lbl span{font-size:12px;color:#6E6E73;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.note{font-size:13px;color:#6E6E73;line-height:1.45}
+.btn{height:48px;padding:0 24px;border-radius:999px;border:0;background:#1D1D1F;color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer;transition:transform .12s cubic-bezier(.23,1,.32,1)}
+.btn:active{transform:scale(.97)}
+.ring{transition:stroke-dasharray .7s cubic-bezier(.34,1.56,.64,1)}
+.tint{transition:background-color .35s ease,color .25s ease}
+@media (prefers-reduced-motion: reduce){.ba,.bb{animation:none}.btn:active{transform:none}.ring{transition:none}}
+</style>
+</helmet>
+<div style="width:1440px;height:900px;box-sizing:border-box;padding:48px 56px;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em;display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end">
+    <div><div style="font-size:14px;color:#6E6E73">Motion</div><div style="font-size:34px;font-weight:700;letter-spacing:-0.035em">Quick, soft, never in the way</div></div>
+    <div style="font-size:14px;color:#6E6E73;max-width:420px;text-align:right;line-height:1.45">Press each demo. With reduce motion turned on, movement becomes a short fade and the gradients hold still.</div>
+  </div>
+
+  <div style="flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:20px">
+    <div class="tile">
+      <div class="lbl"><b>Press</b><span>scale .97 · 120ms</span></div>
+      <div class="stage"><button class="btn">Submit Thursday · £2,687.50</button></div>
+      <div class="note">Every tap answers straight away. Never bouncy on things pressed many times a shift.</div>
+    </div>
+
+    <div class="tile">
+      <div class="lbl"><b>Switch site</b><span>colour cross-fade · 350ms</span></div>
+      <button class="stage" onClick="{{nextSite}}" aria-label="Switch to the next site" style="border:0;cursor:pointer;padding:0;isolation:isolate;background:oklch(from {{site.c}} .17 calc(c * .6) calc(h - 35));transition:background-color .45s ease;color:#F5F5F7;justify-content:flex-start;align-items:flex-end;padding:18px;font:inherit">
+        <div aria-hidden="true" class="blob ba" style="left:-70px;top:-90px;width:375px;height:250px;background:oklch(from {{site.c}} .1 calc(c * .4) calc(h - 35));filter:blur(40px)"></div>
+        <div aria-hidden="true" class="blob bb" style="right:-70px;top:-60px;width:300px;height:250px;background:{{site.c}};filter:blur(42px)"></div>
+        <div aria-hidden="true" class="blob ba" style="right:60px;bottom:-100px;width:300px;height:200px;background:oklch(from {{site.c}} calc(l - .04) calc(c * 1.1) calc(h - 40));filter:blur(44px);opacity:.9"></div>
+        <div aria-hidden="true" class="blob bb" style="right:-40px;bottom:-60px;width:187px;height:150px;background:oklch(from {{site.light}} .95 calc(c * .6) h);filter:blur(36px);opacity:.9"></div>
+        <svg aria-hidden="true" class="grain"><filter id="gm1"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#gm1)"></rect></svg>
+        <span style="display:flex;align-items:center;gap:10px"><span class="tint" style="width:34px;height:34px;border-radius:12px;background:{{site.c}};color:{{site.on}};font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">{{site.mono}}</span><span style="font-size:17px;font-weight:600">{{site.name}}</span></span>
+      </button>
+      <div class="note">Tap the card. Badge, card and tab tint all move together, so you feel the change of place.</div>
+    </div>
+
+    <div class="tile">
+      <div class="lbl"><b>Progress</b><span>spring · 700ms · small overshoot</span></div>
+      <button class="stage" onClick="{{tick}}" aria-label="Tick a section" style="border:0;cursor:pointer;font:inherit;flex-direction:column;gap:10px">
+        <svg width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="{{done}} of 8 sections done"><circle cx="60" cy="60" r="50" fill="none" stroke="#F2F2F5" stroke-width="10"></circle><circle class="ring" cx="60" cy="60" r="50" fill="none" stroke="#F59F00" stroke-width="10" stroke-linecap="round" transform="rotate(-90 60 60)" style="stroke-dasharray:{{dash}}"></circle><text x="60" y="68" text-anchor="middle" font-size="26" font-weight="700" fill="#1D1D1F" font-family="Geist, sans-serif">{{done}}/8</text></svg>
+        <span style="font-size:13px;color:#6E6E73">Tap to tick a section</span>
+      </button>
+      <div class="note">Circles fill with a little spring when a section is done. A celebration only when the day is sent.</div>
+    </div>
+
+    <div class="tile">
+      <div class="lbl"><b>Rolling figures</b><span>digits slide up · 300ms</span></div>
+      <button class="stage" onClick="{{addSale}}" aria-label="Add £120.50" style="border:0;cursor:pointer;font:inherit;flex-direction:column;gap:6px">
+        <span style="font-size:13px;color:#6E6E73">Net so far</span>
+        <span style="display:flex;overflow:hidden;font-variant-numeric:tabular-nums;font-size:48px;font-weight:600;letter-spacing:-0.05em;height:58px">
+          <sc-for list="{{digits}}" as="d" hint-placeholder-count="6"><span style="display:inline-block;animation:pop .3s cubic-bezier(.23,1,.32,1) both;animation-delay:{{d.delay}}" key="{{d.key}}">{{d.ch}}</span></sc-for>
+        </span>
+        <span style="font-size:13px;color:#6E6E73">Tap to add £120.50</span>
+      </button>
+      <div class="note">Totals roll as figures are typed, so the change is easy to see. Only digits that change move.</div>
+    </div>
+
+    <div class="tile">
+      <div class="lbl"><b>Sheets</b><span>in 360ms · out 220ms</span></div>
+      <div class="stage" style="align-items:flex-start;padding-top:28px">
+        <button class="btn" onClick="{{openSheet}}" style="background:#F2F2F5;color:#1D1D1F">Count the cash</button>
+        <sc-if value="{{sheet}}" hint-placeholder-val="{{false}}">
+          <button onClick="{{closeSheet}}" aria-label="Close" style="position:absolute;inset:0;border:0;background:rgba(0,0,0,.25);animation:fadeIn .2s both;cursor:pointer"></button>
+          <div style="position:absolute;left:0;right:0;bottom:0;height:62%;background:#fff;border-radius:28px 22px 0 0;padding:10px 18px;box-sizing:border-box;animation:sheetUp .36s cubic-bezier(.32,.72,0,1) both;box-shadow:0 -8px 32px rgba(0,0,0,.08)">
+            <div style="width:36px;height:5px;border-radius:3px;background:#D1D1D6;margin:0 auto 10px"></div>
+            <div style="font-size:17px;font-weight:600">Count the cash</div>
+            <div style="font-size:13px;color:#6E6E73;margin-top:2px">£50 notes · £20 notes · £10 notes…</div>
+          </div>
+        </sc-if>
+      </div>
+      <div class="note">Sheets slide up from where you tapped and leave faster than they arrive.</div>
+    </div>
+
+    <div class="tile" style="background:#1D1D1F;color:#F5F5F7">
+      <div class="lbl"><b>Tokens</b><span style="color:#A3A3AB">for the developers</span></div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:0;font-size:14px">
+        <sc-for list="{{tokens}}" as="t" hint-placeholder-count="6">
+          <div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.1)"><span>{{t.k}}</span><span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#A3A3AB;text-align:right">{{t.v}}</span></div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { site: 4, done: 3, total: 1840.5, sheet: false }; }
+  renderVals() {
+    const S = [['Bintang','BN','#3B5BDB','#A5B8FF','#FFFFFF'],['Guanabana','GB','#5C940D','#D8F5A2','#FFFFFF'],['Belly','BL','#9C36B5','#F3C4FF','#FFFFFF'],['Hoodwood','HW','#A0612A','#F5D0A9','#FFFFFF'],['Bunso','BU','#F59F00','#FFE8A3','#1D1D1F'],['Cafe Mama & Sons','CM','#D6336C','#FFC9DE','#FFFFFF'],['Mamasons Kentish Town','KT','#0C8599','#99E9F2','#FFFFFF'],['Mamasons China Town','CT','#C92A2A','#FFB37A','#FFFFFF']];
+    const x = S[this.state.site];
+    const C = 2 * Math.PI * 50;
+    const str = '£' + Math.floor(this.state.total).toLocaleString('en-GB');
+    return {
+      site: { name: x[0], mono: x[1], c: x[2], light: x[3], on: x[4] },
+      nextSite: () => this.setState({ site: (this.state.site + 1) % S.length }),
+      done: this.state.done,
+      dash: (C * this.state.done / 8).toFixed(1) + ' ' + C.toFixed(1),
+      tick: () => this.setState({ done: this.state.done >= 8 ? 0 : this.state.done + 1 }),
+      digits: str.split('').map((ch, i) => ({ ch, key: i + ch, delay: (i * 25) + 'ms' })),
+      addSale: () => this.setState({ total: this.state.total + 120.5 }),
+      sheet: this.state.sheet,
+      openSheet: () => this.setState({ sheet: true }),
+      closeSheet: () => this.setState({ sheet: false }),
+      tokens: [
+        { k: 'Press', v: 'scale(.97) · 120ms' },
+        { k: 'Screens and lists', v: '200–280ms · cubic-bezier(.23,1,.32,1)' },
+        { k: 'Sheets', v: 'in 360ms (.32,.72,0,1) · out 220ms' },
+        { k: 'Progress fill', v: 'spring · 700ms · (.34,1.56,.64,1)' },
+        { k: 'List stagger', v: '30–40ms each · max 6 rows' },
+        { k: 'Gradient drift', v: '12–15s loop · off with reduce motion' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

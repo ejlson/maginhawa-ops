@@ -3,9 +3,9 @@ import { BOIL_RANGE, calibrationResult, ICE_RANGE, probeStatus } from '@maginhaw
 import { useAuth } from '../lib/auth';
 import { degrees, shortDate, useFoodSafety } from '../lib/food-safety';
 import { useChecklists } from '../lib/checklists';
-import { Foot, Icon, ICONS, Nav, TempInput } from '../components/ui';
+import { Foot, Icon, Nav, TempInput } from '../components/ui';
+import { ICONS, parseTemp } from '../components/ui-helpers';
 
-const parse = (t: string) => { const n = parseFloat(t.replace('−', '-')); return Number.isFinite(n) ? n : null; };
 const STATE = { ok: { cls: 'p-ok', av: 'ok', text: 'In date' }, due: { cls: 'p-warn', av: 'warn', text: 'Due' }, never: { cls: 'p-warn', av: 'warn', text: 'Never checked' }, failed: { cls: 'p-bad', av: 'bad', text: 'Not in use' } } as const;
 
 /** Weekly probe calibration in iced and boiling water (HANDOFF.md §8a, item 6). */
@@ -19,7 +19,7 @@ export default function FsProbes() {
   const [boil, setBoil] = useState('');
   const [saved, setSaved] = useState<string | null>(null);
   const probe = site.probes.find((p) => p.id === probeId);
-  const i = parse(ice); const b = parse(boil);
+  const i = parseTemp(ice); const b = parseTemp(boil);
   const r = i !== null && b !== null ? calibrationResult(i, b) : null;
   const pill = (ok: boolean | undefined) => (ok === undefined ? null : <span className={`pill ${ok ? 'p-ok' : 'p-bad'}`}>{ok ? 'Pass' : 'Fail'}</span>);
 

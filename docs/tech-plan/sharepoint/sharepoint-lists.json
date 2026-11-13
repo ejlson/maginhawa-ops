@@ -75,9 +75,15 @@
           "flags": ""
         },
         {
+          "name": "PowerAutomateFrom",
+          "type": "DateTime",
+          "notes": "When head office switched the EOD flow on for this site; blank = off. Reports sent before it aren't sent to the flow",
+          "flags": ""
+        },
+        {
           "name": "Active",
           "type": "Yes/No",
-          "notes": "",
+          "notes": "Open and trading. A closed site (e.g. Ramo) stays for its old records but drops out of pickers, counts and access",
           "flags": "I"
         }
       ]
@@ -85,8 +91,8 @@
     {
       "group": "Reference",
       "name": "Staff",
-      "purpose": "Everyone who uses the apps, incl. kiosk-only staff without Microsoft accounts",
-      "written_by": "Admin / Manager",
+      "purpose": "Everyone who uses the apps, incl. kiosk-only staff with no email (PIN only). Role and sites decide what the server lets them open",
+      "written_by": "Head office (sites, roles) / Manager (own site's people)",
       "columns": [
         {
           "name": "Title",
@@ -97,14 +103,38 @@
         {
           "name": "Email",
           "type": "Text",
-          "notes": "Microsoft account (blank for kiosk-only staff)",
+          "notes": "Any email they can read (work or personal), stored lower case; they sign in with a code sent to it. Blank for kiosk-only staff. One active row per email",
           "flags": "I"
+        },
+        {
+          "name": "EmailVerifiedAt",
+          "type": "DateTime",
+          "notes": "When they first typed a code sent to this email",
+          "flags": "F"
+        },
+        {
+          "name": "SessionsValidAfter",
+          "type": "DateTime",
+          "notes": "Sign-ins from before this stop working: 'sign out everywhere', an email change, a lost phone",
+          "flags": ""
         },
         {
           "name": "HomeSite",
           "type": "Lookup → Sites",
-          "notes": "",
+          "notes": "Main site: where they land after signing in",
           "flags": "I"
+        },
+        {
+          "name": "OtherSites",
+          "type": "Lookup → Sites (multi)",
+          "notes": "Other sites they work at. Head office only",
+          "flags": ""
+        },
+        {
+          "name": "AllSites",
+          "type": "Yes/No",
+          "notes": "Every open site, including ones opened later. Head office only",
+          "flags": ""
         },
         {
           "name": "Department",
@@ -121,13 +151,13 @@
         {
           "name": "AppRole",
           "type": "Choice",
-          "notes": "Staff / Manager / Admin / Finance / Owner",
+          "notes": "Staff / Supervisor / Manager / Head office (head office always has every site)",
           "flags": "R"
         },
         {
           "name": "PinHash",
           "type": "Text",
-          "notes": "argon2 hash of 4-digit kiosk PIN (never the PIN)",
+          "notes": "PBKDF2-SHA-256 hash and salt of the 4-digit kiosk PIN (never the PIN; packages/core pin.ts)",
           "flags": ""
         },
         {
@@ -192,7 +222,7 @@
       "group": "Reference",
       "name": "Targets",
       "purpose": "Daily targets per site (imported from finance Excel or edited in console)",
-      "written_by": "Flow F09 / Finance",
+      "written_by": "Nightly targets import (Netlify Scheduled Function) / Finance",
       "columns": [
         {
           "name": "Title",
@@ -407,6 +437,12 @@
           "flags": "R"
         },
         {
+          "name": "TemplateId",
+          "type": "Text",
+          "notes": "Stable id used in run keys, e.g. closing",
+          "flags": "IUR"
+        },
+        {
           "name": "Kind",
           "type": "Choice",
           "notes": "Opening / Closing / Cleaning / Food safety / Delivery / Handover / Custom",
@@ -425,9 +461,9 @@
           "flags": "I"
         },
         {
-          "name": "Sites",
-          "type": "Lookup (multi) → Sites",
-          "notes": "Where it applies",
+          "name": "SiteCodes",
+          "type": "Text",
+          "notes": "Where it applies, e.g. BUN;HOX (blank = every site). Text, not a lookup",
           "flags": ""
         }
       ]
@@ -445,9 +481,15 @@
           "flags": "R"
         },
         {
-          "name": "Template",
-          "type": "Lookup → ChecklistTemplates",
-          "notes": "",
+          "name": "CheckpointId",
+          "type": "Text",
+          "notes": "Stable id used in answer keys, e.g. walkin-temp (never reused)",
+          "flags": "IR"
+        },
+        {
+          "name": "TemplateId",
+          "type": "Text",
+          "notes": "ChecklistTemplates.TemplateId (text, not a lookup)",
           "flags": "I"
         },
         {
@@ -537,15 +579,15 @@
           "flags": ""
         },
         {
-          "name": "Template",
-          "type": "Lookup → ChecklistTemplates",
-          "notes": "",
+          "name": "TemplateId",
+          "type": "Text",
+          "notes": "ChecklistTemplates.TemplateId",
           "flags": "I"
         },
         {
-          "name": "Site",
-          "type": "Lookup → Sites",
-          "notes": "",
+          "name": "SiteCode",
+          "type": "Text",
+          "notes": "Sites.SiteCode",
           "flags": "I"
         },
         {
@@ -589,36 +631,212 @@
           "type": "Date",
           "notes": "",
           "flags": ""
+        },
+        {
+          "name": "EffectiveFrom",
+          "type": "Text",
+          "notes": "yyyy-MM-dd. Missed-day checks use the schedule that applied on that date",
+          "flags": "R"
+        },
+        {
+          "name": "EffectiveTo",
+          "type": "Text",
+          "notes": "yyyy-MM-dd; blank = still in use. Change a schedule by ending it and adding a new one",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Checklists",
+      "name": "ChecklistDays",
+      "purpose": "One header per open site per date: groups the day's runs and records misses (replaces DayClosures)",
+      "written_by": "Morning job creates; checklist-sync updates; nightly and weekly jobs mark Missed",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "DayKey = SiteCode|yyyy-MM-dd, e.g. BUN|2026-11-06",
+          "flags": "IUR"
+        },
+        {
+          "name": "Label",
+          "type": "Text",
+          "notes": "For people and list search, e.g. Bunso · Fri 6 Nov 2026",
+          "flags": ""
+        },
+        {
+          "name": "SiteCode",
+          "type": "Text",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "BusinessDateKey",
+          "type": "Text",
+          "notes": "yyyy-MM-dd; keys and range filters (Date columns shift a day in British Summer Time)",
+          "flags": "I"
+        },
+        {
+          "name": "BusinessDate",
+          "type": "Date",
+          "notes": "Display and Power BI date tables only; never filter on it",
+          "flags": ""
+        },
+        {
+          "name": "Status",
+          "type": "Choice",
+          "notes": "Due / In progress / Submitted / Late / Missed / Not trading / Deleted / Deleting. Filter by date first, then status in code",
+          "flags": "I"
+        },
+        {
+          "name": "NotTradingReason",
+          "type": "Text",
+          "notes": "Head office: closure, refurb, holiday",
+          "flags": ""
+        },
+        {
+          "name": "ExpectedRuns",
+          "type": "Number",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "CompletedRuns",
+          "type": "Number",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "MissedRuns",
+          "type": "Number",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "FailedCount",
+          "type": "Number",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "OpenFixes",
+          "type": "Number",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "SubmittedAt",
+          "type": "DateTime",
+          "notes": "Last run finished (server time)",
+          "flags": "F"
+        },
+        {
+          "name": "SubmittedById",
+          "type": "Text",
+          "notes": "Staff list item id (not a person column)",
+          "flags": "F"
+        },
+        {
+          "name": "SubmittedByName",
+          "type": "Text",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "MissedDetectedAt",
+          "type": "DateTime",
+          "notes": "Set once by the nightly job; never cleared, even by a late submission",
+          "flags": "F"
+        },
+        {
+          "name": "DayHash",
+          "type": "Text",
+          "notes": "SHA-256 over the finished runs' RunHash values",
+          "flags": "F"
+        },
+        {
+          "name": "Stats",
+          "type": "Multi-line text",
+          "notes": "JSON: completion %, failures, open fixes, faults",
+          "flags": "F"
+        },
+        {
+          "name": "ReportItemId",
+          "type": "Text",
+          "notes": "driveItem id of the day PDF in Maginhawa App Checklists (never a URL)",
+          "flags": "F"
+        },
+        {
+          "name": "ReportBuiltAt",
+          "type": "DateTime",
+          "notes": "When the day PDF was last made; remade after any correction",
+          "flags": "F"
+        },
+        {
+          "name": "DeletedAt",
+          "type": "DateTime",
+          "notes": "Soft delete",
+          "flags": "F"
+        },
+        {
+          "name": "DeletedById",
+          "type": "Text",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "DeletedByName",
+          "type": "Text",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "DeletedReason",
+          "type": "Text",
+          "notes": "Required to delete; 'Moved to …' after a move",
+          "flags": "F"
+        },
+        {
+          "name": "StatusBeforeDelete",
+          "type": "Text",
+          "notes": "Restore puts this back",
+          "flags": "F"
         }
       ]
     },
     {
       "group": "Checklists",
       "name": "ChecklistRuns",
-      "purpose": "One instance of a checklist on a day (created each morning by flow F02)",
-      "written_by": "Flow F02 creates; app completes",
+      "purpose": "One checklist (template + due time) on a day; holds the live answers while open",
+      "written_by": "checklist-sync (Netlify Function); scheduled jobs create and mark Missed",
       "columns": [
         {
           "name": "Title",
           "type": "Text",
-          "notes": "Key = SiteCode|yyyy-mm-dd|ScheduleId",
+          "notes": "RunKey = SiteCode|yyyy-MM-dd|templateId|HH:MM (or |any), e.g. BUN|2026-11-06|closing|22:30",
           "flags": "IUR"
         },
         {
-          "name": "Site",
-          "type": "Lookup → Sites",
+          "name": "DayKey",
+          "type": "Text",
+          "notes": "ChecklistDays key; all runs for a day = one filter on this",
+          "flags": "I"
+        },
+        {
+          "name": "SiteCode",
+          "type": "Text",
           "notes": "",
           "flags": "I"
         },
         {
-          "name": "BusinessDate",
-          "type": "Date",
-          "notes": "",
+          "name": "BusinessDateKey",
+          "type": "Text",
+          "notes": "yyyy-MM-dd",
           "flags": "I"
         },
         {
-          "name": "Template",
-          "type": "Lookup → ChecklistTemplates",
+          "name": "TemplateId",
+          "type": "Text",
           "notes": "",
           "flags": ""
         },
@@ -629,96 +847,216 @@
           "flags": ""
         },
         {
+          "name": "DueTime",
+          "type": "Text",
+          "notes": "HH:MM or blank",
+          "flags": ""
+        },
+        {
           "name": "DueAt",
-          "type": "Date/Time",
+          "type": "DateTime",
           "notes": "",
           "flags": ""
         },
         {
           "name": "Status",
           "type": "Choice",
-          "notes": "Scheduled / In progress / Completed / Missed / Auto-closed / Cancelled",
+          "notes": "Scheduled / In progress / Completed / Missed / Auto-closed / Cancelled / Deleted",
           "flags": "I"
         },
         {
-          "name": "CompletedBy",
-          "type": "Lookup → Staff",
-          "notes": "",
+          "name": "AnswersJson",
+          "type": "Multi-line text (plain)",
+          "notes": "Snapshot of the run's answers: value, who, when, fix, corrections, per-answer seq. Saved with If-Match; the server refuses more than about 50,000 characters. Photos and signatures are ids, never base64",
+          "flags": "F"
+        },
+        {
+          "name": "SchemaVersion",
+          "type": "Number",
+          "notes": "Version of the AnswersJson shape",
+          "flags": "F"
+        },
+        {
+          "name": "Seq",
+          "type": "Number",
+          "notes": "Raised on every successful write; the Finish 'seen' check compares against it",
+          "flags": "F"
+        },
+        {
+          "name": "RecheckOf",
+          "type": "Text",
+          "notes": "RunKey|checkpointId of the failed answer",
           "flags": ""
         },
         {
           "name": "CompletedAt",
-          "type": "Date/Time",
+          "type": "DateTime",
+          "notes": "Server time",
+          "flags": "F"
+        },
+        {
+          "name": "CompletedById",
+          "type": "Text",
+          "notes": "Staff list item id",
+          "flags": "F"
+        },
+        {
+          "name": "CompletedByName",
+          "type": "Text",
           "notes": "",
-          "flags": ""
+          "flags": "F"
         },
         {
           "name": "DurationSeconds",
           "type": "Number",
           "notes": "Pencil-whip signal",
-          "flags": ""
+          "flags": "F"
         },
         {
           "name": "FailedCount",
           "type": "Number",
-          "notes": "Set by flow F04",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "RunHash",
+          "type": "Text",
+          "notes": "SHA-256 of the canonical finished AnswersJson",
+          "flags": "F"
+        },
+        {
+          "name": "RowsStatus",
+          "type": "Choice",
+          "notes": "Pending / Written: queue for the background writer of Responses_{yyyy} rows",
+          "flags": "I"
+        },
+        {
+          "name": "DeletedAt",
+          "type": "DateTime",
+          "notes": "Soft delete of one run",
+          "flags": "F"
+        },
+        {
+          "name": "DeletedById",
+          "type": "Text",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "DeletedReason",
+          "type": "Text",
+          "notes": "",
           "flags": "F"
         }
       ]
     },
     {
       "group": "Checklists",
-      "name": "Responses",
-      "purpose": "Every answer — the compliance record (largest list)",
-      "written_by": "App (append-only by convention + Purview record label)",
+      "name": "Responses_{yyyy}",
+      "purpose": "One list per business-date year (Responses_2026, Responses_2027…): one row per final answer, written at Finish and on each correction, never edited. Create every index before go-live: SharePoint Online can refuse a new index once a list passes 5,000 items, and this list passes that in about 4 days",
+      "written_by": "Background writer (Netlify Function) only; create-only",
       "columns": [
         {
           "name": "Title",
           "type": "Text",
-          "notes": "ClientId — UUID from the device; makes offline retries idempotent",
+          "notes": "RowKey = AnswerKey|rev (rev 0 = original, 1… = corrections). A retried write gets 409, not a duplicate",
           "flags": "IUR"
         },
         {
-          "name": "Run",
-          "type": "Lookup → ChecklistRuns",
-          "notes": "",
+          "name": "AnswerKey",
+          "type": "Text",
+          "notes": "RunKey|checkpointId",
           "flags": "I"
         },
         {
-          "name": "Site",
-          "type": "Lookup → Sites",
-          "notes": "",
+          "name": "DayKey",
+          "type": "Text",
+          "notes": "Answers for one day",
           "flags": "I"
         },
         {
-          "name": "BusinessDate",
-          "type": "Date",
-          "notes": "",
+          "name": "BusinessDateKey",
+          "type": "Text",
+          "notes": "yyyy-MM-dd; date-range exports",
           "flags": "I"
         },
         {
           "name": "CheckpointId",
+          "type": "Text",
+          "notes": "One question over a year (about 2,920 rows)",
+          "flags": "I"
+        },
+        {
+          "name": "SiteCode",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "RunKey",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "TemplateId",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "TemplateVersion",
           "type": "Number",
-          "notes": "Checkpoint item id",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "CheckpointTitle",
+          "type": "Text",
+          "notes": "Snapshot, so later template edits don't rewrite history",
+          "flags": ""
+        },
+        {
+          "name": "AnswerType",
+          "type": "Choice",
+          "notes": "yesno / temp / number / text / photo / choice / date / sign (ANSWER_TYPES)",
           "flags": ""
         },
         {
           "name": "ValueNumber",
           "type": "Number",
-          "notes": "",
+          "notes": "temp, number",
+          "flags": ""
+        },
+        {
+          "name": "ValueBool",
+          "type": "Choice",
+          "notes": "Yes / No / blank (a Yes/No column can't be blank)",
           "flags": ""
         },
         {
           "name": "ValueText",
           "type": "Multi-line text",
-          "notes": "Text / select / signature JSON",
+          "notes": "text, choice",
           "flags": ""
         },
         {
-          "name": "Passed",
-          "type": "Yes/No",
-          "notes": "App preview; confirmed by flow F04",
-          "flags": "I"
+          "name": "ValueDateKey",
+          "type": "Text",
+          "notes": "yyyy-MM-dd",
+          "flags": ""
+        },
+        {
+          "name": "ValueDisplay",
+          "type": "Text",
+          "notes": "Readable value for Excel, whatever the type",
+          "flags": ""
+        },
+        {
+          "name": "Result",
+          "type": "Choice",
+          "notes": "Pass / Fail / None (replaces Passed)",
+          "flags": ""
         },
         {
           "name": "ThresholdSnapshot",
@@ -733,9 +1071,21 @@
           "flags": ""
         },
         {
-          "name": "PhotoUrl",
-          "type": "Hyperlink",
-          "notes": "Photos library",
+          "name": "CapturedLive",
+          "type": "Yes/No",
+          "notes": "In-app camera, not gallery",
+          "flags": ""
+        },
+        {
+          "name": "PhotoIds",
+          "type": "Text",
+          "notes": "PhotoId values (; separated). Replaces PhotoUrl: links expire, ids don't",
+          "flags": ""
+        },
+        {
+          "name": "PhotoItemIds",
+          "type": "Text",
+          "notes": "driveItem ids in the Photos library",
           "flags": ""
         },
         {
@@ -745,46 +1095,52 @@
           "flags": ""
         },
         {
-          "name": "CapturedLive",
-          "type": "Yes/No",
-          "notes": "In-app camera, not gallery",
+          "name": "AnsweredById",
+          "type": "Text",
+          "notes": "Staff list item id",
           "flags": ""
         },
         {
-          "name": "RecordedBy",
-          "type": "Lookup → Staff",
+          "name": "AnsweredByName",
+          "type": "Text",
           "notes": "",
           "flags": ""
         },
         {
-          "name": "Device",
-          "type": "Lookup → Devices",
-          "notes": "",
+          "name": "AnsweredAt",
+          "type": "DateTime",
+          "notes": "Capped at server time",
           "flags": ""
         },
         {
-          "name": "ClientRecordedAt",
-          "type": "Date/Time",
-          "notes": "Device clock (Created = server time)",
+          "name": "ReceivedAt",
+          "type": "DateTime",
+          "notes": "Server time the answer reached us (offline answers arrive later)",
+          "flags": ""
+        },
+        {
+          "name": "Rev",
+          "type": "Number",
+          "notes": "0 = original",
           "flags": ""
         },
         {
           "name": "Supersedes",
-          "type": "Number",
-          "notes": "Id of the response this corrects (never edit in place)",
+          "type": "Text",
+          "notes": "RowKey of the row this corrects",
           "flags": ""
         },
         {
           "name": "CorrectionReason",
           "type": "Text",
-          "notes": "",
+          "notes": "Required when Rev > 0",
           "flags": ""
         },
         {
-          "name": "AnswerKey",
-          "type": "Text",
-          "notes": "runKey|checkpointId. The current answer = latest ClientRecordedAt per key (shared checklists: last write wins, shows who)",
-          "flags": "I"
+          "name": "CorrectedAt",
+          "type": "DateTime",
+          "notes": "Server time",
+          "flags": ""
         }
       ]
     },
@@ -792,7 +1148,7 @@
       "group": "Checklists",
       "name": "CorrectiveActions",
       "purpose": "What was done about a failed check",
-      "written_by": "App + flows F04/F05",
+      "written_by": "App + Netlify Functions (checklist check, re-check and escalation)",
       "columns": [
         {
           "name": "Title",
@@ -801,14 +1157,20 @@
           "flags": "R"
         },
         {
-          "name": "Response",
-          "type": "Lookup → Responses",
+          "name": "AnswerKey",
+          "type": "Text",
+          "notes": "RunKey|checkpointId of the failed answer (replaces the Response lookup)",
+          "flags": "I"
+        },
+        {
+          "name": "DayKey",
+          "type": "Text",
           "notes": "",
           "flags": "I"
         },
         {
-          "name": "Site",
-          "type": "Lookup → Sites",
+          "name": "SiteCode",
+          "type": "Text",
           "notes": "",
           "flags": "I"
         },
@@ -843,8 +1205,14 @@
           "flags": ""
         },
         {
-          "name": "VerifiedBy",
-          "type": "Lookup → Staff",
+          "name": "VerifiedById",
+          "type": "Text",
+          "notes": "Staff list item id",
+          "flags": ""
+        },
+        {
+          "name": "VerifiedByName",
+          "type": "Text",
           "notes": "",
           "flags": ""
         }
@@ -852,45 +1220,157 @@
     },
     {
       "group": "Checklists",
-      "name": "DayClosures",
-      "purpose": "Ops end-of-day sign-off per site",
-      "written_by": "App + flow F01",
+      "name": "ChecklistAudit",
+      "purpose": "Restores, moves and hard deletes of checklist days; kept when the day itself is hard-deleted",
+      "written_by": "Netlify Functions only",
       "columns": [
         {
           "name": "Title",
           "type": "Text",
-          "notes": "Key = SiteCode|yyyy-mm-dd",
+          "notes": "DayKey|action|timestamp",
           "flags": "IUR"
         },
         {
-          "name": "Site",
-          "type": "Lookup → Sites",
+          "name": "DayKey",
+          "type": "Text",
           "notes": "",
           "flags": "I"
         },
         {
-          "name": "BusinessDate",
-          "type": "Date",
-          "notes": "",
-          "flags": "I"
+          "name": "Action",
+          "type": "Choice",
+          "notes": "Soft delete / Restore / Move / Hard delete started / Hard delete finished",
+          "flags": "R"
         },
         {
-          "name": "ClosedBy",
-          "type": "Lookup → Staff",
-          "notes": "Blank = auto-closed",
+          "name": "Reason",
+          "type": "Text",
+          "notes": "",
+          "flags": "R"
+        },
+        {
+          "name": "ById",
+          "type": "Text",
+          "notes": "Staff list item id",
+          "flags": "R"
+        },
+        {
+          "name": "ByName",
+          "type": "Text",
+          "notes": "",
           "flags": ""
         },
         {
-          "name": "Stats",
-          "type": "Multi-line text",
-          "notes": "JSON: completion %, failures, open CAs, faults",
-          "flags": "F"
+          "name": "At",
+          "type": "DateTime",
+          "notes": "Server time",
+          "flags": "R"
         },
         {
-          "name": "ReportLink",
-          "type": "Hyperlink",
-          "notes": "PDF in Reports library",
-          "flags": "F"
+          "name": "Counts",
+          "type": "Text",
+          "notes": "JSON: runs, rows, photos, corrective actions affected",
+          "flags": ""
+        },
+        {
+          "name": "MovedTo",
+          "type": "Text",
+          "notes": "New DayKey after a move",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "name": "SignInLog",
+      "purpose": "Sign-ins, codes asked for, wrong codes, kitchen iPads set up and sign-outs. Never the code itself. Kept 12 months",
+      "written_by": "Server (sign-in routes) only",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "action|email|timestamp",
+          "flags": "R"
+        },
+        {
+          "name": "Action",
+          "type": "Choice",
+          "notes": "Code sent / Code not sent / Signed in / Wrong code / Locked / Kitchen iPad set up / Signed out",
+          "flags": "I"
+        },
+        {
+          "name": "Email",
+          "type": "Text",
+          "notes": "Lower case",
+          "flags": "I"
+        },
+        {
+          "name": "SiteCode",
+          "type": "Text",
+          "notes": "For kitchen iPads",
+          "flags": ""
+        },
+        {
+          "name": "At",
+          "type": "DateTime",
+          "notes": "Server time",
+          "flags": "I"
+        },
+        {
+          "name": "NetworkAddress",
+          "type": "Text",
+          "notes": "From Cloudflare; personal data, so kept 12 months only",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "name": "Devices",
+      "purpose": "Kitchen iPads set up by a manager. Turning one off stops it at once; it also stops if that manager leaves or loses the site",
+      "written_by": "Server; managers turn them off in the app",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "DeviceId (random, from the sign-in cookie)",
+          "flags": "IUR"
+        },
+        {
+          "name": "SiteCode",
+          "type": "Text",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "SetUpBy",
+          "type": "Text",
+          "notes": "Manager's email",
+          "flags": ""
+        },
+        {
+          "name": "SetUpAt",
+          "type": "DateTime",
+          "notes": "",
+          "flags": ""
+        },
+        {
+          "name": "Label",
+          "type": "Text",
+          "notes": "e.g. Kitchen iPad by the pass",
+          "flags": ""
+        },
+        {
+          "name": "RevokedAt",
+          "type": "DateTime",
+          "notes": "Blank = in use",
+          "flags": "I"
+        },
+        {
+          "name": "RevokedBy",
+          "type": "Text",
+          "notes": "",
+          "flags": ""
         }
       ]
     },
@@ -1649,7 +2129,7 @@
         {
           "name": "Months",
           "type": "Number",
-          "notes": "Suggested defaults in packages/core DEFAULT_KEEP",
+          "notes": "Suggested defaults in packages/core DEFAULT_KEEP. Proposed: checks 36 (3 years: Food Safety Act s.34 prosecutions and injury claims both have 3-year limits; DEFAULT_KEEP still says 24 until agreed); check photos 12 unless tied to an incident",
           "flags": "R"
         },
         {
@@ -1794,7 +2274,7 @@
       "group": "Maintenance",
       "name": "WorkOrders",
       "purpose": "Repairs: from fault report, failed check, statutory due or EOD note",
-      "written_by": "App + flows F05/F06",
+      "written_by": "App + Netlify Functions (escalation, contractor emails)",
       "columns": [
         {
           "name": "Title",
@@ -1833,9 +2313,9 @@
           "flags": ""
         },
         {
-          "name": "SourceResponse",
-          "type": "Number",
-          "notes": "Response id when source = failed check",
+          "name": "SourceAnswerKey",
+          "type": "Text",
+          "notes": "AnswerKey (RunKey|checkpointId) when source = failed check",
           "flags": ""
         },
         {
@@ -1898,7 +2378,7 @@
       "group": "Maintenance",
       "name": "ComplianceItems",
       "purpose": "Statutory calendar: gas CP42, TR19, EICR, fire alarm, emergency lighting, LOLER, PSSR, legionella, pest",
-      "written_by": "Admin / flow F07",
+      "written_by": "Admin / reminders (Netlify Scheduled Function)",
       "columns": [
         {
           "name": "Title",
@@ -2096,7 +2576,7 @@
       "group": "Trading (EOD)",
       "name": "TradingDays",
       "purpose": "One per site per service date — replaces the Netlify form's Excel row",
-      "written_by": "App creates; flow F01 writes official totals",
+      "written_by": "App creates; submit-eod (Netlify Function) writes official totals",
       "columns": [
         {
           "name": "Title",
@@ -2119,7 +2599,7 @@
         {
           "name": "Status",
           "type": "Choice",
-          "notes": "Draft / Submitted / Checked / Approved / Reopened",
+          "notes": "Draft / Submitted / Checked / Approved / SentBack / Reopened. The app writes Draft, Submitted, Approved and SentBack",
           "flags": "I"
         },
         {
@@ -2149,8 +2629,14 @@
         {
           "name": "ApprovedBy",
           "type": "Lookup → Staff",
-          "notes": "Finance sign-off",
+          "notes": "Who last approved or sent it back. Set only with If-Match, so two reviewers can't both win",
           "flags": ""
+        },
+        {
+          "name": "ReviewedAt",
+          "type": "Date/Time",
+          "notes": "When it was approved or sent back",
+          "flags": "F"
         },
         {
           "name": "TotalGross",
@@ -2178,6 +2664,12 @@
         },
         {
           "name": "ASPHNet",
+          "type": "Currency",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "ASPHGross",
           "type": "Currency",
           "notes": "",
           "flags": "F"
@@ -2215,7 +2707,7 @@
         {
           "name": "CheckIssues",
           "type": "Multi-line text",
-          "notes": "Problems found by flow (e.g. discount lines ≠ EPOS total)",
+          "notes": "Problems found by the server (e.g. discount lines ≠ EPOS total)",
           "flags": "F"
         },
         {
@@ -2246,9 +2738,103 @@
     },
     {
       "group": "Trading (EOD)",
+      "name": "EmailLog",
+      "purpose": "One row per EOD summary emailed to finance. Separate from TradingDays so stamping it never changes the report's ETag",
+      "written_by": "submit-eod and the email-retry job (Netlify Functions)",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = SiteCode|yyyy-mm-dd|SubmitId: one email per submit, a second insert fails (unique)",
+          "flags": "IUR"
+        },
+        {
+          "name": "TradingDay",
+          "type": "Lookup → TradingDays",
+          "notes": "",
+          "flags": "I"
+        },
+        {
+          "name": "SentAt",
+          "type": "Date/Time",
+          "notes": "Server time",
+          "flags": "FR"
+        }
+      ]
+    },
+    {
+      "group": "Trading (EOD)",
+      "name": "FlowOutbox",
+      "purpose": "One message per submitted EOD for the Power Automate flow \"EOD submitted\" (flows/MaginhawaOps). The server never calls a flow: the flow starts on a new row, so there is no trigger URL and no Premium licence",
+      "written_by": "submit-eod and the email-retry job add rows; the flow sets Status, ProcessedAt, RunId and Error",
+      "columns": [
+        {
+          "name": "Title",
+          "type": "Text",
+          "notes": "Key = SiteCode|yyyy-mm-dd|SubmitId: one message per submit, a second insert fails (unique)",
+          "flags": "IUR"
+        },
+        {
+          "name": "SiteCode",
+          "type": "Text",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "BusinessDate",
+          "type": "Date",
+          "notes": "",
+          "flags": "F"
+        },
+        {
+          "name": "Schema",
+          "type": "Text",
+          "notes": "e.g. maginhawa.eod.submitted/1; the flow refuses one it doesn't know",
+          "flags": "F"
+        },
+        {
+          "name": "Payload",
+          "type": "Multi-line text",
+          "notes": "The message as JSON (flowMessage in packages/core/src/flow.ts). No handover notes. Not required in SharePoint, so the flow's Update item only sends Title and Status",
+          "flags": "F"
+        },
+        {
+          "name": "Status",
+          "type": "Choice",
+          "notes": "Queued / Done / Failed. The flow's trigger only takes Queued",
+          "flags": "IR"
+        },
+        {
+          "name": "QueuedAt",
+          "type": "Date/Time",
+          "notes": "Server time",
+          "flags": "F"
+        },
+        {
+          "name": "ProcessedAt",
+          "type": "Date/Time",
+          "notes": "Set by the flow",
+          "flags": ""
+        },
+        {
+          "name": "RunId",
+          "type": "Text",
+          "notes": "The flow run, to find it in run history",
+          "flags": ""
+        },
+        {
+          "name": "Error",
+          "type": "Multi-line text",
+          "notes": "Set by the flow when it fails; fix, then set Status back to Queued to run it again",
+          "flags": ""
+        }
+      ]
+    },
+    {
+      "group": "Trading (EOD)",
       "name": "TradingSessions",
       "purpose": "Lunch / dinner figures and cash",
-      "written_by": "App; flow F01 adds net & variance",
+      "written_by": "App; submit-eod adds net & variance",
       "columns": [
         {
           "name": "Title",
@@ -2462,7 +3048,7 @@
       "group": "Trading (EOD)",
       "name": "DeliverySales",
       "purpose": "Per platform per day",
-      "written_by": "App; flow F01 adds estimated net",
+      "written_by": "App; submit-eod adds estimated net",
       "columns": [
         {
           "name": "Title",
@@ -2600,7 +3186,7 @@
       "group": "Trading (EOD)",
       "name": "Feedback",
       "purpose": "Service, kitchen, staff, complaints, maintenance notes",
-      "written_by": "App; flow F01 links work orders",
+      "written_by": "App; submit-eod links work orders",
       "columns": [
         {
           "name": "Title",
@@ -2629,7 +3215,7 @@
         {
           "name": "WorkOrder",
           "type": "Lookup → WorkOrders",
-          "notes": "Created by F01 for urgent maintenance",
+          "notes": "Created by submit-eod for urgent maintenance",
           "flags": "F"
         }
       ]
@@ -2935,9 +3521,14 @@
   ],
   "libraries": [
     {
+      "name": "Maginhawa App Checklists",
+      "purpose": "For people: one PDF per restaurant per day (missed days too) and one Excel file per restaurant per month, made from the lists",
+      "notes": "Read-only for everyone; only Netlify Functions write. Folders {Site name}/{yyyy-MM}, e.g. Bunso/2026-11/. Files: '2026-11-06 Bunso – Fri.pdf', '2026-11-05 Bunso – Thu – MISSED.pdf', 'Bunso – Checklists – Nov 2026.xlsx'. Day PDF made after closing by a background function (PDFKit or react-pdf), remade after a correction (versions keep the old one); monthly XLSX rebuilt nightly (ExcelJS) and replaced whole. Columns: SiteCode (I), BusinessDateKey (I, blank on the monthly file), Kind Day PDF/Month XLSX (I), DayStatus (I), DayKey, BuiltAt. Automatic version limits; no sensitivity labels (they stop the app reading files). Inspectors get a view-only createLink with an expiry. Per-restaurant folder permissions: open decision. Keep 3 years proposed (KeepPeriods)"
+    },
+    {
       "name": "Photos",
-      "purpose": "Check, fault and work-order photos",
-      "notes": "Folders Site/yyyy/mm; images compressed on device (~300 KB)"
+      "purpose": "Check, signature, fault and work-order photos",
+      "notes": "Write-once, uploaded with conflictBehavior=fail; compressed on device (~300 KB). Folders {Site name}/{yyyy-MM}/{yyyy-MM-dd}/{Checklist name}/, e.g. Bunso/2026-11/2026-11-06/Opening checks/. Readable file names '{Checkpoint title} – HH:MM.jpg', ' (2)' added on a clash; folder and file names are set at upload and never renamed (a renamed checklist keeps old folders). The app links by PhotoId, never by path. Faults and work orders use {Site name}/{yyyy-MM}/{yyyy-MM-dd}/Faults/. Columns: PhotoId (IU), Kind (I), Status Active/Removed (I), RemovedAt/ById/Reason, SiteCode, BusinessDateKey, DayKey (I), RunKey, CheckpointId, AnswerKey (I), Sha256, CapturedAt, UploadedAt, UploadedById. Shown through /api/photos; URLs never stored. Small copies printed in the day PDF and inspection pack. Keep about 12 months unless tied to an incident (open decision)"
     },
     {
       "name": "HowToMedia",
@@ -2947,7 +3538,7 @@
     {
       "name": "Policies",
       "purpose": "Handbook and policies (Word/PDF) with metadata: Category, RequiresAck, AppliesToRoles",
-      "notes": "Major versions only; publishing a major version triggers flow F08"
+      "notes": "Major versions only; publishing a major version sends sign-off requests (Netlify Function)"
     },
     {
       "name": "Certificates",
@@ -2961,13 +3552,13 @@
     },
     {
       "name": "Reports",
-      "purpose": "Generated EOD, day-closure and EHO pack PDFs",
-      "notes": "Written by flows"
+      "purpose": "Generated EOD and EHO inspection-pack PDFs (checklist day PDFs live in Maginhawa App Checklists)",
+      "notes": "Written by Netlify Functions"
     },
     {
       "name": "Archive",
       "purpose": "Yearly CSV/list exports for archived years",
-      "notes": "Created by flow F12"
+      "notes": "Created by the yearly archive (Netlify Scheduled Function)"
     }
   ]
 }

@@ -4,7 +4,8 @@ import { useFoodSafety } from '../lib/food-safety';
 import { attentionFor } from '../lib/food-safety-attention';
 import { useChecklists } from '../lib/checklists';
 import { now } from '../lib/clock';
-import { Icon, ICONS, RowLink } from './ui';
+import { Icon, RowLink } from './ui';
+import { ICONS } from './ui-helpers';
 
 export function FoodSafetyRow() {
   const { user } = useAuth();

@@ -1,13 +1,17 @@
 import { useMemo, useState } from 'react';
-import { Navigate, useParams, useSearchParams } from 'react-router';
-import { formatPounds, periodRange, periodStats, breakdown, PERIOD_NAMES, SITES, type Period, type PeriodStats } from '@maginhawa/core';
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
+import { useAuth } from '../lib/auth';
+import { addDays, breakdown, clockTime, computeDayWith, findSite, formatPounds, PERIOD_NAMES, periodRange, periodStats, type Period, type PeriodStats } from '@maginhawa/core';
+import { previewDefinitions } from '../lib/definition';
 import { useTradingHistory } from '../lib/history';
 import { settingsFor } from '../lib/draft';
-import { Icon, ICONS, Nav, RowLink, SECTION_ICONS } from '../components/ui';
+import { Icon, Nav, RowLink } from '../components/ui';
+import { ICONS, SECTION_ICONS } from '../components/ui-helpers';
 import { TrendChart } from '../components/TrendChart';
 import { DayTimeline } from '../components/DayTimeline';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 import { useSiteDay } from '../lib/site-timeline';
+import { eodPill, eodStatusText, eodSubText, taskStatusPill } from '../lib/day-status';
 import { formatDay } from '../lib/draft';
 
 type Tone = 'good' | 'bad' | 'flat';
@@ -33,11 +37,15 @@ const pctChange = (now: number | null, before: number | null, upIsGood: boolean)
 /** Head office · one restaurant over a chosen period: trend, forecast, the key figures and what made them. */
 export default function HeadOfficeSite() {
   const { site: code = '' } = useParams();
-  const site = SITES.find((s) => s.code === code.toUpperCase());
+  const { openSite } = useAuth();
+  const navigate = useNavigate();
+  const site = findSite(code);
   const { rows: all, example, lastDate } = useTradingHistory();
   const [period, setPeriod] = useState<Period>('1W');
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'timeline' ? 'timeline' : 'trends';
+  // "timeline" was the old name for the Day tab; keep old links working.
+  const tab = params.get('tab') === 'day' || params.get('tab') === 'timeline' ? 'day' : 'trends';
+  const date = params.get('date') ?? undefined;
   const rows = useMemo(() => all.filter((r) => r.siteCode === site?.code), [all, site]);
 
   if (!site) return <Navigate to="/head-office" replace />;
@@ -61,14 +69,20 @@ export default function HeadOfficeSite() {
     <main className="page wide">
       <Nav back="/head-office" backLabel="All sites" title={site.name} right={example ? <span className="muted" style={{ fontSize: 13 }}>Example data</span> : undefined} />
       <div className="body" style={{ paddingTop: 16 }}>
-        <div className="titleblock"><span className="eyebrow">Restaurant</span><h1>{site.name}</h1></div>
+        <div className="opensite">
+          <div className="titleblock"><span className="eyebrow">Restaurant</span><h1>{site.name}</h1></div>
+          <div className="opensite-go">
+            <button type="button" className="btn b1 sm" onClick={() => { openSite(site.code); navigate('/'); }}>Open {site.name}<Icon d="M6.5 3.5L12 9l-5.5 5.5" size={14} /></button>
+            <small>Use {site.name}'s own screens: EOD, checklists, repairs</small>
+          </div>
+        </div>
 
         <div className="seg" role="tablist" aria-label="View">
           <button type="button" role="tab" aria-selected={tab === 'trends'} onClick={() => setParams({}, { replace: true })}>Trends</button>
-          <button type="button" role="tab" aria-selected={tab === 'timeline'} onClick={() => setParams({ tab: 'timeline' }, { replace: true })}>Today's timeline</button>
+          <button type="button" role="tab" aria-selected={tab === 'day'} onClick={() => setParams({ tab: 'day' }, { replace: true })}>Day</button>
         </div>
 
-        {tab === 'timeline' ? <SiteTimeline code={site.code} /> : <>
+        {tab === 'day' ? <SiteDayView code={site.code} date={date} onDate={(d) => setParams({ tab: 'day', date: d }, { replace: true })} /> : <>
         <TrendChart rows={rows} scope={site.name} period={period} onPeriod={setPeriod} />
 
         <section className="grp">
@@ -110,13 +124,54 @@ export default function HeadOfficeSite() {
   );
 }
 
-/** What happened at the site today, hour by hour. */
-function SiteTimeline({ code }: { code: string }) {
-  const { events, bounds, businessDate, settings } = useSiteDay(code);
+/** One day at the site: pick any date, then its EOD, every checklist and the hour-by-hour timeline. */
+function SiteDayView({ code, date, onDate }: { code: string; date?: string; onDate: (d: string) => void }) {
+  const day = useSiteDay(code, date);
+  const { businessDate, today, tasks, report, settings } = day;
+  const base = `/head-office/${code.toLowerCase()}/${businessDate}`;
+  const done = tasks.filter((t) => t.run?.completedAt).length;
+  const missed = tasks.filter((t) => t.status === 'missed').length;
   return (
-    <section className="grp day-page" style={{ gap: 20, maxWidth: 860 }}>
-      <div className="hd"><h2>{formatDay(businessDate)}</h2><span>Checklists, fixes, repairs and the EOD</span></div>
-      <DayTimeline events={events} bounds={bounds} timezone={settings.timezone} dayCloseTime={settings.dayCloseTime} linkEvents={false} />
-    </section>
+    <>
+      <div className="ho-daypick" role="group" aria-label="Day">
+        <button type="button" className="chip" aria-label="Day before" onClick={() => onDate(addDays(businessDate, -1))}><Icon d="M11.5 3.5L6 9l5.5 5.5" size={14} /></button>
+        <label><span className="vh">Date</span>
+          <input className="in" type="date" value={businessDate} max={today} onChange={(e) => e.target.value && onDate(e.target.value)} />
+        </label>
+        <button type="button" className="chip" aria-label="Day after" disabled={businessDate >= today} onClick={() => onDate(addDays(businessDate, 1))}><Icon d="M6.5 3.5L12 9l-5.5 5.5" size={14} /></button>
+        {businessDate !== today && <button type="button" className="chip" onClick={() => onDate(today)}>Today</button>}
+        <span className="muted">{formatDay(businessDate, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+      </div>
+
+      <section className="grp">
+        <div className="hd"><h2>End of day</h2><span>{report ? eodStatusText(report) : businessDate === today ? 'Not started yet' : 'No report'}</span></div>
+        <div className="sub">
+          {report ? (
+            <RowLink to={`${base}/eod`} lead={<span className="av"><Icon d={ICONS.list} /></span>}
+              title={`${formatPounds((report.official ?? computeDayWith(report.draft, settings, undefined, previewDefinitions())).totalNet)} net`}
+              sub={eodSubText(report, settings)} right={<span className={`pill ${eodPill(report).cls}`}>{eodPill(report).text}</span>} />
+          ) : <div className="li"><span className="av"><Icon d={ICONS.list} /></span><span className="tx"><span>No EOD for this day</span><small>{businessDate === today ? 'The manager sends it after close.' : 'Nothing was sent.'}</small></span></div>}
+        </div>
+      </section>
+
+      <section className="grp">
+        <div className="hd"><h2>Checklists</h2><span>{done} of {tasks.length} done{missed ? ` · ${missed} missed` : ''}</span></div>
+        <div className="sub">
+          {tasks.map((t) => (
+            <RowLink key={t.key} to={`${base}/checklists/${encodeURIComponent(t.key)}`} lead={<span className={`av ${t.status === 'missed' || t.status === 'late' ? 'bad' : t.status === 'failed' ? 'warn' : ''}`}><Icon d={t.status === 'missed' ? ICONS.bang : ICONS.check} /></span>}
+              title={t.title}
+              sub={t.run?.completedAt ? `${clockTime(t.run.completedAt)} · ${t.run.completedBy}` : t.dueTime ? `Due ${t.dueTime}` : 'When needed'}
+              right={<span className={`pill ${taskStatusPill(t.status).cls}`}>{taskStatusPill(t.status).text}</span>} />
+          ))}
+          {!tasks.length && <div className="li"><span className="tx"><span className="muted">No checklists that day.</span></span></div>}
+        </div>
+      </section>
+
+      <section className="grp day-page" style={{ gap: 20, maxWidth: 860 }}>
+        <div className="hd"><h2>Timeline</h2><span>Checklists, fixes, repairs and the EOD</span></div>
+        <DayTimeline events={day.events} bounds={day.bounds} timezone={settings.timezone} dayCloseTime={settings.dayCloseTime} />
+      </section>
+      {day.example && <div className="banner" role="note"><Icon d={ICONS.bang} size={16} /><span>Example data. Made-up checklists and figures so you can see a full day.</span></div>}
+    </>
   );
 }

@@ -12,7 +12,9 @@ describe('checklists are available all day, separate from the end-of-day report'
     at('2026-10-05T09:00:00Z'); // 10:00 BST, opening was due 09:30
     renderApp('/');
     expect(screen.getByRole('link', { name: 'Do now: Opening checks' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: "Start today's EOD" })).toBeInTheDocument();
+    // One button only; the EOD stays one tap away as a row.
+    expect(screen.queryByRole('link', { name: "Start today's EOD" })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^End-of-day report/ })).toBeInTheDocument();
     // The top card shows it, once; it isn't repeated under Needs you.
     expect(screen.getByRole('link', { name: 'Next checklist: Opening checks, 30 min late' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Needs you' })).not.toBeInTheDocument();
@@ -57,23 +59,30 @@ describe('doing a checklist', () => {
     await user.type(screen.getByLabelText('Walk-in fridge'), '9.2');
     expect(screen.getByText('Too warm: 9.2°C')).toBeInTheDocument();
     // A failure comes first: it has to be dealt with whatever else is left.
-    expect(screen.getByRole('button', { name: 'Fix 1 failed check first' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Fix walk-in fridge, then 6 left' })).toBeDisabled();
 
     await user.type(screen.getByLabelText('Reach-in fridge 1'), '4');
     await user.type(screen.getByLabelText('Freezer'), '-19');
     for (const name of ['Door seals clean, no gaps', 'Food covered and labelled', 'Hand-wash basins stocked', 'Probe thermometer cleaned and working']) {
       await user.click(within(screen.getByRole('radiogroup', { name })).getByRole('button', { name: 'Yes' }));
     }
-    expect(screen.getByRole('button', { name: 'Fix 1 failed check first' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Fix walk-in fridge first' })).toBeDisabled();
 
-    await user.click(screen.getByRole('link', { name: 'Fix this' }));
-    expect(screen.getByRole('button', { name: 'Save and set re-check' })).toBeDisabled();
-    await user.click(screen.getByRole('button', { name: 'Moved food to another fridge' }));
-    await user.click(screen.getByRole('button', { name: '30 min' }));
-    expect(screen.getByRole('switch', { name: 'Report a fault' })).toHaveAttribute('aria-checked', 'true');
-    await user.click(screen.getByRole('button', { name: 'Save and set re-check' }));
+    // The failure is dealt with in its own row: no separate page.
+    const fixPanel = screen.getByRole('group', { name: 'Fix Walk-in fridge' });
+    expect(within(fixPanel).getByRole('button', { name: 'Pick what you did' })).toBeDisabled();
+    await user.click(within(fixPanel).getByRole('button', { name: 'Moved food to another fridge' }));
+    // The re-check is already set (30 minutes); Change offers 15, 30 or 60.
+    expect(fixPanel).toHaveTextContent('Check again at');
+    await user.click(within(fixPanel).getByRole('button', { name: 'Change' }));
+    await user.click(within(fixPanel).getByRole('button', { name: '30 min' }));
+    expect(within(fixPanel).getByRole('switch', { name: 'Report a fault' })).toHaveAttribute('aria-checked', 'true');
+    await user.click(within(fixPanel).getByRole('button', { name: 'Save what you did' }));
 
     expect(await screen.findByText(/Dealt with: moved food to another fridge/)).toBeInTheDocument();
+    // Everything answered and dealt with: the card at the top becomes a finish card.
+    expect(screen.getByText('All 7 checks done')).toBeInTheDocument();
+    expect(screen.getByText('Problem fixed')).toBeInTheDocument();
     // Answers save as you go; nothing is locked from inside the list.
     expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument();
     expect(screen.getByText('Saved. Submit it with the others under the checklists.')).toBeInTheDocument();
@@ -119,5 +128,27 @@ describe('doing a checklist', () => {
     renderApp('/checklists');
     const row = screen.getByText('Opening checks').closest('a')!;
     expect(within(row).getByRole('img', { name: 'In progress' })).toBeInTheDocument();
+  });
+});
+
+describe('changing your mind', () => {
+  it('tapping the chosen answer again clears it', async () => {
+    at('2026-10-05T08:15:00Z');
+    const { user } = renderApp(opening);
+    const seals = screen.getByRole('radiogroup', { name: 'Door seals clean, no gaps' });
+    await user.click(within(seals).getByRole('button', { name: 'Yes' }));
+    expect(within(seals).getByRole('button', { name: 'Yes' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: '6 left to answer' })).toBeInTheDocument();
+    await user.click(within(seals).getByRole('button', { name: 'Yes' }));
+    expect(within(seals).getByRole('button', { name: 'Yes' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: '7 left to answer' })).toBeInTheDocument();
+  });
+});
+
+describe('old links', () => {
+  it('the old Fix page address opens the list, where the fix panel is', () => {
+    at('2026-10-05T08:15:00Z');
+    renderApp(opening + '/fix/walkin');
+    expect(screen.getByRole('radiogroup', { name: 'Door seals clean, no gaps' })).toBeInTheDocument();
   });
 });

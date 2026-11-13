@@ -80,6 +80,8 @@ export const EodDraft = z.object({
   /** Sections the manager has saved as finished. */
   completed: z.record(z.string(), z.boolean()).default({}),
   confirmed: z.boolean().default(false),
+  /** Inputs finance added in the report builder, by figure id: pence for money, a fraction for %, or a count. */
+  extra: z.record(z.string(), z.number().nullable()).default({}),
   updatedAt: z.string(),
 });
 export type EodDraft = z.infer<typeof EodDraft>;
@@ -108,6 +110,7 @@ export function newDraft(opts: { clientId: string; siteCode: string; businessDat
     handover: [],
     completed: {},
     confirmed: false,
+    extra: {},
     updatedAt: (opts.now ?? new Date()).toISOString(),
   };
 }

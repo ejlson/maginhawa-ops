@@ -1,0 +1,108 @@
+/**
+ * Shared test mode: lets a laptop and a phone on the same Wi-Fi sync through one local
+ * server before SharePoint is connected. Everything is kept in memory on
+ * the laptop and lost when the server stops.
+ *
+ * It trusts a header for who is calling, so it must never run in a deployed site:
+ * it only switches on with DEV_SHARED_STORE=1, and refuses whenever anything says production
+ * or a deployed Netlify Function.
+ */
+import { DEFAULT_SETTINGS, DEV_USER_HEADER, findSite, MemoryChecklistStore, MemoryPresence, MemorySiteFlowStore, MemoryStore, SITES, type ChecklistBackend, type EmailMessage, type EodStore, type FlowMessage, type FlowOutbox, type PresenceRemote, type SiteFlowStore, type SiteSettings } from '@maginhawa/core';
+import type { Authenticate, Caller } from './handler';
+import { MemoryVersionIndex, type VersionIndex } from './version-index';
+import { processEnv, type Env } from './not-connected';
+
+
+/** Why shared test mode is off, or null when it may run. */
+export function sharedDevRefusal(env: Env = processEnv()): string | null {
+  if (env.DEV_SHARED_STORE !== '1') return 'DEV_SHARED_STORE is not set to 1.';
+  if (env.NODE_ENV === 'production') return 'Refused: NODE_ENV is production.';
+  if (env.CONTEXT === 'production') return 'Refused: this is a production deploy.';
+  // Anything running on Cloudflare (deployed, or a preview) is refused: it trusts a header for who is calling.
+  if ((globalThis as { navigator?: { userAgent?: string } }).navigator?.userAgent === 'Cloudflare-Workers') return 'Refused: running on Cloudflare.';
+  if (env.AWS_LAMBDA_FUNCTION_NAME || env.LAMBDA_TASK_ROOT) return 'Refused: running as a deployed function.';
+  return null;
+}
+
+const ROLES = new Set<NonNullable<Caller['role']>>(['staff', 'supervisor', 'manager', 'headoffice']);
+
+/** Reads the demo sign-in from the header. Head office may open every site. */
+export async function devAuthenticate(req: Request): Promise<Caller | null> {
+  const raw = req.headers.get(DEV_USER_HEADER);
+  if (!raw) return null;
+  try {
+    const u = JSON.parse(decodeURIComponent(raw)) as { name?: unknown; role?: unknown; siteCodes?: unknown };
+    const name = typeof u.name === 'string' ? u.name.trim() : '';
+    const role = u.role as Caller['role'];
+    if (!name || !role || !ROLES.has(role)) return null;
+    const siteCodes = role === 'headoffice'
+      ? SITES.map((s) => s.code as string)
+      : Array.isArray(u.siteCodes) ? u.siteCodes.filter((c): c is string => typeof c === 'string') : [];
+    return { name, role, siteCodes };
+  } catch {
+    return null;
+  }
+}
+
+export interface SharedDev {
+  authenticate: Authenticate;
+  eod: EodStore;
+  checklists: ChecklistBackend;
+  presence: PresenceRemote;
+  index: VersionIndex;
+  flow: FlowOutbox;
+  siteFlow: SiteFlowStore;
+}
+
+export function createSharedDev(clock: () => Date = () => new Date()): SharedDev {
+  return {
+    authenticate: devAuthenticate,
+    eod: new MemoryStore(),
+    checklists: new MemoryChecklistStore(clock),
+    presence: new MemoryPresence(),
+    index: new MemoryVersionIndex(),
+    flow: devFlowOutbox(),
+    siteFlow: new MemorySiteFlowStore(),
+  };
+}
+
+// Kept on globalThis so every request sees the same stores, even if the dev server reloads a module.
+const KEY = Symbol.for('maginhawa.sharedDev');
+let warned = false;
+
+/** The shared in-memory stores, or null when shared test mode is off or refused. */
+export function sharedDev(env: Env = processEnv()): SharedDev | null {
+  const refused = sharedDevRefusal(env);
+  if (refused) {
+    if (env.DEV_SHARED_STORE === '1' && !warned) { warned = true; console.warn(`[shared test mode] ${refused}`); }
+    return null;
+  }
+  const g = globalThis as { [KEY]?: SharedDev };
+  return (g[KEY] ??= createSharedDev());
+}
+
+/** The same settings the web app uses in demo mode. */
+export async function devSettingsFor(siteCode: string): Promise<SiteSettings | null> {
+  const site = findSite(siteCode);
+  if (!site) return null;
+  const flowFrom = (await sharedDev()?.siteFlow.list())?.[site.code];
+  return { ...DEFAULT_SETTINGS, siteCode, siteName: site.name, ...(flowFrom ? { flowFrom } : {}) };
+}
+
+/** Shared test mode has no mailbox: the summary goes to the server log instead. */
+export async function devSendEmail(msg: EmailMessage) {
+  console.log(`[shared test mode] Email not sent: ${msg.subject}`);
+}
+
+/** Shared test mode has no Power Automate: the message goes to the server log instead, once per submit. */
+export function devFlowOutbox(): FlowOutbox {
+  const seen = new Set<string>();
+  return {
+    async add(m: FlowMessage) {
+      if (seen.has(m.key)) return 'exists';
+      seen.add(m.key);
+      console.log(`[shared test mode] Flow message not sent: ${m.key} · ${m.summary.netText} net · ${m.figures.length} figures`);
+      return 'added';
+    },
+  };
+}

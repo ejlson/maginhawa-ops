@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Ready to send</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.sw,.qa,.ic,.pill,.chip,.btn{corner-shape:round}
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-70px,34px) scale(1.25) rotate(25deg)}66%{transform:translate(50px,-24px) scale(.9) rotate(-12deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+@keyframes driftB{0%{transform:translate(0,0) scale(1.05) rotate(0deg)}33%{transform:translate(64px,-28px) scale(.88) rotate(-20deg)}66%{transform:translate(-44px,30px) scale(1.2) rotate(14deg)}100%{transform:translate(0,0) scale(1.05) rotate(0deg)}}
+.blob{position:absolute;border-radius:50%;z-index:-1}
+.ba{animation:driftA 12s ease-in-out infinite}
+.bb{animation:driftB 15s ease-in-out infinite}
+.grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:.75}
+.press{transition:transform .12s cubic-bezier(.23,1,.32,1)}
+.press:active{transform:scale(.97)}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+@media (prefers-reduced-motion: reduce){.ba,.bb{animation:none}.press:active{transform:none}}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em">
+  <div style="padding:24px 24px 0;display:flex;flex-direction:column;gap:28px">
+    <a href="S2-StockAreas.dc.html" aria-label="Back to areas" style="width:40px;height:40px;border-radius:999px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;color:#1D1D1F"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></a>
+    <div style="font-size:34px;font-weight:700;letter-spacing:-0.038em;line-height:1.1;margin-top:-12px">{{title}}</div>
+
+    <div style="position:relative;overflow:hidden;isolation:isolate;border-radius:32px;padding:26px 24px;background:oklch(from #F59F00 .17 calc(c * .6) calc(h - 35));color:#F5F5F7;display:flex;flex-direction:column;gap:6px;box-shadow:0 18px 50px -26px rgba(217,72,15,.32)">
+      <div aria-hidden="true" class="blob ba" style="left:-70px;top:-90px;width:400px;height:287px;background:oklch(from #F59F00 .1 calc(c * .4) calc(h - 35));filter:blur(40px)"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-80px;top:-70px;width:325px;height:262px;background:#F59F00;filter:blur(42px)"></div>
+      <div aria-hidden="true" class="blob ba" style="right:60px;bottom:-110px;width:337px;height:225px;background:oklch(from #F59F00 calc(l - .04) calc(c * 1.1) calc(h - 40));filter:blur(44px);opacity:.9"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-40px;bottom:-110px;width:212px;height:162px;background:oklch(from #FFE8A3 .95 calc(c * .6) h);filter:blur(36px);opacity:.5"></div>
+      <svg aria-hidden="true" class="grain"><filter id="gs4"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#gs4)"></rect></svg>
+      <span style="font-size:14px;color:rgba(245,245,247,.72);text-shadow:0 1px 10px rgba(0,0,0,.18)">Full stocktake · Sun 30 Nov</span>
+      <span style="font-size:34px;font-weight:600;letter-spacing:-0.04em;line-height:1.1;text-shadow:0 1px 10px rgba(0,0,0,.18)">{{counted}} of 238 counted</span>
+      <span style="font-size:15px;color:rgba(245,245,247,.8);text-shadow:0 1px 10px rgba(0,0,0,.18)">Worth £8,236.40</span>
+    </div>
+
+    <sc-if value="{{anyLeft}}" hint-placeholder-val="{{true}}">
+      <div style="display:flex;flex-direction:column">
+        <span style="font-size:20px;font-weight:700;letter-spacing:-0.025em;margin-bottom:4px">Before you send</span>
+        <sc-for list="{{checks}}" as="c" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:14px;height:68px;border-bottom:1px solid rgba(0,0,0,.07)">
+            <span style="flex:1;display:flex;flex-direction:column;min-width:0"><span style="font-size:17px;font-weight:600">{{c.title}}</span><span style="font-size:14px;color:{{c.subCol}}">{{c.sub}}</span></span>
+            <button class="press btn" onClick="{{c.act}}" style="height:36px;padding:0 16px;border-radius:999px;background:#F2F2F5;font-size:15px;font-weight:600">{{c.btn}}</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{allClear}}" hint-placeholder-val="{{false}}">
+      <div style="display:flex;align-items:center;gap:10px;font-size:17px;font-weight:500;color:#1F7A35"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Everything is counted</div>
+    </sc-if>
+  </div>
+
+  <div style="position:absolute;left:24px;right:24px;bottom:34px;display:flex;flex-direction:column;gap:12px;align-items:center">
+    <button class="press" onClick="{{send}}" style="width:100%;height:56px;border-radius:999px;background:{{btnBg}};color:{{btnCol}};font-size:17px;font-weight:600">{{btn}}</button>
+    <span style="font-size:14px;color:#6E6E73">{{note}}</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { cellar: false, pro: false, sent: false }; }
+  renderVals() {
+    const s = this.state;
+    const checks = [];
+    if (!s.cellar) checks.push({ title: '3 not counted yet', sub: 'In the cellar', subCol: '#D70015', btn: 'Count', act: () => this.setState({ cellar: true }) });
+    if (!s.pro) checks.push({ title: 'Prosecco: 4 bottles', sub: 'Last time it was 18', subCol: '#B25000', btn: "It's right", act: () => this.setState({ pro: true }) });
+    const ready = s.cellar;
+    return {
+      title: s.sent ? 'Sent' : 'Ready to send?',
+      counted: s.cellar ? 238 : 235,
+      checks, anyLeft: checks.length > 0 && !s.sent, allClear: checks.length === 0 || s.sent,
+      btn: s.sent ? 'Sent to head office' : 'Send count',
+      btnBg: ready || s.sent ? '#1D1D1F' : '#E5E5EA', btnCol: ready || s.sent ? '#FFFFFF' : '#8E8E93',
+      note: s.sent ? 'Head office got it at 10:58' : ready ? 'Counted by Jo and Sam' : 'Count the last 3 first',
+      send: () => { if (ready) this.setState({ sent: true }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

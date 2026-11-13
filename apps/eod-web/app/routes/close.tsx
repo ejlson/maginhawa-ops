@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
-import { useAuth } from '../lib/auth';
+import { formatPounds, isEditable, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
+import { recordedAs, useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
 import { EodSyncNotice } from '../components/Sync';
-import { BigMoney, Icon, ICONS, Nav, RowLink, SectionIcon, SECTION_ICONS, Segments, Toggle } from '../components/ui';
+import { BigMoney, Icon, Nav, RowLink, SectionIcon, Segments, Toggle } from '../components/ui';
+import { ICONS, SECTION_ICONS } from '../components/ui-helpers';
 import { TabBar } from '../components/TabBar';
 import { Columns } from '../components/Columns';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { AWAY_MS, readResume, resumePath } from '../lib/resume';
+import { now } from '../lib/clock';
 
 const SALES: SectionKey[] = ['lunch', 'dinner', 'delivery', 'promotions'];
 const TEAM: SectionKey[] = ['wages', 'tips', 'feedback', 'handover'];
@@ -15,14 +18,14 @@ const TEAM: SectionKey[] = ['wages', 'tips', 'feedback', 'handover'];
 export default function Close() {
   const { user } = useAuth();
   const { draft, result, progress, savedAt, update, status, settings } = useDraft();
-  const locked = status === 'submitted' || status === 'approved';
+  const locked = !isEditable(status);
 
   const sub = (k: SectionKey): string => {
     const st = sectionStatus(draft, k);
     if (st === 'skipped') return "Didn't run today";
     if (k === 'lunch' || k === 'dinner') {
       const s = result.sessions[k];
-      return st === 'done' ? `Completed · ${s.covers} covers` : st === 'started' ? 'In progress' : 'From the till report';
+      return st === 'done' ? (s.covers ? `Completed · ${s.covers} covers` : 'Completed') : st === 'started' ? 'In progress' : 'From the till report';
     }
     if (k === 'delivery') return settings.platforms.filter((p) => p.active).map((p) => p.name).join(', ');
     if (k === 'promotions') return 'Offers, events, anything unusual';
@@ -50,6 +53,17 @@ export default function Close() {
   };
   const next = [...SALES, ...TEAM].find((k) => { const st = sectionStatus(draft, k); return st !== 'done' && st !== 'skipped'; });
   const all = [...SALES, ...TEAM].map((k) => sectionStatus(draft, k)).filter((s) => s !== 'skipped');
+  const allDone = progress.active > 0 && progress.done === progress.active;
+  // A session's net once it's done; a dash while it's still to do; "Didn't run" if it was switched off.
+  const sessionFigure = (k: 'lunch' | 'dinner') => {
+    const st = sectionStatus(draft, k);
+    return st === 'skipped' ? "Didn't run" : st === 'done' ? formatPounds(result.sessions[k].net) : '—';
+  };
+  const wageCls = result.wageRag === 'red' ? 'h-bad' : result.wageRag === 'amber' ? 'h-warn' : '';
+  // Back after being pulled away: offer the exact field they were in.
+  const [place] = useState(() => readResume(draft.siteCode, draft.businessDate));
+  const resume = !locked && place && now().getTime() - place.at >= AWAY_MS
+    && !['done', 'skipped'].includes(sectionStatus(draft, place.section)) ? place : null;
 
   return (
     <main className="page tabs">
@@ -60,16 +74,31 @@ export default function Close() {
           <div className="titleblock">
             <span className="eyebrow">{formatDay(draft.businessDate)}</span>
             <h1>Today's EOD</h1>
-            <p className="lead">Do the sections in any order. Everything saves on this device, even without signal.</p>
+            {/* The how-to only before anything's entered: after that it's the same words every day. */}
+            {!locked && progress.done === 0 && !savedAt && <p className="lead">Do the sections in any order. Everything saves on this device, even without signal.</p>}
           </div>
+          {resume && (
+            <Link className="resume" to={resumePath(resume)}>
+              <span className="resume-k">Pick up where you left off · {timeHM(new Date(resume.at))}</span>
+              <span className="resume-t">{SECTION_LABELS[resume.section]} · {resume.field}</span>
+              <span className="resume-s">Everything you typed is saved.</span>
+            </Link>
+          )}
         </>}
         hero={<>
-          <div className="hero" role="status">
-            <div className="hero-row"><span className="hl">Net so far</span><span className="hs-small">{result.covers} covers</span></div>
+          <div className="hero eod-hero" role="status">
+            <div className="hero-row">
+              <span className="hl">{allDone ? 'Net today' : 'Net so far'}</span>
+              {/* Covers only once there are some: "0 covers" beside delivery money looks like a mistake. */}
+              {result.covers > 0 && <span className="hs-small">{result.covers} covers{result.perHeadDineIn !== null ? ` · ${formatPounds(result.perHeadDineIn)} a head` : ''}</span>}
+            </div>
             <BigMoney value={result.totalNet} />
-            <div className="titleblock" style={{ gap: 10 }}>
-              <Segments statuses={all} />
-              <span className="hs-small">{progress.done} of {progress.active} sections done</span>
+            <Segments statuses={all} label={`${progress.done} of ${progress.active} sections done`} />
+            <div className="hm">
+              {(['lunch', 'dinner'] as const).map((k) => (
+                <span key={k}>{sessionFigure(k)}<small>{SECTION_LABELS[k]}</small></span>
+              ))}
+              <span className={wageCls}>{result.wagePct !== null ? `${result.wagePct}%` : '—'}<small>Wages</small></span>
             </div>
           </div>
         </>}
@@ -103,7 +132,9 @@ export default function Close() {
         </section>
         </>}
         actions={<>
-        {locked ? <Link className="btn b1" to="/close/done">See today's report</Link> : next
+        {locked ? <Link className="btn b1" to="/close/done">See today's report</Link> : resume
+          ? <Link className="btn b1" to={resumePath(resume)}>Carry on with {SECTION_LABELS[resume.section]}</Link>
+          : next
           ? <Link className="btn b1" to={`/close/${next}`}>{progress.done === 0 ? 'Start with' : 'Continue with'} {SECTION_LABELS[next]}</Link>
           : <Link className="btn b1" to="/close/review">Review and submit</Link>}
         {!locked && next && <Link className="btn b2" to="/close/review">Review and submit · {progress.left} to go</Link>}
@@ -132,9 +163,9 @@ function SubmitEod() {
     setError(null);
     // Pressing Submit in the dialog is the same confirmation as the tick box on Review.
     update((d) => { d.confirmed = true; });
-    const res = await submit(user?.name ?? 'Manager');
+    const res = await submit(user ? recordedAs(user) : 'Manager');
     setBusy(false);
-    if (res.ok) navigate('/close/done');
+    if (res.ok) navigate('/close/done', { state: { justSent: true } });
     else { setAsking(false); setError(res.error); }
   };
 

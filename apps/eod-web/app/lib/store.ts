@@ -45,7 +45,14 @@ export class DeviceStore extends MemoryStore {
 
   override async setStatus(...args: Parameters<MemoryStore['setStatus']>) {
     this.reload();
-    await super.setStatus(...args);
+    const out = await super.setStatus(...args);
+    this.persist();
+    return out;
+  }
+
+  override async markEmailed(...args: Parameters<MemoryStore['markEmailed']>) {
+    this.reload();
+    await super.markEmailed(...args);
     this.persist();
   }
 

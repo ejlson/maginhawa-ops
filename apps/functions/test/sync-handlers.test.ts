@@ -2,14 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, MemoryChecklistStore, MemoryPresence, MemoryStore, type RunStart } from '@maginhawa/core';
 import { createSubmitHandler, type Caller } from '../src/handler';
 import { createChecklistSyncHandler, createEodDraftHandler, createPresenceHandler } from '../src/sync-handlers';
-import eodDraftFunction from '../netlify/functions/eod-draft';
-import checklistFunction from '../netlify/functions/checklist-sync';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
+import { INDEX_TRUST_MS, MemoryVersionIndex } from '../src/version-index';
+import { createApi } from '../src/api';
+const viaApi = (r: Request) => createApi(process.env)(r);
 
 const people: Record<string, Caller> = { jo: { name: 'Jo', siteCodes: ['BUN'], role: 'manager' }, sam: { name: 'Sam', siteCodes: ['BUN'], role: 'staff' } };
 const authenticate = async (req: Request) => people[(req.headers.get('Authorization') ?? '').replace('Bearer ', '')] ?? null;
 const req = (method: string, path: string, who: string, body?: unknown, headers: Record<string, string> = {}) =>
-  new Request(`https://ops.example/.netlify/functions/${path}`, {
+  new Request(`https://ops.example/api/${path}`, {
     method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${who}`, ...headers },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
@@ -123,7 +124,91 @@ describe('presence', () => {
 
 describe('before SharePoint is connected', () => {
   it('the new functions answer 503 too', async () => {
-    expect((await eodDraftFunction(req('GET', 'eod-draft?site=BUN', 'jo'))).status).toBe(503);
-    expect((await checklistFunction(req('GET', 'checklist-sync?site=BUN', 'jo'))).status).toBe(503);
+    expect((await viaApi(req('GET', 'eod-draft?site=BUN', 'jo'))).status).toBe(503);
+    expect((await viaApi(req('GET', 'checklist-sync?site=BUN', 'jo'))).status).toBe(503);
+  });
+});
+
+describe('version index (Netlify Blobs) keeps polls off SharePoint', () => {
+  /** Counts the calls that would go to Graph. */
+  const counted = <T extends object>(store: T) => {
+    const calls: string[] = [];
+    return {
+      calls,
+      store: new Proxy(store, { get: (s, k) => { const v = Reflect.get(s, k); return typeof v === 'function' ? (...a: unknown[]) => { calls.push(String(k)); return v.apply(s, a); } : v; } }),
+    };
+  };
+
+  it('a poll with the current version gets 304 without reading the store', async () => {
+    let t = 0;
+    const index = new MemoryVersionIndex();
+    const { store, calls } = counted(new MemoryStore());
+    const handler = createEodDraftHandler({ authenticate, store, index, now: () => t });
+    const saved = await (await handler(req('PUT', 'eod-draft', 'jo', { draft: verifiedDraft(), baseVersion: null }))).json();
+    calls.length = 0;
+    const poll = () => handler(req('GET', 'eod-draft?site=BUN&date=2026-10-05', 'sam', undefined, { 'If-None-Match': `"${saved.report.version}"` }));
+    expect((await poll()).status).toBe(304);
+    expect(calls).toEqual([]);
+    // After a minute the index is checked against SharePoint once, then trusted again.
+    t = INDEX_TRUST_MS;
+    expect((await poll()).status).toBe(304);
+    expect((await poll()).status).toBe(304);
+    expect(calls).toEqual(['get']);
+  });
+
+  it("another device's save shows up on the next poll", async () => {
+    const index = new MemoryVersionIndex();
+    const store = new MemoryStore();
+    const handler = createEodDraftHandler({ authenticate, store, index, now: () => 0 });
+    const first = await (await handler(req('PUT', 'eod-draft', 'jo', { draft: verifiedDraft(), baseVersion: null }))).json();
+    const jo = verifiedDraft(); jo.wages.wageCost = 81000;
+    await handler(req('PUT', 'eod-draft', 'jo', { draft: jo, baseVersion: first.report.version }));
+    const res = await handler(req('GET', 'eod-draft?site=BUN&date=2026-10-05', 'sam', undefined, { 'If-None-Match': `"${first.report.version}"` }));
+    expect(res.status).toBe(200);
+    expect((await res.json()).report.draft.wages.wageCost).toBe(81000);
+  });
+
+  it('a submit updates the index too', async () => {
+    const index = new MemoryVersionIndex();
+    const store = new MemoryStore();
+    const saved = await store.saveDraft(verifiedDraft(), { by: 'Jo' });
+    await createSubmitHandler({ authenticate, store, index, settingsFor: async () => DEFAULT_SETTINGS, sendEmail: async () => undefined })(
+      req('POST', 'submit-eod', 'jo', { draft: verifiedDraft(), baseVersion: saved.version, submitId: 'jo-1' }),
+    );
+    const sent = await store.get('BUN', '2026-10-05');
+    expect(index.entries.get('eod|BUN|2026-10-05')?.value).toBe(sent!.version);
+  });
+
+  it('a day nobody has started is answered from the index', async () => {
+    const { store, calls } = counted(new MemoryStore());
+    const handler = createEodDraftHandler({ authenticate, store, index: new MemoryVersionIndex(), now: () => 0 });
+    const poll = async () => (await handler(req('GET', 'eod-draft?site=BUN&date=2026-10-05', 'jo'))).json();
+    expect((await poll()).report).toBeNull();
+    expect((await poll()).report).toBeNull();
+    expect(calls).toEqual(['get']);
+  });
+
+  it('if Blobs is down, polls still work from SharePoint', async () => {
+    const broken = { get: async () => { throw new Error('down'); }, set: async () => { throw new Error('down'); } };
+    const store = new MemoryStore();
+    const saved = await store.saveDraft(verifiedDraft(), { by: 'Jo' });
+    const handler = createEodDraftHandler({ authenticate, store, index: broken, now: () => 0 });
+    expect((await handler(req('GET', 'eod-draft?site=BUN&date=2026-10-05', 'jo', undefined, { 'If-None-Match': `"${saved.version}"` }))).status).toBe(304);
+  });
+
+  it('checklists: an up-to-date poll skips the store, and a new answer is seen straight away', async () => {
+    const run: RunStart = { key: '2026-10-05|close|22:00', templateId: 'close', businessDate: '2026-10-05', dueTime: '22:00' };
+    const { store, calls } = counted(new MemoryChecklistStore());
+    const handler = createChecklistSyncHandler({ authenticate, store, index: new MemoryVersionIndex(), now: () => 0 });
+    const answer = (value: number) => handler(req('POST', 'checklist-sync', 'jo', { siteCode: 'BUN', ops: [{ kind: 'answer', run, checkpointId: 'fridge', value, by: 'Jo', at: '2026-10-05T20:00:00Z' }] }));
+    await answer(4);
+    const all = await (await handler(req('GET', 'checklist-sync?site=BUN&date=2026-10-05&since=0', 'sam'))).json();
+    calls.length = 0;
+    const none = await (await handler(req('GET', `checklist-sync?site=BUN&date=2026-10-05&since=${all.cursor}`, 'sam'))).json();
+    expect(none).toEqual({ runs: [], answers: [], cursor: all.cursor });
+    expect(calls).toEqual([]);
+    await answer(5);
+    const next = await (await handler(req('GET', `checklist-sync?site=BUN&date=2026-10-05&since=${all.cursor}`, 'sam'))).json();
+    expect(next.answers.map((a: { value: number }) => a.value)).toEqual([5]);
   });
 });

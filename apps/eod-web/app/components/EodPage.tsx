@@ -8,7 +8,7 @@ import { Link, useNavigate } from 'react-router';
 import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
 import { useDraft } from '../lib/draft';
 import { Foot, Nav } from './ui';
-import { EOD_SALES, EOD_TEAM } from './SiteShell';
+import { EOD_SALES, EOD_TEAM } from './site-shell-helpers';
 import { useWide } from '../lib/wide';
 
 const ORDER = [...EOD_SALES, ...EOD_TEAM];

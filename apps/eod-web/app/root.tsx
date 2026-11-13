@@ -1,7 +1,8 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, isRouteErrorResponse, useLocation, useNavigation } from 'react-router';
 import type { ReactNode } from 'react';
-import { AuthProvider } from './lib/auth';
-import { ComingScreen, PageSkeleton, useDelayed } from './components/Skeleton';
+import { AuthProvider } from './lib/auth-provider';
+import { ComingScreen, useDelayed } from './components/skeleton-helpers';
+import { PageSkeleton } from './components/Skeleton';
 import './styles.css';
 
 export function Layout({ children }: { children: ReactNode }) {

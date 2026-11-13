@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { addOnFor, canCreateList, canEditList, editableTemplate, recordStatus, scheduleText, SITES, STATUS_LABELS, type TemplateRecord } from '@maginhawa/core';
+import { addOnFor, canCreateList, canEditList, editableTemplate, recordStatus, scheduleText, siteName as nameOfSite, SITES, STATUS_LABELS, type TemplateRecord } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { useChecklists } from '../lib/checklists';
 import { editPath, useTemplates } from '../lib/templates';
-import { Foot, Icon, ICONS, Nav, RowLink } from '../components/ui';
+import { Foot, Icon, Nav, RowLink } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
+import { ReorderList } from '../components/ReorderList';
 
-const siteName = (code?: string) => SITES.find((s) => s.code === code)?.name ?? code ?? '';
+const siteName = (code?: string) => (code ? nameOfSite(code) : '');
 
 /** Every checklist this person can see, and which of them they can change. */
 export default function ChecklistLists() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { businessDate } = useChecklists();
-  const { records, create, move } = useTemplates();
+  const { records, create, moveTo } = useTemplates();
   // The section being put in order, if any: 'group' or a site code.
   const [ordering, setOrdering] = useState<string | null>(null);
   if (!user) return null;
@@ -56,31 +58,25 @@ export default function ChecklistLists() {
     return <RowLink key={r.id} to={editPath(r.id)} lead={<span className="av"><Icon d={ICONS.list} /></span>} title={t.title || 'Untitled checklist'} sub={sub} right={pill} />;
   };
 
-  /** Up and down buttons in place of the link while a section is being put in order. */
-  const orderRow = (r: TemplateRecord, i: number, list: TemplateRecord[], sameGroup: (x: TemplateRecord) => boolean) => {
-    const t = editableTemplate(r)!;
-    const name = t.title || 'Untitled checklist';
-    return (
-      <div className="li order-row" key={r.id}>
-        <span className="av"><Icon d={ICONS.list} /></span>
-        <span className="tx"><span>{name}</span><small>{scheduleText(t)}</small></span>
-        <span className="rt">
-          <button type="button" className="mini" aria-label={`Move ${name} up`} disabled={i === 0} onClick={() => move(r.id, -1, sameGroup)}><Icon d={ICONS.up} size={16} /></button>
-          <button type="button" className="mini" aria-label={`Move ${name} down`} disabled={i === list.length - 1} onClick={() => move(r.id, 1, sameGroup)}><Icon d={ICONS.down} size={16} /></button>
-        </span>
-      </div>
-    );
-  };
+  /** While a section is being put in order: drag by the handle, or use the up and down buttons. */
+  const orderList = (key: string, list: TemplateRecord[], sameGroup: (x: TemplateRecord) => boolean) => (
+    <ReorderList key={`order-${key}`} onMove={(id, to) => moveTo(id, to, sameGroup)}
+      items={list.map((r) => {
+        const t = editableTemplate(r)!;
+        const name = t.title || 'Untitled checklist';
+        return { id: r.id, label: name, title: name, sub: scheduleText(t), lead: <span className="av"><Icon d={ICONS.list} /></span> };
+      })} />
+  );
   const live = (r: TemplateRecord) => !r.extends && recordStatus(r, businessDate) !== 'archived';
   const inGroup = (r: TemplateRecord) => live(r) && r.scope === 'group';
   const inSite = (code: string) => (r: TemplateRecord) => live(r) && r.scope === 'site' && r.siteCode === code;
-  /** A section's rows, and its Reorder / Done link when this person can change every list in it. */
+  /** A section's rows, and its Reorder link when this person can change every list in it. */
   const section = (key: string, list: TemplateRecord[], sameGroup: (r: TemplateRecord) => boolean) => {
     const can = list.length > 1 && list.every((r) => canEditList(user, r));
     const on = ordering === key && can;
     return {
-      rows: on ? list.map((r, i) => orderRow(r, i, list, sameGroup)) : list.map(row),
-      toggle: can ? <button type="button" className="linkbtn" onClick={() => setOrdering(on ? null : key)}>{on ? 'Done' : 'Reorder'}</button> : null,
+      rows: on ? [orderList(key, list, sameGroup)] : list.map(row),
+      toggle: can && !ordering ? <button type="button" className="linkbtn" onClick={() => setOrdering(key)}>Reorder</button> : null,
       note: on ? <p className="note" style={{ margin: 0 }}>Lists due at the same time, and lists done when needed, show in this order on the Checklists screen.</p> : null,
     };
   };
@@ -147,7 +143,9 @@ export default function ChecklistLists() {
           </section>
         )}
       </div>
-      {(canCreateList(user, 'site') || canCreateList(user, 'group')) && (
+      {ordering ? (
+        <Foot><button type="button" className="btn b1" onClick={() => setOrdering(null)}>Finished editing</button></Foot>
+      ) : (canCreateList(user, 'site') || canCreateList(user, 'group')) && (
         <Foot><button type="button" className="btn b1" onClick={startNew}><Icon d={ICONS.plus} />New checklist</button></Foot>
       )}
     </main>

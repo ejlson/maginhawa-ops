@@ -23,13 +23,13 @@ describe('tab bar', () => {
   it('home is marked as the current tab', () => {
     renderApp('/');
     const tabs = screen.getByRole('navigation', { name: 'Main' });
-    expect(within(tabs).getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
-    expect(within(tabs).getByRole('link', { name: 'EOD' })).not.toHaveAttribute('aria-current');
+    expect(within(tabs).getByRole('link', { name: 'Today' })).toHaveAttribute('aria-current', 'page');
+    expect(within(tabs).getByRole('link', { name: 'Close' })).not.toHaveAttribute('aria-current');
   });
 
   it('shows on the EOD and checklists screens, and not inside a task', () => {
     const { unmount } = renderApp('/close');
-    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'EOD' })).toHaveAttribute('aria-current', 'page');
+    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Close' })).toHaveAttribute('aria-current', 'page');
     unmount();
     renderApp('/close/lunch');
     expect(screen.queryByRole('navigation', { name: 'Main' })).not.toBeInTheDocument();
@@ -49,7 +49,7 @@ describe('roles', () => {
   it('staff do checklists but not the EOD', () => {
     renderApp('/', staff);
     const nav = screen.getByRole('navigation', { name: 'Main' });
-    expect(within(nav).queryByRole('link', { name: 'EOD' })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole('link', { name: 'Close' })).not.toBeInTheDocument();
     expect(screen.queryByText("Today's EOD")).not.toBeInTheDocument();
     expect(screen.queryByText('End-of-day report')).not.toBeInTheDocument();
   });
@@ -126,7 +126,10 @@ describe('lunch', () => {
     await user.type(screen.getByLabelText('Gross sales'), '100');
     await user.click(screen.getByRole('button', { name: 'Save lunch' }));
     expect(await screen.findByRole('heading', { name: "Today's EOD" })).toBeInTheDocument();
-    expect(screen.getByText('1 of 8 sections done')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '1 of 8 sections done' })).toBeInTheDocument();
+    // No covers entered yet, so the card doesn't say "0 covers".
+    expect(screen.getByText('Net so far')).toBeInTheDocument();
+    expect(screen.queryByText(/^0 covers/)).not.toBeInTheDocument();
   });
 });
 
@@ -156,7 +159,7 @@ describe('hub', () => {
     const { user } = renderApp('/close');
     await user.click(screen.getByRole('switch', { name: 'Lunch ran today' }));
     expect(screen.getByText("Didn't run today")).toBeInTheDocument();
-    expect(screen.getByText('0 of 7 sections done')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '0 of 7 sections done' })).toBeInTheDocument();
   });
 });
 
@@ -216,10 +219,40 @@ describe('review and submit', () => {
     const { user } = renderApp('/close/review');
     await user.click(screen.getByRole('checkbox'));
     await user.click(screen.getByRole('button', { name: 'Submit Monday · £2,687.50' }));
-    expect(await screen.findByRole('heading', { name: 'Day closed' })).toBeInTheDocument();
+    const heading = await screen.findByRole('heading', { name: 'Day closed' });
+    // Straight after sending, the one animated moment plays, with the day's key figures.
+    expect(heading.closest('main')).toHaveClass('celebrate');
+    expect(screen.getByText('29.8%')).toBeInTheDocument();
     const saved = await deviceStore().get('BUN', '2026-10-05');
     expect(saved?.status).toBe('submitted');
     expect(saved?.official?.totalNet).toBe(268750);
+  });
+
+  it('reopened later as a receipt, Day closed stays still', async () => {
+    await seedVerifiedDraft();
+    const { user } = renderApp('/close/review');
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: 'Submit Monday · £2,687.50' }));
+    await screen.findByRole('heading', { name: 'Day closed' });
+    await user.click(screen.getByRole('link', { name: 'Done' }));
+    renderApp('/close/done');
+    const headings = await screen.findAllByRole('heading', { name: 'Day closed' });
+    expect(headings.at(-1)!.closest('main')).not.toHaveClass('celebrate');
+  });
+});
+
+describe('pick up where you left off', () => {
+  it('after time away, the overview offers the exact field and goes back to it', async () => {
+    const { user } = renderApp('/close/lunch');
+    await user.click(screen.getByRole('textbox', { name: 'Service charge' }));
+    const key = Object.keys(localStorage).find((k) => k.startsWith('maginhawa.resume.'))!;
+    const place = JSON.parse(localStorage.getItem(key)!);
+    expect(place).toMatchObject({ section: 'lunch', field: 'Service charge' });
+    // Ten minutes away.
+    localStorage.setItem(key, JSON.stringify({ ...place, at: place.at - 10 * 60_000 }));
+    renderApp('/close');
+    expect(await screen.findByText('Lunch · Service charge')).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Carry on with Lunch' })[0]).toHaveAttribute('href', '/close/lunch?at=Service%20charge');
   });
 });
 
@@ -294,8 +327,11 @@ describe('head office', () => {
   it('opens a restaurant\'s page from the sites table, and back', async () => {
     const { user } = renderApp('/head-office', admin);
     const table = await screen.findByRole('table', { name: 'Sites' });
-    await user.click(within(table).getByRole('row', { name: 'Ramo: see trends' }));
-    expect(await screen.findByRole('heading', { name: 'Ramo' })).toBeInTheDocument();
+    await user.click(within(table).getByRole('row', { name: 'Guanabana: details' }));
+    const panel = screen.getByRole('dialog', { name: 'Guanabana details' });
+    expect(within(panel).getByText('Not started yet.')).toBeInTheDocument();
+    await user.click(within(panel).getByRole('link', { name: "See Guanabana's trends" }));
+    expect(await screen.findByRole('heading', { name: 'Guanabana' })).toBeInTheDocument();
     // Tests run without example data, so there's no history to chart yet.
     expect(screen.getByText('Not enough history yet. Trends appear after a few days of closes.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Week' })).toBeInTheDocument();
@@ -304,7 +340,7 @@ describe('head office', () => {
   });
 
   it('managers can\'t open a restaurant page', () => {
-    renderApp('/head-office/ram');
-    expect(screen.queryByRole('heading', { name: 'Ramo' })).not.toBeInTheDocument();
+    renderApp('/head-office/gua');
+    expect(screen.queryByRole('heading', { name: 'Guanabana' })).not.toBeInTheDocument();
   });
 });

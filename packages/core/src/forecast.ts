@@ -8,7 +8,7 @@
  *   5. covers: bookings already made + the usual pickup for that weekday and lead time
  *   6. likely range from this method's own past misses at each horizon (no leakage)
  */
-import { addDays, daysBetween, mean, median, quantile, weekday, WEEKDAY_NAMES, type CleanDay } from './data-quality';
+import { addDays, mean, median, quantile, weekday, WEEKDAY_NAMES, type CleanDay } from './data-quality';
 
 export const FORECAST_VERSION = 'forecast-v1.0';
 
@@ -338,6 +338,3 @@ export function groupWeekdayIndex(series: CleanDay[][]): number[] | undefined {
   }
   return used ? idx.map((v) => v / used) : undefined;
 }
-
-/** Days from origin to date, for logging. */
-export const horizonOf = (origin: string, date: string) => daysBetween(origin, date);

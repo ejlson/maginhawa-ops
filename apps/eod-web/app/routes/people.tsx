@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router';
-import { canEdit, canManagePeople, isActive, isWorkEmail, personProblem, rolesGivenBy, SITES, usesPin, type Person, type PersonRole } from '@maginhawa/core';
+import { canEdit, canGiveSites, canManagePeople, isActive, isWorkEmail, personProblem, rolesGivenBy, siteChoice, siteName, SITES, sitesOf, usesPin, type Person, type PersonRole } from '@maginhawa/core';
 import { homeFor, initialsOf, ROLE_LABELS, useAuth } from '../lib/auth';
 import { people, usePeople } from '../lib/people';
 import { pins } from '../lib/pins';
 import { now } from '../lib/clock';
 import { useTwoColumns } from '../lib/wide';
-import { Foot, Icon, ICONS, Nav } from '../components/ui';
+import { Foot, Icon, Nav, SiteOptions, Toggle } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
 
 /** What each role can do, in a line (HANDOFF.md §1). */
@@ -30,10 +31,10 @@ function subFor(p: Person): string {
   return p.email ? `Work account · ${p.email}` : 'Work account';
 }
 
-export interface Toast { text: string; undo?: () => void }
+interface Toast { text: string; undo?: () => void }
 
 /** A short message at the bottom with Undo, instead of asking "are you sure?" (HANDOFF.md §7). */
-export function UndoToast({ toast, onClose }: { toast: Toast | null; onClose: () => void }) {
+function UndoToast({ toast, onClose }: { toast: Toast | null; onClose: () => void }) {
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(onClose, 6000);
@@ -67,7 +68,7 @@ function PeopleScreen() {
   if (!user) return null;
   if (!canManagePeople(user.role)) return <Navigate to={homeFor(user.role)} replace />;
 
-  const site = SITES.find((s) => s.code === siteCode)?.name ?? siteCode;
+  const site = siteName(siteCode);
   const here = list.filter(isActive);
   const q = query.trim().toLowerCase();
   const matches = (p: Person) => (filter === 'all' || p.role === filter || (filter === 'manager' && p.role === 'headoffice')) && (!q || p.name.toLowerCase().includes(q));
@@ -117,7 +118,7 @@ function PeopleScreen() {
       {user.role === 'headoffice' && (
         <label className="field"><span>Site</span>
           <select className="in" value={siteCode} onChange={(e) => setParams({ site: e.target.value })}>
-            {SITES.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
+            <SiteOptions />
           </select>
         </label>
       )}
@@ -173,7 +174,7 @@ function PeopleScreen() {
 }
 
 function PersonPanel({ person: p, all, by, me, onToast }: { person: Person; all: Person[]; by: PersonRole; me: string; onToast: (t: Toast) => void }) {
-  // Moving someone to a role that signs in with Microsoft needs their work email first.
+  // Moving someone to a role that signs in with an email code needs their email first.
   const [pending, setPending] = useState<PersonRole | null>(null);
   const [email, setEmail] = useState(p.email ?? '');
   const [problem, setProblem] = useState<string | null>(null);
@@ -233,7 +234,7 @@ function PersonPanel({ person: p, all, by, me, onToast }: { person: Person; all:
         {!canEdit(by, p) && <p className="note" style={{ margin: 0 }}>Only head office can change head-office people.</p>}
         {pending && (
           <div className="person-email">
-            <label className="field"><span>Work email <small>{ROLE_LABELS[pending]}s sign in with their Microsoft work account</small></span>
+            <label className="field"><span>Email <small>{ROLE_LABELS[pending]}s sign in with a code sent to it. Any email works</small></span>
               <input className="in" type="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@[your work domain]" />
             </label>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
@@ -245,13 +246,15 @@ function PersonPanel({ person: p, all, by, me, onToast }: { person: Person; all:
         {problem && <p className="note" role="alert" style={{ margin: 0, color: 'var(--bad)' }}>{problem}</p>}
       </div>
 
+      {p.role !== 'headoffice' && isActive(p) && <PersonSites person={p} by={by} onToast={onToast} />}
+
       <div className="person-sec">
         <span className="sl"><span>Signing in</span></span>
         <div className="li" style={{ cursor: 'default' }}>
           <span className="av"><Icon d={ICONS.lock} size={17} /></span>
           {usesPin(p.role)
             ? <span className="tx"><span>{pins.has(p.siteCode, p.name) ? 'PIN on the iPad' : 'No PIN yet'}</span><small>{pins.has(p.siteCode, p.name) ? 'Only they know it. A reset makes them choose a new one.' : 'They choose one the first time they tap their name on the iPad.'}</small></span>
-            : <span className="tx"><span>Microsoft work account</span><small>{p.email ?? 'No email yet'}</small></span>}
+            : <span className="tx"><span>Email sign-in</span><small>{p.email ?? 'No email yet'}</small></span>}
         </div>
         {editable && usesPin(p.role) && pins.has(p.siteCode, p.name) && <button type="button" className="linkbtn" style={{ alignSelf: 'flex-start', minHeight: 44 }} onClick={resetPin}>Reset PIN</button>}
       </div>
@@ -272,5 +275,63 @@ function PersonPanel({ person: p, all, by, me, onToast }: { person: Person; all:
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * The sites someone works at. Head office ticks them (or "All sites", which includes sites opened later)
+ * and picks the main one, where they land after signing in. Staff and supervisors appear on the iPad at
+ * each of their sites; managers can switch between theirs. Everyone else just sees the list.
+ */
+function PersonSites({ person: p, by, onToast }: { person: Person; by: PersonRole; onToast: (t: Toast) => void }) {
+  const mine = sitesOf(p).filter((c) => SITES.some((s) => s.code === c));
+  const nameOf = siteName;
+  if (!canGiveSites(by)) {
+    return (
+      <div className="person-sec">
+        <span className="sl"><span>Sites</span><span>Head office changes these</span></span>
+        <p className="note" style={{ margin: 0 }}>{p.allSites ? `All sites · main site ${nameOf(p.siteCode)}` : mine.map(nameOf).join(', ')}</p>
+      </div>
+    );
+  }
+  const change = (patch: Partial<Person>, text: string) => {
+    const before = p;
+    people.update(p.id, patch);
+    onToast({ text, undo: () => people.restore(before) });
+  };
+  const toggle = (code: string) => {
+    const on = mine.includes(code);
+    if (on && mine.length === 1) return;
+    const ticked = on ? mine.filter((c) => c !== code) : [...mine, code];
+    change(siteChoice(ticked, p.siteCode), on ? `${p.name} no longer works at ${nameOf(code)}.` : `${p.name} can now work at ${nameOf(code)}.`);
+  };
+  // With "All sites" on, only the main site changes; the ticks stay as they were for if it's turned off.
+  const makeMain = (code: string) => change(
+    p.allSites ? { siteCode: code, otherSites: (p.otherSites ?? []).filter((c) => c !== code) } : siteChoice(mine, code),
+    `${nameOf(code)} is now ${p.name}'s main site.`,
+  );
+  const allOn = Boolean(p.allSites);
+  return (
+    <div className="person-sec" role="group" aria-label="Sites">
+      <span className="sl"><span>Sites</span><span>{allOn ? 'Every site, including new ones' : mine.length === 1 ? 'One site' : `${mine.length} sites${p.role === 'manager' ? ' · they can switch between them' : ''}`}</span></span>
+      <div className="fr">
+        <span className="tx"><span>All sites</span><small>Includes any site that opens later</small></span>
+        <Toggle label="All sites" checked={allOn} onChange={(v) => change({ allSites: v }, v ? `${p.name} now works at every site.` : `${p.name} is back to their ticked sites.`)} />
+      </div>
+      {SITES.map((s) => {
+        const on = allOn || mine.includes(s.code);
+        const main = s.code === p.siteCode;
+        return (
+          <div key={s.code} className="site-opt">
+            <button type="button" className="role-opt" role="checkbox" aria-checked={on} disabled={allOn || (on && mine.length === 1)} onClick={() => toggle(s.code)}>
+              <span className={`ring${on ? ' on' : ''}`}>{on && <Icon d={ICONS.check} size={13} />}</span>
+              <span className="tx"><span>{s.name}</span></span>
+            </button>
+            {main && <span className="pill">Main site</span>}
+            {on && !main && <button type="button" className="linkbtn" onClick={() => makeMain(s.code)}>Make main</button>}
+          </div>
+        );
+      })}
+    </div>
   );
 }

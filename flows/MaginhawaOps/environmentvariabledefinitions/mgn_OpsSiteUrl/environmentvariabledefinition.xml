@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="mgn_OpsSiteUrl">
+  <defaultvalue></defaultvalue>
+  <description default="The Maginhawa Ops SharePoint site, e.g. https://example.sharepoint.com/sites/ops">
+    <label description="The Maginhawa Ops SharePoint site, e.g. https://example.sharepoint.com/sites/ops" languagecode="1033" />
+  </description>
+  <displayname default="Ops site URL">
+    <label description="Ops site URL" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>1</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

@@ -3,11 +3,11 @@ import { Link, useNavigate } from 'react-router';
 import { addDays, REPEAT_MIN, REPEAT_WINDOW_DAYS, repeatFaults, REVIEW_EVERY_DAYS, REVIEW_QUESTIONS, reviewDue, type RepeatFault } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { shortDate, useFoodSafety } from '../lib/food-safety';
-import { useChecklists } from '../lib/checklists';
+import { isDone, isScheduled, useChecklists } from '../lib/checklists';
 import { useTemplates } from '../lib/templates';
 import { useDraft } from '../lib/draft';
 import { loadChecklistRecords } from '../lib/records-pack';
-import { Foot, Nav } from '../components/ui';
+import { ChipRadio, Foot, Nav } from '../components/ui';
 import { SkRows } from '../components/Skeleton';
 
 /** The 4-weekly look back (HANDOFF.md §8a, item 11): repeat faults, what's changed, and a signed review. */
@@ -31,8 +31,8 @@ export default function FsReview() {
     return () => { live = false; };
   }, [siteCode, today, records]);
 
-  const scheduled = tasks.filter((t) => t.status !== 'anytime');
-  const done = scheduled.filter((t) => t.status === 'done' || t.status === 'failed').length;
+  const scheduled = tasks.filter(isScheduled);
+  const done = scheduled.filter(isDone).length;
   const allAnswered = REVIEW_QUESTIONS.every((q) => answers[q.id] !== undefined);
 
   return (
@@ -70,8 +70,8 @@ export default function FsReview() {
               <div className="fr" key={q.id}>
                 <span className="tx"><span>{q.title}</span>{answers[q.id] && <small className="warn">{q.sub}</small>}</span>
                 <span className="chips" role="radiogroup" aria-label={q.title}>
-                  <button type="button" role="radio" className="chip" aria-checked={answers[q.id] === false} aria-pressed={answers[q.id] === false} onClick={() => setAnswers({ ...answers, [q.id]: false })}>No</button>
-                  <button type="button" role="radio" className="chip" aria-checked={answers[q.id] === true} aria-pressed={answers[q.id] === true} onClick={() => setAnswers({ ...answers, [q.id]: true })}>Yes</button>
+                  <ChipRadio checked={answers[q.id] === false} onClick={() => setAnswers({ ...answers, [q.id]: false })}>No</ChipRadio>
+                  <ChipRadio checked={answers[q.id] === true} onClick={() => setAnswers({ ...answers, [q.id]: true })}>Yes</ChipRadio>
                 </span>
               </div>
             ))}

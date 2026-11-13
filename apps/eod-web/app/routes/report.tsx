@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { REPAIR_PLACES, repairIssues, type RepairPlace } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
 import { useSite } from '../lib/site';
-import { Foot, Nav, Toggle } from '../components/ui';
+import { ChipRadio, Foot, Nav, Toggle } from '../components/ui';
 
 /** Anyone can report something broken. It goes straight to the manager's home screen. */
 export default function Report() {
@@ -30,7 +30,7 @@ export default function Report() {
           </label>
           <div className="field"><span id="place">Where</span>
             <div className="chips" role="radiogroup" aria-labelledby="place">
-              {REPAIR_PLACES.map((p) => <button key={p} type="button" className="chip" role="radio" aria-checked={place === p} aria-pressed={place === p} onClick={() => setPlace(p)}>{p}</button>)}
+              {REPAIR_PLACES.map((p) => <ChipRadio key={p} checked={place === p} onClick={() => setPlace(p)}>{p}</ChipRadio>)}
             </div>
           </div>
           <label className="field"><span>Anything else <small>· optional</small></span>

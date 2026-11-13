@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Send back a report</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0066cc}a:hover{color:#004f9e}
+.ad{--bg:#ffffff;--side:#f7f7f9;--text:#1d1d1f;--sec:#6e6e73;--sep:rgba(0,0,0,.08);--fill:#f2f2f5;--sel:rgba(0,0,0,.06);--ink:#1d1d1f;--onink:#ffffff;--hero:#1d1d1f;--onhero:#f5f5f7;--herosec:rgba(245,245,247,.6);--heroline:rgba(245,245,247,.16);--heroOk:#30d158;--link:#0066cc;--ok:#1f7a35;--okbg:rgba(52,199,89,.14);--warn:#b25000;--warnbg:rgba(255,149,0,.16);--bad:#d70015;--badbg:rgba(255,59,48,.12);--scrim:rgba(0,0,0,.28);position:relative;overflow:hidden;min-height:1060px;box-sizing:border-box;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Geist',sans-serif;font-size:15px;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.ad.dark{--bg:#121214;--side:#1b1b1f;--text:#f2f2f4;--sec:#a3a3ab;--sep:rgba(255,255,255,.12);--fill:#2a2a2f;--sel:rgba(255,255,255,.08);--ink:#f2f2f4;--onink:#121214;--hero:#232328;--heroline:rgba(255,255,255,.12);--link:#4aa3ff;--ok:#4cd964;--okbg:rgba(76,217,100,.16);--warn:#ffb340;--warnbg:rgba(255,179,64,.16);--bad:#ff6b60;--badbg:rgba(255,107,96,.16);--scrim:rgba(0,0,0,.55)}
+.ad.dark .hero{box-shadow:0 24px 48px -24px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.07)}
+.ad.dark .sheet{box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.top{min-height:64px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px;padding:0 40px;border-bottom:.5px solid var(--sep)}
+.tab{height:36px;padding:0 14px;border-radius:18px;display:flex;align-items:center;color:var(--sec);text-decoration:none;font-weight:500}
+.tab.on{background:var(--sel);color:var(--text);font-weight:600}
+.wrap{display:flex;flex-wrap:wrap;gap:40px;padding:32px 40px 56px;align-items:flex-start}
+.mainc{flex:999 1 620px;min-width:0;display:flex;flex-direction:column;gap:32px}
+.rail{flex:1 1 320px;max-width:380px;display:flex;flex-direction:column;gap:20px}
+.hero{background:var(--hero);color:var(--onhero);border-radius:24px;padding:26px 28px;display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;align-items:flex-end;box-shadow:0 24px 48px -24px rgba(0,0,0,.4)}
+.hs{display:flex;flex-direction:column;gap:4px;font-size:22px;font-weight:600;letter-spacing:-.03em;padding-left:22px;border-left:.5px solid var(--heroline)}
+.hs small{font-size:12px;font-weight:400;color:var(--herosec);letter-spacing:0}
+.hd{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:4px}
+.hd h2{font-size:20px;font-weight:700;letter-spacing:-.025em;margin:0}
+.hd span{font-size:14px;color:var(--sec)}
+.scroll{overflow-x:auto}
+.th,.sr{display:grid;grid-template-columns:minmax(220px,2.4fr) repeat(4,minmax(90px,1fr));gap:16px;align-items:center;min-width:680px}
+.th{font-size:12px;color:var(--sec);padding:0 0 8px}
+.th span:not(:first-child),.sr > span:not(:first-child){text-align:right}
+.sr{min-height:68px;position:relative;border-radius:12px}
+.sr::before{content:'';position:absolute;top:0;left:56px;right:0;height:.5px;background:var(--sep)}
+.sr.on{background:var(--sel)}
+.who{display:flex;align-items:center;gap:14px;min-width:0}
+.av{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;font-size:13px;font-weight:700;letter-spacing:-.02em}
+.tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tx small{font-size:13px;color:var(--sec)}
+.n{font-weight:600}.m{color:var(--sec)}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.tx small.warn{color:var(--warn)}.tx small.bad{color:var(--bad)}
+.panel{border-radius:20px;background:var(--side);padding:20px;display:flex;flex-direction:column}
+.li{display:flex;align-items:flex-start;gap:12px;padding:12px 0;position:relative}
+.li + .li::before{content:'';position:absolute;top:0;left:0;right:0;height:.5px;background:var(--sep)}
+.sm{height:32px;border-radius:16px;border:0;padding:0 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;background:var(--bg);color:var(--text);box-shadow:0 0 0 .5px var(--sep)}
+.scrim{position:absolute;inset:0;background:var(--scrim)}
+.sheet{position:absolute;top:12px;right:12px;bottom:12px;width:min(520px,calc(100% - 24px));background:var(--bg);border-radius:24px;box-shadow:0 30px 80px -20px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden}
+.sh-head{padding:22px 28px 16px;display:flex;align-items:flex-start;gap:16px;border-bottom:.5px solid var(--sep)}
+.x{width:36px;height:36px;border-radius:18px;border:0;background:var(--fill);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.sh-body{flex:1;overflow-y:auto;padding:8px 28px 24px;display:flex;flex-direction:column;gap:28px;scrollbar-width:thin}
+.sec-t{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:16px 0 4px}
+.sec-t h3{margin:0;font-size:20px;font-weight:700;letter-spacing:-.025em}
+.sec-t span{font-size:13px;color:var(--sec)}
+.pick{width:100%;display:flex;align-items:center;gap:14px;min-height:64px;padding:8px 0;border:0;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;position:relative}
+.pick + .pick::before{content:'';position:absolute;top:0;left:56px;right:0;height:.5px;background:var(--sep)}
+.ic{width:42px;height:42px;border-radius:21px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;color:var(--text)}
+.ic.flag{background:var(--warnbg);color:var(--warn)}
+.amt{font-weight:600;white-space:nowrap}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:11px;font-size:12px;font-weight:600;background:var(--warnbg);color:var(--warn);margin-left:6px}
+.circ{width:24px;height:24px;flex:none}
+.note{width:100%;box-sizing:border-box;min-height:96px;resize:vertical;border:0;border-radius:12px;background:var(--fill);color:var(--text);font:inherit;font-size:15px;line-height:1.4;padding:12px 14px;outline:none}
+.note:focus{box-shadow:0 0 0 2px var(--link)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{height:32px;padding:0 12px;border-radius:16px;border:0;background:var(--fill);color:var(--text);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.seg{display:flex;background:var(--fill);border-radius:12px;padding:3px;gap:2px}
+.seg button{flex:1;height:40px;border:0;border-radius:10px;background:transparent;color:var(--sec);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--bg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.row{display:flex;align-items:center;gap:14px;min-height:56px}
+.tog{width:51px;height:31px;border-radius:16px;border:0;padding:2px;background:var(--fill);cursor:pointer;display:flex;flex:none}
+.tog.on{background:#34c759;justify-content:flex-end}
+.tog span{width:27px;height:27px;border-radius:14px;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.steps li{display:flex;gap:14px;padding:10px 0;align-items:flex-start;font-size:15px;line-height:1.4}
+.num{width:24px;height:24px;border-radius:12px;background:var(--fill);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;margin-top:-1px}
+.warnbox{display:flex;gap:12px;align-items:flex-start;background:var(--warnbg);color:var(--text);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.4}
+.sh-foot{padding:16px 28px 22px;border-top:.5px solid var(--sep);display:flex;flex-direction:column;gap:10px;align-items:stretch}
+.go{height:54px;border-radius:999px;border:0;background:var(--ink);color:var(--onink);font:inherit;font-size:17px;font-weight:600;cursor:pointer}
+.go:disabled{opacity:.3;cursor:default}
+.lk{border:0;background:transparent;color:var(--link);font:inherit;font-size:15px;font-weight:500;cursor:pointer;height:36px}
+.hint{font-size:13px;color:var(--sec);text-align:center}
+.toast{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:flex;align-items:center;gap:18px;background:var(--hero);color:var(--onhero);border-radius:999px;padding:12px 12px 12px 22px;box-shadow:0 18px 40px -12px rgba(0,0,0,.45);font-size:15px;white-space:nowrap;max-width:calc(100% - 32px)}
+.toast button{height:36px;padding:0 16px;border-radius:18px;border:0;background:rgba(245,245,247,.16);color:var(--onhero);font:inherit;font-weight:600;cursor:pointer}
+</style>
+</helmet>
+<div class="ad {{theme}}">
+<header class="top">
+<span style="font-size: 17px; font-weight: 700; letter-spacing: -0.02em">Maginhawa <span style="color: var(--sec); font-weight: 500">Head office</span></span>
+<nav style="display: flex; flex-wrap: wrap; gap: 4px" aria-label="Admin"><a class="tab on" href="#" aria-current="page">Today</a><a class="tab" href="#">Forecast</a><a class="tab" href="#">Reports</a><a class="tab" href="#">Settings</a></nav>
+<span style="margin-left: auto; display: flex; align-items: center; gap: 10px"><span style="font-size: 13px; color: var(--sec)">Admin</span><span class="av" style="width: 34px; height: 34px; background: var(--ink); color: var(--onink); font-size: 12px">AD</span></span>
+</header>
+<div class="wrap">
+<div class="mainc">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; color: var(--sec)">Monday 5 October · 09:12 Tuesday</span><h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.035em">All sites</h1></div>
+<div class="hero">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 15px; color: var(--herosec)">Group net sales · 7 of 9 sites in</span>
+<div style="display: flex; align-items: baseline; line-height: 1"><span style="font-size: 60px; font-weight: 600; letter-spacing: -0.055em">£18,477</span><span style="font-size: 30px; font-weight: 500; color: var(--herosec)">.45</span></div>
+<span style="font-size: 14px; font-weight: 600; color: var(--heroOk)">£477.45 over target for those 7 sites</span>
+</div>
+<div style="display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-end">
+<span class="hs">795<small>Covers</small></span>
+<span class="hs">30.1%<small>Wage cost</small></span>
+<span class="hs">£7.60 short<small>Group cash</small></span>
+</div>
+</div>
+<section>
+<div class="hd"><h2>Sites</h2><span>Example figures</span></div>
+<div class="scroll">
+<div class="th"><span>Site</span><span>Net</span><span>vs target</span><span>Wages</span><span>Cash</span></div>
+<sc-for list="{{sites}}" as="s" hint-placeholder-count="7">
+<div class="sr {{s.on}}"><span class="who"><span class="av" style="{{s.avStyle}}">{{s.ini}}</span><span class="tx"><span style="font-weight: 600">{{s.name}}</span><small class="{{s.stTone}}">{{s.status}}</small></span></span><span class="n">{{s.net}}</span><span class="{{s.vtTone}}">{{s.vt}}</span><span class="{{s.wgTone}}">{{s.wg}}</span><span class="{{s.cashTone}}">{{s.cash}}</span></div>
+</sc-for>
+</div>
+</section>
+</div>
+<aside class="rail">
+<div class="panel">
+<div class="hd"><h2>Bunso</h2><span class="{{bunsoTone}}">{{bunsoShort}}</span></div>
+<div class="li"><span class="tx" style="flex: 1">Net sales</span><span class="n">£2,687.50</span></div>
+<div class="li"><span class="tx" style="flex: 1">Covers</span><span>105</span></div>
+<div class="li"><span class="tx" style="flex: 1">Wages</span><span>29.8%</span></div>
+<div class="li"><span class="tx" style="flex: 1">Cash</span><span class="warn">£20.00 short</span></div>
+<div class="li"><span class="tx" style="flex: 1">Discounts</span><span class="warn">£22.60 not listed</span></div>
+<div style="display: flex; gap: 10px; margin-top: 12px">
+<a href="#" style="flex: 1; height: 44px; border-radius: 22px; background: var(--ink); color: var(--onink); display: flex; align-items: center; justify-content: center; font-weight: 600; text-decoration: none">Open full report</a>
+<button class="sm" style="height: 44px; border-radius: 22px; padding: 0 18px; font-size: 15px" onClick="{{openSheet}}">{{railBtn}}</button>
+</div>
+</div>
+</aside>
+</div>
+
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+<div class="scrim" onClick="{{closeSheet}}"></div>
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sbTitle">
+<div class="sh-head">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+<h2 id="sbTitle" style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.03em">Send back to Bunso</h2>
+<span style="font-size: 14px; color: var(--sec)">Monday 5 October · submitted 00:31 by [manager]</span>
+</div>
+<button class="x" aria-label="Close" onClick="{{closeSheet}}"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9"></path></svg></button>
+</div>
+<div class="sh-body">
+<sc-if value="{{approved}}" hint-placeholder-val="{{ false }}">
+<div class="warnbox" style="margin-top: 16px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><path d="M12 3l9.5 17h-19z"></path><path d="M12 10v4.5"></path><path d="M12 17.5h.01"></path></svg><span><strong>Approved 08:40 by [finance].</strong> Finance may already have used these figures. Sending it back removes the approval until it comes back.</span></div>
+</sc-if>
+
+<div>
+<div class="sec-t"><h3>What needs another look</h3><span>{{pickedCount}}</span></div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<button class="pick" aria-pressed="{{r.pressed}}" onClick="{{r.toggle}}">
+<span class="ic {{r.icTone}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.d}}"></path></svg></span>
+<span class="tx" style="flex: 1"><span style="font-weight: 600">{{r.title}}<sc-if value="{{r.flag}}" hint-placeholder-val="{{ false }}"><span class="pill">Flagged</span></sc-if></span><small>{{r.sub}}</small></span>
+<span class="amt {{r.amtTone}}">{{r.amt}}</span>
+<sc-if value="{{r.on}}" hint-placeholder-val="{{ false }}"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="var(--ink)"></circle><path d="M7 12.4l3.2 3.1L17 8.8" fill="none" stroke="var(--onink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+<sc-if value="{{r.off}}" hint-placeholder-val="{{ true }}"><svg class="circ" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.75" fill="none" stroke="var(--sec)" stroke-opacity=".5" stroke-width="1.5"></circle></svg></sc-if>
+</button>
+</sc-for>
+</div>
+
+<div>
+<div class="sec-t"><h3><label for="sbNote">Note for [manager]</label></h3><span>Required</span></div>
+<textarea id="sbNote" class="note" placeholder="Say what to check, e.g. the card total doesn’t match the PDQ slip" value="{{note}}" onChange="{{setNote}}"></textarea>
+<div class="chips">
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="4"><button class="chip" onClick="{{c.add}}">{{c.label}}</button></sc-for>
+</div>
+</div>
+
+<div>
+<div class="sec-t"><h3>Back by</h3><span>{{dueSub}}</span></div>
+<div class="seg" role="group" aria-label="Back by">
+<sc-for list="{{dues}}" as="d" hint-placeholder-count="3"><button class="{{d.on}}" aria-pressed="{{d.pressed}}" onClick="{{d.pick}}">{{d.label}}</button></sc-for>
+</div>
+</div>
+
+<div>
+<div class="sec-t"><h3>Tell them</h3></div>
+<div class="row"><span class="tx" style="flex: 1"><span style="font-weight: 600">App notification and email</span><small>To [manager], Bunso’s manager</small></span><button class="tog {{notifyOn}}" role="switch" aria-checked="{{notify}}" aria-label="App notification and email" onClick="{{toggleNotify}}"><span></span></button></div>
+</div>
+
+<div>
+<div class="sec-t"><h3>What happens next</h3></div>
+<ol class="steps">
+<li><span class="num">1</span><span>Monday’s report opens again for [manager], with the parts you picked at the top.</span></li>
+<li><span class="num">2</span><span>What they sent at 00:31 is kept, so you can see exactly what changed.</span></li>
+<li><span class="num">3</span><span>It comes back to you marked <strong>Amended</strong>, with the changes listed.</span></li>
+</ol>
+</div>
+</div>
+<div class="sh-foot">
+<button class="go" disabled="{{notReady}}" onClick="{{send}}">{{sendLabel}}</button>
+<sc-if value="{{notReady}}" hint-placeholder-val="{{ true }}"><span class="hint">{{hint}}</span></sc-if>
+<button class="lk" onClick="{{closeSheet}}">Cancel</button>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{sent}}" hint-placeholder-val="{{ false }}">
+<div class="toast" role="status"><span>Sent back to Bunso. [manager] has been told.</span><button onClick="{{undo}}">Undo</button></div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"approved":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1060}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: true, sent: false, picked: { disc: true, cash: true }, note: '', due: 'pm', notify: true };
+  }
+  renderVals() {
+    const st = this.state;
+    const approved = !!this.props.approved;
+    const dueLabels = { noon: '12:00 today', pm: '17:00 today', close: 'Before tonight’s close' };
+    const dueShort = { noon: '12:00', pm: '17:00', close: 'tonight' };
+    const bunsoStatus = st.sent ? 'Sent back 09:14 · back by ' + dueShort[st.due] : (approved ? 'Approved 08:40 · [finance]' : 'Submitted 00:31 · 2 to check');
+    const bunsoTone = st.sent ? 'warn' : (approved ? 'm' : 'warn');
+    const raw = [
+      { name: 'Belly', ini: 'Be', st: 'Submitted 23:52 · [manager]', stTone: 'm', net: '£4,105.75', vt: '£305.75 over', vtTone: 'ok', wg: '26.1%', wgTone: 'm', cash: 'Balanced', cashTone: 'm' },
+      { name: 'Bintang', ini: 'Bi', st: 'Submitted 00:05 · [manager]', stTone: 'm', net: '£3,412.00', vt: '£212.00 over', vtTone: 'ok', wg: '27.4%', wgTone: 'm', cash: 'Balanced', cashTone: 'm' },
+      { name: 'Bunso', ini: 'B', st: bunsoStatus, stTone: bunsoTone, net: '£2,687.50', vt: '£187.50 over', vtTone: 'ok', wg: '29.8%', wgTone: 'm', cash: '£20.00 short', cashTone: 'warn', on: 'on' },
+      { name: 'Guanabana', ini: 'G', st: 'Submitted 00:12 · 1 to check', stTone: 'warn', net: '£2,198.40', vt: '£101.60 under', vtTone: 'm', wg: '31.8%', wgTone: 'warn', cash: '£12.40 over', cashTone: 'warn' },
+      { name: 'Ramo', ini: 'R', st: 'Submitted 23:30 · 1 to check', stTone: 'warn', net: '£1,876.20', vt: '£123.80 under', vtTone: 'm', wg: '36.2%', wgTone: 'bad', cash: 'Balanced', cashTone: 'm' },
+      { name: 'Cafe Mamasons', ini: 'CM', st: 'Submitted 18:20 · [manager]', stTone: 'm', net: '£1,243.60', vt: '£6.40 under', vtTone: 'm', wg: '33.0%', wgTone: 'warn', cash: 'Balanced', cashTone: 'm' },
+      { name: 'Mamasons Kentish Town', ini: 'KT', st: 'Not submitted · 5h late', stTone: 'bad', net: '—', vt: '—', vtTone: 'm', wg: '—', wgTone: 'm', cash: '—', cashTone: 'm' }
+    ];
+    const sites = raw.map((s) => ({
+      ...s, status: s.st, on: s.on || '',
+      avStyle: s.stTone === 'bad' ? 'background: var(--badbg); color: var(--bad)' : (s.stTone === 'warn' ? 'background: var(--warnbg); color: var(--warn)' : '')
+    }));
+    const defs = [
+      { id: 'disc', title: 'Discounts & comps', sub: 'Till £50.00, lines add up to £27.40', amt: '£22.60 not listed', flag: true, d: 'M3 12V4h8l10 10-8 8z M7.5 7.5h.01' },
+      { id: 'cash', title: 'Cash', sub: 'Reason given: till error', amt: '£20.00 short', flag: true, d: 'M3 7h18v10H3z M12 9.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5' },
+      { id: 'lunch', title: 'Lunch', sub: '48 covers · food and drink match', amt: '£850.00', d: 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8 M12 2v2 M12 20v2 M4.9 4.9l1.4 1.4 M17.7 17.7l1.4 1.4 M2 12h2 M20 12h2 M4.9 19.1l1.4-1.4 M17.7 6.3l1.4-1.4' },
+      { id: 'dinner', title: 'Dinner', sub: '57 covers · food and drink match', amt: '£1,837.50', d: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z' },
+      { id: 'wages', title: 'Wages', sub: '11 people on shift', amt: '29.8%', d: 'M9 11a3.5 3.5 0 1 0 0-7a3.5 3.5 0 1 0 0 7 M2.5 20a6.5 6.5 0 0 1 13 0 M16 4.5a3.5 3.5 0 0 1 0 6.5 M18 14.5a6.5 6.5 0 0 1 3.5 5.5' },
+      { id: 'tips', title: 'Tips & service charge', sub: 'Shared between 9 people', amt: '£186.00', d: 'M12 3c4.4 0 8 1.3 8 3s-3.6 3-8 3s-8-1.3-8-3s3.6-3 8-3z M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6 M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6' }
+    ];
+    const rows = defs.map((r) => {
+      const on = !!st.picked[r.id];
+      return { ...r, on, off: !on, pressed: on ? 'true' : 'false', icTone: r.flag ? 'flag' : '', amtTone: r.flag ? 'warn' : '',
+        toggle: () => this.setState({ picked: { ...this.state.picked, [r.id]: !this.state.picked[r.id] } }) };
+    });
+    const count = rows.filter((r) => r.on).length;
+    const chipTexts = ['Please list the missing discounts', 'Card total doesn’t match the PDQ slip', 'Tell us more about the cash', 'Wages don’t match the rota'];
+    const chips = chipTexts.map((t) => ({ label: t, add: () => {
+      const cur = this.state.note.trim();
+      this.setState({ note: cur ? cur + (/[.!?]$/.test(cur) ? ' ' : '. ') + t + '.' : t + '.' });
+    } }));
+    const dues = ['noon', 'pm', 'close'].map((k) => ({ label: dueLabels[k], on: st.due === k ? 'on' : '', pressed: st.due === k ? 'true' : 'false', pick: () => this.setState({ due: k }) }));
+    const noteOk = st.note.trim().length > 0;
+    const notReady = count === 0 || !noteOk;
+    return {
+      theme: this.props.dark ? 'dark' : '',
+      approved, sites, rows, chips, dues,
+      open: st.open, sent: st.sent,
+      bunsoTone, bunsoShort: st.sent ? 'Sent back' : (approved ? 'Approved' : '2 to check'),
+      railBtn: st.sent ? 'Sent back' : 'Send back',
+      pickedCount: count === 0 ? 'Pick at least one' : count + ' picked',
+      note: st.note,
+      setNote: (e) => this.setState({ note: e.target.value }),
+      dueSub: 'They’re reminded an hour before',
+      notify: st.notify ? 'true' : 'false', notifyOn: st.notify ? 'on' : '',
+      toggleNotify: () => this.setState({ notify: !this.state.notify }),
+      notReady,
+      hint: count === 0 ? 'Pick at least one part to look at' : 'Write a note so [manager] knows what to check',
+      sendLabel: approved ? 'Remove approval and send back' : 'Send back to Bunso',
+      send: () => this.setState({ open: false, sent: true }),
+      undo: () => this.setState({ sent: false, open: true }),
+      openSheet: () => { if (!this.state.sent) this.setState({ open: true }); },
+      closeSheet: () => this.setState({ open: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

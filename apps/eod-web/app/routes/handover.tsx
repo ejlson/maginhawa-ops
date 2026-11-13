@@ -3,7 +3,8 @@ import { addDays } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
 import { useChecklists } from '../lib/checklists';
 import { useSite } from '../lib/site';
-import { Icon, ICONS, Nav } from '../components/ui';
+import { Icon, Nav } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 /** Last night's handover note from whoever closed. Opening it marks it read. */
 export default function Handover() {

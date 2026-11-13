@@ -4,7 +4,7 @@ import { ALLERGENS, currentVersion, hasRead, nextVersion, readCount, type Allerg
 import { can, useAuth } from '../lib/auth';
 import { useFoodSafety } from '../lib/food-safety';
 import { now } from '../lib/clock';
-import { Foot, Nav, RowLink } from '../components/ui';
+import { ChipPicker, Foot, Nav, RowLink } from '../components/ui';
 
 /** Every dish with its allergens (HANDOFF.md §8a, item 4). Managers add dishes; everyone reads. */
 export default function FsAllergens() {
@@ -33,7 +33,7 @@ export default function FsAllergens() {
           </section>
           <section className="grp">
             <div className="gh"><h2>Which of the 14 does it contain?</h2><p>Check every ingredient's label, including sauces and oils.</p></div>
-            <div className="chips">{ALLERGENS.map((a) => <button key={a} type="button" className="chip" aria-pressed={picked.includes(a)} onClick={() => setPicked((x) => (x.includes(a) ? x.filter((y) => y !== a) : [...x, a]))}>{a}</button>)}</div>
+            <ChipPicker options={ALLERGENS} picked={picked} onChange={setPicked} />
           </section>
         </div>
         <Foot>

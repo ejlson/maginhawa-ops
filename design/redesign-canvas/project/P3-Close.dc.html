@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Close the day</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.sw,.qa,.ic,.pill,.chip,.btn{corner-shape:round}
+
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes ring{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+@keyframes shimmer{from{background-position:0 0,0 0,0 0}to{background-position:130px 0,-230px 0,170px 0}}
+.rise{animation:rise .45s cubic-bezier(.23,1,.32,1) both}
+@keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-70px,34px) scale(1.25) rotate(25deg)}66%{transform:translate(50px,-24px) scale(.9) rotate(-12deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+@keyframes driftB{0%{transform:translate(0,0) scale(1.05) rotate(0deg)}33%{transform:translate(64px,-28px) scale(.88) rotate(-20deg)}66%{transform:translate(-44px,30px) scale(1.2) rotate(14deg)}100%{transform:translate(0,0) scale(1.05) rotate(0deg)}}
+.blob{position:absolute;border-radius:50%;z-index:-1}
+.ba{animation:driftA 12s ease-in-out infinite}
+.bb{animation:driftB 15s ease-in-out infinite}
+.grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:.75}
+.big{--len:176;stroke-dasharray:176;animation:ring 1s cubic-bezier(.23,1,.32,1) .2s both}
+@media (prefers-reduced-motion: reduce){.rise,.big,.ba,.bb{animation:none}}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em">
+  <div style="padding:24px 24px 0;display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#6E6E73"><span style="width:22px;height:22px;border-radius:7px;background:#F59F00;color:#1D1D1F;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">BU</span>Bunso · Thu 12 Nov</div>
+      <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:#1F7A35;font-weight:500"><span style="width:7px;height:7px;border-radius:50%;background:#34C759"></span>Saved on this phone</span>
+    </div>
+    <div style="font-size:34px;font-weight:700;letter-spacing:-0.038em;line-height:1.1;margin-top:-4px">Close the day</div>
+
+    <div class="rise" style="position:relative;overflow:hidden;isolation:isolate;border-radius:32px;padding:22px 24px;background:oklch(from #F59F00 .17 calc(c * .6) calc(h - 35));color:#F5F5F7;display:flex;align-items:center;gap:18px;box-shadow:0 18px 50px -26px rgba(217,72,15,.32)">
+      <div aria-hidden="true" class="blob ba" style="left:-70px;top:-90px;width:400px;height:287px;background:oklch(from #F59F00 .1 calc(c * .4) calc(h - 35));filter:blur(40px)"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-80px;top:-70px;width:325px;height:262px;background:#F59F00;filter:blur(42px)"></div>
+      <div aria-hidden="true" class="blob ba" style="right:60px;bottom:-110px;width:337px;height:225px;background:oklch(from #F59F00 calc(l - .04) calc(c * 1.1) calc(h - 40));filter:blur(44px);opacity:.9"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-40px;bottom:-110px;width:212px;height:162px;background:oklch(from #FFE8A3 .95 calc(c * .6) h);filter:blur(36px);opacity:.5"></div>
+      <svg aria-hidden="true" class="grain"><filter id="g3"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#g3)"></rect></svg>
+      <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:13px;color:rgba(245,245,247,.66)">Day net so far</span>
+        <span style="font-variant-numeric:tabular-nums"><span style="font-size:40px;font-weight:600;letter-spacing:-0.05em">£1,840</span><span style="font-size:20px;color:rgba(245,245,247,.6)">.50</span></span>
+        <span style="font-size:13px;color:rgba(245,245,247,.66)">Wages so far 27.4% · on track</span>
+      </div>
+      <div style="position:relative;width:72px;height:72px;flex-shrink:0">
+        <svg width="72" height="72" viewBox="0 0 72 72" role="img" aria-label="3 of 8 sections done"><circle cx="36" cy="36" r="28" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="6"></circle><circle class="big" cx="36" cy="36" r="28" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-dashoffset="0" transform="rotate(-90 36 36)" style="stroke-dasharray:66 176"></circle></svg>
+        <span style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#FFFFFF;line-height:1"><span style="font-size:20px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.25)">3/8</span></span>
+      </div>
+    </div>
+
+    <sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+      <div class="rise" style="display:flex;flex-direction:column;animation-delay:{{g.delay}}">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 0"><span style="font-size:13px;font-weight:600;color:#6E6E73;letter-spacing:.02em">{{g.title}}</span><span style="font-size:13px;color:#6E6E73">{{g.meta}}</span></div>
+        <sc-for list="{{g.rows}}" as="r" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:14px;height:58px;background:linear-gradient(rgba(0,0,0,.07),rgba(0,0,0,.07)) 38px 100%/calc(100% - 38px) 1px no-repeat">
+            <svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="{{r.stateLabel}}">
+              <sc-if value="{{r.done}}" hint-placeholder-val="{{false}}"><circle cx="12" cy="12" r="11" fill="#F59F00"></circle><path d="M7.5 12.3l3 3 6-6.3" fill="none" stroke="#1D1D1F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></sc-if>
+              <sc-if value="{{r.half}}" hint-placeholder-val="{{false}}"><circle cx="12" cy="12" r="10.5" fill="none" stroke="#F59F00" stroke-width="1.8"></circle><path d="M12 4.5A7.5 7.5 0 0 1 12 19.5z" fill="#F59F00"></path></sc-if>
+              <sc-if value="{{r.todo}}" hint-placeholder-val="{{true}}"><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7C7CC" stroke-width="1.8"></circle></sc-if>
+            </svg>
+            <span style="flex:1;display:flex;flex-direction:column"><span style="font-size:17px;font-weight:600">{{r.title}}</span><span style="font-size:13px;color:#6E6E73">{{r.sub}}</span></span>
+            <span style="font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">{{r.amt}}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C7C7CC" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:84px;height:40px;background:linear-gradient(rgba(255,255,255,0),#FFFFFF);pointer-events:none"></div>
+  <div style="position:absolute;left:16px;right:16px;bottom:96px;border-radius:26px;background:#1D1D1F;color:#F5F5F7;padding:8px 8px 8px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 14px 40px -18px rgba(0,0,0,.26)">
+    <span style="flex:1;display:flex;flex-direction:column;line-height:1.25"><span style="font-size:13px;color:rgba(245,245,247,.6)">5 left · Dinner, Delivery, Wages…</span><span style="font-size:15px;font-weight:600">Next: finish Dinner</span></span>
+    <a href="P4-Lunch.dc.html" style="height:40px;padding:0 16px;border-radius:999px;background:#F59F00;color:#1D1D1F;font-size:15px;font-weight:600;display:flex;align-items:center;text-decoration:none">Go</a>
+  </div>
+
+  <nav aria-label="Main" style="position:absolute;left:0;right:0;bottom:0;height:84px;background:rgba(255,255,255,.9);border-top:1px solid rgba(0,0,0,.08);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding-top:8px;box-sizing:border-box;font-size:11px;font-weight:600">
+    <a href="P1-Today.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#8E8E93;text-decoration:none"><span style="width:56px;height:30px;display:flex;align-items:center;justify-content:center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"></path></svg></span>Today</a>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#1D1D1F"><span style="width:56px;height:30px;border-radius:999px;background:#FDE8BF;display:flex;align-items:center;justify-content:center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"></path><path d="M9 8h6M9 12h6"></path></svg></span>Close</span>
+    <a href="P5-Checks.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#8E8E93;text-decoration:none"><span style="width:56px;height:30px;display:flex;align-items:center;justify-content:center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M8.5 12.2l2.4 2.4 4.6-5"></path></svg></span>Checks</a>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#8E8E93"><span style="width:56px;height:30px;display:flex;align-items:center;justify-content:center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="2"></rect><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"></rect><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"></rect><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"></rect></svg></span>More</span>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const row = (title, sub, amt, st) => ({ title, sub, amt, done: st === 'd', half: st === 'h', todo: st === 't',
+      stateLabel: st === 'd' ? 'Done' : st === 'h' ? 'In progress' : 'To do' });
+    return { groups: [
+      { title: 'SALES', meta: '1 of 4 done', delay: '80ms', rows: [
+        row('Lunch', '40 covers · cash balanced', '£850.00', 'd'),
+        row('Dinner', 'Till figures in · cash to count', '£990.50', 'h'),
+        row('Delivery', 'Deliveroo, Uber Eats', '', 't') ] },
+      { title: 'TEAM', meta: '2 of 2 to do', delay: '140ms', rows: [
+        row('Wages', 'From the rota', '', 't'),
+        row('Tips and service charge', 'Card tips, cash tips, tronc', '', 't') ] },
+      { title: 'WRAP UP', meta: '2 done', delay: '200ms', rows: [
+        row('Feedback and handover', 'Guests, staff, notes for tomorrow', '', 'd') ] }
+    ] };
+  }
+}
+</script>
+</body>
+</html>
