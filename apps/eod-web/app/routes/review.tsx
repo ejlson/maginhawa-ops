@@ -1,24 +1,21 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
-import { canSubmit, formatPounds, isEditable, SECTION_LABELS, sectionStatus, type Issue } from '@maginhawa/core';
+import { canSubmit, formatPounds, isEditable, SECTION_LABELS, type Issue } from '@maginhawa/core';
 import { recordedAs, useAuth } from '../lib/auth';
 import { tour } from '../lib/tour';
 import { formatDay, useDraft, useWhere } from '../lib/draft';
 import { AlreadySent, EodSyncNotice, SyncState } from '../components/Sync';
-import { BigMoney, Foot, Icon, Nav, RowLink } from '../components/ui';
+import { BigMoney, Foot, Icon, Nav } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 import { AddedFigures } from '../sections/AddedInputs';
 
-function IssueRow({ i }: { i: Issue }) {
-  const cls = i.level === 'block' ? 'bad' : i.level === 'warn' ? 'warn' : 'ok';
+/** One thing to look at before sending: what it is, why, and one button to sort it (P8). */
+function CheckRow({ i }: { i: Issue }) {
+  const tone = i.level === 'block' ? 't-bad' : i.level === 'warn' ? 't-warn' : 't-ok';
   return (
-    <div className="li" style={{ alignItems: 'flex-start', padding: '12px 0' }}>
-      <span className={`av ${cls}`}><Icon d={i.level === 'ok' ? ICONS.check : ICONS.bang} size={15} /></span>
-      <span className="tx">
-        <span>{i.title}</span>
-        <small>{i.detail}</small>
-        {i.level !== 'ok' && <Link className="act" to={`/close/${i.section}`}>{i.level === 'block' ? 'Fix in' : 'Review in'} {SECTION_LABELS[i.section]}</Link>}
-      </span>
+    <div className="li rv-check">
+      <span className="tx"><span>{i.title}</span><small className={tone}>{i.detail}</small></span>
+      {i.level !== 'ok' && <Link className="chip sm" to={`/close/${i.section}`}>{i.level === 'block' ? 'Finish' : 'Check'}<span className="vh"> {SECTION_LABELS[i.section]}</span></Link>}
     </div>
   );
 }
@@ -40,7 +37,6 @@ export default function Review() {
   const ready = canSubmit(draft, issues);
   const weekday = formatDay(draft.businessDate, { weekday: 'long' });
   const wageTone = result.wageRag === 'red' ? 'h-bad' : result.wageRag === 'amber' ? 'h-warn' : 'h-ok';
-  const cashDiff = (result.sessions.lunch.cash.difference ?? 0) + (result.sessions.dinner.cash.difference ?? 0);
 
   const send = async () => {
     setSending(true);
@@ -51,71 +47,54 @@ export default function Review() {
     else setError(res.error);
   };
 
+  const wageWord = result.wageRag === 'red' ? 'over target' : result.wageRag === 'amber' ? 'close to target' : 'on track';
+  const toLook = [...blocks, ...warns];
+  const cashDiff = (result.sessions.lunch.cash.difference ?? 0) + (result.sessions.dinner.cash.difference ?? 0);
+
   return (
-    <main className="page">
-      <Nav back="/close" title="Review" right={<SyncState />} />
-      <div className="body form">
-        <div className="hero">
-          <span className="hl">{formatDay(draft.businessDate, { weekday: 'short', day: 'numeric', month: 'short' })}</span>
-          <div className="titleblock" style={{ gap: 6 }}><BigMoney value={result.totalNet} /><span className="hs-small">Net sales for the day</span></div>
-          <div className="hm two">
-            <span>{result.covers}<small>Covers · {result.sessions.lunch.covers} lunch, {result.sessions.dinner.covers} dinner</small></span>
-            <span>{result.perHeadDineIn !== null ? formatPounds(result.perHeadDineIn) : '—'}<small>Net a head, dine-in</small></span>
-            <span>{result.wagePct !== null ? `${result.wagePct}%` : '—'}<small className={result.wagePct !== null ? wageTone : ''}>Wages</small></span>
-            <span>{formatPounds(cashDiff)}<small>Cash difference</small></span>
+    <main className="page rv-page">
+      <Nav back="/close" backLabel="End of day" right={<SyncState />} />
+      <div className="body form rv-body">
+        <div className="titleblock mh-title"><h1>Ready to send?</h1></div>
+        <div className="hero rv-card">
+          <div className="titleblock" style={{ gap: 2 }}>
+            <span className="hl">{formatDay(draft.businessDate, { weekday: 'long', day: 'numeric', month: 'short' })} · day net</span>
+            <BigMoney value={result.totalNet} testId="day-total" />
+            <span className={`hs-small ${result.wagePct !== null ? wageTone : ''}`}>{result.wagePct !== null ? `Wages ${result.wagePct}% · ${wageWord}` : 'Wages not entered'}{result.covers ? ` · ${result.covers} covers` : ''}</span>
           </div>
+          <div className="hm rv-strip">
+            {(['lunch', 'dinner'] as const).map((k) => (
+              <Link key={k} to={`/close/${k}`}>{draft.ran[k] ? formatPounds(result.sessions[k].net) : "Didn't run"}<small>{SECTION_LABELS[k]}</small></Link>
+            ))}
+            <Link to="/close/delivery">{draft.ran.delivery ? formatPounds(result.deliveryNet) : "Didn't run"}<small>Delivery</small></Link>
+          </div>
+          {/* Tips (Tips Act 2023) and the cash count stay in view before sending, even when within tolerance. */}
+          <span className="hs-small rv-extra">
+            <Link to="/close/tips">Tips {formatPounds(result.tips)}{draft.tips.toTronc ? ' · to tronc' : ''}</Link>
+            {' · '}Cash difference {formatPounds(cashDiff)}
+          </span>
         </div>
 
-        <section className="grp">
-          <div className="hd"><h2>Check before sending</h2><span>{blocks.length ? `${blocks.length} to fix` : warns.length ? `${warns.length} to note` : 'All clear'}</span></div>
-          {blocks.length + warns.length > 0 && <div className="sub"><div className="sl"><span>Needs a look</span></div>{[...blocks, ...warns].map((i) => <IssueRow key={i.code + i.section + i.title} i={i} />)}</div>}
-          {oks.length > 0 && <div className="sub"><div className="sl"><span>Already explained</span></div>{oks.map((i) => <IssueRow key={i.code + i.section} i={i} />)}</div>}
-          {issues.length === 0 && <p className="note" style={{ margin: 0 }}>Nothing unusual. Good close.</p>}
-        </section>
-
-        <section className="grp">
-          <div className="hd"><h2>The day</h2><span>Tap to edit</span></div>
-          <div className="sub">
-            <div className="sl"><span>Sales</span></div>
-            {(['lunch', 'dinner'] as const).map((k) => (
-              <RowLink key={k} to={`/close/${k}`} lead={<span className="av"><Icon d={k === 'lunch' ? ICONS.sun : ICONS.moon} /></span>}
-                title={SECTION_LABELS[k]} sub={draft.ran[k] ? `${result.sessions[k].covers} covers · ${formatPounds(result.sessions[k].gross)} gross` : "Didn't run"}
-                right={<span className="amt">{formatPounds(result.sessions[k].net)}</span>} />
-            ))}
-            {result.delivery.map((x) => (
-              <RowLink key={x.platformId} to="/close/delivery" lead={<span className="av" style={{ fontSize: 13, fontWeight: 700 }}>{x.name[0]}</span>}
-                title={x.name} sub={x.traded ? `${formatPounds(x.gross)} gross${x.refundPending ? ' · refund pending' : ''}` : "Didn't trade"}
-                right={<span className="amt">{formatPounds(x.net)}</span>} />
-            ))}
-            <div className="fr tot"><span>Day total net</span><span data-testid="day-total">{formatPounds(result.totalNet)}</span></div>
-          </div>
-          <div className="sub">
-            <div className="sl"><span>Team</span></div>
-            <RowLink to="/close/wages" lead={<span className="av"><Icon d={ICONS.people} /></span>} title="Wages" sub={result.wagePct !== null ? `${result.wagePct}% of net` : 'Not entered'} right={draft.wages.wageCost !== null ? <span className="amt">{formatPounds(draft.wages.wageCost)}</span> : ''} />
-            <RowLink to="/close/tips" lead={<span className="av"><Icon d={ICONS.tip} /></span>} title="Tips & service charge" sub={`Card ${formatPounds(draft.tips.card ?? 0)} · cash ${formatPounds(draft.tips.cash ?? 0)}${draft.tips.toTronc ? ' · to tronc' : ''}`} right={<span className="amt">{formatPounds(result.tips)}</span>} />
-          </div>
-          <div className="sub">
-            <div className="sl"><span>Notes</span></div>
-            <RowLink to="/close/feedback" lead={<span className="av"><Icon d={ICONS.chat} /></span>} title="Feedback" sub={`${draft.feedback.length} notes${draft.feedback.some((f) => f.raiseRepair) ? ' · repair raised' : ''}`} />
-            <RowLink to="/close/handover" lead={<span className="av"><Icon d={ICONS.arrow} /></span>} title="Handover" sub={`${draft.handover.length} for the opener`} />
-            {sectionStatus(draft, 'promotions') !== 'todo' && <RowLink to="/close/promotions" lead={<span className="av"><Icon d={ICONS.star} /></span>} title="Promotions & other" sub={draft.promotions.notes} />}
-          </div>
+        <section className="grp rv-checks" aria-label={toLook.length ? 'Before you send' : 'All checked'}>
+          <div className="hd"><h2>{toLook.length ? 'Before you send' : 'All checked'}</h2>{toLook.length > 0 && <span>{blocks.length ? `${blocks.length} to finish` : `${warns.length} to check`}</span>}</div>
+          {toLook.length > 0
+            ? <div className="sub">{toLook.map((i) => <CheckRow key={i.code + i.section + i.title} i={i} />)}</div>
+            : <p className="rv-clear"><Icon d={ICONS.check} size={18} />Everything checks out</p>}
+          {oks.length > 0 && <div className="sub"><div className="sl"><span>Already explained</span></div>{oks.map((i) => <CheckRow key={i.code + i.section} i={i} />)}</div>}
         </section>
 
         <AddedFigures />
-
-        <section className="grp quiet">
-          <label className="check">
-            <input type="checkbox" checked={draft.confirmed} onChange={(e) => update((d) => { d.confirmed = e.target.checked; })} />
-            <span>I confirm these figures match the till reports and the cash I counted.</span>
-          </label>
-        </section>
       </div>
       <EodSyncNotice />
       <Foot>
+        <label className="rv-tick">
+          <input type="checkbox" className="vh" checked={draft.confirmed} onChange={(e) => update((d) => { d.confirmed = e.target.checked; })} />
+          <span className="rv-tick-c" aria-hidden="true"><Icon d={ICONS.check} size={15} /></span>
+          <span>I confirm these figures match the till reports and the cash I counted</span>
+        </label>
         {error && <p className="note bad" role="alert" style={{ textAlign: 'center', margin: '0 0 8px' }}>{error}</p>}
-        <button type="button" className="btn b1" disabled={!ready || sending} onClick={send}>{sending ? 'Sending…' : `Submit ${weekday} · ${formatPounds(result.totalNet)}`}</button>
-        <p className="note">{blocks.length ? `Fix ${blocks.length} ${blocks.length === 1 ? 'issue' : 'issues'} to submit.` : draft.confirmed ? 'Goes to finance and the daily sheet.' : 'Tick the confirmation to submit.'}</p>
+        <button type="button" className="btn b1" disabled={!ready || sending} onClick={send}>{sending ? 'Sending…' : `Send ${weekday} · ${formatPounds(result.totalNet)}`}</button>
+        <p className="note">{blocks.length ? `Finish ${blocks.length === 1 ? SECTION_LABELS[blocks[0]!.section].toLowerCase() : `${blocks.length} things`} first` : draft.confirmed ? 'Goes to head office straight away' : 'Tick to say the figures are right'}</p>
       </Foot>
     </main>
   );

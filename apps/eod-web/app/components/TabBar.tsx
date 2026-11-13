@@ -1,4 +1,4 @@
-/** The bottom tab bar on the main phone screens: Today · Close · Checks · More. The selected tab wears the site colour. */
+/** The bottom tab bar on the main phone screens: Today · EOD · Checklists · More. The selected tab wears the site colour. */
 import { NavLink } from 'react-router';
 import { canDoEod, useAuth } from '../lib/auth';
 import { Icon } from './ui';
@@ -6,8 +6,8 @@ import { ICONS } from './ui-helpers';
 
 const TABS = [
   { to: '/', label: 'Today', icon: ICONS.home, end: true },
-  { to: '/close', label: 'Close', icon: ICONS.list, end: false },
-  { to: '/checklists', label: 'Checks', icon: ICONS.check, end: false },
+  { to: '/close', label: 'EOD', icon: ICONS.list, end: false },
+  { to: '/checklists', label: 'Checklists', icon: ICONS.check, end: false },
   { to: '/more', label: 'More', icon: ICONS.grid, end: false },
 ] as const;
 

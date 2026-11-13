@@ -16,10 +16,12 @@ describe('checklists are available all day, separate from the end-of-day report'
     // No separate EOD button; the EOD stays one tap away as a row.
     expect(screen.queryByRole('link', { name: /Start (lunch|today's EOD)/ })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^End-of-day report/ })).toHaveAttribute('href', '/close');
-    // Needs you lists it as a row, with how late it is.
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    expect(needs).toHaveTextContent('1 late');
-    expect(within(needs).getByRole('link', { name: /^Opening checks.*30 min late$/ })).toHaveAttribute('href', opening);
+    // Checklists leads its To do group with it, with how late it is.
+    const lists = screen.getByRole('region', { name: 'Checklists' });
+    expect(lists.querySelector('.hd')).toHaveTextContent('0 of 6 done · 1 late');
+    const first = within(lists).getAllByRole('link')[0]!;
+    expect(first).toHaveTextContent(/^Opening checks.*30 min late$/);
+    expect(first).toHaveAttribute('href', opening);
   });
 
   it('during the day, before anything is due, the top card shows the next checklist', () => {
@@ -28,10 +30,8 @@ describe('checklists are available all day, separate from the end-of-day report'
     const up = screen.getByRole('link', { name: /^Start:\ Opening\ checks,/ });
     expect(up).toHaveAttribute('href', opening);
     expect(up).toHaveTextContent('Up nextOpening checks · 09:30');
-    // Nothing is late yet, so nothing needs the manager.
-    // Nothing urgent: Needs you is either gone or holds only food safety (which has its own reminders).
-    const needsHd = screen.queryByRole('heading', { name: 'Needs you' });
-    if (needsHd) expect(within(needsHd.closest('section')!).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^Food safety/)]);
+    // Nothing is late yet, so the Checklists header counts only what's done.
+    expect(screen.getByRole('region', { name: 'Checklists' }).querySelector('.hd')).toHaveTextContent(/^Checklists0 of 6 done$/);
   });
 
   it('in the evening, the end-of-day report is the main button and checklists stay open', () => {
@@ -39,12 +39,11 @@ describe('checklists are available all day, separate from the end-of-day report'
     // Up next is the EOD's next step.
     expect(screen.getByRole('link', { name: /^Start\ lunch,/ })).toHaveAttribute('href', '/close/lunch');
     expect(screen.queryByRole('link', { name: /^(Do now|Start): / })).not.toBeInTheDocument();
-    // The closing list is still to come and opens directly from Later today.
-    const later = screen.getByRole('heading', { name: 'Later today' }).closest('section')!;
-    expect(within(later).getByRole('link', { name: /^23:00Closing checks/ })).toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|closing|23:00'));
-    // Lists missed earlier stay reachable from Needs you, to add a note.
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    expect(within(needs).getByRole('link', { name: /^Opening checks.*Missed$/ })).toHaveAttribute('href', '/day');
+    // The closing list is still to come and opens directly from Checklists.
+    const lists = screen.getByRole('region', { name: 'Checklists' });
+    expect(within(lists).getByRole('link', { name: /Closing checks.*23:00$/ })).toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|closing|23:00'));
+    // Lists missed earlier stay in To do, each opening its own list.
+    expect(within(lists).getByRole('link', { name: /Opening checks.*Missed$/ })).toHaveAttribute('href', opening);
   });
 
   it('a phase opens the checklists filtered to it', () => {

@@ -3,10 +3,12 @@
  * they've opened a site, can jump to any open site or go back to head office. Managers with two or
  * more sites also get "My sites", tonight at all of theirs. In the sidebar it's
  * a menu under the site name; on phones the site name at the top opens a sheet. Someone with one
- * site just sees the name. Design: design/eod-canvas/s01–s03 and a05.
+ * site can still tap the name: the same menu shows their one site and says head office adds more. Design: design/eod-canvas/s01–s03 and a05.
  */
 import { useEffect, useRef, useState } from 'react';
 import { SiteMono } from '../lib/site-colours';
+import { service } from '../lib/service';
+import { now } from '../lib/clock';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router';
 import { siteName, SITES, type StoredReport } from '@maginhawa/core';
@@ -42,17 +44,21 @@ function useTonight(date: string): Map<string, StoredReport> {
   return reports;
 }
 
-/** The site name: in the sidebar (desktop and iPad) or the top bar (phones). A button when there's somewhere to switch to. */
+/** The site name: in the sidebar (desktop and iPad) or the top bar (phones). A button, with a chevron when there's somewhere to switch to. */
 export function SitePicker({ place, title }: { place: 'side' | 'top'; title?: string }) {
   const { user } = useAuth();
   const { settings, draft } = useDraft();
   const canSwitch = useCanSwitch();
+  // One site: no chevron, but a tap still says why there's nowhere to go. Head office on its own overview just sees the name.
+  const tappable = canSwitch || Boolean(user && user.role !== 'headoffice');
+  const tourId = canSwitch ? 'site' : undefined;
+  const label = canSwitch ? 'Switch site' : 'Your site';
   const [open, setOpen] = useState(false);
   // The sidebar scrolls, which would clip the menu, so it's placed against the window under the name.
   const [at, setAt] = useState<{ top: number; left: number } | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const day = formatDay(draft.businessDate, { weekday: 'short', day: 'numeric', month: 'short' });
-  const eyebrow = user?.inSite ? `Head office · ${day}` : `${settings.siteName} · ${day}`;
+  const dayLine = `${user?.inSite ? 'Head office · ' : ''}${day}${service(now(), settings.timezone).replace(' service', '')}`;
 
   useEffect(() => {
     if (!open || place !== 'side') return;
@@ -62,33 +68,34 @@ export function SitePicker({ place, title }: { place: 'side' | 'top'; title?: st
   }, [open, place]);
 
   if (place === 'side') {
-    if (!canSwitch) return <div className="ho-brand"><span>{eyebrow}</span><b className="sitebrand"><SiteMono code={settings.siteCode} />{title ?? settings.siteName}</b></div>;
+    // D1: the site as a small white card: badge, name, the trading day, and the switch chevron.
+    const card = <><SiteMono code={settings.siteCode} /><span className="sitecard-tx"><b>{title ?? settings.siteName}</b><small>{dayLine}</small></span></>;
+    if (!tappable) return <div className="sitecard">{card}</div>;
     return (
       <div className="sitepick" ref={box} onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false); }}>
-        <button type="button" className="ho-brand sitebtn" data-tour="site" aria-haspopup="dialog" aria-expanded={open} onClick={(e) => {
+        <button type="button" className="sitecard" data-tour={tourId} aria-haspopup="dialog" aria-expanded={open} aria-label={`${label}. Now ${settings.siteName}, ${dayLine}`} onClick={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
           setAt({ top: r.bottom + 8, left: r.left });
           setOpen(!open);
         }}>
-          <span>{eyebrow}</span>
-          <b className="sitebrand"><SiteMono code={settings.siteCode} />{settings.siteName}<Icon d={UPDOWN} size={16} /></b>
+          {card}{canSwitch && <Icon d={UPDOWN} size={16} />}
         </button>
-        {open && <div className="sitepop" role="dialog" aria-label="Switch site" style={at ?? undefined}><SiteList onDone={() => setOpen(false)} /></div>}
+        {open && <div className="sitepop" role="dialog" aria-label={label} style={at ?? undefined}><SiteList onDone={() => setOpen(false)} /></div>}
       </div>
     );
   }
 
-  if (!canSwitch) return <span className="title sitetitle"><SiteMono code={settings.siteCode} size="sm" />{settings.siteName}</span>;
+  if (!tappable) return <span className="title sitetitle"><SiteMono code={settings.siteCode} size="sm" />{settings.siteName}</span>;
   return <>
-    <button type="button" className="title sitetitle" data-tour="site" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
-      <SiteMono code={settings.siteCode} size="sm" />{settings.siteName}<Icon d="M4.5 7l4.5 4.5L13.5 7" size={16} />
+    <button type="button" className="title sitetitle" data-tour={tourId} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
+      <SiteMono code={settings.siteCode} size="sm" />{settings.siteName}{canSwitch && <Icon d="M4.5 7l4.5 4.5L13.5 7" size={16} />}
     </button>
     {/* Drawn at the page root: the top bar's blur would otherwise hold the sheet inside the bar. */}
     {open && createPortal(
       <div className="sheet-back" onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
         <div className="tsheet ssheet" role="dialog" aria-modal="true" aria-labelledby="site-sheet-t" onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false); }}>
           <div className="tsheet-hd">
-            <span className="tx"><span id="site-sheet-t">{user?.inSite ? 'Sites' : 'Your sites'}</span><small>Pick where you're working</small></span>
+            <span className="tx"><span id="site-sheet-t">{user?.inSite ? 'Sites' : canSwitch ? 'Your sites' : 'Your site'}</span><small>{canSwitch ? "Pick where you're working" : 'Only one site so far'}</small></span>
             <button type="button" className="mini" aria-label="Close" onClick={() => setOpen(false)}><Icon d={ICONS.x} size={16} /></button>
           </div>
           <SiteList onDone={() => setOpen(false)} />
@@ -157,7 +164,7 @@ function SiteList({ onDone }: { onDone: () => void }) {
         </button>
         <div className="menusep" role="separator" />
       </>}
-      {!ho && <div className="menuhead">Your sites</div>}
+      {!ho && <div className="menuhead">{mine.length > 1 ? 'Your sites' : 'Your site'}</div>}
       <div className="siteopts" role="listbox" aria-label="Sites">
         {shown.map((code, i) => {
           const st = status(code);
@@ -172,7 +179,9 @@ function SiteList({ onDone }: { onDone: () => void }) {
         })}
         {!shown.length && <p className="sitenone">No site called “{q.trim()}”.</p>}
       </div>
-      {!ho && <p className="sitefoot">Each site keeps its own EOD and checklists, saved as you go. Head office sets which sites you work at.</p>}
+      {!ho && (mine.length > 1
+        ? <p className="sitefoot">Each site keeps its own EOD and checklists, saved as you go. Head office sets which sites you work at.</p>
+        : <p className="sitefoot">You only work at {nameOf(user.siteCode)} for now. To work at another site too, ask head office to add it to your profile in People.</p>)}
     </div>
   );
 }

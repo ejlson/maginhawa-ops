@@ -59,7 +59,7 @@ describe('end-of-day report on two devices', () => {
     setNow(new Date('2026-10-05T22:48:00Z'));
     await act(async () => { await sam.eod.refresh(); expect((await sam.eod.submit()).ok).toBe(true); });
 
-    await user.click(screen.getByRole('button', { name: /^Submit Monday/ }));
+    await user.click(screen.getByRole('button', { name: /^Send Monday/ }));
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('Already sent by Sam at 23:48');
     expect(alert).toHaveTextContent('Nothing was sent twice.');

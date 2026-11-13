@@ -48,9 +48,9 @@ describe('the live EOD uses the approved version', () => {
     await seedVerifiedDraft();
     const { user } = renderApp('/close/review');
     expect(screen.getByTestId('day-total')).toHaveTextContent('£3,047.50');
-    expect(screen.getByText('26.3%')).toBeInTheDocument();
+    expect(screen.getByText(/^Wages 26\.3% · on track/)).toBeInTheDocument();
     await user.click(screen.getByRole('checkbox'));
-    await user.click(screen.getByRole('button', { name: 'Submit Monday · £3,047.50' }));
+    await user.click(screen.getByRole('button', { name: 'Send Monday · £3,047.50' }));
     await screen.findByRole('heading', { name: 'Day closed' });
     const saved = await deviceStore().get('BUN', '2026-10-05');
     expect(saved?.official?.totalNet).toBe(304750);
@@ -86,7 +86,7 @@ describe('the live EOD uses the approved version', () => {
     await seedVerifiedDraft();
     const { user } = renderApp('/close/review');
     await user.click(screen.getByRole('checkbox'));
-    expect(screen.getByRole('button', { name: /Submit Monday/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^Send Monday/ })).toBeDisabled();
     expect(screen.getByText('Card takings isn’t filled in')).toBeInTheDocument();
   });
 
@@ -98,7 +98,7 @@ describe('the live EOD uses the approved version', () => {
     expect(within(figures).getByText('£50.75')).toBeInTheDocument();
     expect(within(figures).getByText('£2,636.75')).toBeInTheDocument();
     await user.click(screen.getByRole('checkbox'));
-    await user.click(screen.getByRole('button', { name: 'Submit Monday · £2,687.50' }));
+    await user.click(screen.getByRole('button', { name: 'Send Monday · £2,687.50' }));
     await screen.findByRole('heading', { name: 'Day closed' });
     const saved = await deviceStore().get('BUN', '2026-10-05');
     expect(saved?.draft.extra).toEqual({ 'pay.card': 290000 });

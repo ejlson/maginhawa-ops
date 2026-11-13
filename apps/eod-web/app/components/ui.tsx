@@ -55,9 +55,9 @@ export function SectionIcon({ section, status }: { section: SectionKey; status: 
 }
 
 /** £2,687 with the pence smaller and lighter. */
-export function BigMoney({ value }: { value: Pence }) {
+export function BigMoney({ value, testId }: { value: Pence; testId?: string }) {
   const [p, d] = splitPounds(value);
-  return <div className="big" aria-label={formatPounds(value)}><b aria-hidden="true">{p}</b><i aria-hidden="true">{d}</i></div>;
+  return <div className="big" aria-label={formatPounds(value)} data-testid={testId}><b aria-hidden="true">{p}</b><i aria-hidden="true">{d}</i></div>;
 }
 
 /** One bar per section. `label` (e.g. "2 of 8 sections done") is read out when the words aren't on screen. */

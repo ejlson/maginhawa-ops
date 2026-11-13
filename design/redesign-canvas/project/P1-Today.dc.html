@@ -43,7 +43,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   <div style="padding:24px 24px 0;display:flex;flex-direction:column;gap:28px">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <button class="press" onClick="{{open}}" aria-label="Switch site" style="display:flex;align-items:center;gap:10px;padding:4px 10px 4px 4px;border-radius:999px;background:rgba(255,255,255,.7);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)">
-        <span class="tint" style="width:32px;height:32px;border-radius:12px;background:{{site.c}};color:{{site.on}};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">{{site.mono}}</span>
+        <span class="tint" style="width:32px;height:32px;border-radius:999px;background:{{site.c}};color:{{site.on}};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">{{site.mono}}</span>
         <span style="font-size:17px;font-weight:600">{{site.name}}</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M7 10l5 5 5-5"></path></svg>
       </button>
@@ -76,32 +76,34 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
         <div style="font-size:13px;color:rgba(245,245,247,.75)">Close · 3 of 8 sections done</div>
       </div>
       <a href="P4-Lunch.dc.html" class="press" style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;text-decoration:none;background:rgba(255,248,240,.92);color:#1D1D1F;border-radius:999px;height:54px;padding:0 8px 0 20px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)">
-        <span style="display:flex;flex-direction:column;line-height:1.15"><span style="font-size:12px;color:#6E6E73;font-weight:500">Up next</span><span style="font-size:17px;font-weight:600">Dinner · from the till report</span></span>
+        <span style="display:flex;flex-direction:column;gap:3px;line-height:1.2"><span style="font-size:12px;color:#6E6E73;font-weight:500">Up next</span><span style="font-size:17px;font-weight:600">Dinner · from the till report</span></span>
         <span class="tint" style="width:38px;height:38px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
       </a>
     </div>
 
     <div class="rise" style="animation-delay:120ms;display:flex;flex-direction:column">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span style="font-size:22px;font-weight:700;letter-spacing:-0.025em">Needs you</span><span style="font-size:14px;color:#6E6E73">1 late · 1 failed</span></div>
-      <div style="display:flex;align-items:center;gap:14px;height:68px">
-        <span style="width:42px;height:42px;border-radius:999px;background:rgba(255,149,0,.16);color:#B25000;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l2.5 2"></path></svg></span>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px"><span style="font-size:22px;font-weight:700;letter-spacing:-0.025em">Checklists</span><span style="font-size:14px;color:#6E6E73">3 of 6 done · 1 late</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px"><span style="font-size:13px;font-weight:600;color:#6E6E73;letter-spacing:.02em">TO DO</span><span style="font-size:13px;color:#6E6E73">2</span></div>
+      <div style="display:flex;align-items:center;gap:14px;height:62px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="To do" style="flex-shrink:0"><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7C7CC" stroke-width="1.8"></circle></svg>
         <span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:17px;font-weight:600">Hot holding · 18:00</span><span style="font-size:13px;color:#6E6E73">3 checks · Kitchen</span></span>
-        <span style="font-size:12px;font-weight:600;color:#B25000;background:rgba(255,149,0,.16);padding:4px 9px;border-radius:999px">40 min late</span>
+        <span style="font-size:12px;font-weight:600;color:#B25000;background:rgba(255,149,0,.16);padding:4px 9px;border-radius:999px;white-space:nowrap">40 min late</span>
       </div>
-      <div style="height:1px;background:rgba(0,0,0,.08);margin-left:56px"></div>
-      <div style="display:flex;align-items:center;gap:14px;height:68px">
-        <span style="width:42px;height:42px;border-radius:999px;background:rgba(255,59,48,.12);color:#D70015;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 4v10.5a3.5 3.5 0 1 0 4 0V4a2 2 0 0 0-4 0z"></path></svg></span>
-        <span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:17px;font-weight:600">Fridge 2 read 8.6°C</span><span style="font-size:13px;color:#6E6E73">Mid-shift checks · add what you did</span></span>
-        <span style="font-size:12px;font-weight:600;color:#D70015;background:rgba(255,59,48,.12);padding:4px 9px;border-radius:999px">Failed</span>
+      <div style="display:flex;align-items:center;gap:14px;height:62px;background:linear-gradient(rgba(0,0,0,.07),rgba(0,0,0,.07)) 38px 0/calc(100% - 38px) 1px no-repeat">
+        <svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="To do" style="flex-shrink:0"><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7C7CC" stroke-width="1.8"></circle></svg>
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:17px;font-weight:600">Closing checks</span><span style="font-size:13px;color:#6E6E73">4 checks · Closing manager</span></span>
+        <span style="font-size:15px;color:#6E6E73;font-variant-numeric:tabular-nums">23:00</span>
       </div>
-    </div>
-
-    <div class="rise" style="animation-delay:180ms;display:flex;flex-direction:column">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span style="font-size:22px;font-weight:700;letter-spacing:-0.025em">Later today</span><span style="font-size:14px;color:#6E6E73">Now 21:40</span></div>
-      <div style="display:flex;align-items:center;gap:14px;height:64px">
-        <span style="width:42px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:#6E6E73;text-align:center;flex-shrink:0">23:00</span>
-        <span style="flex:1;display:flex;flex-direction:column"><span style="font-size:17px;font-weight:600">Closing checks</span><span style="font-size:13px;color:#6E6E73">4 checks · Closing manager</span></span>
-        <svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="To do"><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7C7CC" stroke-width="1.8"></circle></svg>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px"><span style="font-size:13px;font-weight:600;color:#6E6E73;letter-spacing:.02em">DONE</span><span style="font-size:13px;color:#6E6E73">3</span></div>
+      <div style="display:flex;align-items:center;gap:14px;height:62px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Done" style="flex-shrink:0"><circle cx="12" cy="12" r="11" fill="{{site.c}}"></circle><path d="M7.5 12.3l3 3 6-6.3" fill="none" stroke="{{site.on}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:17px;font-weight:600">Opening checks</span><span style="font-size:13px;color:#6E6E73">Done 09:42 by Sam</span></span>
+        
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;height:62px;background:linear-gradient(rgba(0,0,0,.07),rgba(0,0,0,.07)) 38px 0/calc(100% - 38px) 1px no-repeat">
+        <svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="Done" style="flex-shrink:0"><circle cx="12" cy="12" r="11" fill="{{site.c}}"></circle><path d="M7.5 12.3l3 3 6-6.3" fill="none" stroke="{{site.on}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:17px;font-weight:600">Hot holding · 12:00</span><span style="font-size:13px;color:#6E6E73">Done 12:05 by Ana</span></span>
+        
       </div>
     </div>
   </div>
@@ -156,7 +158,7 @@ class Component extends DCLogic {
     const site = { name: cur[0], mono: cur[1], c: cur[2], on: cur[3], light: cur[4], deep: cur[5] };
     const style = 'Flow';
     const fills = ['100%','100%','100%','50%','0%','0%','0%','0%'];
-    const labels = ['Today','Close','Checks','More'];
+    const labels = ['Today','EOD','Checklists','More'];
     return {
       site,
       isFlow: style === 'Flow',

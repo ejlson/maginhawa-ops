@@ -68,7 +68,7 @@ export function EodPage({ section, children }: { section: SectionKey; children: 
             <span className="kbd" aria-hidden="true">⌘↵</span>
           </button>
           <Link className="btn b2" to="/close/review">
-            Review and submit{progress.left ? ` · ${progress.left} to go` : ''}
+            Review and send{progress.left ? ` · ${progress.left} to go` : ''}
           </Link>
         </aside>}
       </div>

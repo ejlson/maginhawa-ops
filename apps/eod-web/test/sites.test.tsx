@@ -7,11 +7,17 @@ const joAt = (siteCode: string, otherSites: string[] = []) =>
   people.add({ name: 'Jo', role: 'manager', siteCode, otherSites, email: 'jo@example.com', addedBy: 'Ana' });
 
 describe('switching site', () => {
-  it('a manager with one site just sees its name', () => {
+  it('a manager with one site taps the name and is told head office adds more', async () => {
     joAt('BUN');
-    renderApp('/', manager);
-    expect(screen.queryByRole('button', { name: /^Bunso/ })).not.toBeInTheDocument();
-    expect(screen.getByText('Bunso')).toBeInTheDocument();
+    const { user } = renderApp('/', manager);
+    const name = screen.getByRole('button', { name: /^Bunso/ });
+    expect(name.querySelector(':scope > svg')).toBeNull(); // no chevron: nowhere to switch to
+    expect(name).not.toHaveAttribute('data-tour'); // so the tour's "switch site" tip stays skipped
+    await user.click(name);
+    const sheet = screen.getByRole('dialog', { name: 'Your site' });
+    expect(within(sheet).getAllByRole('option')).toHaveLength(1);
+    expect(sheet).toHaveTextContent('You only work at Bunso for now');
+    expect(sheet).toHaveTextContent('ask head office to add it to your profile in People');
   });
 
   it('a manager with two sites switches, and can go straight back', async () => {
@@ -38,11 +44,13 @@ describe('switching site', () => {
     await user.click(screen.getByRole('link', { name: 'Today' }));
     await user.click(screen.getByRole('button', { name: /^Bunso/ }));
     await user.click(screen.getByRole('option', { name: /Guanabana/ }));
-    await user.click(screen.getByRole('link', { name: 'Close' }));
-    expect(await screen.findByRole('heading', { name: "Today's EOD" })).toBeInTheDocument();
+    await user.click(screen.getByRole('link', { name: 'EOD' }));
+    expect(await screen.findByRole('heading', { name: 'End of day' })).toBeInTheDocument();
+    expect(screen.getByText(/^Guanabana · /)).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent('£100.00');
     await user.click(screen.getByRole('button', { name: 'Back to Bunso' }));
-    await screen.findByRole('heading', { name: "Today's EOD" });
+    await screen.findByRole('heading', { name: 'End of day' });
+    expect(screen.getByText(/^Bunso · /)).toBeInTheDocument();
     expect(document.body).toHaveTextContent('£100.00');
   });
 });
@@ -52,7 +60,7 @@ describe('head office in a site', () => {
     const { user } = renderApp('/head-office/GUA', admin);
     await user.click(screen.getByRole('button', { name: 'Open Guanabana' }));
     expect(screen.getByText(/as head office/)).toHaveTextContent('Viewing Guanabana as head office');
-    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Close' })).toBeInTheDocument();
+    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'EOD' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /^Guanabana/ }));
     const sheet = screen.getByRole('dialog', { name: 'Sites' });
     expect(within(sheet).getAllByRole('option')).toHaveLength(8);

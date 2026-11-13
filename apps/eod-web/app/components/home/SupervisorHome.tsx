@@ -4,13 +4,11 @@ import { initialsOf, useAuth } from '../../lib/auth';
 import { formatDay, timeHM, useDraft } from '../../lib/draft';
 import { isDone, isOverdue, useChecklists } from '../../lib/checklists';
 import { useTwoColumns } from '../../lib/wide';
-import { Icon, RowLink } from '../ui';
-import { ICONS } from '../ui-helpers';
 import { TabBar } from '../TabBar';
 import { HomeHeader } from './shared';
 import { firstName, greeting, useEod, useToday } from './shared-helpers';
 import { FirstWeek } from './FirstWeek';
-import { eodStep, checklistStep, ChecklistCard, LaterToday, NeedsYou, service, YourDay, type UpNextStep, ReadHandover } from './today';
+import { eodStep, checklistStep, ChecklistCard, ChecklistsSection, EndOfDaySection, FoodSafetySection, RepairsSection, service, type UpNextStep } from './today';
 
 function OnShift() {
   const { user } = useAuth();
@@ -52,8 +50,6 @@ export function SupervisorHome() {
     </div>
   );
   const card = <ChecklistCard label="Today so far" tour="hero-today" next={step} stats={stats} />;
-  const handover = !eod.submitted && <RowLink to="/close/handover" lead={<span className="mh-time"><Icon d={ICONS.chat} /></span>} title="Write the handover" />;
-  const needs = <NeedsYou at={at} show={{ repairs: true, eodIssues: true, rechecks: true }} />;
   const title = (
     <div className="titleblock mh-title">
       <span className="eyebrow">{formatDay(businessDate)}{wide ? '' : service(at, settings.timezone)}</span>
@@ -66,8 +62,8 @@ export function SupervisorHome() {
       <main className="page tabs mh-page wide">
         <div className="body mh-desk">
           <div className="mh-head">{title}<span className="saved" data-tour="sync"><span className="dot" />{savedAt ? `All saved · ${timeHM(savedAt)}` : 'Saved on this device'}</span></div>
-          <div className="mh-top">{card}<div className="mh-stack">{needs}<ReadHandover />{handover && <section className="grp"><div className="sub">{handover}</div></section>}</div></div>
-          <YourDay at={at} />
+          <div className="mh-top">{card}<ChecklistsSection /></div>
+          <div className="mh-pair"><RepairsSection at={at} /><div className="mh-stack"><EndOfDaySection write /><FoodSafetySection /></div></div>
           <OnShift />
           <FirstWeek />
         </div>
@@ -80,8 +76,10 @@ export function SupervisorHome() {
       <div className="body mh-phone">
         {title}
         {card}
-        {needs}
-        <LaterToday at={at} extra={handover} />
+        <ChecklistsSection />
+        <RepairsSection at={at} />
+        <EndOfDaySection write />
+        <FoodSafetySection />
         <OnShift />
         <FirstWeek />
       </div>

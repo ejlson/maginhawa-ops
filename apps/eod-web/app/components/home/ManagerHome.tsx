@@ -15,7 +15,7 @@ import { TabBar } from '../TabBar';
 import { HomeHeader } from './shared';
 import { firstName, greeting, isDaytime, useEod, useToday } from './shared-helpers';
 import { FirstWeek } from './FirstWeek';
-import { eodStep, LaterToday, NeedsYou, service, UpNext, YourDay, type UpNextStep, ReadHandover } from './today';
+import { ChecklistsSection, EndOfDaySection, eodStep, FoodSafetySection, RepairsSection, service, UpNext, type UpNextStep } from './today';
 
 interface LastNight {
   net: Pence;
@@ -110,14 +110,14 @@ function EodCard({ next, wide }: { next: UpNextStep; wide: boolean }) {
       <BigMoney value={eod.result.totalNet} />
       <div className="mh-progress">
         <Segments statuses={eod.statuses} />
-        <span className="hs-small">Close · {progress.done} of {progress.active} sections done</span>
+        <span className="hs-small">EOD · {progress.done} of {progress.active} sections done</span>
       </div>
       <UpNext step={next} />
     </div>
   );
 }
 
-/** Close the day (desktop): the eight sections in two columns, each with its circle and figure (D1). */
+/** End of day (desktop): the eight sections in two columns, each with its circle and figure (D1). */
 function CloseGrid() {
   const { draft, result, settings, progress } = useDraft();
   const keys = SECTION_KEYS.filter((k) => sectionStatus(draft, k) !== 'skipped');
@@ -128,8 +128,8 @@ function CloseGrid() {
     </div>
   );
   return (
-    <section className="grp mh-close" aria-label="Close the day">
-      <div className="hd"><h2>Close the day</h2><span>{progress.done} of {progress.active} done · {progress.left} left</span></div>
+    <section className="grp mh-close" aria-label="End of day">
+      <div className="hd"><h2>End of day</h2><span>{progress.done} of {progress.active} done · {progress.left} left</span></div>
       <div className="mh-close-cols">{col(keys.slice(0, half))}{col(keys.slice(half))}</div>
     </section>
   );
@@ -171,9 +171,9 @@ export function ManagerHome() {
       <main className="page tabs mh-page wide">
         <div className="body mh-desk">
           <div className="mh-head">{title}<span className="saved" data-tour="sync"><span className="dot" />{savedAt ? `All saved · ${timeHM(savedAt)}` : 'Saved on this device'}</span></div>
-          <div className="mh-top">{card}<div className="mh-stack"><NeedsYou at={at} /><ReadHandover /></div></div>
-          <YourDay at={at} />
+          <div className="mh-top">{card}<ChecklistsSection yesterday /></div>
           <CloseGrid />
+          <div className="mh-pair"><RepairsSection at={at} /><div className="mh-stack"><EndOfDaySection eodRow={false} issues /><FoodSafetySection /></div></div>
           <FirstWeek />
           {morning && <LastSevenDays />}
         </div>
@@ -186,8 +186,10 @@ export function ManagerHome() {
       <div className="body mh-phone">
         {title}
         {card}
-        <NeedsYou at={at} />
-        <LaterToday at={at} />
+        <ChecklistsSection yesterday />
+        <RepairsSection at={at} />
+        <EndOfDaySection />
+        <FoodSafetySection />
         <FirstWeek />
         {morning && <LastSevenDays />}
       </div>

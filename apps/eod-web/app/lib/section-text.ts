@@ -1,4 +1,4 @@
-/** What each EOD section row says under its name, and the figure on its right. Shared by Close the day and Home. */
+/** What each EOD section row says under its name, and the figure on its right. Shared by End of day and Home. */
 import { formatPounds, sectionStatus, type EodDraft, type DayResult, type SectionKey } from '@maginhawa/core';
 
 interface Platforms { platforms: { name: string; active: boolean }[] }

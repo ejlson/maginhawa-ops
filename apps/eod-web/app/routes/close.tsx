@@ -4,10 +4,9 @@ import { formatPounds, isEditable, SECTION_LABELS, sectionStatus, type SectionKe
 import { recordedAs, useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
 import { EodSyncNotice } from '../components/Sync';
-import { BigMoney, Icon, Nav, RowLink, SectionIcon, Segments, Toggle } from '../components/ui';
-import { ICONS, SECTION_ICONS } from '../components/ui-helpers';
+import { BigMoney, Icon, Pie, RowLink, SiteMono, Toggle } from '../components/ui';
+import { SECTION_ICONS } from '../components/ui-helpers';
 import { TabBar } from '../components/TabBar';
-import { Columns } from '../components/Columns';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { AWAY_MS, readResume, resumePath } from '../lib/resume';
 import { now } from '../lib/clock';
@@ -23,81 +22,94 @@ export default function Close() {
 
   const sub = (k: SectionKey) => sectionSub(k, draft, result, settings);
   const right = (k: SectionKey) => sectionFigure(k, draft, result);
-  const row = (k: SectionKey) => {
-    const st = sectionStatus(draft, k);
-    return (
-      <RowLink key={k} to={`/close/${k}`} lead={<SectionIcon section={k} status={st} />}
-        title={<span className={st === 'skipped' ? 'muted' : ''}>{SECTION_LABELS[k]}</span>} sub={sub(k)} right={right(k)} />
-    );
-  };
-  const count = (keys: SectionKey[]) => {
-    const active = keys.filter((k) => sectionStatus(draft, k) !== 'skipped');
-    return `${active.filter((k) => sectionStatus(draft, k) === 'done').length} of ${active.length} done`;
-  };
   const next = [...SALES, ...TEAM].find((k) => { const st = sectionStatus(draft, k); return st !== 'done' && st !== 'skipped'; });
-  const all = [...SALES, ...TEAM].map((k) => sectionStatus(draft, k)).filter((s) => s !== 'skipped');
   const allDone = progress.active > 0 && progress.done === progress.active;
-  // A session's net once it's done; a dash while it's still to do; "Didn't run" if it was switched off.
-  const sessionFigure = (k: 'lunch' | 'dinner') => {
-    const st = sectionStatus(draft, k);
-    return st === 'skipped' ? "Didn't run" : st === 'done' ? formatPounds(result.sessions[k].net) : '—';
-  };
   const wageCls = result.wageRag === 'red' ? 'h-bad' : result.wageRag === 'amber' ? 'h-warn' : '';
   // Back after being pulled away: offer the exact field they were in.
   const [place] = useState(() => readResume(draft.siteCode, draft.businessDate));
   const resume = !locked && place && now().getTime() - place.at >= AWAY_MS
     && !['done', 'skipped'].includes(sectionStatus(draft, place.section)) ? place : null;
 
-  return (
-    <main className="page tabs">
-      <Nav title={settings.siteName} right={<span className="saved"><span className="dot" />{savedAt ? `Saved ${timeHM(savedAt)}` : 'Not started'}</span>} />
-      <EodSyncNotice />
-      <Columns
-        top={<>
-          <div className="titleblock">
-            <span className="eyebrow">{formatDay(draft.businessDate)}</span>
-            <h1>Today's EOD</h1>
-            {/* The how-to only before anything's entered: after that it's the same words every day. */}
-            {!locked && progress.done === 0 && !savedAt && <p className="lead">Do the sections in any order. Everything saves on this device, even without signal.</p>}
-          </div>
-          {resume && (
-            <Link className="resume" to={resumePath(resume)}>
-              <span className="resume-k">Pick up where you left off · {timeHM(new Date(resume.at))}</span>
-              <span className="resume-t">{SECTION_LABELS[resume.section]} · {resume.field}</span>
-              <span className="resume-s">Everything you typed is saved.</span>
-            </Link>
-          )}
-        </>}
-        hero={<>
-          <div className="hero eod-hero" role="status">
-            <div className="hero-row">
-              <span className="hl">{allDone ? 'Net today' : 'Net so far'}</span>
-              {/* Covers only once there are some: "0 covers" beside delivery money looks like a mistake. */}
-              {result.covers > 0 && <span className="hs-small">{result.covers} covers{result.perHeadDineIn !== null ? ` · ${formatPounds(result.perHeadDineIn)} a head` : ''}</span>}
-            </div>
-            <BigMoney value={result.totalNet} />
-            <Segments statuses={all} label={`${progress.done} of ${progress.active} sections done`} />
-            <div className="hm">
-              {(['lunch', 'dinner'] as const).map((k) => (
-                <span key={k}>{sessionFigure(k)}<small>{SECTION_LABELS[k]}</small></span>
-              ))}
-              <span className={wageCls}>{result.wagePct !== null ? `${result.wagePct}%` : '—'}<small>Wages</small></span>
-            </div>
-          </div>
-        </>}
-        main={<>
+  // P3 groups: Sales, Team, Wrap up. Each says how many are done.
+  const GROUPS: { title: string; keys: SectionKey[] }[] = [
+    { title: 'Sales', keys: SALES },
+    { title: 'Team', keys: ['wages', 'tips'] },
+    { title: 'Wrap up', keys: ['feedback', 'handover'] },
+  ];
+  const groupMeta = (keys: SectionKey[]) => {
+    const active = keys.filter((k) => sectionStatus(draft, k) !== 'skipped');
+    const done = active.filter((k) => sectionStatus(draft, k) === 'done').length;
+    return done === active.length ? (active.length ? 'All done' : "Didn't run") : done === 0 ? `${active.length} to do` : `${done} of ${active.length} done`;
+  };
+  const left = [...SALES, ...TEAM].filter((k) => { const st = sectionStatus(draft, k); return st !== 'done' && st !== 'skipped'; });
+  // The small line names at most three, so it never runs off the bar.
+  const leftText = `${left.length} left · ${left.slice(0, 3).map((k) => SECTION_LABELS[k]).join(', ')}${left.length > 3 ? '…' : ''}`;
+  const wageWord = result.wageRag === 'red' ? 'over target' : result.wageRag === 'amber' ? 'close to target' : 'on track';
+  // The floating bar: what's left, and one Go to the next thing.
+  const bar = locked
+    ? { small: 'Sent to head office', big: "See today's report", to: '/close/done', go: "See today's report" }
+    : resume
+      ? { small: leftText, big: `Next: carry on with ${SECTION_LABELS[resume.section].toLowerCase()}`, to: resumePath(resume), go: `Carry on with ${SECTION_LABELS[resume.section]}` }
+      : next
+        ? { small: leftText, big: `Next: ${sectionStatus(draft, next) === 'started' ? 'finish' : 'start'} ${SECTION_LABELS[next].toLowerCase()}`, to: `/close/${next}`, go: `${sectionStatus(draft, next) === 'started' ? 'Finish' : 'Start'} ${SECTION_LABELS[next].toLowerCase()}` }
+        : { small: `All ${progress.active} sections done`, big: 'Next: review and send', to: '/close/review', go: 'Review and send' };
+  const pct = progress.active ? progress.done / progress.active : 0;
 
-        <section className="grp">
-          <div className="hd"><h2>Sections</h2><span>{progress.done} of {progress.active}</span></div>
-          <div className="sub"><div className="sl"><span>Sales</span><span>{count(SALES)}</span></div>{SALES.map(row)}</div>
-          <div className="sub"><div className="sl"><span>Team &amp; notes</span><span>{count(TEAM)}</span></div>{TEAM.map(row)}</div>
-        </section>
+  return (
+    <main className="page tabs close-page">
+      <EodSyncNotice />
+      <div className="body close-body">
+        <div className="close-top">
+          <span className="close-site"><SiteMono code={settings.siteCode} size="sm" />{settings.siteName} · {formatDay(draft.businessDate, { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+          <span className="saved close-saved"><span className="dot" />{locked ? 'Sent' : savedAt ? `Saved on this device · ${timeHM(savedAt)}` : 'Not started'}</span>
+        </div>
+        <div className="titleblock mh-title">
+          <h1>End of day</h1>
+          {!locked && progress.done === 0 && !savedAt && <p className="lead">Do the sections in any order. Everything saves on this device, even without signal.</p>}
+        </div>
+        {resume && (
+          <Link className="resume" to={resumePath(resume)}>
+            <span className="resume-k">Pick up where you left off · {timeHM(new Date(resume.at))}</span>
+            <span className="resume-t">{SECTION_LABELS[resume.section]} · {resume.field}</span>
+            <span className="resume-s">Everything you typed is saved.</span>
+          </Link>
+        )}
+
+        <div className="hero close-card" role="status">
+          <div className="close-card-tx">
+            <span className="hl">{allDone ? 'Day net' : 'Day net so far'}</span>
+            <BigMoney value={result.totalNet} />
+            <span className={`hs-small ${wageCls}`}>{result.wagePct !== null ? `Wages so far ${result.wagePct}% · ${wageWord}` : result.covers > 0 ? `${result.covers} covers` : 'Wages come from the rota'}</span>
+          </div>
+          <div className="close-ring" role="img" aria-label={`${progress.done} of ${progress.active} sections done`}>
+            <svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true">
+              <circle cx="36" cy="36" r="31" fill="none" stroke="rgba(255,255,255,.2)" strokeWidth="7" />
+              <circle cx="36" cy="36" r="31" fill="none" stroke="#fff" strokeWidth="7" strokeLinecap="round" strokeOpacity={pct ? 1 : 0} pathLength={100} strokeDasharray={`${pct * 100} 100`} transform="rotate(-90 36 36)" />
+            </svg>
+            <b aria-hidden="true">{progress.done}/{progress.active}</b>
+          </div>
+        </div>
+
+        <div className="close-groups">
+          {GROUPS.map((g) => (
+            <section className="grp cl-group" key={g.title} aria-label={g.title}>
+              <div className="cl-hd"><span>{g.title}</span><span>{groupMeta(g.keys)}</span></div>
+              <div className="sub">
+                {g.keys.map((k) => {
+                  const st = sectionStatus(draft, k);
+                  return <RowLink key={k} to={`/close/${k}`} lead={<Pie status={st} />}
+                    title={<span className={st === 'skipped' ? 'muted' : ''}>{SECTION_LABELS[k]}</span>} sub={sub(k)} right={<span className="amt">{right(k)}</span>} />;
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+
         {!locked && <SubmitEod />}
-        </>}
-        side={<>
-        <section className="grp quiet">
+
+        <section className="grp quiet close-ran" aria-label="What ran today">
+          <div className="cl-hd"><span>What ran today</span></div>
           <div className="sub">
-            <div className="sl"><span>What ran today</span></div>
             {(['lunch', 'dinner', 'delivery'] as const).map((k) => (
               <div className="li" key={k}>
                 <span className="av"><Icon d={SECTION_ICONS[k]} /></span>
@@ -105,24 +117,15 @@ export default function Close() {
                 <Toggle label={`${SECTION_LABELS[k]} ran today`} checked={draft.ran[k]} onChange={(v) => !locked && update((d) => { d.ran[k] = v; })} />
               </div>
             ))}
-            <p className="note" style={{ marginLeft: 56 }}>Switch off anything that didn't run and its section is skipped.</p>
-          </div>
-          <div className="sub">
-            <div className="sl"><span>Reporting</span></div>
-            <div className="li"><span className="av ink">{user?.initials}</span><span className="tx"><span>{user?.name}</span><small>Restaurant manager · signed in</small></span></div>
-            <div className="li"><span className="av"><Icon d={ICONS.cal} /></span><span className="tx"><span>{formatDay(draft.businessDate)}</span><small>Trading day · reports before {settings.dayCloseTime} count as the day before</small></span></div>
+            <p className="note" style={{ marginLeft: 56 }}>Switch off anything that didn't run and its section is skipped. Reported by {user?.name ?? 'you'}; reports before {settings.dayCloseTime} count as the day before.</p>
           </div>
         </section>
-        </>}
-        actions={<>
-        {locked ? <Link className="btn b1" to="/close/done">See today's report</Link> : resume
-          ? <Link className="btn b1" to={resumePath(resume)}>Carry on with {SECTION_LABELS[resume.section]}</Link>
-          : next
-          ? <Link className="btn b1" to={`/close/${next}`}>{progress.done === 0 ? 'Start with' : 'Continue with'} {SECTION_LABELS[next]}</Link>
-          : <Link className="btn b1" to="/close/review">Review and submit</Link>}
-        {!locked && next && <Link className="btn b2" to="/close/review">Review and submit · {progress.left} to go</Link>}
-        </>}
-      />
+
+        <div className="leftbar" role="region" aria-label="What's left">
+          <span className="tx"><small>{bar.small}</small><b>{bar.big}</b></span>
+          <Link className="go" to={bar.to}><span className="vh">{bar.go}, </span>Go</Link>
+        </div>
+      </div>
       <TabBar />
     </main>
   );

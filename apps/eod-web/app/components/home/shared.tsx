@@ -62,8 +62,8 @@ export function EodHero() {
   const eod = useEod();
   const due = eod.due();
   return (
-    <Link className="hero" data-tour="hero-eod" to={eod.next.to} aria-label={`Today's EOD, ${formatPounds(eod.result.totalNet)} net. ${eod.soFar}. ${eod.next.text}`}>
-      <div className="hero-row"><span className="hl">Today's EOD</span>{due.text && <span className={`hs-small ${due.cls}`} style={{ fontWeight: due.cls ? 600 : undefined }}>{due.text}</span>}</div>
+    <Link className="hero" data-tour="hero-eod" to={eod.next.to} aria-label={`End of day, ${formatPounds(eod.result.totalNet)} net. ${eod.soFar}. ${eod.next.text}`}>
+      <div className="hero-row"><span className="hl">End of day</span>{due.text && <span className={`hs-small ${due.cls}`} style={{ fontWeight: due.cls ? 600 : undefined }}>{due.text}</span>}</div>
       <div className="titleblock">
         <BigMoney value={eod.result.totalNet} />
         <span className="hs-small">{eod.submitted ? 'Net for the day' : 'Net so far'}</span>
@@ -90,6 +90,7 @@ export function TaskRow({ t, me }: { t: TaskView; me?: string }) {
     : checksText(t);
   const right = isDone(t) ? undefined
     : t.status === 'upcoming' ? <span>{t.dueTime ?? pill.text}</span>
+    : t.status === 'anytime' ? undefined
     : <span className={`pill ${pill.cls}`}>{pill.text}</span>;
   return <RowLink to={runPath(t.key)} lead={<Pie status={taskPie(t)} />} title={t.title} sub={sub} right={right} />;
 }

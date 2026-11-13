@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { screen, within } from '@testing-library/react';
-import { admin, manager, renderApp, staff, supervisor } from './harness';
+import { admin, manager, renderApp, seedVerifiedDraft, staff, supervisor } from './harness';
 import { setNow } from '../app/lib/clock';
 import { deviceChecklistStore, deviceStore } from '../app/lib/store';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
@@ -23,6 +23,15 @@ function seedRun(key: string, by: string, completedAt: string, date = '2026-10-0
   const run = { key, templateId: templateId!, businessDate: date, dueTime: dueTime === 'any' ? null : dueTime! };
   void deviceChecklistStore().apply('BUN', [{ kind: 'finish', run, by, at: completedAt }]);
 }
+
+/** A home section by name (Checklists, Repairs, End of day, Food safety). */
+const region = (name: string) => screen.getByRole('region', { name });
+/** The count line in a section's header, e.g. "1 of 6 done · 1 late · 1 missed". */
+const meta = (sec: HTMLElement) => sec.querySelector('.hd span')?.textContent ?? '';
+/** One group of a section ("To do", "Done"), or null when it isn't shown. */
+const group = (sec: HTMLElement, label: string) =>
+  [...sec.querySelectorAll<HTMLElement>('.sub')].find((g) => g.querySelector('.sl span')?.textContent === label) ?? null;
+const run = (key: string) => '/checklists/' + encodeURIComponent(key);
 
 describe('staff home (the shared kitchen iPad)', () => {
   it('when every list was missed, Up next says so instead of "All done"', () => {
@@ -48,53 +57,88 @@ describe('staff home (the shared kitchen iPad)', () => {
     expect(screen.queryByRole('link', { name: /^End-of-day report/ })).not.toBeInTheDocument();
   });
 
-  it('Needs you shows their due and missed lists, counted separately, and nothing for managers only', () => {
+  it('Checklists puts their due list, then the missed one, then what is coming in To do, and nothing for managers only', () => {
     at('2026-10-05T10:50:00Z'); // 11:50 BST
     renderApp('/', staff);
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    expect(within(needs.querySelector('.hd')! as HTMLElement).getByText('1 due · 1 missed')).toBeInTheDocument();
-    expect(within(needs).getByRole('link', { name: /^Hot holding · 12:00.*Due in 10 min$/ })).toBeInTheDocument();
-    expect(within(needs).getByRole('link', { name: /^Opening checks.*Missed$/ })).toHaveAttribute('href', '/day');
-    // Repairs and EOD issues are for supervisors and managers.
-    expect(within(needs).queryByText(/repair/i)).not.toBeInTheDocument();
+    const lists = region('Checklists');
+    expect(within(lists).getByRole('heading', { name: 'Checklists' })).toBeInTheDocument();
+    expect(meta(lists)).toBe('0 of 6 done · 1 missed');
+    const todo = within(group(lists, 'To do')!).getAllByRole('link');
+    expect(todo[0]).toHaveTextContent(/^Hot holding · 12:00.*Due in 10 min$/);
+    expect(todo[0]).toHaveAttribute('href', run('2026-10-05|hothold|12:00'));
+    expect(todo[1]).toHaveTextContent(/^Opening checks.*Missed$/);
+    expect(todo[1]).toHaveAttribute('href', run('2026-10-05|opening|09:30'));
+    // Then what's coming, by time, each with its time.
+    expect(todo[2]).toHaveTextContent(/^Hot holding · 15:00.*15:00$/);
+    expect(todo.at(-1)).toHaveTextContent(/^Closing checks.*23:00$/);
+    expect(todo).toHaveLength(6);
+    expect(group(lists, 'To do')!.querySelector('.sl')).toHaveTextContent('To do6');
+    // Lists done when needed have their own group, after To do and before Done.
+    expect(within(group(lists, 'When needed')!).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^Delivery check.*Whoever receives it$/)]);
+    expect([...lists.querySelectorAll('.sl span:first-child')].map((x) => x.textContent)).toEqual(['To do', 'When needed']);
+    expect(group(lists, 'Done')).toBeNull();
+    // Open repairs and EOD issues are for supervisors and managers; staff only get a way to report one.
+    expect(within(region('Repairs')).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^Report a problem/)]);
+    expect(screen.queryByRole('region', { name: 'End of day' })).not.toBeInTheDocument();
   });
 
   it('a late list is the one to do now', () => {
     at('2026-10-05T11:10:00Z'); // 12:10 BST: Hot holding 12:00 is 10 min late
     renderApp('/', staff);
     expect(screen.getByRole('link', { name: /^Do\ now:\ Hot\ holding\ ·\ 12:00,/ })).toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|hothold|12:00'));
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    expect(needs.querySelector('.hd')!).toHaveTextContent('1 late · 1 missed');
+    const lists = region('Checklists');
+    expect(meta(lists)).toBe('0 of 6 done · 1 late · 1 missed');
+    // Late leads the To do group, ahead of the missed list.
+    const todo = within(group(lists, 'To do')!).getAllByRole('link');
+    expect(todo[0]).toHaveTextContent(/^Hot holding · 12:00.*10 min late$/);
+    expect(todo[1]).toHaveTextContent(/^Opening checks.*Missed$/);
   });
 
-  it('done lists count in the card but are no longer listed on home', () => {
+  it('done lists count in the card and move to Done, with when and who', () => {
     at('2026-10-05T10:50:00Z');
     seedRun('2026-10-05|opening|09:30', 'Sam', '2026-10-05T08:42:00Z');
+    seedRun('2026-10-05|bar|16:30', 'Alex', '2026-10-05T09:15:00Z');
     renderApp('/', staff);
-    expect(screen.getByRole('link', { name: /^Start:\ Hot\ holding\ ·\ 12:00,/ }).closest('.hero')!).toHaveTextContent('1 of 6 checklists done');
-    expect(screen.queryByText(/Opening checks/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Done 09:42/)).not.toBeInTheDocument();
-    // Nothing missed now, only the due list.
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    expect(needs.querySelector('.hd')!).toHaveTextContent(/^Needs you1 due$/);
+    expect(screen.getByRole('link', { name: /^Start:\ Hot\ holding\ ·\ 12:00,/ }).closest('.hero')!).toHaveTextContent('2 of 6 checklists done');
+    const lists = region('Checklists');
+    // Nothing missed now, and the due list doesn't count as late.
+    expect(meta(lists)).toBe('2 of 6 done');
+    const todo = group(lists, 'To do')!;
+    expect(within(todo).queryByText(/Opening checks|Bar opening/)).not.toBeInTheDocument();
+    expect(todo.querySelector('.sl')).toHaveTextContent('To do4');
+    expect(within(todo).queryByText(/Delivery check/)).not.toBeInTheDocument();
+    expect([...lists.querySelectorAll('.sl span:first-child')].map((x) => x.textContent)).toEqual(['To do', 'When needed', 'Done']);
+    const done = group(lists, 'Done')!;
+    expect(done.querySelector('.sl')).toHaveTextContent('Done2');
+    // In the order they were finished; their own list says "you".
+    const rows = within(done).getAllByRole('link');
+    expect(rows[0]).toHaveTextContent(/^Opening checks.*Done 09:42 by you$/);
+    expect(rows[0]).toHaveAttribute('href', run('2026-10-05|opening|09:30'));
+    expect(rows[1]).toHaveTextContent(/^Bar opening.*Done 10:15 by Alex$/);
+    // Done rows carry no pill or time.
+    expect(within(done).queryByText(/Due|late|Missed/)).not.toBeInTheDocument();
   });
 
-  it('Later today lists what is coming, then Report a problem, with no EOD row', () => {
+  it('To do lists what is coming in time order; Repairs offers Report a problem; no EOD row', () => {
     at('2026-10-05T10:00:00Z'); // 11:00 BST
     seedRun('2026-10-05|opening|09:30', 'Sam', '2026-10-05T08:40:00Z');
     renderApp('/', staff);
-    const later = screen.getByRole('heading', { name: 'Later today' }).closest('section')!;
-    const rows = within(later).getAllByRole('link').slice(1);
-    expect(rows[0]).toHaveTextContent(/^12:00Hot holding · 12:00/);
-    const last = rows.at(-1)!;
-    expect(last).toHaveAccessibleName(/^Report a problem/);
-    expect(last).toHaveAttribute('href', '/report');
-    expect(last).toHaveTextContent('Something broken or not working');
-    expect(within(later).queryByRole('link', { name: /End-of-day report/ })).not.toBeInTheDocument();
+    const lists = region('Checklists');
     // Nothing late, due or missed yet.
-    // Nothing urgent: Needs you is either gone or holds only food safety (which has its own reminders).
-    const needsHd = screen.queryByRole('heading', { name: 'Needs you' });
-    if (needsHd) expect(within(needsHd.closest('section')!).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^Food safety/)]);
+    expect(meta(lists)).toBe('1 of 6 done');
+    const todo = within(group(lists, 'To do')!).getAllByRole('link').map((l) => l.textContent);
+    expect(todo[0]).toMatch(/^Hot holding · 12:00.*12:00$/);
+    expect(todo.at(-1)).toMatch(/^Closing checks.*23:00$/);
+    expect(within(group(lists, 'When needed')!).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^Delivery check.*Whoever receives it$/)]);
+    const repairs = region('Repairs');
+    expect(within(repairs).getByRole('heading', { name: 'Repairs' })).toBeInTheDocument();
+    const report = within(repairs).getByRole('link', { name: /^Report a problem/ });
+    expect(report).toHaveAttribute('href', '/report');
+    expect(report).toHaveTextContent('Something broken or not working');
+    expect(screen.queryByRole('link', { name: /End-of-day report/ })).not.toBeInTheDocument();
+    // No handover, so no End of day / Handover section at all.
+    expect(screen.queryByRole('region', { name: 'End of day' })).not.toBeInTheDocument();
+    expect(within(region('Food safety')).getByRole('link', { name: /^Food safety/ })).toHaveAttribute('href', '/food-safety');
   });
 
   it('once every list is done, Up next goes to the checklists', () => {
@@ -109,12 +153,15 @@ describe('staff home (the shared kitchen iPad)', () => {
     expect(up.closest('.hero')!).toHaveTextContent('6 of 6 checklists done');
   });
 
-  it('an unread handover from last night is in Needs you', async () => {
+  it('an unread handover from last night is in its own Handover section', async () => {
     await seedHandover();
     renderApp('/', staff);
     expect(screen.queryByRole('heading', { name: 'From last night' })).not.toBeInTheDocument();
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    const row = within(needs).getByRole('link', { name: /^Handover from / });
+    const sec = region('Handover');
+    expect(within(sec).getByRole('heading', { name: 'Handover' })).toBeInTheDocument();
+    // Staff don't get the EOD report row or the handover to write.
+    expect(within(sec).getAllByRole('link')).toHaveLength(1);
+    const row = within(sec).getByRole('link', { name: /^Handover from / });
     expect(row).toHaveAttribute('href', '/handover');
     expect(row).toHaveTextContent('Walk-in door sticks, push it shut.');
     expect(within(row).getByText('New')).toBeInTheDocument();
@@ -230,8 +277,10 @@ describe('reporting a problem', () => {
     unmount();
 
     const m = renderApp('/', manager);
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    await m.user.click(within(needs).getByRole('link', { name: /Dishwasher leaking/ }));
+    const repairs = region('Repairs');
+    expect(meta(repairs)).toBe('1 open');
+    expect(within(repairs).queryByRole('link', { name: /^Report a problem/ })).not.toBeInTheDocument();
+    await m.user.click(within(repairs).getByRole('link', { name: /Dishwasher leaking.*Urgent$/ }));
     expect(screen.getByText('Urgent')).toBeInTheDocument();
     await m.user.click(screen.getByRole('button', { name: 'Fixed' }));
     await m.user.click(screen.getByRole('button', { name: 'Tap again' }));
@@ -240,7 +289,15 @@ describe('reporting a problem', () => {
 
   it('staff can\'t open the repairs list', () => {
     renderApp('/repairs', staff);
-    expect(screen.queryByRole('heading', { name: 'Repairs' })).not.toBeInTheDocument();
+    // They land on their home, whose Repairs section only offers Report a problem.
+    expect(screen.queryByRole('heading', { name: 'Repairs', level: 1 })).not.toBeInTheDocument();
+    expect(screen.queryByText('Nothing open. Good.')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Hi Sam' })).toBeInTheDocument();
+  });
+
+  it('managers with nothing open get no Repairs section', () => {
+    renderApp('/', manager);
+    expect(screen.queryByRole('region', { name: 'Repairs' })).not.toBeInTheDocument();
   });
 });
 
@@ -255,31 +312,54 @@ describe('supervisor home (during service)', () => {
     expect(stats).toHaveTextContent('0Re-checks due');
     expect(stats).toHaveTextContent('£0EOD so far');
     expect(stats.closest('.hero')!).toHaveTextContent('Today so far');
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    expect(within(needs).getByRole('link', { name: /^Opening checks.*30 min late$/ })).toBeInTheDocument();
+    const lists = region('Checklists');
+    expect(within(group(lists, 'To do')!).getAllByRole('link')[0]).toHaveTextContent(/^Opening checks.*30 min late$/);
+    expect(within(group(lists, 'Done')!).getByRole('link', { name: /Bar opening/ })).toHaveTextContent(/^Bar openingDone 09:10 by Alex$/);
     const shift = screen.getByRole('heading', { name: 'On shift' }).closest('section')!;
     expect(shift).toHaveTextContent('Who did what');
     expect(within(shift).getByText('Alex')).toBeInTheDocument();
     expect(within(shift).getByText('1 done')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^Do\ now:\ Opening\ checks,/ })).toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|opening|09:30'));
-    const later = screen.getByRole('heading', { name: 'Later today' }).closest('section')!;
-    expect(within(later).getByRole('link', { name: 'Write the handover' })).toHaveAttribute('href', '/close/handover');
-    expect(within(later).getByRole('link', { name: /^End-of-day report/ })).toHaveAttribute('href', '/close');
+    const eod = region('End of day');
+    expect(within(eod).getByRole('heading', { name: 'End of day' })).toBeInTheDocument();
+    expect(within(eod).getByRole('link', { name: 'Write the handover' })).toHaveAttribute('href', '/close/handover');
+    expect(within(eod).getByRole('link', { name: /^End-of-day report/ })).toHaveAttribute('href', '/close');
+  });
+
+  it('Write the handover sits under End of day, after last night\'s handover, until the EOD is sent', async () => {
+    await seedHandover();
+    renderApp('/', supervisor);
+    const rows = within(region('End of day')).getAllByRole('link');
+    expect(rows[0]).toHaveAccessibleName(/^End-of-day report/);
+    expect(rows.at(-2)).toHaveAccessibleName(/^Handover from /);
+    expect(within(rows.at(-2)!).getByText('New')).toHaveClass('pill', 'p-new');
+    expect(rows.at(-1)).toHaveAccessibleName('Write the handover');
+    expect(rows.at(-1)).toHaveAttribute('href', '/close/handover');
+  });
+
+  it('once the EOD is sent, Write the handover goes', async () => {
+    await seedVerifiedDraft((d) => { d.confirmed = true; });
+    const { user } = renderApp('/close', supervisor);
+    await user.click(screen.getByRole('button', { name: 'Submit all' }));
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    await screen.findByRole('heading', { name: 'Day closed' });
+    renderApp('/', supervisor);
+    expect(within(region('End of day')).queryByRole('link', { name: 'Write the handover' })).not.toBeInTheDocument();
   });
 
   it('Needs you counts late, due and missed separately', () => {
     at('2026-10-05T11:10:00Z'); // 12:10 BST: Hot holding 12:00 late, opening missed
     renderApp('/', supervisor);
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    expect(needs.querySelector('.hd')!).toHaveTextContent(/^Needs you1 late · 1 missed$/);
+    expect(meta(region('Checklists'))).toBe('0 of 6 done · 1 late · 1 missed');
     expect(screen.getByRole('group', { name: 'Today so far: 0 of 6 checklists done, 2 late or missed' })).toHaveTextContent('2Late or missed');
   });
 
   it('a list that is only due is counted as due, not late', () => {
     at('2026-10-05T10:50:00Z'); // 11:50 BST: Hot holding 12:00 due, opening missed
     renderApp('/', supervisor);
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    expect(needs.querySelector('.hd')!).toHaveTextContent(/^Needs you1 due · 1 missed$/);
+    const lists = region('Checklists');
+    expect(meta(lists)).toBe('0 of 6 done · 1 missed');
+    expect(within(group(lists, 'To do')!).getAllByRole('link')[0]).toHaveTextContent(/^Hot holding · 12:00.*Due in 10 min$/);
     expect(screen.getByRole('group', { name: 'Today so far: 0 of 6 checklists done, 1 late or missed' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^Start:\ Hot\ holding\ ·\ 12:00,/ })).toBeInTheDocument();
   });
@@ -289,9 +369,8 @@ describe('supervisor home (during service)', () => {
     renderApp('/', supervisor);
     expect(screen.getByRole('link', { name: /^Start\ lunch,/ })).toHaveAttribute('href', '/close/lunch');
     expect(screen.queryByRole('link', { name: /^(Do now|Start): / })).not.toBeInTheDocument();
-    // Nothing urgent: Needs you is either gone or holds only food safety (which has its own reminders).
-    const needsHd = screen.queryByRole('heading', { name: 'Needs you' });
-    if (needsHd) expect(within(needsHd.closest('section')!).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^Food safety/)]);
+    // Nothing late or missed yet.
+    expect(meta(region('Checklists'))).toBe('0 of 6 done');
   });
 
   it('before anyone has finished a list, says so', () => {
@@ -306,8 +385,8 @@ describe('manager home', () => {
     at('2026-10-05T07:00:00Z'); // 08:00 BST, nothing due yet
     await seedHandover();
     const { user } = renderApp('/', manager);
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    expect(within(needs).getByText('New')).toBeInTheDocument();
+    const row = within(region('End of day')).getByRole('link', { name: /^Handover from / });
+    expect(within(row).getByText('New')).toBeInTheDocument();
     await user.click(screen.getByRole('link', { name: /^Read\ last\ night's\ handover,/ }));
     expect(screen.getByText('Walk-in door sticks, push it shut.')).toBeInTheDocument();
     await user.click(screen.getByRole('link', { name: 'Home' }));
@@ -321,15 +400,41 @@ describe('manager home', () => {
     renderApp('/', manager);
     expect(screen.getByText('5 checklists missed')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^5 checklists missed/ })).toHaveAttribute('href', '/checklists');
+    // It sits at the end of the To do group in Checklists.
+    const todo = within(group(region('Checklists'), 'To do')!).getAllByRole('link');
+    expect(todo.at(-1)).toHaveAccessibleName(/^5 checklists missed.*Yesterday · /);
   });
 
-  it('folds the checklists into one row once they are all done', () => {
+  it('yesterday\'s missed lists follow today\'s To do, even when today is all done', () => {
+    at('2026-10-05T21:30:00Z');
+    for (const [key, t] of [['opening|09:30', '08:40'], ['hothold|12:00', '11:02'], ['hothold|15:00', '14:01'], ['hothold|18:00', '17:05'], ['bar|16:30', '15:31'], ['closing|23:00', '21:20']]) {
+      seedRun(`2026-10-05|${key}`, 'Sam', `2026-10-05T${t}:00Z`);
+    }
+    seedRun(`${yesterday}|opening|09:30`, 'Sam', '2026-10-04T08:40:00Z', yesterday);
+    renderApp('/', manager);
+    const lists = region('Checklists');
+    const todo = group(lists, 'To do')!;
+    // Nothing left today; the count is today's lists, not yesterday's.
+    expect(todo.querySelector('.sl')).toHaveTextContent('To do0');
+    expect(within(todo).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^55 checklists missed/)]);
+    expect(within(group(lists, 'When needed')!).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^Delivery check.*Whoever receives it$/)]);
+  });
+
+  it('once every list is done, they are all under Done', () => {
     at('2026-10-05T21:30:00Z'); // 22:30 BST
     for (const [key, t] of [['opening|09:30', '08:40'], ['hothold|12:00', '11:02'], ['hothold|15:00', '14:01'], ['hothold|18:00', '17:05'], ['bar|16:30', '15:31'], ['closing|23:00', '21:20']]) {
       seedRun(`2026-10-05|${key}`, 'Sam', `2026-10-05T${t}:00Z`);
     }
     renderApp('/', manager);
-    expect(screen.getByRole('link', { name: /All 6 checklists done/ })).toHaveTextContent('Last at 22:20 by Sam');
+    const lists = region('Checklists');
+    expect(meta(lists)).toBe('6 of 6 done');
+    // Nothing left to do; the list done when needed stays in its own group.
+    expect(group(lists, 'To do')).toBeNull();
+    expect(within(group(lists, 'When needed')!).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^Delivery check.*Whoever receives it$/)]);
+    const rows = within(group(lists, 'Done')!).getAllByRole('link');
+    expect(rows).toHaveLength(6);
+    expect(rows[0]).toHaveTextContent(/^Opening checks.*Done 09:40 by Sam$/);
+    expect(rows.at(-1)).toHaveTextContent(/^Closing checks.*Done 22:20 by Sam$/);
   });
 
   it('the EOD card says when it is due without a countdown all day', () => {
@@ -338,42 +443,48 @@ describe('manager home', () => {
     expect(screen.getByText('Due after close')).toBeInTheDocument();
   });
 
-  it('Needs you counts what is late and missed, with a row per missed list', () => {
+  it('Checklists counts what is late and missed, late first, then a row per missed list', () => {
     at('2026-10-05T17:30:00Z'); // 18:30 BST: Hot holding 18:00 late; four lists before it missed
     renderApp('/', manager);
-    const needs = screen.getByRole('heading', { name: 'Needs you' }).closest('section')!;
-    expect(within(needs.querySelector('.hd')! as HTMLElement).getByText('1 late · 4 missed')).toBeInTheDocument();
+    const lists = region('Checklists');
+    expect(meta(lists)).toBe('0 of 6 done · 1 late · 4 missed');
     // The late list leads, with how late it is, and is also Up next.
-    const late = '/checklists/' + encodeURIComponent('2026-10-05|hothold|18:00');
-    expect(within(needs).getByRole('link', { name: /^Hot holding · 18:00.*30 min late$/ })).toHaveAttribute('href', late);
+    const late = run('2026-10-05|hothold|18:00');
+    const todo = within(group(lists, 'To do')!).getAllByRole('link');
+    expect(todo[0]).toHaveTextContent(/^Hot holding · 18:00.*30 min late$/);
+    expect(todo[0]).toHaveAttribute('href', late);
     expect(screen.getByRole('link', { name: /^Do\ now:\ Hot\ holding\ ·\ 18:00,/ })).toHaveAttribute('href', late);
-    // More than three missed: two rows, then the rest folded into one.
-    const missedRow = within(needs).getByRole('link', { name: /^Opening checks/ });
-    expect(missedRow).toHaveAttribute('href', '/day');
-    expect(missedRow).toHaveTextContent('add a note');
-    expect(within(missedRow).getByText('Missed')).toHaveClass('pill', 'p-bad');
-    expect(within(needs).getAllByText('Missed')).toHaveLength(2);
-    expect(within(needs).getByRole('link', { name: /2 more missed/ })).toHaveAttribute('href', '/day');
-    // The number badge is decoration; screen readers hear the title only once.
-    expect(within(needs).getByRole('link', { name: /^2 more missed/ })).toBeInTheDocument();
+    // Every missed list has its own row, earliest first, then what's still to come.
+    expect(todo.slice(1, 5).map((l) => within(l).getByText('Missed'))).toHaveLength(4);
+    for (const l of todo.slice(1, 5)) expect(within(l).getByText('Missed')).toHaveClass('pill', 'p-bad');
+    expect(todo[1]).toHaveTextContent(/^Opening checks/);
+    expect(todo[1]).toHaveAttribute('href', run('2026-10-05|opening|09:30'));
+    expect(todo.at(-1)).toHaveTextContent(/^Closing checks.*23:00$/);
+    expect(todo).toHaveLength(6);
+    expect(within(group(lists, 'When needed')!).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^Delivery check.*Whoever receives it$/)]);
   });
 
-  it('Later today lists what is still to come, then the EOD, in time order', () => {
+  it('To do lists what is still to come in time order; the EOD is under End of day', () => {
     at('2026-10-05T10:00:00Z'); // 11:00 BST, opening done
     seedRun('2026-10-05|opening|09:30', 'Sam', '2026-10-05T08:40:00Z');
     renderApp('/', manager);
-    const later = screen.getByRole('heading', { name: 'Later today' }).closest('section')!;
-    expect(within(later).getByRole('link', { name: 'Now 11:00' })).toHaveAttribute('href', '/day');
-    const rows = within(later).getAllByRole('link').slice(1).map((l) => l.textContent);
-    expect(rows[0]).toMatch(/^12:00Hot holding · 12:00/);
-    expect(rows.at(-1)).toMatch(/^End-of-day report8 sections · start any time/);
-    // Done lists drop off; at most four upcoming lists are shown.
-    expect(rows.join()).not.toMatch(/Opening checks/);
-    expect(rows.length).toBeLessThanOrEqual(5);
-    // Nothing late or missed, so Needs you stays away.
-    // Nothing urgent: Needs you is either gone or holds only food safety (which has its own reminders).
-    const needsHd = screen.queryByRole('heading', { name: 'Needs you' });
-    if (needsHd) expect(within(needsHd.closest('section')!).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^Food safety/)]);
+    const lists = region('Checklists');
+    // Nothing late or missed, so the header says only how many are done.
+    expect(meta(lists)).toBe('1 of 6 done');
+    const todo = within(group(lists, 'To do')!).getAllByRole('link').map((l) => l.textContent);
+    expect(todo).toHaveLength(5);
+    expect(todo[0]).toMatch(/^Hot holding · 12:00.*12:00$/);
+    expect(todo.join()).not.toMatch(/Delivery check/);
+    expect(todo.join()).not.toMatch(/Opening checks/);
+    expect(within(group(lists, 'Done')!).getByRole('link', { name: /Opening checks/ })).toHaveTextContent(/^Opening checksDone 09:40 by Sam$/);
+    const eod = region('End of day');
+    expect(within(eod).getAllByRole('link')[0]).toHaveTextContent(/^End-of-day report8 sections · start any time/);
+    // Managers don't write the handover from home.
+    expect(within(eod).queryByRole('link', { name: 'Write the handover' })).not.toBeInTheDocument();
+    // The sections come in the plain order: Checklists, Repairs (none open), End of day, Food safety.
+    expect(screen.getAllByRole('region').map((r) => r.getAttribute('aria-label')).filter((n) => ['Checklists', 'Repairs', 'End of day', 'Food safety'].includes(n!))).toEqual(['Checklists', 'End of day', 'Food safety']);
+    // The old headings are gone.
+    expect(screen.queryByRole('heading', { name: /^(Needs you|Later today|Your day)$/ })).not.toBeInTheDocument();
   });
 });
 
@@ -403,7 +514,7 @@ describe('the name menu, for every role', () => {
     const { user } = renderApp('/', manager);
     await user.click(screen.getByRole('button', { name: /Signed in as Jo/ }));
     await user.click(screen.getByRole('menuitem', { name: 'Sign out' }));
-    expect(screen.getByRole('heading', { name: 'Close the day' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'End of day' })).toBeInTheDocument();
   });
 
   it('head office gets back to a site view too', async () => {
@@ -411,5 +522,78 @@ describe('the name menu, for every role', () => {
     await user.click(await screen.findByRole('button', { name: /Signed in as Ana/ }));
     await user.click(screen.getByRole('menuitemradio', { name: 'Supervisor' }));
     expect(screen.getByRole('heading', { name: /, Ana$/ })).toBeInTheDocument();
+  });
+});
+
+describe('manager home on a wide screen (two columns, 1100px and up)', () => {
+  /** A desktop-sized screen: every min-width query matches. */
+  const desktop = () => {
+    window.matchMedia = ((q: string) => ({ matches: /min-width/.test(q), media: q, addEventListener() {}, removeEventListener() {} })) as unknown as typeof window.matchMedia;
+  };
+  const phone = () => { delete (window as { matchMedia?: unknown }).matchMedia; };
+
+  it('an unexplained cash difference shows under Before you send, without the EOD row', async () => {
+    await seedVerifiedDraft((d) => { d.sessions.dinner.cash.tillCash = 40000; });
+    desktop();
+    try {
+      renderApp('/', manager);
+      const eod = await screen.findByRole('region', { name: 'Before you send' });
+      expect(eod.closest('.mh-desk')).not.toBeNull();
+      expect(within(eod).getByRole('heading', { name: 'Before you send' })).toBeInTheDocument();
+      const issue = within(eod).getByRole('link', { name: /Add a reason to submit\./ });
+      expect(issue).toHaveAttribute('href', '/close/dinner');
+      // The main card already carries the EOD on desktop, so no report row here.
+      expect(within(eod).queryByRole('link', { name: /^End-of-day report/ })).not.toBeInTheDocument();
+    } finally {
+      phone();
+    }
+  });
+
+  it('with nothing wrong and no handover, there is no Before you send section', async () => {
+    await seedVerifiedDraft();
+    desktop();
+    try {
+      renderApp('/', manager);
+      expect(await screen.findByRole('region', { name: 'Checklists' })).toBeInTheDocument();
+      expect(document.querySelector('.mh-desk')).not.toBeNull();
+      expect(screen.queryByRole('region', { name: 'Before you send' })).not.toBeInTheDocument();
+      expect(screen.getByRole('region', { name: 'Food safety' })).toBeInTheDocument();
+    } finally {
+      phone();
+    }
+  });
+
+  it('on a phone, End of day still has the EOD row, then the same issue', async () => {
+    await seedVerifiedDraft((d) => { d.sessions.dinner.cash.tillCash = 40000; });
+    renderApp('/', manager);
+    const eod = await screen.findByRole('region', { name: 'End of day' });
+    expect(document.querySelector('.mh-desk')).toBeNull();
+    const rows = within(eod).getAllByRole('link');
+    expect(rows[0]).toHaveTextContent(/^End-of-day report/);
+    expect(rows[1]).toHaveAttribute('href', '/close/dinner');
+    expect(rows[1]).toHaveTextContent('Add a reason to submit.');
+  });
+});
+
+describe('Checklists on the home', () => {
+  it('a site with no checklists, and nothing missed yesterday, gets no Checklists section', () => {
+    localStorage.setItem('mgh.templates.v1', '[]');
+    at('2026-10-05T10:00:00Z');
+    renderApp('/', manager);
+    expect(screen.getByRole('region', { name: 'End of day' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Checklists' })).not.toBeInTheDocument();
+  });
+
+  it('a list done when needed has no "When needed" pill on its row', () => {
+    at('2026-10-05T10:00:00Z');
+    renderApp('/', staff);
+    const whenNeeded = group(region('Checklists'), 'When needed')!;
+    const [row, ...more] = within(whenNeeded).getAllByRole('link') as [HTMLElement, ...HTMLElement[]];
+    expect(more).toHaveLength(0);
+    expect(row).toHaveTextContent(/^Delivery check.*Whoever receives it$/);
+    expect(row.querySelector('.pill')).toBeNull();
+    expect(within(row).queryByText('When needed')).not.toBeInTheDocument();
+    // The group label still says it, once.
+    expect(within(whenNeeded).getAllByText('When needed')).toHaveLength(1);
   });
 });
