@@ -4,7 +4,7 @@
 
 **Status, 13 Nov 2026: first version built in demo mode** (data on the device). Rules and tests: `packages/core/src/ordering.ts`, `recipes.ts`, `safety.ts` (safety and maintenance), `records.ts`. Store: `apps/eod-web/app/lib/ops*.ts`. Screens: `/stock/order`, `/stock/delivery/:id`, `/stock/waste`, `/stock/item/:id`, `/stock/count/:id/low`, `/recipes`, `/safety`, `/maintenance`, and for head office `/head-office/{ordering,menu,safety,maintenance,records}`. **Not done yet:**
 - Connected mode (the SharePoint lists below).
-- Emailing orders to suppliers.
+- Contacting suppliers. For now (user's call, 13 Nov 2026), sending an order tells the team: a supervisor or above places it with the supplier and marks it placed in the app. Anyone can send an order to the team.
 - Storing certificate files (only the name is kept).
 - Risk assessments, cleaning chemicals (COSHH), first aiders and fire drills.
 - Transfers between sites.
@@ -87,7 +87,7 @@ This doc scopes four modules: **health and safety**, **planned maintenance**, **
 |---|---|---|---|
 | 1 | **Suppliers and prices** | Each supplier: order days and cut-off times, delivery days, minimum order, and how to order (email, phone, their own portal). Each item's supplier, pack size ("case of 6"), order code and price | Head office |
 | 2 | **Par levels** | How much of each item a site wants after a delivery. This can differ by day ("more on Fridays") | Manager |
-| 3 | **Order** | Suggested amounts per supplier: par level minus what's on hand (from the last count, or a quick count on the spot), rounded up to whole packs. Change anything, then **send**: the app emails the supplier, or copies the order for their portal or WhatsApp. Shows the total and when it arrives | Supervisor and above *(manager's call)* |
+| 3 | **Order** | Suggested amounts per supplier: par level minus what's on hand (from the last count, or a quick count on the spot), rounded up to whole packs. Change anything, then **send to the team**. For now the app doesn't contact suppliers: a supervisor or above places the order (phone, portal, email) and marks it placed. Shows the total and the cut-off | Anyone sends; supervisor and above place it |
 | 4 | **Receive** | Joins the existing delivery check: tick what came against what was ordered, note shortages and swaps, photograph the invoice. A short or wrong delivery becomes a **credit to chase** | Whoever receives deliveries |
 | 5 | **Price changes** | An invoice price different from the list price is flagged ("Pork belly £9.80 → £10.60, +8%"). Head office accepts the new price, which updates stock values and dish costs | Head office |
 | 6 | **Waste log** | Item, amount, reason (out of date, spoiled, dropped or burnt, made too much, sent back by a guest, staff food), optional photo. Valued at cost. Big or repeated waste is flagged | Anyone |

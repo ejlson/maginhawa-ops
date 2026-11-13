@@ -38,7 +38,6 @@ export default function SignedIn() {
     || (pathname.startsWith('/food-safety/inspections') && !can.logInspections(user.role))
     || (pathname.startsWith('/food-safety/review') && !can.doReview(user.role))
     || (/^\/checklists\/[^/]+\/correct\//.test(pathname) && !can.correctRecords(user.role))
-    || (/^\/stock\/order\/[^/]+/.test(pathname) && !can.sendOrders(user.role))
     || (pathname.startsWith('/maintenance/visit') && !can.logVisits(user.role));
   if (blocked) return <Navigate to={homeOf(user)} replace />;
   const outsideSite = user.role === 'headoffice' && !user.inSite;

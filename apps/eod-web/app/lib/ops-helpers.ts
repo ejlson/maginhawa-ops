@@ -6,11 +6,13 @@ export const onHand = (counts: StockCount[], siteCode: string, itemId: string) =
 
 export interface Suggestion { item: StockItem; onHand: number | null; par: number; packs: number; pack: string; packSize: number; packPrice: number; supplierId: string }
 
-/** Every active item with its suggested order, for one site. Items below their usual level have packs > 0. */
+/** Every active item with its suggested order, for one site. Items below their usual level have packs > 0.
+ *  Anything already on an order that hasn't arrived is left out, so nobody orders it twice. */
 export function suggestions(items: StockItem[], counts: StockCount[], ops: OpsValue, siteCode: string): Suggestion[] {
   const out: Suggestion[] = [];
+  const onOrder = new Set(ops.data.orders.filter((o) => o.siteCode === siteCode && o.sentAt && !o.receivedAt).flatMap((o) => o.lines.map((l) => l.itemId)));
   for (const item of items) {
-    if (!item.active) continue;
+    if (!item.active || onOrder.has(item.id)) continue;
     const buy = ops.buying(item.id);
     const par = ops.par(item.id, siteCode);
     if (!buy || par === null) continue;

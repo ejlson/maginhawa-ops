@@ -28,7 +28,8 @@ export default function Stock() {
   const low = suggestions(data.items, data.counts, ops, user.siteCode).filter((s) => s.packs > 0 && s.onHand !== null)
     .map((s) => ({ ...s, lasts: runsOutText(s.onHand!, dailyUse(s.item.id, ops.data.recipes)) }))
     .sort((a, b) => (a.onHand! / a.par) - (b.onHand! / b.par)).slice(0, 3);
-  const toCheck = ops.data.orders.filter((o) => o.siteCode === user.siteCode && o.sentAt && !o.receivedAt);
+  const toCheck = ops.data.orders.filter((o) => o.siteCode === user.siteCode && o.placedAt && !o.receivedAt);
+  const toPlace = ops.data.orders.filter((o) => o.siteCode === user.siteCode && o.sentAt && !o.placedAt);
   const today = businessDate;
   const states = site.plans.map((p) => ({ plan: p, state: planState(p, site.counts, today) }));
   // The main card: a count already started, else the first one due today (the full count first, it matters most).
@@ -110,7 +111,9 @@ export default function Stock() {
           <div className="sub">
             {toCheck.map((o) => <RowLink key={o.id} to={`/stock/delivery/${o.id}`} lead={<span className="av warn"><Icon d={ICONS.check} /></span>}
               title={`Check in ${ops.supplier(o.supplierId)?.name ?? 'a delivery'}`} sub="Arrived? Tap only what didn't come" />)}
-            <RowLink to="/stock/order" lead={<span className="av"><Icon d={ICONS.box} /></span>} title="Order" sub={can.sendOrders(user.role) ? 'Filled in from your usual levels' : 'See what we order'} />
+            {can.placeOrders(user.role) && toPlace.length > 0 && <RowLink to="/stock/order" lead={<span className="av warn"><Icon d={ICONS.box} /></span>}
+              title={`${toPlace.length} ${toPlace.length === 1 ? 'order' : 'orders'} to place`} sub={toPlace.map((o) => ops.supplier(o.supplierId)?.name).join(', ')} />}
+            <RowLink to="/stock/order" lead={<span className="av"><Icon d={ICONS.box} /></span>} title="Order" sub="Filled in from your usual levels" />
             <RowLink to="/stock/waste" lead={<span className="av"><Icon d={ICONS.x} /></span>} title="Log waste" sub="Item, then Log" />
           </div>
         </section>

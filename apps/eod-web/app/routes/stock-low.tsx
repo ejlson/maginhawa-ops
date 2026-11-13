@@ -4,7 +4,7 @@
  */
 import { Link, Navigate, useParams } from 'react-router';
 import { formatPounds, itemIdsOf } from '@maginhawa/core';
-import { can, useAuth } from '../lib/auth';
+import { useAuth } from '../lib/auth';
 import { useStock } from '../lib/stock';
 import { useOps } from '../lib/ops';
 import { suggestions, plural } from '../lib/ops-helpers';
@@ -27,7 +27,6 @@ export default function StockLow() {
     .filter((g) => g.lines.length)
     .sort((a, b) => a.sup.orderBy.localeCompare(b.sup.orderBy));
   const first = bySupplier[0]!;
-  const canOrder = can.sendOrders(user.role);
 
   return (
     <main className="page">
@@ -36,20 +35,18 @@ export default function StockLow() {
         <div className="hero stk-hero" role="status">
           <span className="hl">{count.name} sent{count.sentAt ? ` · ${hm(count.sentAt)}` : ''}</span>
           <span className="stk-title">{plural(low.length, 'item is', 'items are')} low</span>
-          <span className="stk-sub">Below your usual level. {canOrder ? 'The orders are already filled in.' : 'A supervisor or manager can order them.'}</span>
-          {canOrder && (
-            <Link className="upnext" to={`/stock/order/${first.sup.id}`}>
-              <span className="tx"><b>Order what's low</b></span>
-              <span className="arrow"><Icon d={ICONS.arrow} size={16} /></span>
-            </Link>
-          )}
+          <span className="stk-sub">Below your usual level. The orders are already filled in.</span>
+          <Link className="upnext" to={`/stock/order/${first.sup.id}`}>
+            <span className="tx"><b>Order what's low</b></span>
+            <span className="arrow"><Icon d={ICONS.arrow} size={16} /></span>
+          </Link>
         </div>
 
         <section className="grp" aria-label="By supplier">
           <div className="hd"><h2>By supplier</h2><span>Soonest cut-off first</span></div>
           <div className="sub">
             {bySupplier.map(({ sup, lines }) => (
-              <RowLink key={sup.id} to={canOrder ? `/stock/order/${sup.id}` : undefined} lead={<span className="av"><Icon d={ICONS.box} /></span>}
+              <RowLink key={sup.id} to={`/stock/order/${sup.id}`} lead={<span className="av"><Icon d={ICONS.box} /></span>}
                 title={sup.name} sub={`${lines.map((l) => l.item.name).join(', ')} · by ${sup.orderBy}`}
                 right={<b className="amt">{formatPounds(lines.reduce((n, l) => n + l.packs * l.packPrice, 0))}</b>} />
             ))}

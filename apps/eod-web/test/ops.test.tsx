@@ -15,16 +15,29 @@ describe('ordering and waste', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/items? (is|are) low/);
     await user.click(screen.getByRole('link', { name: "Order what's low" }));
     expect(screen.getByRole('region', { name: 'Order lines' })).toHaveTextContent('Tanduay rum 70cl');
-    const send = screen.getByRole('button', { name: /^Send order · £/ });
+    const send = screen.getByRole('button', { name: /^Send to the team · £/ });
     await user.click(screen.getByRole('button', { name: 'One more of Tanduay rum 70cl' }));
-    await user.click(screen.getByRole('button', { name: /^Send order · £/ }));
+    await user.click(screen.getByRole('button', { name: /^Send to the team · £/ }));
     expect(send).not.toBeInTheDocument();
-    expect(screen.getByText('Bibendum has it. Check it in when it arrives.')).toBeInTheDocument();
+    expect(screen.getByText("Sent to the team. They'll place it with Bibendum.")).toBeInTheDocument();
   });
 
-  it('staff can see orders but not send one: the address sends them back', () => {
-    renderApp('/stock/order/fresh', staff);
-    expect(screen.queryByRole('button', { name: /^Send order/ })).not.toBeInTheDocument();
+  it('staff send an order to the team; a supervisor or above places it and ticks it off', async () => {
+    const first = renderApp('/stock/order/wingyip', staff);
+    await first.user.click(screen.getByRole('button', { name: 'One more of Jasmine rice 20kg' }));
+    await first.user.click(screen.getByRole('button', { name: /^Send to the team · £/ }));
+    expect(screen.getByText("Sent to the team. They'll place it with Wing Yip.")).toBeInTheDocument();
+    first.unmount();
+
+    const second = renderApp('/stock/order', staff);
+    expect(screen.getByRole('region', { name: 'To place' })).toHaveTextContent('The team has these');
+    expect(screen.queryByRole('button', { name: 'Placed with Wing Yip' })).not.toBeInTheDocument();
+    second.unmount();
+
+    const { user } = renderApp('/stock/order', manager);
+    await user.click(screen.getByRole('button', { name: 'Placed with Wing Yip' }));
+    expect(screen.queryByRole('region', { name: 'To place' })).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Deliveries to check in' })).toHaveTextContent('Wing Yip');
   });
 
   it('a delivery starts all ticked; tapping what didn\'t come makes a credit to chase', async () => {

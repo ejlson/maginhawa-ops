@@ -105,7 +105,7 @@ export function demoOps(businessDate: string): OpsData {
       { id: 'wingyip', name: 'Wing Yip', orderBy: '12:00', leadDays: 3, email: 'trade@wingyip.example' },
     ],
     supplierItems, pars,
-    orders: [{ id: 'order-demo-1', siteCode: 'BUN', supplierId: 'fresh', sentAt: at(-1, '11:20'), sentBy: 'Jo Reyes', receivedAt: null, receivedBy: null, missing: {},
+    orders: [{ id: 'order-demo-1', siteCode: 'BUN', supplierId: 'fresh', sentAt: at(-1, '11:20'), sentBy: 'Sam Cruz', placedAt: at(-1, '11:45'), placedBy: 'Jo Reyes', receivedAt: null, receivedBy: null, missing: {},
       lines: [{ itemId: 'pork', packs: 3, packPrice: pork.packPrice }, { itemId: 'chicken', packs: 4, packPrice: 1900 }, { itemId: 'prawns', packs: 3, packPrice: 3300 }] }],
     priceChanges: [
       { id: 'pc-pork', itemId: 'pork', supplierId: 'fresh', from: pork.packPrice, to: 5300, seenAt: at(-1, '09:40'), seenAtSite: 'BUN', status: 'open' },

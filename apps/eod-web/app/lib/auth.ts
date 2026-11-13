@@ -49,8 +49,9 @@ export const can = {
   /** The group item list and costs. */
   editStockItems: (r: Role) => r === 'headoffice',
   // Ordering, safety and maintenance (docs/reports/next-modules-scope.md).
-  /** Send an order to a supplier. Anyone can check a delivery in or log waste. */
-  sendOrders: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
+  /** Place an order with the supplier once the team is told about it. Anyone can send an order to the
+   *  team, check a delivery in or log waste. */
+  placeOrders: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
   /** Days off and the HSE report for an accident. Anyone can report one. */
   manageAccidents: (r: Role) => r === 'manager' || r === 'headoffice',
   /** Log a contractor's visit and its certificate. */

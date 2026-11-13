@@ -10,6 +10,7 @@ export default function HoOrdering() {
   const ops = useOps();
   const { data, setItem } = useStock();
   const open = ops.data.priceChanges.filter((p) => p.status === 'open');
+  const toPlace = ops.data.orders.filter((o) => o.sentAt && !o.placedAt);
   const bought = (code: string) => ops.data.orders.filter((o) => o.siteCode === code && o.sentAt).reduce((n, o) => n + orderTotal(o.lines), 0);
   // Until every order goes through the app, purchases fall back to the value of the latest full count.
   const lastFullValue = (code: string) => {
@@ -34,9 +35,22 @@ export default function HoOrdering() {
           <div className="titleblock"><span className="eyebrow">All sites · this period</span><h1>Ordering and waste</h1></div>
           <div className="hero">
             <span className="hl">This week</span>
-            <span className="ho-sentence">{open.length ? `${open.length} price${open.length > 1 ? 's' : ''} changed. ` : 'No price changes. '}Waste is {formatPounds(totalWaste)}{high.length ? `, with ${high.length} site${high.length > 1 ? 's' : ''} above 3%` : ''}.</span>
+            <span className="ho-sentence">{toPlace.length ? `${toPlace.length} order${toPlace.length > 1 ? 's are' : ' is'} waiting to be placed. ` : ''}{open.length ? `${open.length} price${open.length > 1 ? 's' : ''} changed. ` : 'No price changes. '}Waste is {formatPounds(totalWaste)}{high.length ? `, with ${high.length} site${high.length > 1 ? 's' : ''} above 3%` : ''}.</span>
           </div>
           <div className="stk-cols">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+            {toPlace.length > 0 && (
+              <section className="grp" aria-label="Orders to place">
+                <div className="hd"><h2>Orders to place</h2><span>Sent by the sites</span></div>
+                <div className="sub">
+                  {toPlace.map((o) => (
+                    <div className="li" key={o.id}><SiteMono code={o.siteCode} />
+                      <span className="tx"><span>{ops.supplier(o.supplierId)?.name} · {formatPounds(orderTotal(o.lines))}</span><small>{o.lines.length} items · from {o.sentBy}</small></span>
+                      <span className="rt"><button type="button" className="chip" onClick={() => ops.markPlaced(o.id, 'Head office')}>Placed</button></span></div>
+                  ))}
+                </div>
+              </section>
+            )}
             <section className="grp" aria-label="Price changes">
               <div className="hd"><h2>{open.length ? 'Accept the new prices?' : 'Prices'}</h2><span>From the invoices</span></div>
               <div className="sub">
@@ -56,6 +70,7 @@ export default function HoOrdering() {
               </div>
               <p className="lead">Accepting updates stock values and dish costs from today. Counts already sent keep their prices.</p>
             </section>
+            </div>
             <section className="grp" aria-label="Waste by site">
               <div className="hd"><h2>Waste</h2><span>% of what each site bought</span></div>
               {high.length > 0 && <p className="lead" style={{ color: 'var(--text)' }}><b>{high.map((h) => h.s.name).join(' and ')}</b> {high.length > 1 ? 'are' : 'is'} above 3%.</p>}

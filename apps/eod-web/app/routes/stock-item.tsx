@@ -34,7 +34,7 @@ export default function StockItem() {
           <span className="hl">{it.name} · {have === null ? 'not counted yet' : `${amountText(have, it.unit)} left (last count)`}</span>
           <span className="stk-title">{lasts ?? (have === null ? 'Count it to see' : 'Not used in a dish')}</span>
           {perDay > 0 && <span className="stk-sub">At the usual pace of about {amountText(Math.round(perDay * 10) / 10, it.unit)} a day</span>}
-          {sup && can.sendOrders(user.role) && (
+          {sup && (
             <Link className="upnext" to={`/stock/order/${sup.id}`}>
               <span className="tx"><b>Order more</b></span>
               <span className="arrow"><Icon d={ICONS.arrow} size={16} /></span>

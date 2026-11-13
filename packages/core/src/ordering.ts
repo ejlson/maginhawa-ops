@@ -36,8 +36,13 @@ export interface Order {
   siteCode: string;
   supplierId: string;
   lines: OrderLine[];
+  /** When it was sent to the team to place. */
   sentAt: string | null;
   sentBy: string | null;
+  /** When someone on the team placed it with the supplier (phone, portal, email). For now the app
+   *  doesn't contact suppliers itself: it tells the team, who place the order and mark it here. */
+  placedAt: string | null;
+  placedBy: string | null;
   receivedAt: string | null;
   receivedBy: string | null;
   /** itemId → packs that didn't come. */

@@ -39,7 +39,10 @@ export interface OpsValue {
   /** How an item is bought (its first supplier). */
   buying: (itemId: string) => SupplierItem | undefined;
   par: (itemId: string, siteCode?: string) => number | null;
+  /** Sends the order to the team to place with the supplier (the app doesn't contact suppliers yet). */
   sendOrder: (supplierId: string, lines: { itemId: string; packs: number; packPrice: Pence }[], by: string) => string;
+  /** Someone on the team placed it with the supplier. */
+  markPlaced: (orderId: string, by: string) => void;
   receiveOrder: (orderId: string, missing: Record<string, number>, by: string) => void;
   /** Head office: accept or query a new price. Accepting updates the item's cost and the pack price. */
   settlePrice: (id: string, status: 'accepted' | 'queried', updateItemCost: (itemId: string, unitCost: Pence) => void) => void;

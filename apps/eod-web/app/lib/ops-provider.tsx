@@ -26,10 +26,14 @@ export function OpsProvider({ siteCode, businessDate, children, initial }: { sit
     sendOrder: (supplierId, lines, by) => {
       const id = newId('order');
       save((d) => {
-        d.orders.push({ id, siteCode, supplierId, lines: lines.filter((l) => l.packs > 0), sentAt: now().toISOString(), sentBy: by, receivedAt: null, receivedBy: null, missing: {} });
+        d.orders.push({ id, siteCode, supplierId, lines: lines.filter((l) => l.packs > 0), sentAt: now().toISOString(), sentBy: by, placedAt: null, placedBy: null, receivedAt: null, receivedBy: null, missing: {} });
       });
       return id;
     },
+    markPlaced: (orderId, by) => save((d) => {
+      const o = d.orders.find((x) => x.id === orderId);
+      if (o && !o.placedAt) { o.placedAt = now().toISOString(); o.placedBy = by; }
+    }),
     receiveOrder: (orderId, missing, by) => save((d) => {
       const o = d.orders.find((x) => x.id === orderId);
       if (!o || o.receivedAt) return;

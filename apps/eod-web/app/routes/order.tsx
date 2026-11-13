@@ -22,7 +22,8 @@ export default function OrderPage() {
   const ops = useOps();
   const { businessDate } = useChecklists();
   const sup = ops.supplier(supplierId);
-  const lines = suggestions(data.items, data.counts, ops, siteCode).filter((s) => s.supplierId === supplierId && s.packs > 0);
+  // Fixed when the screen opens, so the lines stay put once the order is sent.
+  const [lines] = useState(() => suggestions(data.items, data.counts, ops, siteCode).filter((s) => s.supplierId === supplierId && s.packs > 0));
   const [packs, setPacks] = useState<Record<string, number>>(() => Object.fromEntries(lines.map((l) => [l.item.id, l.packs])));
   const [sent, setSent] = useState<string | null>(null);
   if (!user || !sup) return <Navigate to="/stock/order" replace />;
@@ -71,12 +72,12 @@ export default function OrderPage() {
         {sent ? (
           <>
             <Link className="btn b1" to="/stock">Done</Link>
-            <p className="note t-ok">{sup.name} has it. Check it in when it arrives.</p>
+            <p className="note t-ok">Sent to the team. They'll place it with {sup.name}.</p>
           </>
         ) : (
           <>
-            <button type="button" className="btn b1" disabled={total <= 0} onClick={() => setSent(ops.sendOrder(sup.id, chosen, recordedAs(user)))}>Send order · {formatPounds(total)}</button>
-            <p className="note">{sup.name} gets it by email</p>
+            <button type="button" className="btn b1" disabled={total <= 0} onClick={() => setSent(ops.sendOrder(sup.id, chosen, recordedAs(user)))}>Send to the team · {formatPounds(total)}</button>
+            <p className="note">The team is told to place it with {sup.name}</p>
           </>
         )}
       </Foot>
