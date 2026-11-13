@@ -23,30 +23,52 @@ export function SkRows({ count = 3, label = 'Loading' }: { count?: number; label
   );
 }
 
-/** The dark hero card with its figure and three small stats. */
-function SkHero() {
+/** The main card as on the new homes (P1, D1): a label, the big figure, the bars, and the Up next pill. */
+function SkCard() {
   return (
-    <div className="hero" aria-hidden="true">
-      <Sk on="hero" w="45%" h={13} />
-      <Sk on="hero" w="55%" h={44} r={10} />
-      <div className="hm">
-        {[0, 1, 2].map((i) => <span key={i}><Sk on="hero" w="60%" h={16} /><Sk on="hero" w="45%" h={10} /></span>)}
-      </div>
+    <div className="hero mh-card sk-card" aria-hidden="true">
+      <Sk on="hero" w="38%" h={13} />
+      <Sk on="hero" w="48%" h={48} r={10} />
+      <Sk on="hero" w="70%" h={5} r={3} />
+      <span className="sk-pill"><Sk on="hero" w="55%" h={16} /><Sk on="hero" w={38} h={38} r={19} /></span>
     </div>
   );
 }
 
-/** A whole screen in outline: title, hero, then two groups of rows. */
-export function PageSkeleton({ wide, nav = true }: { wide?: boolean; nav?: boolean }) {
+const SkGroup = ({ w, rows }: { w: number; rows: number }) => (
+  <section className="grp"><div className="gh" aria-hidden="true"><Sk w={w} h={22} r={7} /></div><SkRows count={rows} /></section>
+);
+
+/**
+ * A whole screen in outline, shown before the app knows who's signed in or how wide the screen is, so it
+ * draws both shapes and CSS picks one: on phones the P1 layout (site pill and avatar, title, card, lists, tab
+ * bar); from 900px the sidebar and the D1 layout (card beside Needs you, then the day). `wide` is head office,
+ * whose sidebar is already drawn.
+ */
+export function PageSkeleton({ wide }: { wide?: boolean }) {
   return (
-    <main className={`page${wide ? ' wide' : ''}`} aria-busy="true">
-      {nav && <header className="nav" aria-hidden="true"><span style={{ width: 8 }} /><Sk w={120} h={15} /><span style={{ width: 8 }} /></header>}
-      <div className="body" style={{ paddingTop: 24 }}>
-        <div className="titleblock" aria-hidden="true"><Sk w={110} h={13} /><Sk w={190} h={30} r={8} /></div>
-        <SkHero />
-        <section className="grp"><div className="gh" aria-hidden="true"><Sk w={140} h={20} /></div><SkRows count={3} /></section>
-        <section className="grp"><div className="gh" aria-hidden="true"><Sk w={110} h={20} /></div><SkRows count={2} /></section>
-      </div>
-    </main>
+    <div className={`skel${wide ? ' skel-ho' : ''}`} aria-busy="true">
+      {!wide && (
+        <aside className="skel-side" aria-hidden="true">
+          <span className="skel-site"><Sk w={34} h={34} r={12} /><span className="tx"><Sk w={70} h={13} /><Sk w={96} h={10} /></span></span>
+          <Sk w="100%" h={36} r={12} />
+          {[0, 1, 2, 3, 4, 5, 6].map((i) => <Sk key={i} w={`${60 - (i % 3) * 10}%`} h={14} style={{ margin: '11px 10px' }} />)}
+        </aside>
+      )}
+      <main className="page tabs mh-page skel-main">
+        {!wide && <header className="nav homenav skel-top" aria-hidden="true"><Sk w={104} h={40} r={20} /><Sk w={40} h={40} r={20} /></header>}
+        <div className="body mh-phone skel-body">
+          <div className="titleblock mh-title" aria-hidden="true"><Sk w={180} h={13} /><Sk w={240} h={34} r={9} /></div>
+          <div className="skel-top-grid">
+            <SkCard />
+            <SkGroup w={120} rows={3} />
+          </div>
+          <SkGroup w={140} rows={2} />
+        </div>
+        {!wide && <nav className="tabbar skel-tabs" aria-hidden="true">
+          {[0, 1, 2, 3].map((i) => <span key={i} className="tab"><Sk w={56} h={30} r={15} /><Sk w={40} h={10} /></span>)}
+        </nav>}
+      </main>
+    </div>
   );
 }

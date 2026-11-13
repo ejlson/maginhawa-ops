@@ -28,7 +28,7 @@ export interface TourStep {
 
 const HERO_EOD: TourStep = { id: 'hero-eod', target: 'hero-eod', title: 'Close the day here', body: 'Your end-of-day report. Do the sections in any order; each bar fills as you finish one.', icon: 'list', demo: 'segs' };
 /** Managers see one of these dark cards, depending on the time of day; only the one on screen is shown. */
-const HERO_CHECK: TourStep = { id: 'hero-check', target: 'hero-check', title: "What's due now", body: 'The dark card always shows the most urgent thing first. Tap it to start.', icon: 'list' };
+const HERO_CHECK: TourStep = { id: 'hero-check', target: 'hero-check', title: "What's due now", body: 'The card always shows the most urgent thing first. Tap Up next to start.', icon: 'list' };
 const HERO_NIGHT: TourStep = { id: 'hero-night', target: 'hero-night', title: 'How last night went', body: 'Net sales, wages and covers from the last close, against the week before.', icon: 'chart' };
 const NEEDS: TourStep = { id: 'needs', target: 'needs', title: 'Things that need you', body: 'Late checklists, repairs and warnings land here. Red means today.', icon: 'bang' };
 const SYNC: TourStep = { id: 'sync', target: 'sync', title: 'Saved, then sent', body: 'Everything saves on this device first, so a bad signal never loses work.', icon: 'check', demo: 'sync' };
@@ -36,10 +36,10 @@ const TABS: TourStep = { id: 'tabs', target: 'tabs', title: 'Checklists and the 
 
 export const TOURS: Record<Role, TourStep[]> = {
   staff: [
-    { id: 'hero-check', target: 'hero-check', title: 'Your next checklist', body: 'The dark card always shows what is due next. Tap it to start.', icon: 'list' },
+    { id: 'hero-check', target: 'hero-check', title: 'Your next checklist', body: 'The card shows how today is going. Tap Up next to start your next checklist.', icon: 'list' },
     { id: 'todo', target: 'todo', title: 'The rest of today', body: "Everything left for this shift, in time order. A red pill means it's late.", icon: 'clock' },
     { id: 'temp', title: 'Quick temperatures', body: 'Type the number and press Enter: the next one opens. Freezers have a ± button for minus.', icon: 'thermo', demo: 'temp' },
-    { id: 'next', target: 'next', title: 'The main button is the next job', body: 'Not sure what to do? The big button at the bottom always starts the next thing that is due.', icon: 'arrow' },
+    { id: 'next', target: 'next', title: 'The main button is the next job', body: 'Not sure what to do? Up next on the card always starts the next thing that is due.', icon: 'arrow' },
     { id: 'me', target: 'me', title: 'Not you?', body: 'Tap your name to switch person, so nobody signs things as you.', icon: 'lock', tryIt: true },
   ],
   supervisor: [

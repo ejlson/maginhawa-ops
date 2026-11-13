@@ -3,7 +3,7 @@
  * sections of the Head office page for now, so they scroll to it. Saved searches open Reports pre-filtered.
  */
 import { useEffect, type ReactNode } from 'react';
-import { Link, NavLink, useLocation } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { SITES } from '@maginhawa/core';
 import { Icon } from './ui';
 import { ICONS } from './ui-helpers';
@@ -14,7 +14,17 @@ const SEARCH = 'M8.5 3.5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12.2 12.2L16.5 16.5';
 const SITES_ICON = 'M3 17V8l7-4 7 4v9M8 17v-5h4v5';
 const BUILDER_ICON = 'M3 4h5v5H3zM12 11h5v5h-5zM8 6.5h2.5a1.5 1.5 0 0 1 1.5 1.5v3';
 
-const LINKS = [
+/** Phones get four tabs, like the sites' Today · Close · Checks · More; everything else is in More. */
+const PHONE_TABS = [
+  { to: '/head-office', label: 'Today', icon: ICONS.home },
+  { to: '/head-office/days', label: 'Days', icon: ICONS.cal },
+  { to: '/head-office/reports', label: 'Reports', icon: SEARCH },
+  { to: '/head-office/more', label: 'More', icon: ICONS.grid },
+] as const;
+
+export const BUILDER = BUILDER_ICON;
+
+export const LINKS = [
   { to: '/head-office', label: 'Today', icon: ICONS.home },
   { to: '/head-office#sites', label: 'Sites', icon: SITES_ICON },
   { to: '/head-office/days', label: 'Days', icon: ICONS.cal },
@@ -30,7 +40,7 @@ const LINKS = [
 ] as const;
 
 /** Fixed presets for now. Each person's own saved searches need storing in SharePoint first. */
-const SAVED_SEARCHES = [
+export const SAVED_SEARCHES = [
   { id: 'wages', label: 'Wages 30% or more, last 30 days' },
   { id: 'cash', label: 'Cash short or over, last 30 days' },
   { id: 'refund', label: 'Refunds, any date' },
@@ -56,6 +66,13 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
     if (path === '/head-office/reports') return !saved;
     return h ? hash === `#${h}` : !hash;
   };
+
+  // Phones: one tab lights up. Today covers the group page and each site; Days and Reports their pages;
+  // everything else lives under More.
+  const phoneTab = pathname === '/head-office' || isOn('/head-office#sites') ? 'Today'
+    : pathname === '/head-office/days' ? 'Days'
+    : pathname === '/head-office/reports' && !saved ? 'Reports'
+    : 'More';
 
   return (
     <div className="ho-shell">
@@ -88,12 +105,15 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
       </nav>}
       <div className="ho-main">{children}</div>
       {!wide && <nav className="tabbar ho-tabs" aria-label="Head office">
-        {LINKS.map((l) => (
-          <NavLink key={l.to} to={l.to} end data-tour={l.label === 'Days' ? 'ho-days' : undefined} className={() => `tab${isOn(l.to) ? ' on' : ''}`}>
+        {PHONE_TABS.map((l) => {
+          const on = phoneTab === l.label;
+          return (
+          <Link key={l.to} to={l.to} data-tour={l.label === 'Days' ? 'ho-days' : undefined} className={`tab${on ? ' on' : ''}`} aria-current={on ? 'page' : undefined}>
             <span className="pillbg"><Icon d={l.icon} size={22} /></span>
             <span>{l.label}</span>
-          </NavLink>
-        ))}
+          </Link>
+          );
+        })}
       </nav>}
     </div>
   );

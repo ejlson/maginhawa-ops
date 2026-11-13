@@ -65,6 +65,7 @@ export default [
     route('head-office/reports', 'routes/reports.tsx'),
     route('head-office/days', 'routes/ho-days.tsx'),
     route('head-office/report-builder', 'routes/report-builder.tsx'),
+    route('head-office/more', 'routes/ho-more.tsx'),
     route('head-office/stock', 'routes/ho-stock.tsx'),
     route('head-office/stock/items', 'routes/ho-stock-items.tsx'),
     route('head-office/safety', 'routes/ho-safety.tsx'),

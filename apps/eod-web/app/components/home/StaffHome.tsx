@@ -1,71 +1,56 @@
-/** Staff, usually on the shared kitchen iPad: their next checklist, the rest of today, last night's note. */
-import { Link, useLocation } from 'react-router';
+/** Staff, usually on the shared kitchen iPad: their checklists today, the next one, and a way to report a problem (P1 pattern). */
+import { useLocation } from 'react-router';
 import { useAuth } from '../../lib/auth';
-import { formatDay } from '../../lib/draft';
-import { isDone, runPath, useChecklists } from '../../lib/checklists';
-import { useSite } from '../../lib/site';
-import { Icon } from '../ui';
+import { formatDay, timeHM, useDraft } from '../../lib/draft';
+import { useChecklists } from '../../lib/checklists';
+import { useTwoColumns } from '../../lib/wide';
+import { Icon, RowLink } from '../ui';
 import { ICONS } from '../ui-helpers';
 import { TabBar } from '../TabBar';
-import { AllDoneHero, HomeHeader, NextChecklistHero, TaskRow, TimelineRow } from './shared';
+import { HomeHeader } from './shared';
 import { firstName, useToday } from './shared-helpers';
-import { FoodSafetyRow } from '../FoodSafetyRow';
-import { Columns } from '../Columns';
+import { checklistStep, ChecklistCard, LaterToday, NeedsYou, service, YourDay, ReadHandover } from './today';
 
 export function StaffHome() {
   const { user } = useAuth();
   const { businessDate } = useChecklists();
-  const { handover, handoverBy } = useSite();
-  const { tasks, urgent, next } = useToday();
+  const { savedAt, settings } = useDraft();
+  const { at, tasks, urgent, next } = useToday();
+  const wide = useTwoColumns();
   const reported = Boolean((useLocation().state as { reported?: boolean } | null)?.reported);
-  const focus = urgent[0] ?? next;
-  const left = tasks.filter((t) => !isDone(t) && t.key !== focus?.key);
-  const done = tasks.filter(isDone);
+  const card = <ChecklistCard label="Your checklists" tour="hero-check" next={checklistStep(urgent[0] ?? next, tasks.filter((t) => t.status === 'missed').length)} />;
+  const report = <RowLink to="/report" lead={<span className="mh-time"><Icon d={ICONS.wrench} /></span>} title="Report a problem" sub="Something broken or not working" />;
+  const title = (
+    <div className="titleblock mh-title">
+      <span className="eyebrow">{formatDay(businessDate)}{wide ? '' : service(at, settings.timezone)}</span>
+      <h1>Hi {firstName(user?.name ?? '')}</h1>
+    </div>
+  );
+  const banner = reported && <div className="banner" role="status"><Icon d={ICONS.check} size={16} /><span>Sent. Your manager can see it now.</span></div>;
+  const needs = <NeedsYou at={at} show={{ handover: true }} />;
 
+  if (wide) {
+    return (
+      <main className="page tabs mh-page wide">
+        <div className="body mh-desk">
+          <div className="mh-head">{title}<span className="saved" data-tour="sync"><span className="dot" />{savedAt ? `All saved · ${timeHM(savedAt)}` : 'Saved on this device'}</span></div>
+          {banner}
+          <div className="mh-top">{card}<div className="mh-stack">{needs}<ReadHandover /><section className="grp"><div className="sub">{report}</div></section></div></div>
+          <YourDay at={at} eodMark={false} />
+        </div>
+      </main>
+    );
+  }
   return (
-    <main className="page tabs">
+    <main className="page tabs mh-page">
       <HomeHeader />
-      <Columns
-        top={<>
-          <div className="titleblock">
-            <span className="eyebrow">{formatDay(businessDate)}</span>
-            <h1>Hi {firstName(user?.name ?? '')}</h1>
-          </div>
-          {reported && <div className="banner" role="status"><Icon d={ICONS.check} size={16} /><span>Sent. Your manager can see it now.</span></div>}
-        </>}
-        hero={<>
-          {focus ? <NextChecklistHero focus={focus} label="Your next checklist" /> : <AllDoneHero />}
-        </>}
-        main={<>
-
-        {(left.length > 0 || done.length > 0) && (
-          <section className="grp" data-tour="todo">
-            <div className="hd"><h2>Still to do</h2><span>{left.length ? `${left.length} left` : 'All done'}</span></div>
-            <div className="sub">
-              {left.map((t) => <TaskRow key={t.key} t={t} />)}
-              {done.map((t) => <TaskRow key={t.key} t={t} me={user?.name} />)}
-              <TimelineRow />
-              <FoodSafetyRow />
-            </div>
-          </section>
-        )}
-        </>}
-        side={<>
-        {handover.length > 0 && (
-          <section className="grp">
-            <div className="hd"><h2>From last night</h2>{handoverBy && <span>{handoverBy}</span>}</div>
-            <div className="notecard">
-              <span className="av"><Icon d={ICONS.chat} /></span>
-              <div className="tx">{handover.map((h) => <span key={h.id} style={{ lineHeight: 1.45 }}>{h.body}</span>)}</div>
-            </div>
-          </section>
-        )}
-        </>}
-        actions={<>
-        {focus && <Link className="btn b1" data-tour="next" to={runPath(focus.key)}>{focus.status === 'late' || focus.status === 'missed' ? 'Do now' : 'Start'}: {focus.title}</Link>}
-        <Link className="btn b2" to="/report"><Icon d={ICONS.wrench} size={17} />Report a problem</Link>
-        </>}
-      />
+      <div className="body mh-phone">
+        {title}
+        {banner}
+        {card}
+        {needs}
+        <LaterToday at={at} eodRow={false} extra={report} />
+      </div>
       <TabBar />
     </main>
   );

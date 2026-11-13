@@ -7,12 +7,18 @@ import { now } from '../lib/clock';
 import { Icon, RowLink } from './ui';
 import { ICONS } from './ui-helpers';
 
-export function FoodSafetyRow() {
+/** What in food safety needs this person today. */
+export function useFoodSafetyItems() {
   const { user } = useAuth();
   const { site, data, siteCode } = useFoodSafety();
   const { businessDate } = useChecklists();
+  return user ? attentionFor(site, data, siteCode, { today: businessDate, now: now(), role: user.role, person: user.name }) : [];
+}
+
+export function FoodSafetyRow() {
+  const { user } = useAuth();
+  const items = useFoodSafetyItems();
   if (!user) return null;
-  const items = attentionFor(site, data, siteCode, { today: businessDate, now: now(), role: user.role, person: user.name });
   const urgent = items.some((i) => i.level === 'bad');
   return (
     <RowLink to="/food-safety" lead={<span className={`av${items.length ? (urgent ? ' bad' : ' warn') : ''}`}><Icon d={ICONS.thermo} /></span>}
