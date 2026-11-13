@@ -43,7 +43,7 @@ describe('ordering and waste', () => {
   it('a delivery starts all ticked; tapping what didn\'t come makes a credit to chase', async () => {
     const { user } = renderApp('/stock/delivery/order-demo-1', staff);
     expect(screen.getByRole('status')).toHaveTextContent('Anything missing?');
-    expect(screen.getByText('Price +8%')).toBeInTheDocument();
+    expect(screen.getByText('+8%')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Chicken thigh 5kg/ }));
     expect(screen.getByText(/One bag missing · £19.00 credit to chase/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Done · 1 missing' }));

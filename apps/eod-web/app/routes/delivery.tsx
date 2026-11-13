@@ -50,7 +50,7 @@ export default function Delivery() {
                     <span>{it?.name} · {packsText(l.packs, buy?.pack ?? 'pack')}</span>
                     <small className={miss ? 't-warn' : ''}>{miss ? `One ${packsText(1, buy?.pack ?? 'pack').replace(/^1 /, '')} missing · ${formatPounds(l.packPrice)} credit to chase` : pc ? `Invoice ${formatPounds(pc.to)} a pack, was ${formatPounds(pc.from)}` : 'Arrived'}</small>
                   </span>
-                  {pc && !miss && <span className="rt"><span className="pill p-warn">Price {priceChangeText(pc.from, pc.to)}</span></span>}
+                  {pc && !miss && <span className="rt"><span className="pill p-warn">{priceChangeText(pc.from, pc.to)}</span></span>}
                 </button>
               );
             })}

@@ -60,8 +60,8 @@ export default function HoOrdering() {
                   const up = p.to > p.from;
                   return (
                     <div className="li" key={p.id}>
-                      <span className="tx"><span>{it?.name} · {ops.supplier(p.supplierId)?.name}</span><small>{formatPounds(p.from)} → {formatPounds(p.to)} a pack</small></span>
-                      <span className="rt"><span className={`pill ${up ? 'p-warn' : 'p-ok'}`}>{priceChangeText(p.from, p.to)}</span>
+                      <span className="tx"><span>{it?.name} · {ops.supplier(p.supplierId)?.name}</span><small><b className={up ? 't-warn' : 't-ok'}>{priceChangeText(p.from, p.to)}</b> · {formatPounds(p.from)} → {formatPounds(p.to)} a pack</small></span>
+                      <span className="rt ho-price-act">
                         <button type="button" className="chip" aria-pressed="true" aria-label={`Accept ${it?.name} price`} onClick={() => accept(p.id)}>Accept</button>
                         {up && <button type="button" className="stk-link" onClick={() => ops.settlePrice(p.id, 'queried', () => {})}>Ask supplier</button>}</span>
                     </div>

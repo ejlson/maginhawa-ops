@@ -47,7 +47,7 @@ export default function StockLow() {
           <div className="sub">
             {bySupplier.map(({ sup, lines }) => (
               <RowLink key={sup.id} to={`/stock/order/${sup.id}`} lead={<span className="av"><Icon d={ICONS.box} /></span>}
-                title={sup.name} sub={`${lines.map((l) => l.item.name).join(', ')} · by ${sup.orderBy}`}
+                title={sup.name} sub={`${lines.length} ${lines.length === 1 ? 'item' : 'items'} · order by ${sup.orderBy}`}
                 right={<b className="amt">{formatPounds(lines.reduce((n, l) => n + l.packs * l.packPrice, 0))}</b>} />
             ))}
           </div>

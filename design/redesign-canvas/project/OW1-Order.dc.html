@@ -81,8 +81,9 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .banner{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:16px;font-size:14px;line-height:1.4}
 .step{width:36px;height:36px;border-radius:999px;background:#F2F2F5;display:inline-flex;align-items:center;justify-content:center}
 /* − amount + as one compact control, so the name side keeps its room. */
-.stepper{display:flex;align-items:center;gap:2px;flex-shrink:0;background:#F2F2F5;border-radius:999px;padding:3px}
-.stepper .step{width:32px;height:32px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.stepper{display:flex;align-items:center;gap:2px;flex-shrink:0;background:#F2F2F5;border-radius:14px;corner-shape:superellipse(1.6) !important;padding:3px}
+/* Smooth-cornered squares inside the smooth-cornered control: matching shapes, not circles in a box. */
+.stepper .step{width:32px;height:32px;border-radius:11px;corner-shape:superellipse(1.6) !important;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .stepper b{min-width:66px;text-align:center;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .segs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;margin-top:-12px}
 .segs span{height:4px;border-radius:999px;background:#E5E5EA}

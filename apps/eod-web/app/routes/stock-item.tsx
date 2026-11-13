@@ -59,8 +59,8 @@ export default function StockItem() {
             <div className="hd"><h2>Buying it</h2></div>
             <div className="sub">
               <RowLink lead={<span className="av"><Icon d={ICONS.box} /></span>} title={sup.name}
-                sub={`${buy.pack} · ${formatPounds(buy.packPrice)} · order by ${sup.orderBy}`}
-                right={pc ? <span className="pill p-warn">{priceChangeText(pc.from, pc.to)} on the last invoice</span> : undefined} />
+                sub={`${buy.pack} · ${formatPounds(buy.packPrice)}`}
+                right={pc ? <span className="pill p-warn">{priceChangeText(pc.from, pc.to)}</span> : undefined} />
             </div>
           </section>
         )}
