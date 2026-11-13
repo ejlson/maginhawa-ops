@@ -18,92 +18,92 @@
       "title": "Direction \u00b7 site colours, navigation, motion"
     },
     "P1-Today.dc.html": {
-      "x": 0,
-      "y": 1640,
+      "x": 2312,
+      "y": 1680,
       "w": 390,
       "h": 844,
-      "title": "Phone \u00b7 Today (tap the site to switch)",
+      "title": "1 \u00b7 Today: what needs you (tap the site to switch)",
       "is_interactive": true,
       "radius": 48
     },
     "P2-SiteSwitch.dc.html": {
-      "x": 470,
-      "y": 1640,
+      "x": 1926,
+      "y": 3060,
       "w": 390,
       "h": 844,
-      "title": "Phone \u00b7 Switch site",
+      "title": "Switch site (tap the site badge)",
       "radius": 48
     },
     "P3-Close.dc.html": {
-      "x": 940,
-      "y": 1640,
+      "x": 2782,
+      "y": 1680,
       "w": 390,
       "h": 844,
-      "title": "Phone \u00b7 Close the day (EOD hub)",
+      "title": "2 \u00b7 Close the day: the sections left",
       "radius": 48
     },
     "P4-Lunch.dc.html": {
-      "x": 1410,
-      "y": 1640,
+      "x": 3252,
+      "y": 1680,
       "w": 390,
       "h": 844,
-      "title": "Phone \u00b7 Lunch, one step at a time",
+      "title": "3 \u00b7 Lunch, one step at a time (try it)",
       "is_interactive": true,
       "radius": 48
     },
     "P5-Checks.dc.html": {
-      "x": 1880,
-      "y": 1640,
+      "x": 1456,
+      "y": 3060,
       "w": 390,
       "h": 844,
-      "title": "Phone \u00b7 Checks",
+      "title": "1 \u00b7 Checks",
       "radius": 48
     },
     "P6-Search.dc.html": {
-      "x": 2350,
-      "y": 1640,
+      "x": 2396,
+      "y": 3060,
       "w": 390,
       "h": 844,
-      "title": "Phone \u00b7 Search anything",
+      "title": "Search anything",
       "radius": 48
     },
     "P7-SiteColours.dc.html": {
-      "x": 2820,
-      "y": 1640,
+      "x": 0,
+      "y": 13888,
       "w": 390,
       "h": 844,
-      "title": "Phone \u00b7 Settings \u203a Site colour",
+      "title": "Phone \u00b7 Settings \u203a Site colour (try it)",
       "is_interactive": true,
       "radius": 48
     },
     "D1-Manager.dc.html": {
-      "x": 0,
-      "y": 2864,
+      "x": 4662,
+      "y": 1680,
       "w": 1440,
       "h": 960,
-      "title": "Desktop \u00b7 Manager, Today",
+      "title": "Same flow on desktop \u00b7 Manager, Today",
       "expand": "fill"
     },
     "D2-HeadOffice.dc.html": {
-      "x": 1520,
-      "y": 2864,
+      "x": 6016,
+      "y": 5704,
       "w": 1440,
       "h": 960,
-      "title": "Desktop \u00b7 Head office, all sites",
+      "title": "Earlier version \u00b7 Head office, all sites",
       "expand": "fill"
     },
     "D3-Settings.dc.html": {
-      "x": 3040,
-      "y": 2864,
+      "x": 470,
+      "y": 13888,
       "w": 1440,
       "h": 960,
-      "title": "Desktop \u00b7 Settings \u203a Sites and colours",
+      "title": "Desktop \u00b7 Settings \u203a Sites and colours (try it)",
       "is_interactive": true,
       "expand": "fill"
     },
     "M1-Motion.dc.html": {
       "x": 0,
-      "y": 4224,
+      "y": 15268,
       "w": 1440,
       "h": 900,
       "title": "Motion \u00b7 press each demo",
@@ -111,13 +111,13 @@
     },
     "R1-Research.dc.html": {
       "x": 1520,
-      "y": 4224,
+      "y": 15268,
       "w": 1440,
       "h": 1100,
       "title": "Research \u00b7 what we borrowed"
     },
     "H1-ActionList.dc.html": {
-      "x": 0,
+      "x": 2976,
       "y": 5704,
       "w": 1440,
       "h": 960,
@@ -126,7 +126,7 @@
       "expand": "fill"
     },
     "H2-NightBoard.dc.html": {
-      "x": 1520,
+      "x": 4496,
       "y": 5704,
       "w": 1440,
       "h": 760,
@@ -134,139 +134,521 @@
       "expand": "fill"
     },
     "H3-FinanceTable.dc.html": {
-      "x": 3040,
+      "x": 1456,
       "y": 5704,
       "w": 1440,
       "h": 1060,
-      "title": "Option C \u00b7 Finance table (search, click a site)",
+      "title": "Chosen \u00b7 C \u00b7 Finance table (search, click a site)",
       "expand": "fill",
       "is_interactive": true
     },
     "S1-Stock.dc.html": {
-      "x": 0,
-      "y": 7264,
+      "x": 2740,
+      "y": 4324,
       "w": 390,
       "h": 844,
-      "title": "Phone \u00b7 Stock: tonight's count first",
+      "title": "1 \u00b7 Stock: tonight's count first",
       "radius": 48
     },
     "S2-StockAreas.dc.html": {
-      "x": 470,
-      "y": 7264,
+      "x": 3210,
+      "y": 4324,
       "w": 390,
       "h": 844,
-      "title": "Phone \u00b7 Full stocktake: next area first",
+      "title": "2 \u00b7 Full stocktake: next area first",
       "radius": 48
     },
     "S3-StockCount.dc.html": {
-      "x": 940,
-      "y": 7264,
+      "x": 3680,
+      "y": 4324,
       "w": 390,
       "h": 844,
-      "title": "Phone \u00b7 Count one item at a time (try it)",
+      "title": "3 \u00b7 Count one item at a time (try it)",
       "radius": 48,
       "is_interactive": true
     },
     "S4-StockReview.dc.html": {
-      "x": 1410,
-      "y": 7264,
+      "x": 4150,
+      "y": 4324,
       "w": 390,
       "h": 844,
-      "title": "Phone \u00b7 Ready to send? (try it)",
+      "title": "4 \u00b7 Ready to send? (try it)",
       "radius": 48,
       "is_interactive": true
     },
     "S5-StockHeadOffice.dc.html": {
-      "x": 1880,
-      "y": 7264,
+      "x": 5090,
+      "y": 4324,
       "w": 1440,
       "h": 960,
-      "title": "Desktop \u00b7 Head office, Stock and GP",
+      "title": "6 \u00b7 Head office: Stock",
       "expand": "fill"
+    },
+    "P8-Review.dc.html": {
+      "x": 3722,
+      "y": 1680,
+      "w": 390,
+      "h": 844,
+      "title": "4 \u00b7 Ready to send? (try it)",
+      "is_interactive": true,
+      "radius": 48
+    },
+    "P9-Sent.dc.html": {
+      "x": 4192,
+      "y": 1680,
+      "w": 390,
+      "h": 844,
+      "title": "5 \u00b7 Day closed",
+      "radius": 48
+    },
+    "HS1-Safety.dc.html": {
+      "w": 390,
+      "h": 844,
+      "title": "1 \u00b7 Health and safety: what is due",
+      "radius": 48,
+      "x": 1884,
+      "y": 7184
+    },
+    "HS2-FireTest.dc.html": {
+      "w": 390,
+      "h": 844,
+      "title": "2 \u00b7 Weekly fire alarm test (try it)",
+      "radius": 48,
+      "is_interactive": true,
+      "x": 2354,
+      "y": 7184
+    },
+    "HS3-Accident.dc.html": {
+      "w": 390,
+      "h": 844,
+      "title": "3 \u00b7 Report an accident (try it)",
+      "radius": 48,
+      "is_interactive": true,
+      "x": 2824,
+      "y": 7184
+    },
+    "HS4-SafetyHO.dc.html": {
+      "w": 1440,
+      "h": 900,
+      "title": "4 \u00b7 Head office: all sites",
+      "expand": "fill",
+      "x": 3294,
+      "y": 7184
+    },
+    "PM1-Maintenance.dc.html": {
+      "w": 390,
+      "h": 844,
+      "title": "1 \u00b7 Maintenance: what is due",
+      "radius": 48,
+      "x": 1884,
+      "y": 8504
+    },
+    "PM2-Equipment.dc.html": {
+      "w": 390,
+      "h": 844,
+      "title": "2 \u00b7 One piece of equipment and its history",
+      "radius": 48,
+      "x": 2354,
+      "y": 8504
+    },
+    "PM3-LogVisit.dc.html": {
+      "w": 390,
+      "h": 844,
+      "title": "3 \u00b7 Log a visit and the certificate (try it)",
+      "radius": 48,
+      "is_interactive": true,
+      "x": 2824,
+      "y": 8504
+    },
+    "PM4-MaintenanceHO.dc.html": {
+      "w": 1440,
+      "h": 1000,
+      "title": "4 \u00b7 Head office: only what needs action",
+      "expand": "fill",
+      "x": 3294,
+      "y": 8504
+    },
+    "OW1-Order.dc.html": {
+      "w": 390,
+      "h": 844,
+      "title": "1 \u00b7 Order: already filled in, one tap to send (try it)",
+      "radius": 48,
+      "is_interactive": true,
+      "x": 1884,
+      "y": 9924
+    },
+    "OW2-Receive.dc.html": {
+      "w": 390,
+      "h": 844,
+      "title": "2 \u00b7 Delivery: all ticked, tap what didn't come (try it)",
+      "radius": 48,
+      "is_interactive": true,
+      "x": 2354,
+      "y": 9924
+    },
+    "OW3-Waste.dc.html": {
+      "w": 390,
+      "h": 844,
+      "title": "3 \u00b7 Waste: pick the item, the rest is filled in (try it)",
+      "radius": 48,
+      "is_interactive": true,
+      "x": 2824,
+      "y": 9924
+    },
+    "OW4-OrderingHO.dc.html": {
+      "w": 1440,
+      "h": 900,
+      "title": "4 \u00b7 Head office: the answer first, then accept",
+      "expand": "fill",
+      "x": 3294,
+      "y": 9924
+    },
+    "RC1-Recipe.dc.html": {
+      "w": 390,
+      "h": 844,
+      "title": "1 \u00b7 Recipe: get ready, then one step at a time (try it)",
+      "radius": 48,
+      "is_interactive": true,
+      "x": 1456,
+      "y": 11244
+    },
+    "RC2-MenuCostingHO.dc.html": {
+      "w": 1440,
+      "h": 860,
+      "title": "3 \u00b7 Head office: problems first, the fix as one button",
+      "expand": "fill",
+      "x": 2396,
+      "y": 11244
+    },
+    "S6-CountToOrder.dc.html": {
+      "w": 390,
+      "h": 844,
+      "title": "5 \u00b7 Count sent: order what's low",
+      "radius": 48,
+      "x": 4620,
+      "y": 4324
+    },
+    "RC3-ItemUse.dc.html": {
+      "w": 390,
+      "h": 844,
+      "title": "2 \u00b7 One item: what it's in, how long it lasts",
+      "radius": 48,
+      "x": 1926,
+      "y": 11244
+    },
+    "EX1-Exports.dc.html": {
+      "w": 1440,
+      "h": 780,
+      "title": "Head office: pick who it's for, then Export (try it)",
+      "expand": "fill",
+      "is_interactive": true,
+      "x": 1456,
+      "y": 12524
+    },
+    "FM1-CloseMap.dc.html": {
+      "w": 2072,
+      "h": 656,
+      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "is_interactive": true,
+      "x": 0,
+      "y": 1680
+    },
+    "FM2-ChecksMap.dc.html": {
+      "w": 1216,
+      "h": 656,
+      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "is_interactive": true,
+      "x": 0,
+      "y": 3060
+    },
+    "FM3-StockMap.dc.html": {
+      "w": 2500,
+      "h": 512,
+      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "is_interactive": true,
+      "x": 0,
+      "y": 4324
+    },
+    "FM4-NightMap.dc.html": {
+      "w": 1216,
+      "h": 656,
+      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "is_interactive": true,
+      "x": 0,
+      "y": 5704
+    },
+    "FM5-SafetyMap.dc.html": {
+      "w": 1644,
+      "h": 656,
+      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "is_interactive": true,
+      "x": 0,
+      "y": 7184
+    },
+    "FM6-MaintenanceMap.dc.html": {
+      "w": 1644,
+      "h": 656,
+      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "is_interactive": true,
+      "x": 0,
+      "y": 8504
+    },
+    "FM7-OrderingMap.dc.html": {
+      "w": 1644,
+      "h": 800,
+      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "is_interactive": true,
+      "x": 0,
+      "y": 9924
+    },
+    "FM8-RecipesMap.dc.html": {
+      "w": 1216,
+      "h": 800,
+      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "is_interactive": true,
+      "x": 0,
+      "y": 11244
+    },
+    "FM9-ExportsMap.dc.html": {
+      "w": 1216,
+      "h": 944,
+      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "is_interactive": true,
+      "x": 0,
+      "y": 12524
     }
   },
   "order": [
     "Main.dc.html",
+    "FM1-CloseMap.dc.html",
     "P1-Today.dc.html",
-    "P2-SiteSwitch.dc.html",
     "P3-Close.dc.html",
     "P4-Lunch.dc.html",
-    "P5-Checks.dc.html",
-    "P6-Search.dc.html",
-    "P7-SiteColours.dc.html",
+    "P8-Review.dc.html",
+    "P9-Sent.dc.html",
     "D1-Manager.dc.html",
-    "D2-HeadOffice.dc.html",
-    "D3-Settings.dc.html",
-    "M1-Motion.dc.html",
-    "R1-Research.dc.html",
-    "H1-ActionList.dc.html",
-    "H2-NightBoard.dc.html",
-    "H3-FinanceTable.dc.html",
+    "FM2-ChecksMap.dc.html",
+    "P5-Checks.dc.html",
+    "P2-SiteSwitch.dc.html",
+    "P6-Search.dc.html",
+    "FM3-StockMap.dc.html",
     "S1-Stock.dc.html",
     "S2-StockAreas.dc.html",
     "S3-StockCount.dc.html",
     "S4-StockReview.dc.html",
-    "S5-StockHeadOffice.dc.html"
+    "S6-CountToOrder.dc.html",
+    "S5-StockHeadOffice.dc.html",
+    "FM4-NightMap.dc.html",
+    "H3-FinanceTable.dc.html",
+    "H1-ActionList.dc.html",
+    "H2-NightBoard.dc.html",
+    "D2-HeadOffice.dc.html",
+    "FM5-SafetyMap.dc.html",
+    "HS1-Safety.dc.html",
+    "HS2-FireTest.dc.html",
+    "HS3-Accident.dc.html",
+    "HS4-SafetyHO.dc.html",
+    "FM6-MaintenanceMap.dc.html",
+    "PM1-Maintenance.dc.html",
+    "PM2-Equipment.dc.html",
+    "PM3-LogVisit.dc.html",
+    "PM4-MaintenanceHO.dc.html",
+    "FM7-OrderingMap.dc.html",
+    "OW1-Order.dc.html",
+    "OW2-Receive.dc.html",
+    "OW3-Waste.dc.html",
+    "OW4-OrderingHO.dc.html",
+    "FM8-RecipesMap.dc.html",
+    "RC1-Recipe.dc.html",
+    "RC3-ItemUse.dc.html",
+    "RC2-MenuCostingHO.dc.html",
+    "FM9-ExportsMap.dc.html",
+    "EX1-Exports.dc.html",
+    "P7-SiteColours.dc.html",
+    "D3-Settings.dc.html",
+    "M1-Motion.dc.html",
+    "R1-Research.dc.html"
   ],
   "notes": {
-    "phone": {
-      "x": 0,
-      "y": 1380,
-      "text": "Phone \u00b7 managers and supervisors",
-      "kind": "title1",
-      "maxW": 3210
-    },
-    "desk": {
-      "x": 0,
-      "y": 2604,
-      "text": "Desktop \u00b7 managers and head office",
-      "kind": "title1",
-      "maxW": 4480
-    },
-    "motion": {
-      "x": 0,
-      "y": 3964,
-      "text": "Motion and research",
-      "kind": "title1",
-      "maxW": 2960
-    },
     "examples": {
-      "x": 3290,
-      "y": 1640,
-      "w": 320,
-      "text": "All names and figures are made-up examples, not real data. Site colours are suggested defaults; head office can change any of them in Settings.",
+      "x": 1520,
+      "y": 0,
+      "w": 340,
+      "text": "How to read this canvas: one row per journey. Each row starts with a map: the arrows show which button leads where, and where it branches. Then the screens, numbered left to right, and a note at the end.\n\nAll names and figures are made-up examples, not real data.",
       "fill": "orange",
       "size": "m"
     },
-    "ho": {
+    "flow0": {
       "x": 0,
-      "y": 5444,
-      "text": "Head office \u00b7 All sites, three options",
+      "y": -300,
+      "text": "Start here \u00b7 the direction",
       "kind": "title1",
-      "maxW": 4480
+      "maxW": 1440
     },
-    "ho-note": {
-      "x": 4560,
-      "y": 5704,
+    "flow1": {
+      "x": 0,
+      "y": 1440,
+      "text": "Flow 1 \u00b7 Closing the day  (manager or supervisor)",
+      "kind": "title1",
+      "maxW": 6102
+    },
+    "flow1-note": {
+      "x": 6182,
+      "y": 1680,
       "w": 340,
-      "text": "A \u00b7 Action list (recommended): what needs you first, then sites as rows grouped by status, detail panel on the right.\n\nB \u00b7 Night board: sites move across Not started \u2192 Closing \u2192 Sent \u2192 Approved.\n\nC \u00b7 Finance table: taller card with tonight's graph, search in the header, a sortable table, and a details panel when you click a site.\n\nAll three: one main card, site colour only on the badges, status always in words.",
+      "text": "Today \u2192 Close the day \u2192 fill in each section \u2192 ready to send? \u2192 day closed.\n\nOnly a section not done stops sending; anything unusual is a tap on It's right. The send button names the day and the figure.\n\nPhone first; the desktop board is the same day on a laptop.",
       "fill": "blue",
       "size": "m"
     },
-    "stock": {
+    "flow2": {
       "x": 0,
-      "y": 7004,
-      "text": "Stock counts (draft, 12 Nov 2026)",
+      "y": 2820,
+      "text": "Flow 2 \u00b7 Checks and getting around  (anyone)",
       "kind": "title1",
-      "maxW": 3320
+      "maxW": 2786
     },
-    "stock-note": {
-      "x": 3400,
-      "y": 7264,
+    "flow2-note": {
+      "x": 2866,
+      "y": 3060,
       "w": 340,
-      "text": "Anyone can count: staff, supervisors, managers and head office. Corrections after sending need supervisor or above.\n\nSimpler pass (12 Nov): one action per screen. The card always says what to do next. Counting is one item at a time with big - and + buttons, like Lunch. Only two things can come up before sending: items not counted (must fix) and a big change from last time (tap It's right).\n\nHead office: GP% per site per period and the biggest swings.\n\nAll names and figures are made-up examples.",
+      "text": "Checks: what needs fixing first, then the day's lists.\n\nSwitch site and Search work from every screen.",
+      "fill": "blue",
+      "size": "m"
+    },
+    "flow3": {
+      "x": 0,
+      "y": 4084,
+      "text": "Flow 3 \u00b7 Counting stock  (anyone \u2192 head office)",
+      "kind": "title1",
+      "maxW": 6530
+    },
+    "flow3-note": {
+      "x": 6610,
+      "y": 4324,
+      "w": 340,
+      "text": "Stock \u2192 (full count: pick the next area) \u2192 count one item at a time \u2192 ready to send? \u2192 'Order what's low' straight away \u2192 head office sees it.\n\nAnyone can count. Corrections after sending need supervisor or above. Staff never see money.",
       "fill": "orange",
       "size": "m"
+    },
+    "flow4": {
+      "x": 0,
+      "y": 5464,
+      "text": "Flow 4 \u00b7 Head office checks the night  (desktop)",
+      "kind": "title1",
+      "maxW": 7456
+    },
+    "flow4-note": {
+      "x": 7536,
+      "y": 5704,
+      "w": 340,
+      "text": "Head office opens All sites after close: what needs a look, then each site.\n\nC \u00b7 Finance table is the one built in the app. A and B were the other options; the first board is the earlier version.",
+      "fill": "blue",
+      "size": "m"
+    },
+    "flow5": {
+      "x": 0,
+      "y": 6944,
+      "text": "Flow 5 \u00b7 Health and safety  (anyone \u2192 head office)",
+      "kind": "title1",
+      "maxW": 4734
+    },
+    "flow5-note": {
+      "x": 4814,
+      "y": 7184,
+      "w": 340,
+      "text": "Due checks on the main card \u2192 fire alarm test one question at a time \u2192 anyone reports an accident \u2192 head office sees every site.\n\nA failed check raises a repair. An injury that keeps someone off work more than 7 days must be reported to the HSE within 15 days (RIDDOR).",
+      "fill": "blue",
+      "size": "m"
+    },
+    "flow6": {
+      "x": 0,
+      "y": 8264,
+      "text": "Flow 6 \u00b7 Planned maintenance  (manager \u2192 head office)",
+      "kind": "title1",
+      "maxW": 4734
+    },
+    "flow6-note": {
+      "x": 4814,
+      "y": 8504,
+      "w": 340,
+      "text": "What's due \u2192 one piece of equipment and its history \u2192 log the visit with the certificate \u2192 head office sees every certificate.\n\nReminders 30 and 7 days before. 'Keeps breaking' = 3 or more call-outs in 6 months.",
+      "fill": "blue",
+      "size": "m"
+    },
+    "flow7": {
+      "x": 0,
+      "y": 9684,
+      "text": "Flow 7 \u00b7 Ordering and waste  (site \u2192 head office)",
+      "kind": "title1",
+      "maxW": 4734
+    },
+    "flow7-note": {
+      "x": 4814,
+      "y": 9924,
+      "w": 340,
+      "text": "Order: already filled in from par levels, so it's one tap to send.\nDelivery: everything starts ticked; tap only what didn't come (shorts become credits to chase).\nWaste: pick the item; amount and reason are filled in from what's usual.\nHead office: the answer in a sentence, then Accept.\n\nAccepting a price updates stock values and dish costs.",
+      "fill": "orange",
+      "size": "m"
+    },
+    "flow8": {
+      "x": 0,
+      "y": 11004,
+      "text": "Flow 8 \u00b7 Recipes and dish costing  (kitchen \u2192 head office)",
+      "kind": "title1",
+      "maxW": 3836
+    },
+    "flow8-note": {
+      "x": 3916,
+      "y": 11244,
+      "w": 340,
+      "text": "Kitchen sees the recipe with no prices, one step at a time. Each stock item shows which dishes use it and how long it will last, with Order more. Head office sees cost and GP per dish and the fix as one button.\n\nThe allergen record stays the source of truth: a mismatch is flagged, never changed for you.",
+      "fill": "orange",
+      "size": "m"
+    },
+    "flow9": {
+      "x": 0,
+      "y": 13648,
+      "text": "Settings \u00b7 site colours  (head office)",
+      "kind": "title1",
+      "maxW": 1910
+    },
+    "flow9-note": {
+      "x": 1990,
+      "y": 13888,
+      "w": 340,
+      "text": "Each site's colour shows on its badge, main card and progress circles. Green, amber and red stay for status.",
+      "fill": "blue",
+      "size": "m"
+    },
+    "flow10": {
+      "x": 0,
+      "y": 15028,
+      "text": "Reference \u00b7 motion and research",
+      "kind": "title1",
+      "maxW": 2960
+    },
+    "principles": {
+      "x": 1940,
+      "y": 0,
+      "w": 380,
+      "fill": "green",
+      "size": "m",
+      "text": "How the screens are kept simple\n\n\u2022 One job per screen, one obvious button (Hick's law: fewer choices, faster decisions).\n\u2022 Filled in for you: orders, deliveries and waste start with the likely answer, so most tasks are one or two taps (defaults).\n\u2022 Only the exceptions: lists show what needs action; the rest folds into one line (progressive disclosure).\n\u2022 The answer first: head office cards say what's going on in a sentence, then the detail.\n\u2022 Show, don't make people read: bars instead of numbers to compare (recognition over recall).\n\u2022 Big targets near the thumb, status always in words, and nothing locks you in: Back is always there."
+    },
+    "flow11": {
+      "x": 0,
+      "y": 12284,
+      "text": "Flow 9 \u00b7 Records and exports  (head office)",
+      "kind": "title1",
+      "maxW": 2896
+    },
+    "flow11-note": {
+      "x": 2976,
+      "y": 12524,
+      "w": 380,
+      "fill": "green",
+      "size": "m",
+      "text": "Start from who is asking (inspector, accountant or HMRC, HSE or insurer, staff and pay, a whole site), not from a list of record types. The app picks the records, the format and the dates.\n\nKeep periods researched 13 Nov 2026: accounts and VAT 6 years; tips 3 years; holiday pay 6 years (from Apr 2026); minimum wage 6 years; right to work: employment + 2 years; accident book 3 years; waste transfer notes 2 years. Details and sources: docs/reports/next-modules-scope.md \u00a76."
     }
   },
   "designSystems": []

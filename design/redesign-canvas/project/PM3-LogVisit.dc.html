@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Log a visit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
+.ic,.pill,.chip,.circle,.step,.back,.primary,.upnext,.arrow,.btn{corner-shape:round}
+a{color:#0066CC}a:hover{color:#004C99}
+@keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-70px,34px) scale(1.25) rotate(25deg)}66%{transform:translate(50px,-24px) scale(.9) rotate(-12deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
+@keyframes driftB{0%{transform:translate(0,0) scale(1.05) rotate(0deg)}33%{transform:translate(64px,-28px) scale(.88) rotate(-20deg)}66%{transform:translate(-44px,30px) scale(1.2) rotate(14deg)}100%{transform:translate(0,0) scale(1.05) rotate(0deg)}}
+.blob{position:absolute;border-radius:50%;z-index:-1}
+.ba{animation:driftA 12s ease-in-out infinite}
+.bb{animation:driftB 15s ease-in-out infinite}
+.grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:.75}
+.press{transition:transform .12s cubic-bezier(.23,1,.32,1)}
+.press:active{transform:scale(.97)}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+.ph{width:390px;height:844px;position:relative;overflow:hidden;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em}
+.wrap{padding:24px 24px 0;display:flex;flex-direction:column;gap:24px}
+.top{display:flex;align-items:center;justify-content:space-between;height:40px}
+.top b{font-size:17px;font-weight:600}
+.back{width:40px;height:40px;border-radius:999px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;color:#1D1D1F}
+.where{display:flex;align-items:center;gap:8px;font-size:14px;color:#6E6E73}
+.bu{width:22px;height:22px;border-radius:7px;background:#F59F00;color:#1D1D1F;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.h1{font-size:34px;font-weight:700;letter-spacing:-0.038em;line-height:1.1}
+.card{position:relative;overflow:hidden;isolation:isolate;border-radius:32px;padding:24px;background:oklch(from #F59F00 .17 calc(c * .6) calc(h - 35));color:#F5F5F7;display:flex;flex-direction:column;gap:6px;box-shadow:0 18px 50px -26px rgba(217,72,15,.32);text-shadow:0 1px 10px rgba(0,0,0,.18)}
+.hl{font-size:14px;color:rgba(245,245,247,.72)}
+.ct{font-size:32px;font-weight:600;letter-spacing:-0.04em;line-height:1.1}
+.cs{font-size:15px;color:rgba(245,245,247,.84)}
+.cm{display:flex;border-top:1px solid rgba(255,255,255,.16);padding-top:12px;margin-top:10px;font-variant-numeric:tabular-nums}
+.cm span{flex:1;display:flex;flex-direction:column;font-size:17px;font-weight:600}
+.cm span + span{border-left:1px solid rgba(255,255,255,.16);padding-left:14px}
+.cm small{font-size:12px;font-weight:400;color:rgba(245,245,247,.66)}
+.upnext{margin-top:14px;height:52px;border-radius:999px;background:rgba(255,248,240,.92);color:#1D1D1F;display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 22px;text-decoration:none;font-size:17px;font-weight:600;text-shadow:none}
+.upnext:hover{color:#1D1D1F}
+.arrow{width:40px;height:40px;border-radius:999px;background:#1D1D1F;display:flex;align-items:center;justify-content:center}
+.sec{display:flex;flex-direction:column}
+.h2{font-size:20px;font-weight:700;letter-spacing:-0.025em;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.h2 small{font-size:13px;font-weight:400;color:#6E6E73;letter-spacing:0}
+.row{display:flex;align-items:center;gap:14px;min-height:62px;color:inherit;text-decoration:none;border-bottom:1px solid rgba(0,0,0,.07);padding:6px 0;box-sizing:border-box;width:100%;text-align:left}
+.row:hover{color:inherit}
+.tx{flex:1;display:flex;flex-direction:column;min-width:0}
+.tx b{font-size:17px;font-weight:600}
+.tx span{font-size:14px;color:#6E6E73}
+.ic{width:42px;height:42px;border-radius:50%;background:#F2F2F5;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pill{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.ok{color:#1F7A35;background:rgba(52,199,89,.14)}.warn{color:#B25000;background:rgba(255,149,0,.16)}.bad{color:#D70015;background:rgba(255,59,48,.12)}.mut{color:#6E6E73;background:#F2F2F5}
+.t-ok{color:#1F7A35 !important}.t-warn{color:#B25000 !important}.t-bad{color:#D70015 !important}
+.amt{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.meta{font-size:14px;color:#6E6E73;white-space:nowrap}
+.foot{position:absolute;left:24px;right:24px;bottom:30px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.fade{position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(rgba(255,255,255,0),#FFFFFF 45%);pointer-events:none}
+.primary{width:100%;height:56px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.primary:hover{color:#FFFFFF}
+.primary.off{background:#E5E5EA;color:#8E8E93;cursor:default}
+.note{font-size:14px;color:#6E6E73;text-align:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{height:40px;padding:0 16px;border-radius:999px;background:#F2F2F5;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:6px;color:#1D1D1F;text-decoration:none}
+.chip.on{background:#1D1D1F;color:#FFFFFF}
+.chip.sm{height:34px;padding:0 13px;font-size:14px}
+.q{font-size:22px;font-weight:600;letter-spacing:-0.025em;line-height:1.25}
+.yn{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.yn button{height:64px;border-radius:22px;background:#F2F2F5;font-size:19px;font-weight:600}
+.field{height:48px;border-radius:14px;background:#F2F2F5;border:0;padding:0 14px;font:inherit;font-size:17px;color:#1D1D1F;outline:none;width:100%;box-sizing:border-box}
+.field:focus{box-shadow:0 0 0 2px #F59F00,0 0 0 5px rgba(245,159,0,.2)}
+.lab{font-size:13px;font-weight:600;color:#6E6E73;letter-spacing:.02em;margin-bottom:8px}
+.banner{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:16px;font-size:14px;line-height:1.4}
+.step{width:36px;height:36px;border-radius:999px;background:#F2F2F5;display:inline-flex;align-items:center;justify-content:center}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper b{min-width:64px;text-align:center;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.segs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;margin-top:-12px}
+.segs span{height:4px;border-radius:999px;background:#E5E5EA}
+.segs span.on{background:#F59F00}
+/* desktop */
+.dk{width:100%;min-height:900px;display:flex;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em}
+.side{flex:0 0 256px;background:#F7F7F9;border-right:1px solid rgba(0,0,0,.06);padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column}
+.brand{display:flex;flex-direction:column;padding:0 10px 8px}
+.brand span{font-size:12px;color:#6E6E73}.brand b{font-size:20px;font-weight:700;letter-spacing:-0.02em}
+.grp{font-size:11px;font-weight:600;color:#8E8E93;letter-spacing:.06em;padding:0 10px;margin:18px 0 6px}
+.nav{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:12px;font-size:14px;font-weight:500;color:#1D1D1F;text-decoration:none}
+.nav svg{color:#6E6E73;flex-shrink:0}
+.nav.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)}
+.nav.on svg{color:#1D1D1F}
+.nav .n{margin-left:auto;font-size:12px;font-weight:600;color:#B25000}
+.main{flex:1;min-width:0;padding:40px 56px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px}
+.dh{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.eyebrow{font-size:14px;color:#6E6E73}
+.gcard{position:relative;overflow:hidden;isolation:isolate;border-radius:34px;padding:30px 32px;background:#2B1E4A;color:#F5F5F7;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;text-shadow:0 1px 10px rgba(0,0,0,.15)}
+.big{font-size:56px;font-weight:600;letter-spacing:-0.055em;line-height:1;font-variant-numeric:tabular-nums}
+.big i{font-style:normal;font-size:26px;color:rgba(245,245,247,.6)}
+.stats{display:flex;gap:32px;font-variant-numeric:tabular-nums}
+.stats span{display:flex;flex-direction:column;font-size:22px;font-weight:600}
+.stats small{font-size:13px;font-weight:400;color:rgba(245,245,247,.66)}
+.cols{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:40px;align-items:start}
+.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tbl th{font-size:12px;font-weight:600;color:#8E8E93;text-align:left;padding:0 8px 8px;border-bottom:1px solid rgba(0,0,0,.08)}
+.tbl td{padding:0 8px;height:56px;border-bottom:1px solid rgba(0,0,0,.06);font-size:15px}
+.tbl .r{text-align:right}
+.tbl tr.sel td{background:#F7F7F9}
+.mono{width:30px;height:30px;border-radius:10px;color:#FFFFFF;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.panel{border-radius:28px;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 10px 36px -20px rgba(0,0,0,.12);padding:24px;display:flex;flex-direction:column;gap:14px}
+.btn{height:44px;padding:0 20px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-size:15px;font-weight:600;display:inline-flex;align-items:center}
+@media (prefers-reduced-motion: reduce){.ba,.bb{animation:none}.press:active{transform:none}}
+</style>
+</helmet>
+<div class="ph">
+  <div class="wrap" style="gap:22px">
+    <div class="top"><a class="back" href="PM1-Maintenance.dc.html" aria-label="Back to Maintenance"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></a><b>Log a visit</b><span style="width:40px"></span></div>
+    <div class="card" style="">
+      <div aria-hidden="true" class="blob ba" style="left:-70px;top:-90px;width:400px;height:287px;background:oklch(from #F59F00 .1 calc(c * .4) calc(h - 35));filter:blur(40px)"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-80px;top:-70px;width:325px;height:262px;background:#F59F00;filter:blur(42px)"></div>
+      <div aria-hidden="true" class="blob ba" style="right:60px;bottom:-110px;width:337px;height:225px;background:oklch(from #F59F00 calc(l - .04) calc(c * 1.1) calc(h - 40));filter:blur(44px);opacity:.9"></div>
+      <div aria-hidden="true" class="blob bb" style="right:-40px;bottom:-110px;width:212px;height:162px;background:oklch(from #FFE8A3 .95 calc(c * .6) h);filter:blur(36px);opacity:.5"></div>
+      <svg aria-hidden="true" class="grain"><filter id="gpm3"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#gpm3)"></rect></svg>
+      <span class="hl">Today · Fri 13 Nov</span>
+      <span class="ct">Gas safety check</span>
+      <span class="cs">Northside Gas Ltd</span>
+    </div>
+    <div><div class="lab">HOW DID IT GO?</div>
+      <div class="chips"><sc-for list="{{results}}" as="c" hint-placeholder-count="3"><button class="chip {{c.on}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for></div>
+      <sc-if value="{{failed}}" hint-placeholder-val="{{false}}"><div class="banner bad" style="margin-top:12px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v5M12 16.5h.01M12 3l9.5 17h-19z"></path></svg><span>A repair will be raised for the engineer's notes, and head office told.</span></div></sc-if>
+    </div>
+    <div><div class="lab">CERTIFICATE</div>
+      <sc-if value="{{noCert}}" hint-placeholder-val="{{true}}">
+        <button class="press" onClick="{{attach}}" style="width:100%;height:76px;border-radius:20px;border:1.5px dashed #C7C7CC;display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px;font-weight:600;color:#0066CC"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Photo or PDF of the certificate</button>
+      </sc-if>
+      <sc-if value="{{hasCert}}" hint-placeholder-val="{{false}}">
+        <div class="row" style="border:0"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"></path></svg></span><span class="tx"><b>Gas safety record.pdf</b><span>2 pages · added just now</span></span><button class="chip sm" onClick="{{detach}}">Remove</button></div>
+      </sc-if>
+    </div>
+    <div class="row" style="border:0;min-height:0"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 4v4M16 4v4"></path></svg></span><span class="tx"><b>Next due Sat 13 Nov 2027</b><span>Every 12 months · reminder 30 days before</span></span></div>
+  </div>
+  <div class="foot">
+    <sc-if value="{{ready}}" hint-placeholder-val="{{false}}"><a class="primary press" href="PM1-Maintenance.dc.html">Save visit</a></sc-if>
+    <sc-if value="{{notReady}}" hint-placeholder-val="{{true}}"><span class="primary off">Save visit</span></sc-if>
+    <span class="note">{{note}}</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { result: '', cert: false }; }
+  renderVals() {
+    const s = this.state;
+    const ready = !!s.result && s.cert;
+    return {
+      results: ['Passed', 'Passed with advice', 'Failed'].map((label) => ({ label, on: s.result === label ? 'on' : '', pick: () => this.setState({ result: label }) })),
+      failed: s.result === 'Failed', noCert: !s.cert, hasCert: s.cert,
+      attach: () => this.setState({ cert: true }), detach: () => this.setState({ cert: false }),
+      ready, notReady: !ready,
+      note: !s.result ? 'Pick how it went' : !s.cert ? 'Add the certificate: inspectors and the insurer ask for it' : 'Saved to the certificates library'
+    };
+  }
+}
+</script>
+</body>
+</html>
