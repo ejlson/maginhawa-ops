@@ -86,15 +86,16 @@ export function Nav({ back, backLabel = 'Today', title, right }: { back?: string
     );
   }
   return (
-    <header className="nav">
+    // Phone: a round back button, the title centred, and a bar that only shows once the page scrolls under it.
+    <header className="nav navbar">
       {back ? (
-        <Link className="back" to={back}>
-          <svg width="10" height="17" viewBox="0 0 11 18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 2L2 9l7 7" /></svg>
-          {backLabel}
+        <Link className="backbtn" to={back}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+          <span className="vh">{backLabel}</span>
         </Link>
-      ) : <span style={{ width: 8 }} />}
-      {title && <span className="title">{title}</span>}
-      <span>{right}</span>
+      ) : <span />}
+      <span className="title">{title}</span>
+      <span className="end">{right}</span>
     </header>
   );
 }
