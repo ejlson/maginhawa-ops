@@ -12,7 +12,8 @@
 <style>
 body{margin:0}
 *:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
-.ic,.pill,.chip,.circle,.step,.back,.primary,.upnext,.arrow,.btn{corner-shape:round}
+/* Circles and pills stay perfectly round (beats the squircle rule above, which is more specific). */
+.ic,.pill,.chip,.circle,.step,.back,.primary,.upnext,.arrow,.btn{corner-shape:round !important}
 a{color:#0066CC}a:hover{color:#004C99}
 @keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-70px,34px) scale(1.25) rotate(25deg)}66%{transform:translate(50px,-24px) scale(.9) rotate(-12deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
 @keyframes driftB{0%{transform:translate(0,0) scale(1.05) rotate(0deg)}33%{transform:translate(64px,-28px) scale(.88) rotate(-20deg)}66%{transform:translate(-44px,30px) scale(1.2) rotate(14deg)}100%{transform:translate(0,0) scale(1.05) rotate(0deg)}}
@@ -24,7 +25,7 @@ a{color:#0066CC}a:hover{color:#004C99}
 .press:active{transform:scale(.97)}
 button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
 .ph{width:390px;height:844px;position:relative;overflow:hidden;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em}
-.wrap{padding:24px 24px 0;display:flex;flex-direction:column;gap:24px}
+.wrap{padding:24px 24px 0;display:flex;flex-direction:column;gap:22px}
 .top{display:flex;align-items:center;justify-content:space-between;height:40px}
 .top b{font-size:17px;font-weight:600}
 .back{width:40px;height:40px;border-radius:999px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;color:#1D1D1F}
@@ -43,13 +44,18 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .upnext:hover{color:#1D1D1F}
 .arrow{width:40px;height:40px;border-radius:999px;background:#1D1D1F;display:flex;align-items:center;justify-content:center}
 .sec{display:flex;flex-direction:column}
-.h2{font-size:20px;font-weight:700;letter-spacing:-0.025em;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.h2{font-size:20px;font-weight:700;letter-spacing:-0.025em;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
 .h2 small{font-size:13px;font-weight:400;color:#6E6E73;letter-spacing:0}
-.row{display:flex;align-items:center;gap:14px;min-height:62px;color:inherit;text-decoration:none;border-bottom:1px solid rgba(0,0,0,.07);padding:6px 0;box-sizing:border-box;width:100%;text-align:left}
+.row{display:flex;align-items:center;gap:14px;min-height:62px;color:inherit;text-decoration:none;padding:8px 0;box-sizing:border-box;width:100%;text-align:left;position:relative}
+/* Dividers start where the text starts: after an icon (56px), after a progress circle (38px), or at the edge. */
+.row + .row::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(0,0,0,.07)}
+.row:has(> .ic) + .row:has(> .ic)::before,.row:has(> .mono) + .row:has(> .mono)::before{left:56px}
+.row:has(> svg:first-child) + .row:has(> svg:first-child)::before{left:38px}
 .row:hover{color:inherit}
 .tx{flex:1;display:flex;flex-direction:column;min-width:0}
 .tx b{font-size:17px;font-weight:600}
-.tx span{font-size:14px;color:#6E6E73}
+.tx span{font-size:14px;color:#6E6E73;line-height:1.35}
+.tx b{line-height:1.3}
 .ic{width:42px;height:42px;border-radius:50%;background:#F2F2F5;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .pill{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;white-space:nowrap}
 .ok{color:#1F7A35;background:rgba(52,199,89,.14)}.warn{color:#B25000;background:rgba(255,149,0,.16)}.bad{color:#D70015;background:rgba(255,59,48,.12)}.mut{color:#6E6E73;background:#F2F2F5}
@@ -105,7 +111,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .tbl td{padding:0 8px;height:56px;border-bottom:1px solid rgba(0,0,0,.06);font-size:15px}
 .tbl .r{text-align:right}
 .tbl tr.sel td{background:#F7F7F9}
-.mono{width:30px;height:30px;border-radius:10px;color:#FFFFFF;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.mono{width:30px;height:30px;border-radius:10px;corner-shape:superellipse(1.6) !important;color:#FFFFFF;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 .panel{border-radius:28px;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 10px 36px -20px rgba(0,0,0,.12);padding:24px;display:flex;flex-direction:column;gap:14px}
 .btn{height:44px;padding:0 20px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-size:15px;font-weight:600;display:inline-flex;align-items:center}
 @media (prefers-reduced-motion: reduce){.ba,.bb{animation:none}.press:active{transform:none}}
@@ -135,7 +141,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
     <div class="sec">
       <div class="h2">Records</div>
       <a class="row" href="HS3-Accident.dc.html"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span><span class="tx"><b>Report an accident</b><span class="">Anyone, straight after</span></span></a>
-      <div class="row"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path></svg></span><span class="tx"><b>Risk assessments</b><span class="">2 changed since you last read them</span></span><span class="pill warn">2 to read</span></div>
+      <div class="row"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path></svg></span><span class="tx"><b>Risk assessments</b><span class="">2 changed since you read them</span></span><span class="pill warn">2 to read</span></div>
     </div>
   </div>
   <nav aria-label="Main" style="position:absolute;left:0;right:0;bottom:0;height:84px;background:rgba(255,255,255,.92);border-top:1px solid rgba(0,0,0,.08);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding-top:8px;box-sizing:border-box;font-size:11px;font-weight:600"><a href="P1-Today.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#8E8E93;text-decoration:none"><span style="width:56px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M5 20V10l7-5 7 5v10M10 20v-5h4v5"></path></svg></span>Today</a><a href="P3-Close.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#8E8E93;text-decoration:none"><span style="width:56px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"></path></svg></span>Close</a><a href="P5-Checks.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#8E8E93;text-decoration:none"><span style="width:56px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>Checks</a><span style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#1D1D1F;text-decoration:none"><span style="width:56px;height:30px;border-radius:999px;background:#FDE8BF;display:flex;align-items:center;justify-content:center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6.5v6.5H4zM13.5 4H20v6.5h-6.5zM4 13.5h6.5V20H4zM13.5 13.5H20V20h-6.5z"></path></svg></span>More</span></nav>

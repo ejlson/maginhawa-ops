@@ -12,7 +12,8 @@
 <style>
 body{margin:0}
 *:not([style*="999px"]):not([style*="50%"]):not(.blob){corner-shape:superellipse(1.6)}
-.ic,.pill,.chip,.circle,.step,.back,.primary,.upnext,.arrow,.btn{corner-shape:round}
+/* Circles and pills stay perfectly round (beats the squircle rule above, which is more specific). */
+.ic,.pill,.chip,.circle,.step,.back,.primary,.upnext,.arrow,.btn{corner-shape:round !important}
 a{color:#0066CC}a:hover{color:#004C99}
 @keyframes driftA{0%{transform:translate(0,0) scale(1) rotate(0deg)}33%{transform:translate(-70px,34px) scale(1.25) rotate(25deg)}66%{transform:translate(50px,-24px) scale(.9) rotate(-12deg)}100%{transform:translate(0,0) scale(1) rotate(0deg)}}
 @keyframes driftB{0%{transform:translate(0,0) scale(1.05) rotate(0deg)}33%{transform:translate(64px,-28px) scale(.88) rotate(-20deg)}66%{transform:translate(-44px,30px) scale(1.2) rotate(14deg)}100%{transform:translate(0,0) scale(1.05) rotate(0deg)}}
@@ -24,7 +25,7 @@ a{color:#0066CC}a:hover{color:#004C99}
 .press:active{transform:scale(.97)}
 button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
 .ph{width:390px;height:844px;position:relative;overflow:hidden;background:#FFFFFF;color:#1D1D1F;font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-0.012em}
-.wrap{padding:24px 24px 0;display:flex;flex-direction:column;gap:24px}
+.wrap{padding:24px 24px 0;display:flex;flex-direction:column;gap:22px}
 .top{display:flex;align-items:center;justify-content:space-between;height:40px}
 .top b{font-size:17px;font-weight:600}
 .back{width:40px;height:40px;border-radius:999px;background:#F2F2F5;display:flex;align-items:center;justify-content:center;color:#1D1D1F}
@@ -43,13 +44,18 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .upnext:hover{color:#1D1D1F}
 .arrow{width:40px;height:40px;border-radius:999px;background:#1D1D1F;display:flex;align-items:center;justify-content:center}
 .sec{display:flex;flex-direction:column}
-.h2{font-size:20px;font-weight:700;letter-spacing:-0.025em;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.h2{font-size:20px;font-weight:700;letter-spacing:-0.025em;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
 .h2 small{font-size:13px;font-weight:400;color:#6E6E73;letter-spacing:0}
-.row{display:flex;align-items:center;gap:14px;min-height:62px;color:inherit;text-decoration:none;border-bottom:1px solid rgba(0,0,0,.07);padding:6px 0;box-sizing:border-box;width:100%;text-align:left}
+.row{display:flex;align-items:center;gap:14px;min-height:62px;color:inherit;text-decoration:none;padding:8px 0;box-sizing:border-box;width:100%;text-align:left;position:relative}
+/* Dividers start where the text starts: after an icon (56px), after a progress circle (38px), or at the edge. */
+.row + .row::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(0,0,0,.07)}
+.row:has(> .ic) + .row:has(> .ic)::before,.row:has(> .mono) + .row:has(> .mono)::before{left:56px}
+.row:has(> svg:first-child) + .row:has(> svg:first-child)::before{left:38px}
 .row:hover{color:inherit}
 .tx{flex:1;display:flex;flex-direction:column;min-width:0}
 .tx b{font-size:17px;font-weight:600}
-.tx span{font-size:14px;color:#6E6E73}
+.tx span{font-size:14px;color:#6E6E73;line-height:1.35}
+.tx b{line-height:1.3}
 .ic{width:42px;height:42px;border-radius:50%;background:#F2F2F5;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .pill{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;white-space:nowrap}
 .ok{color:#1F7A35;background:rgba(52,199,89,.14)}.warn{color:#B25000;background:rgba(255,149,0,.16)}.bad{color:#D70015;background:rgba(255,59,48,.12)}.mut{color:#6E6E73;background:#F2F2F5}
@@ -105,7 +111,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .tbl td{padding:0 8px;height:56px;border-bottom:1px solid rgba(0,0,0,.06);font-size:15px}
 .tbl .r{text-align:right}
 .tbl tr.sel td{background:#F7F7F9}
-.mono{width:30px;height:30px;border-radius:10px;color:#FFFFFF;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.mono{width:30px;height:30px;border-radius:10px;corner-shape:superellipse(1.6) !important;color:#FFFFFF;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 .panel{border-radius:28px;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 10px 36px -20px rgba(0,0,0,.12);padding:24px;display:flex;flex-direction:column;gap:14px}
 .btn{height:44px;padding:0 20px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-size:15px;font-weight:600;display:inline-flex;align-items:center}
 @media (prefers-reduced-motion: reduce){.ba,.bb{animation:none}.press:active{transform:none}}
@@ -128,7 +134,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
     <div class="banner warn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v5M12 16.5h.01M12 3l9.5 17h-19z"></path></svg><span>3 call-outs in 5 months. Worth asking Arctic Cooling about a replacement.</span></div>
     <div class="sec">
       <div class="h2">History</div>
-      <div class="row"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4a4.5 4.5 0 0 0-4.2 6l-6.6 6.6a1.8 1.8 0 0 0 2.6 2.6l6.6-6.6a4.5 4.5 0 0 0 6-4.2l-2.6 2.6-2.4-.4-.4-2.4z"></path></svg></span><span class="tx"><b>Not cooling below 6°C</b><span class="">Wed 4 Nov · Repair · door seal replaced by Arctic Cooling</span></span></div><div class="row"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span><span class="tx"><b>Service</b><span class="">Wed 2 Sep · Passed · certificate added</span></span></div><div class="row"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4a4.5 4.5 0 0 0-4.2 6l-6.6 6.6a1.8 1.8 0 0 0 2.6 2.6l6.6-6.6a4.5 4.5 0 0 0 6-4.2l-2.6 2.6-2.4-.4-.4-2.4z"></path></svg></span><span class="tx"><b>Alarm going off</b><span class="">Tue 21 Jul · Repair · compressor reset</span></span></div><div class="row"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4a4.5 4.5 0 0 0-4.2 6l-6.6 6.6a1.8 1.8 0 0 0 2.6 2.6l6.6-6.6a4.5 4.5 0 0 0 6-4.2l-2.6 2.6-2.4-.4-.4-2.4z"></path></svg></span><span class="tx"><b>Fan very loud</b><span class="">Wed 3 Jun · Repair · fan motor replaced, £180</span></span></div>
+      <div class="row"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4a4.5 4.5 0 0 0-4.2 6l-6.6 6.6a1.8 1.8 0 0 0 2.6 2.6l6.6-6.6a4.5 4.5 0 0 0 6-4.2l-2.6 2.6-2.4-.4-.4-2.4z"></path></svg></span><span class="tx"><b>Not cooling below 6°C</b><span class="">Wed 4 Nov · Door seal replaced</span></span></div><div class="row"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span><span class="tx"><b>Service</b><span class="">Wed 2 Sep · Passed, certificate added</span></span></div><div class="row"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4a4.5 4.5 0 0 0-4.2 6l-6.6 6.6a1.8 1.8 0 0 0 2.6 2.6l6.6-6.6a4.5 4.5 0 0 0 6-4.2l-2.6 2.6-2.4-.4-.4-2.4z"></path></svg></span><span class="tx"><b>Alarm going off</b><span class="">Tue 21 Jul · Compressor reset</span></span></div><div class="row"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4a4.5 4.5 0 0 0-4.2 6l-6.6 6.6a1.8 1.8 0 0 0 2.6 2.6l6.6-6.6a4.5 4.5 0 0 0 6-4.2l-2.6 2.6-2.4-.4-.4-2.4z"></path></svg></span><span class="tx"><b>Fan very loud</b><span class="">Wed 3 Jun · Fan motor replaced, £180</span></span></div>
     </div>
   </div>
 </div>
