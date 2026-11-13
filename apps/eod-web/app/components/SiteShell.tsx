@@ -44,6 +44,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
     { title: 'Records', links: [
       { to: '/food-safety', label: 'Food safety', icon: ICONS.thermo, on: pathname.startsWith('/food-safety'), badge: counts.foodSafety },
       { to: '/stock', label: 'Stock', icon: ICONS.box, on: pathname.startsWith('/stock') },
+      { to: '/safety', label: 'Health and safety', icon: ICONS.bang, on: pathname.startsWith('/safety') },
+      { to: '/maintenance', label: 'Maintenance', icon: ICONS.wrench, on: pathname.startsWith('/maintenance') },
+      { to: '/recipes', label: 'Recipes', icon: ICONS.list, on: pathname.startsWith('/recipes') },
       ...(can.fixRepairs(user.role) ? [{ to: '/repairs', label: 'Repairs', icon: ICONS.wrench, on: pathname.startsWith('/repairs'), badge: counts.repairs }] : []),
       { to: '/handover', label: 'Handover', icon: ICONS.handover, on: pathname.startsWith('/handover'), badge: counts.handover },
     ] },

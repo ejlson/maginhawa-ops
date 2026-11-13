@@ -60,6 +60,25 @@ import StockSend from '../app/routes/stock-send';
 import StockArea from '../app/routes/stock-area';
 import HoStock from '../app/routes/ho-stock';
 import HoStockItems from '../app/routes/ho-stock-items';
+import StockLow from '../app/routes/stock-low';
+import OrderPick from '../app/routes/order-pick';
+import OrderPage from '../app/routes/order';
+import Delivery from '../app/routes/delivery';
+import Waste from '../app/routes/waste';
+import StockItem from '../app/routes/stock-item';
+import Recipes from '../app/routes/recipes';
+import RecipePage from '../app/routes/recipe';
+import Safety from '../app/routes/safety';
+import SafetyCheck from '../app/routes/safety-check';
+import SafetyAccident from '../app/routes/safety-accident';
+import Maintenance from '../app/routes/maintenance';
+import Equipment from '../app/routes/equipment';
+import Visit from '../app/routes/visit';
+import HoSafety from '../app/routes/ho-safety';
+import HoMaintenance from '../app/routes/ho-maintenance';
+import HoOrdering from '../app/routes/ho-ordering';
+import HoMenu from '../app/routes/ho-menu';
+import HoRecords from '../app/routes/ho-records';
 
 export const manager: User = { name: 'Jo', initials: 'J', role: 'manager', siteCode: 'BUN' };
 export const admin: User = { name: 'Ana', initials: 'A', role: 'headoffice', siteCode: 'BUN' };
@@ -121,6 +140,25 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="stock/count/:id/area/:area" element={<StockArea />} />
             <Route path="head-office/stock" element={<HoStock />} />
             <Route path="head-office/stock/items" element={<HoStockItems />} />
+            <Route path="stock/count/:id/low" element={<StockLow />} />
+            <Route path="stock/order" element={<OrderPick />} />
+            <Route path="stock/order/:supplier" element={<OrderPage />} />
+            <Route path="stock/delivery/:order" element={<Delivery />} />
+            <Route path="stock/waste" element={<Waste />} />
+            <Route path="stock/item/:item" element={<StockItem />} />
+            <Route path="recipes" element={<Recipes />} />
+            <Route path="recipes/:id" element={<RecipePage />} />
+            <Route path="safety" element={<Safety />} />
+            <Route path="safety/check/:kind" element={<SafetyCheck />} />
+            <Route path="safety/accident" element={<SafetyAccident />} />
+            <Route path="maintenance" element={<Maintenance />} />
+            <Route path="maintenance/equipment/:id" element={<Equipment />} />
+            <Route path="maintenance/visit/:schedule" element={<Visit />} />
+            <Route path="head-office/safety" element={<HoSafety />} />
+            <Route path="head-office/maintenance" element={<HoMaintenance />} />
+            <Route path="head-office/ordering" element={<HoOrdering />} />
+            <Route path="head-office/menu" element={<HoMenu />} />
+            <Route path="head-office/records" element={<HoRecords />} />
             <Route path="head-office/:site" element={<HeadOfficeSite />} />
           </Route>
         </Routes>

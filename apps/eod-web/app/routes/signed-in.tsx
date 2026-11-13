@@ -9,6 +9,7 @@ import { TemplatesProvider } from '../lib/templates-provider';
 import { SiteProvider } from '../lib/site-provider';
 import { FoodSafetyProvider } from '../lib/food-safety-provider';
 import { StockProvider } from '../lib/stock-provider';
+import { OpsProvider } from '../lib/ops-provider';
 import { tradingDate } from '@maginhawa/core';
 import { SiteShell } from '../components/SiteShell';
 import { HeadOfficeShell } from '../components/HeadOfficeShell';
@@ -36,7 +37,9 @@ export default function SignedIn() {
     || (pathname.startsWith('/food-safety/people') && !can.seeStaffHealth(user.role))
     || (pathname.startsWith('/food-safety/inspections') && !can.logInspections(user.role))
     || (pathname.startsWith('/food-safety/review') && !can.doReview(user.role))
-    || (/^\/checklists\/[^/]+\/correct\//.test(pathname) && !can.correctRecords(user.role));
+    || (/^\/checklists\/[^/]+\/correct\//.test(pathname) && !can.correctRecords(user.role))
+    || (/^\/stock\/order\/[^/]+/.test(pathname) && !can.sendOrders(user.role))
+    || (pathname.startsWith('/maintenance/visit') && !can.logVisits(user.role));
   if (blocked) return <Navigate to={homeOf(user)} replace />;
   const outsideSite = user.role === 'headoffice' && !user.inSite;
   // Head office's home is the head office page until they open a site.
@@ -50,6 +53,7 @@ export default function SignedIn() {
           <SiteProvider siteCode={user.siteCode} businessDate={tradingDate(now(), settingsFor(user.siteCode))}>
             <FoodSafetyProvider siteCode={user.siteCode} businessDate={tradingDate(now(), settingsFor(user.siteCode))}>
             <StockProvider siteCode={user.siteCode} businessDate={tradingDate(now(), settingsFor(user.siteCode))}>
+            <OpsProvider siteCode={user.siteCode} businessDate={tradingDate(now(), settingsFor(user.siteCode))}>
               {/* Head office has its own frame, until they open a site; everyone else gets the site sidebar on desktop. */}
               {/* The open site's colour on the whole app; graphite on head office's own pages. */}
               <SiteTheme code={outsideSite ? null : user.siteCode} />
@@ -57,6 +61,7 @@ export default function SignedIn() {
                 : outsideSite ? <HeadOfficeShell><Screen /></HeadOfficeShell>
                 : <SiteShell><Screen /></SiteShell>}
               <TourHost />
+            </OpsProvider>
             </StockProvider>
             </FoodSafetyProvider>
           </SiteProvider>

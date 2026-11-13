@@ -13,6 +13,9 @@ import { dayText, minutesText, planState, type PlanState } from '../lib/stock-he
 import { Icon, Nav, Pie, RowLink } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 import { hm } from '../lib/food-safety';
+import { useOps } from '../lib/ops';
+import { suggestions, amountText } from '../lib/ops-helpers';
+import { dailyUse, runsOutText } from '@maginhawa/core';
 
 export default function Stock() {
   const { user } = useAuth();
@@ -20,7 +23,12 @@ export default function Stock() {
   const { businessDate } = useChecklists();
   const { settings } = useDraft();
   const navigate = useNavigate();
+  const ops = useOps();
   if (!user) return null;
+  const low = suggestions(data.items, data.counts, ops, user.siteCode).filter((s) => s.packs > 0 && s.onHand !== null)
+    .map((s) => ({ ...s, lasts: runsOutText(s.onHand!, dailyUse(s.item.id, ops.data.recipes)) }))
+    .sort((a, b) => (a.onHand! / a.par) - (b.onHand! / b.par)).slice(0, 3);
+  const toCheck = ops.data.orders.filter((o) => o.siteCode === user.siteCode && o.sentAt && !o.receivedAt);
   const today = businessDate;
   const states = site.plans.map((p) => ({ plan: p, state: planState(p, site.counts, today) }));
   // The main card: a count already started, else the first one due today (the full count first, it matters most).
@@ -86,6 +94,26 @@ export default function Stock() {
             </div>
           </section>
         )}
+
+        {low.length > 0 && (
+          <section className="grp" aria-label="Running low">
+            <div className="hd"><h2>Running low</h2></div>
+            <div className="sub">
+              {low.map((l) => <RowLink key={l.item.id} to={`/stock/item/${l.item.id}`} lead={<span className="av"><Icon d={ICONS.box} /></span>}
+                title={l.item.name} sub={`${amountText(l.onHand!, l.item.unit)} left${l.lasts ? ` · ${l.lasts.toLowerCase()}` : ''}`} />)}
+            </div>
+          </section>
+        )}
+
+        <section className="grp" aria-label="Orders and waste">
+          <div className="hd"><h2>Orders and waste</h2></div>
+          <div className="sub">
+            {toCheck.map((o) => <RowLink key={o.id} to={`/stock/delivery/${o.id}`} lead={<span className="av warn"><Icon d={ICONS.check} /></span>}
+              title={`Check in ${ops.supplier(o.supplierId)?.name ?? 'a delivery'}`} sub="Arrived? Tap only what didn't come" />)}
+            <RowLink to="/stock/order" lead={<span className="av"><Icon d={ICONS.box} /></span>} title="Order" sub={can.sendOrders(user.role) ? 'Filled in from your usual levels' : 'See what we order'} />
+            <RowLink to="/stock/waste" lead={<span className="av"><Icon d={ICONS.x} /></span>} title="Log waste" sub="Item, then Log" />
+          </div>
+        </section>
 
         {past.length > 0 && (
           <section className="grp" aria-label="Sent">

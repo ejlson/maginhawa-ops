@@ -37,6 +37,13 @@ describe('stock: counting', () => {
     expect(screen.getByText('Everything is counted')).toBeInTheDocument();
     await user.click(send);
 
+    // Straight to what's low; staff can't order, so no order button.
+    expect(screen.getByRole('status')).toHaveTextContent('5 items are low');
+    expect(screen.getByText(/A supervisor or manager can order them/)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: "Order what's low" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('link', { name: 'Not now' }));
+    await user.click(within(screen.getByRole('region', { name: 'Sent' })).getAllByRole('link', { name: /Bar spot count/ })[0]!);
+
     expect(screen.getByText(/sent at 22:00 by Sam/)).toBeInTheDocument();
     expect(screen.getByText('5 items counted')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Correct/ })).not.toBeInTheDocument();

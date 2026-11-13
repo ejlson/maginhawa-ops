@@ -5,8 +5,8 @@
 import { addDays, OPEN_SITE_CODES, weekday, type StockArea, type StockCount, type StockItem, type StockPlan } from '@maginhawa/core';
 import type { StockData } from './stock';
 
-const I = (id: string, name: string, category: string, unit: string, costPence: number | null, parts = false): StockItem =>
-  ({ id, name, category, unit, parts, costPence, active: true });
+const I = (id: string, name: string, category: string, unit: string, costPence: number | null, parts = false, allergens?: StockItem['allergens']): StockItem =>
+  ({ id, name, category, unit, parts, costPence, active: true, ...(allergens ? { allergens } : {}) });
 
 export const DEMO_ITEMS: StockItem[] = [
   I('pork', 'Pork belly', 'Meat and fish', 'kg', 980, true),
@@ -16,7 +16,8 @@ export const DEMO_ITEMS: StockItem[] = [
   I('lumpia', 'Lumpia, frozen', 'Frozen', 'packs', 640),
   I('icecream', 'Ube ice cream', 'Frozen', 'tubs', 1150),
   I('rice', 'Jasmine rice 20kg', 'Dry goods', 'bags', 2600),
-  I('soy', 'Soy sauce 1.9L', 'Dry goods', 'bottles', 520),
+  I('soy', 'Soy sauce 1.9L', 'Dry goods', 'bottles', 520, false, ['Soya', 'Cereals with gluten']),
+  I('mayo', 'Mayonnaise 1kg', 'Dry goods', 'jars', 420, false, ['Eggs']),
   I('vinegar', 'Cane vinegar 1L', 'Dry goods', 'bottles', 310),
   I('ubejam', 'Ube jam', 'Dry goods', 'jars', null),
   I('pandan', 'Pandan extract', 'Dry goods', 'bottles', null),
@@ -36,14 +37,14 @@ export const DEMO_ITEMS: StockItem[] = [
 const AREAS: [string, string, string[]][] = [
   ['walkin', 'Walk-in chiller', ['pork', 'chicken', 'ribeye']],
   ['freezer', 'Freezer', ['prawns', 'lumpia', 'icecream']],
-  ['dry', 'Dry store', ['rice', 'soy', 'vinegar', 'ubejam', 'pandan']],
+  ['dry', 'Dry store', ['rice', 'soy', 'vinegar', 'mayo', 'ubejam', 'pandan']],
   ['bar', 'Bar', ['rum', 'gin', 'jameson', 'vodka', 'calamansi', 'prosecco', 'red', 'white', 'sanmig']],
   ['cellar', 'Cellar', ['guinness', 'coke']],
 ];
 
 /** Typical amount on the shelf. */
-const BASE: Record<string, number> = {
-  pork: 14.5, chicken: 6, ribeye: 30, prawns: 6.2, lumpia: 22, icecream: 9, rice: 5, soy: 8, vinegar: 10, ubejam: 6, pandan: 4,
+export const BASE: Record<string, number> = {
+  pork: 14.5, chicken: 6, ribeye: 30, prawns: 6.2, lumpia: 22, icecream: 9, rice: 5, soy: 8, mayo: 4, vinegar: 10, ubejam: 6, pandan: 4,
   rum: 6.4, gin: 8.2, jameson: 4, vodka: 7.5, calamansi: 5, prosecco: 18, red: 24, white: 22, sanmig: 70, guinness: 2.5, coke: 3,
 };
 

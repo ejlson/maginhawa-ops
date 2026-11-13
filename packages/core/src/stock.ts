@@ -10,6 +10,7 @@
  */
 import { addDays, daysBetween, weekday } from './data-quality';
 import { roundPence, type Pence } from './money';
+import type { Allergen } from './food-safety';
 
 export interface StockItem {
   id: string;
@@ -23,6 +24,8 @@ export interface StockItem {
   /** Cost of one unit, ex VAT, in pence. null = head office hasn't set it yet: counted but not valued. */
   costPence: Pence | null;
   active: boolean;
+  /** Allergens this ingredient carries (for the recipe check). */
+  allergens?: Allergen[];
 }
 
 /** A storage area at one site, with its items in the order they sit on the shelves. */

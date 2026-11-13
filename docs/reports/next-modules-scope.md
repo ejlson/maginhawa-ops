@@ -2,6 +2,15 @@
 
 *Draft, 13 Nov 2026. Not agreed with the client yet. All figures are examples.*
 
+**Status, 13 Nov 2026: first version built in demo mode** (data on the device). Rules and tests: `packages/core/src/ordering.ts`, `recipes.ts`, `safety.ts` (safety and maintenance), `records.ts`. Store: `apps/eod-web/app/lib/ops*.ts`. Screens: `/stock/order`, `/stock/delivery/:id`, `/stock/waste`, `/stock/item/:id`, `/stock/count/:id/low`, `/recipes`, `/safety`, `/maintenance`, and for head office `/head-office/{ordering,menu,safety,maintenance,records}`. **Not done yet:**
+- Connected mode (the SharePoint lists below).
+- Emailing orders to suppliers.
+- Storing certificate files (only the name is kept).
+- Risk assessments, cleaning chemicals (COSHH), first aiders and fire drills.
+- Transfers between sites.
+- GP% per period.
+- Staff and pay exports (they need payroll and rota connected).
+
 This doc scopes four modules: **health and safety**, **planned maintenance**, **ordering and waste**, and **recipes and dish costing**. They follow the same rules as the rest of the app (HANDOFF.md §3):
 - **Data and logic.** SharePoint lists hold the data, our own back end does the work, and the rules live in `packages/core` with tests.
 - **Records.** Records are only ever added to, and a correction keeps the old value with who changed it and why.

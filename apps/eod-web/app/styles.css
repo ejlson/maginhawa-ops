@@ -1390,3 +1390,44 @@ a.chip.stk-chip { display: inline-flex; align-items: center; text-decoration: no
 .stk-toggle { display: flex; align-items: center; gap: 10px; font-size: 15px; }
 .stk-add { grid-column: 1 / -1; width: auto; justify-self: start; }
 @media (max-width: 599px) { .stk-form { grid-template-columns: minmax(0, 1fr); } .stk-add { width: 100%; } }
+
+/* ==== Ordering, safety, maintenance, recipes, records (docs/reports/next-modules-scope.md) ==== */
+.lab { font-size: 13px; font-weight: 600; color: var(--sec); letter-spacing: .02em; margin-bottom: 8px; text-transform: uppercase; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ord-left { display: flex; align-items: center; gap: 8px; }
+.ord-bar { width: 48px; height: 6px; border-radius: 999px; background: var(--fill); position: relative; overflow: hidden; flex: none; }
+.ord-bar.wide { flex: 1; width: auto; height: 8px; }
+.ord-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--sec); opacity: .55; }
+.ord-bar > span.low { background: var(--warn); opacity: 1; }
+.ord-step { gap: 6px; }
+.ord-step b { min-width: 72px; text-align: center; font-variant-numeric: tabular-nums; }
+.stk-step.sm { width: 36px; height: 36px; }
+.stk-step:disabled { opacity: .4; cursor: default; }
+.stk-num-show { display: inline-flex; align-items: center; justify-content: center; }
+.waste-other { position: relative; color: var(--link); }
+.waste-other select { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.sf-q { display: flex; flex-direction: column; gap: 18px; margin-top: 4px; }
+.sf-question { font-size: 22px; font-weight: 600; letter-spacing: -.025em; line-height: 1.25; margin: 0; }
+.sf-question.sm { font-size: 19px; margin-top: 6px; }
+.sf-yn { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sf-btn { height: 64px; border-radius: 22px; border: 0; background: var(--fill); color: var(--text); font: inherit; font-size: 19px; font-weight: 600; cursor: pointer; transition: transform .12s var(--ease-out); }
+.sf-btn:active { transform: var(--press); }
+.sf-in { height: 48px; border-radius: 14px; }
+.banner.bad { background: var(--badbg); color: var(--bad); }
+.acc-row { align-items: center; }
+.acc-act { gap: 8px; }
+.visit-drop { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; height: 76px; border-radius: 20px; border: 1.5px dashed var(--sep); color: var(--link); font-weight: 600; cursor: pointer; }
+.visit-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.rc-allergens { margin-top: 8px; align-self: flex-start; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.18); }
+.rc-step p { font-size: 26px; font-weight: 600; letter-spacing: -.025em; line-height: 1.3; margin: 8px 0 14px; }
+.ho-sentence { font-size: 28px; font-weight: 600; letter-spacing: -.03em; line-height: 1.2; }
+.menu-row.on { background: var(--side, var(--fill)); border-radius: 14px; }
+.menu-row .rt { gap: 14px; }
+.rec-kinds { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.rec-kind { text-align: left; border: 0; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 6px; min-height: 104px; background: var(--bg); color: var(--text); box-shadow: 0 0 0 1px var(--sep); font: inherit; cursor: pointer; }
+.rec-kind b { font-size: 16px; font-weight: 600; }
+.rec-kind span { font-size: 13px; color: var(--sec); line-height: 1.35; }
+.rec-kind.on { background: var(--ink); color: var(--onink); }
+.rec-kind.on span { color: inherit; opacity: .75; }
+.rec-panel { gap: 12px; }
+@media (max-width: 899px) { .rec-kinds { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

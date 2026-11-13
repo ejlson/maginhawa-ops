@@ -19,7 +19,8 @@ export default function StockSend() {
   const navigate = useNavigate();
   const count = data.counts.find((c) => c.id === id);
   if (!user || !count) return <Navigate to="/stock" replace />;
-  if (count.sentAt) return <Navigate to={`/stock/count/${id}`} replace />;
+  // Just sent (or opened again later): the low-items screen, which moves on to the count if nothing is low.
+  if (count.sentAt) return <Navigate to={`/stock/count/${id}/low`} replace />;
 
   const total = itemIdsOf(count).length;
   const counted = Object.keys(count.lines).filter((x) => itemIdsOf(count).includes(x)).length;
@@ -67,7 +68,7 @@ export default function StockSend() {
         )}
       </div>
       <Foot>
-        <button type="button" className="btn b1" disabled={!!problem} onClick={() => { send(count.id, recordedAs(user)); navigate(base, { replace: true }); }}>Send count</button>
+        <button type="button" className="btn b1" disabled={!!problem} onClick={() => { send(count.id, recordedAs(user)); navigate(`${base}/low`, { replace: true }); }}>Send count</button>
         <p className="note">{problem ?? `Counted by ${names(people)}`}</p>
       </Foot>
     </main>
