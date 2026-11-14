@@ -2,7 +2,7 @@
  * The home screen's widgets (designs W1–W3). Each is a small card with a title, one or two lines that
  * matter now, and a way in. Which ones show, and in what order, is each person's (lib/home-layout.ts).
  */
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { formatPounds, itemIdsOf, lastSevenDays, SECTION_KEYS, SECTION_LABELS, sectionStatus, whoDidWhat } from '@maginhawa/core';
 import { can, canDoEod, initialsOf, useAuth } from '../../lib/auth';
@@ -310,45 +310,132 @@ function FragmentWithNow({ now, children }: { now: string | null; children: Reac
   return <>{now && <NowLine time={now} />}{children}</>;
 }
 
-/** Smart stack (W8): one thing at a time, most urgent first; swipe for the next. */
+/**
+ * Smart stack (W8): one widget at a time, the most urgent on top, the rest peeking out behind; swipe for the
+ * next. Each card is a topic (checklists, food safety, the end of day report, repairs, handover) with its
+ * number, what's wrong in a pill, and the one thing to do.
+ */
 function StackWidget() {
   const { user } = useAuth();
-  const { at, tasks } = useToday();
+  const { at, tasks, scheduled, checksDone } = useToday();
   const { open, handover, handoverRead, handoverBy } = useSite();
   const food = useFoodSafetyItems();
   const eod = useEod();
-  const cards: { kind: string; title: string; sub: string; to: string; go: string; tone: 'bad' | 'warn' | '' }[] = [];
-  // Late before missed: a late list can still be done in its window.
-  for (const t of [...tasks.filter((x) => x.status === 'late'), ...tasks.filter((x) => x.status === 'missed')]) cards.push({ kind: 'Checklist', title: t.title, sub: statusPill(t, at).text, to: runPath(t.key), go: 'Start', tone: t.status === 'late' ? 'bad' : 'warn' });
-  for (const i of food.filter((x) => x.level === 'bad')) cards.push({ kind: 'Food safety', title: i.title, sub: 'Needs doing now', to: '/food-safety', go: 'Open', tone: 'bad' });
-  for (const r of open.filter((x) => x.urgent)) cards.push({ kind: 'Repair', title: r.title, sub: `Urgent · ${r.place}`, to: '/repairs', go: 'Open', tone: 'bad' });
-  // EOD issues carry money: only for those who close.
-  for (const i of user && canDoEod(user) ? eod.issues : []) cards.push({ kind: 'End of day report', title: i.title, sub: i.detail, to: `/close/${i.section}`, go: 'Fix', tone: i.level === 'block' ? 'bad' : 'warn' });
-  if (handover.length && !handoverRead) cards.push({ kind: 'Handover', title: `${handover.length} ${handover.length === 1 ? 'note' : 'notes'} from ${handoverBy ?? 'last night'}`, sub: handover[0]!.body, to: '/handover', go: 'Read', tone: 'warn' });
-  for (const t of tasks.filter((x) => x.status === 'due')) cards.push({ kind: 'Checklist', title: t.title, sub: statusPill(t, at).text, to: runPath(t.key), go: 'Start', tone: '' });
-  for (const i of food.filter((x) => x.level !== 'bad')) cards.push({ kind: 'Food safety', title: i.title, sub: 'To do today', to: '/food-safety', go: 'Open', tone: '' });
-  const [pageRaw, setPage] = useState(0);
-  const page = Math.min(pageRaw, Math.max(0, cards.length - 1));
+  const { progress } = useDraft();
+  type Page = { id: WidgetId; tone: 'bad' | 'warn' | ''; big: number; of: string; ring?: number; pill?: { text: string; tone: 'bad' | 'warn' }; to: string; go: string };
+  const pages: Page[] = [];
+  const bare = (t: string) => t.replace(/ · \d\d:\d\d$/, '');
+  // Checklists: the one to do now (late first).
+  const urgent = [...tasks.filter((t) => t.status === 'late'), ...tasks.filter((t) => t.status === 'missed'), ...tasks.filter((t) => t.status === 'due')][0];
+  const nextTask = urgent ?? tasks.filter((t) => !isDone(t) && t.status === 'upcoming').sort((a, b) => (a.dueAt?.getTime() ?? 0) - (b.dueAt?.getTime() ?? 0))[0];
+  if (scheduled.length) {
+    pages.push({
+      id: 'checklists', tone: urgent ? (urgent.status === 'due' ? 'warn' : 'bad') : '', big: checksDone, of: `of ${scheduled.length} done`, ring: checksDone / scheduled.length,
+      pill: urgent ? { text: `${bare(urgent.title)} · ${statusPill(urgent, at).text.toLowerCase()}`, tone: urgent.status === 'due' ? 'warn' : 'bad' } : undefined,
+      to: nextTask ? runPath(nextTask.key) : '/checklists', go: nextTask ? `Start ${bare(nextTask.title).toLowerCase()}` : 'See checklists',
+    });
+  }
+  if (food.length) {
+    const bad = food.some((x) => x.level === 'bad');
+    pages.push({ id: 'food', tone: bad ? 'bad' : 'warn', big: food.length, of: 'to do', pill: { text: food[0]!.title, tone: bad ? 'bad' : 'warn' }, to: '/food-safety', go: 'Open food safety' });
+  }
+  // The end of day report carries money: only for those who close.
+  if (user && canDoEod(user) && !eod.submitted) {
+    const issue = eod.issues[0];
+    pages.push({ id: 'eod', tone: issue?.level === 'block' ? 'bad' : issue ? 'warn' : '', big: progress.done, of: `of ${progress.active} sections`, ring: progress.active ? progress.done / progress.active : 0,
+      pill: issue ? { text: issue.title, tone: issue.level === 'block' ? 'bad' : 'warn' } : undefined, to: issue ? `/close/${issue.section}` : eod.next.to, go: issue ? 'Fix it' : eod.next.text });
+  }
+  if (user && can.fixRepairs(user.role) && open.length) {
+    const u = open.find((r) => r.urgent);
+    pages.push({ id: 'repairs', tone: u ? 'bad' : '', big: open.length, of: 'open', pill: u ? { text: `${u.title} · urgent`, tone: 'bad' } : undefined, to: '/repairs', go: 'See repairs' });
+  }
+  if (handover.length) {
+    pages.push({ id: 'handover', tone: handoverRead ? '' : 'warn', big: handover.length, of: handover.length === 1 ? 'note' : 'notes', pill: handoverRead ? undefined : { text: `New from ${handoverBy ?? 'last night'}`, tone: 'warn' }, to: '/handover', go: 'Read the handover' });
+  }
+  const rank = { bad: 0, warn: 1, '': 2 } as const;
+  pages.sort((a, b) => rank[a.tone] - rank[b.tone]);
+  const n = pages.length;
+  // The top card is kept by what it is, so a change in urgency doesn't swap it under the user.
+  const [topId, setTopId] = useState<WidgetId | null>(null);
+  const found = topId ? pages.findIndex((p) => p.id === topId) : -1;
+  const top = found >= 0 ? found : 0;
+  const deck = useRef<HTMLElement>(null);
+  const timer = useRef<number | undefined>(undefined);
+  // The top card follows the pointer; past 80px it is flung off and the next one rises from behind.
+  const [drag, setDrag] = useState<{ x0: number; dx: number; moved: boolean } | null>(null);
+  const [leaving, setLeaving] = useState<{ id: WidgetId; dir: 1 | -1 } | null>(null);
+  const show = (next: number, dir: 1 | -1) => {
+    if (n < 2 || next === top) return;
+    window.clearTimeout(timer.current);
+    setLeaving({ id: pages[top]!.id, dir });
+    setTopId(pages[next]!.id);
+    timer.current = window.setTimeout(() => setLeaving(null), 320);
+    // Keep keyboard focus in the stack: the old top card goes inert.
+    if (deck.current?.contains(document.activeElement)) deck.current.focus();
+  };
+  const go = (dir: 1 | -1) => show((top + dir + n) % n, dir === 1 ? -1 : 1);
+  if (!n) return <W id="stack"><p className="wnote">Nothing urgent right now.</p></W>;
+  const depthOf = (i: number) => (i - top + n) % n;
   return (
-    <W id="stack" meta={cards.length ? <Meta>{Math.min(page + 1, cards.length)} of {cards.length}</Meta> : undefined}>
-      {cards.length ? (
-        <>
-          <ul className="wstack" aria-label="Most urgent first" onScroll={(e) => { const el = e.currentTarget; setPage(Math.round(el.scrollLeft / Math.max(1, el.clientWidth + 12))); }}>
-            {cards.map((c) => (
-              <li key={`${c.kind}|${c.title}|${c.to}`} className={`wstack-c${c.tone ? ` ${c.tone}` : ''}`}>
-                <Link to={c.to}>
-                  <small>{c.kind}</small>
-                  <b>{c.title}</b>
-                  <span>{c.sub}</span>
-                  <span className="chip sm" aria-hidden="true">{c.go}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-          {cards.length > 1 && <div className="wdots" aria-hidden="true">{cards.slice(0, 8).map((_, i) => <i key={i} className={i === Math.min(page, 7) ? 'on' : ''} />)}</div>}
-        </>
-      ) : <p className="wnote">Nothing urgent right now.</p>}
-    </W>
+    <section className="wstk" aria-label="Smart stack" aria-roledescription="carousel" data-widget="stack" ref={deck} tabIndex={-1}
+      onKeyDown={(e) => { if (e.key === 'ArrowRight') { e.preventDefault(); go(1); } if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); } }}>
+      {/* Said only when the card changes: which one, of how many. */}
+      <span className="vh" aria-live="polite">{`${top + 1} of ${n}: ${WIDGETS[pages[top]!.id].name}`}</span>
+      <ul className={`wstk-deck${drag ? ' dragging' : ''}`}>
+        {pages.map((p, i) => {
+          const d = depthOf(i);
+          const isTop = d === 0;
+          const out = leaving?.id === p.id;
+          // Depth 0 is on top; 1 and 2 peek out behind, a little higher and smaller; the rest wait out of sight.
+          const style: React.CSSProperties = out
+            ? { transform: `translateX(${leaving!.dir * 115}%) rotate(${leaving!.dir * 8}deg)`, opacity: 0, zIndex: n + 1 }
+            : isTop && drag
+              ? { transform: `translateX(${drag.dx}px) rotate(${drag.dx / 24}deg)`, zIndex: n, transition: 'none' }
+              : { transform: `translateY(${-8 * Math.min(d, 2)}px) scale(${1 - 0.05 * Math.min(d, 2)})`, opacity: d > 2 ? 0 : 1, zIndex: n - d };
+          return (
+            <li key={p.id} className={`w wide wstk-card${isTop ? ' top' : ''}${out ? ' leaving' : ''}`} style={style} aria-hidden={!isTop} ref={(el) => { if (el) { if (isTop) el.removeAttribute('inert'); else el.setAttribute('inert', ''); } }}
+              aria-label={`${i + 1} of ${n}: ${WIDGETS[p.id].name}`}
+              onPointerDown={(e) => { if (!isTop || n < 2 || e.button > 0) return; setDrag({ x0: e.clientX, dx: 0, moved: false }); }}
+              onPointerMove={(e) => {
+                if (!drag || !isTop) return;
+                if (!e.buttons) { setDrag(null); return; } // let go somewhere else
+                const dx = e.clientX - drag.x0;
+                // Only take the pointer once it's really a swipe, so a tap on Start still opens it.
+                if (!drag.moved && Math.abs(dx) > 6) { try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* gone */ } }
+                setDrag({ ...drag, dx: drag.moved || Math.abs(dx) > 6 ? dx : 0, moved: drag.moved || Math.abs(dx) > 6 });
+              }}
+              onPointerUp={() => { if (!drag) return; const { dx, moved } = drag; window.setTimeout(() => setDrag(null), 0); if (moved && Math.abs(dx) > 80) go(dx < 0 ? 1 : -1); }}
+              onPointerCancel={() => setDrag(null)}
+              onClickCapture={(e) => { if (drag?.moved) { e.preventDefault(); e.stopPropagation(); } }}>
+              <div className="wh">
+                <h2><Link to={p.to} draggable={false}><span className="wi" aria-hidden="true"><Icon d={WIDGET_ICONS[p.id]} size={16} /></span>{WIDGETS[p.id].name}</Link></h2>
+                <span className="wmeta">{i + 1} of {n}{n > 1 ? ' · swipe' : ''}</span>
+              </div>
+              <div className="wstk-body">
+                {p.ring !== undefined && (
+                  <svg width="64" height="64" viewBox="0 0 48 48" aria-hidden="true" className="wring">
+                    <circle cx="24" cy="24" r="20" fill="none" className="wring-track" strokeWidth="6" />
+                    <circle cx="24" cy="24" r="20" fill="none" className="wring-fill" strokeWidth="6" strokeLinecap="round" strokeDasharray={`${126 * p.ring} 126`} strokeOpacity={p.ring ? 1 : 0} transform="rotate(-90 24 24)" />
+                  </svg>
+                )}
+                <span className="wstk-tx">
+                  <span className="wtile"><b>{p.big}<small> {p.of}</small></b></span>
+                  {p.pill && <span className={`pill ${p.pill.tone === 'bad' ? 'p-bad' : 'p-warn'}`}>{p.pill.text}</span>}
+                </span>
+              </div>
+              <Link className="mini" to={p.to} draggable={false}>{p.go}</Link>
+            </li>
+          );
+        })}
+      </ul>
+      {n > 1 && (
+        <div className="wdots" role="group" aria-label="Cards">
+          {pages.map((p, i) => <button key={p.id} type="button" className={i === top ? 'on' : ''} aria-current={i === top ? 'true' : undefined} aria-label={`Show ${WIDGETS[p.id].name}`}
+            onClick={() => show(i, i > top ? -1 : 1)} />)}
+        </div>
+      )}
+      {n > 1 && <span className="wsmall wstk-then">Then: {[...pages.slice(top + 1), ...pages.slice(0, top)].map((p) => WIDGETS[p.id].name).join(' · ')}</span>}
+    </section>
   );
 }
 

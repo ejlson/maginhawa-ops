@@ -203,6 +203,39 @@ describe('doing a checklist', () => {
   });
 });
 
+describe('the temperature box', () => {
+  /** The saved answer for a checkpoint on the opening list (the store writes synchronously). */
+  const answer = (id: string) => Object.values(JSON.parse(localStorage.getItem('mgh.checklists.v2') ?? '{"answers":{}}').answers as Record<string, { runKey: string; checkpointId: string; value: unknown }>)
+    .find((a) => a.runKey === '2026-10-05|opening|09:30' && a.checkpointId === id)?.value;
+
+  it('a tap anywhere on the box but the sign focuses the field; a freezer starts below zero', async () => {
+    at('2026-10-05T08:15:00Z'); // 09:15 BST
+    const { user } = renderApp(opening);
+    const input = screen.getByLabelText('Freezer');
+    const box = input.closest<HTMLElement>('.tfield')!;
+    const sign = screen.getByRole('button', { name: 'Below zero: Freezer' });
+    expect(sign).toHaveAttribute('aria-pressed', 'true');
+    expect(input).not.toHaveFocus();
+    // The box itself, not the input.
+    await user.click(box);
+    expect(input).toHaveFocus();
+    await user.keyboard('18');
+    expect(input).toHaveValue('18');
+    expect(answer('freezer')).toBe(-18);
+    // The °C after the number focuses it too.
+    await user.click(screen.getByLabelText('Walk-in fridge'));
+    await user.click(box.querySelector<HTMLElement>('.tunit')!);
+    expect(input).toHaveFocus();
+    // The sign button still flips the sign, and isn't treated as a tap on the box.
+    await user.click(sign);
+    expect(sign).toHaveAttribute('aria-pressed', 'false');
+    expect(input).toHaveValue('18');
+    expect(answer('freezer')).toBe(18);
+    await user.click(sign);
+    expect(answer('freezer')).toBe(-18);
+  });
+});
+
 describe('the end of a finished checklist', () => {
   /** Answers Hot holding's two required temperatures, so it can finish. */
   async function answerHotHolding(user: ReturnType<typeof renderApp>['user']) {

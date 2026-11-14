@@ -8,7 +8,7 @@ import { can, canDoEod, useAuth } from '../lib/auth';
 import { now } from '../lib/clock';
 import { useDraft } from '../lib/draft';
 import { resolveLayout, shiftAt, SHIFTS, useHomeLayout, WIDGETS, type Shift, type WidgetId } from '../lib/home-layout';
-import { Icon, Nav, Toggle } from '../components/ui';
+import { Icon, Toggle } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 import { RingsCard, WIDGET_ICONS } from '../components/home/widgets';
 import { EodCard } from '../components/home/ManagerHome';
@@ -32,15 +32,19 @@ export default function HomeCustomise() {
   const [shift, setShift] = useState<Shift>(() => shiftAt(now(), settings.timezone));
   const layout = useHomeLayout(role, user?.name ?? '', eod, shift);
   const [undoReset, setUndoReset] = useState<typeof layout.snapshot | undefined>(undefined);
+  const [resets, setResets] = useState(0);
   if (!user) return null;
+  const reset = () => { setUndoReset(layout.snapshot); setResets((r) => r + 1); layout.reset(); };
   return (
-    <main className="page cz-page">
-      <Nav back="/" backLabel="Home" title="Customise home" right={<button type="button" className="chip" onClick={() => navigate('/')}>Done</button>} />
-      <div className="body">
-        <div className="titleblock">
-          <h1>Customise home</h1>
-          <p className="lead">Tap – to hide a widget. Drag to move it, or use the arrows. The main card always stays at the top.</p>
-        </div>
+    <main className="page wide cz-page">
+      {/* W3's own bar: Reset, the title, Done. Nothing to go "back" to: Done is the way out. */}
+      <header className="cz-bar">
+        <button type="button" className="cz-reset" onClick={reset}>Reset</button>
+        <h1>Customise home</h1>
+        <button type="button" className="cz-done" onClick={() => navigate('/')}>Done</button>
+      </header>
+      <div className="body cz-body">
+        <p className="lead" style={{ margin: 0 }}>Tap – to hide a widget. Drag ⠿ to move it, or use the arrows. The main card always stays at the top.</p>
 
         <section className="grp" aria-label="Main card">
           <div className="hd"><h2>Main card</h2></div>
@@ -70,13 +74,12 @@ export default function HomeCustomise() {
           )}
         </section>
 
-        <SetEditor key={`${layout.byShift}-${shift}-${undoReset === undefined ? 'a' : 'b'}`} layout={layout} role={role} eod={eod} canFix={can.fixRepairs(role)}
-          onReset={() => { setUndoReset(layout.snapshot); layout.reset(); }} />
+        <SetEditor key={`${layout.byShift}-${shift}-${resets}`} layout={layout} role={role} eod={eod} canFix={can.fixRepairs(role)} />
       </div>
       {undoReset !== undefined && (
         <div className="toast" role="status">
           <span>Back to the usual layout</span>
-          <button type="button" onClick={() => { layout.restore(undoReset); setUndoReset(undefined); }}>Undo</button>
+          <button type="button" onClick={() => { layout.restore(undoReset); setUndoReset(undefined); setResets((r) => r + 1); }}>Undo</button>
         </div>
       )}
     </main>
@@ -84,7 +87,7 @@ export default function HomeCustomise() {
 }
 
 /** The widgets on the home (for one shift, when sets change with the shift): hide, move, make small, add back. */
-function SetEditor({ layout, canFix, onReset }: { layout: ReturnType<typeof useHomeLayout>; role: Parameters<typeof resolveLayout>[1]; eod: boolean; canFix: boolean; onReset: () => void }) {
+function SetEditor({ layout, canFix }: { layout: ReturnType<typeof useHomeLayout>; role: Parameters<typeof resolveLayout>[1]; eod: boolean; canFix: boolean }) {
   const [order, setOrder] = useState<WidgetId[]>(layout.order);
   const [hidden, setHidden] = useState<WidgetId[]>(layout.hidden);
   const [dragging, setDragging] = useState<WidgetId | null>(null);
@@ -102,24 +105,31 @@ function SetEditor({ layout, canFix, onReset }: { layout: ReturnType<typeof useH
     apply(order.filter((x) => x !== id), [...hidden, id]);
   };
   const show = (id: WidgetId) => { setMoved(id); setToast(null); apply([...order, id], hidden.filter((x) => x !== id)); };
-  const reset = () => { setToast(null); onReset(); };
 
-  // Drag: press the grip, move over another widget to take its place, let go to drop.
+  // Drag: press the grip and move. Whichever widget is under the pointer gives up its place; let go to drop.
+  // Follows the pointer itself, so it works the same with a mouse, a trackpad and a finger.
   const live = useRef({ order, hidden, save: layout.save });
   live.current = { order, hidden, save: layout.save };
   useEffect(() => {
     if (!dragging) return;
+    let lastUnder: WidgetId | undefined;
+    const moveTo = (e: PointerEvent) => {
+      e.preventDefault();
+      const under = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('[data-cz]')?.dataset.cz as WidgetId | undefined;
+      // Only when the pointer reaches a different widget: a wide one stays under it after a swap, which would flip back and forth.
+      if (!under || under === dragging || under === lastUnder) return;
+      lastUnder = under;
+      const cur = live.current.order;
+      const o = cur.filter((x) => x !== dragging);
+      o.splice(cur.indexOf(under), 0, dragging);
+      if (o.join() !== cur.join()) { live.current.order = o; setOrder(o); }
+    };
     const drop = () => { setMoved(dragging); setDragging(null); live.current.save(live.current.order, live.current.hidden); };
+    window.addEventListener('pointermove', moveTo, { passive: false });
     window.addEventListener('pointerup', drop);
     window.addEventListener('pointercancel', drop);
-    return () => { window.removeEventListener('pointerup', drop); window.removeEventListener('pointercancel', drop); };
+    return () => { window.removeEventListener('pointermove', moveTo); window.removeEventListener('pointerup', drop); window.removeEventListener('pointercancel', drop); };
   }, [dragging]);
-  const over = (i: number) => {
-    if (!dragging || order[i] === dragging) return;
-    const o = order.filter((x) => x !== dragging);
-    o.splice(i, 0, dragging);
-    setOrder(o);
-  };
 
   return (
     <>
@@ -128,10 +138,11 @@ function SetEditor({ layout, canFix, onReset }: { layout: ReturnType<typeof useH
         <section aria-label="On your home">
           <ol className={`cz-grid${dragging ? ' dragging' : ''}`}>
             {order.map((id, i) => (
-              <li key={id} className={`cz-tile${WIDGETS[id].wide ? ' wide' : ''}${dragging === id ? ' drag' : moved === id ? ' on' : ''}`}
-                onPointerEnter={() => over(i)}>
+              <li key={id} data-cz={id} className={`cz-tile${WIDGETS[id].wide ? ' wide' : ''}${dragging === id ? ' drag' : moved === id ? ' on' : ''}`}>
                 <button type="button" className="cz-x" onClick={() => hide(id)} aria-label={`Hide ${WIDGETS[id].name}`}><Icon d="M5 12h14" size={11} /></button>
-                <span className="cz-grip" aria-hidden="true" onPointerDown={(e) => {
+                <span className="cz-grip" aria-hidden="true" title="Drag to move" onPointerDown={(e) => {
+                  e.preventDefault();
+                  // Let the pointer go, so moving over other widgets is seen (touch would otherwise keep it here).
                   try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* not captured */ }
                   setMoved(null); setToast(null); setDragging(id);
                 }}><Icon d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" size={16} /></span>
@@ -163,7 +174,6 @@ function SetEditor({ layout, canFix, onReset }: { layout: ReturnType<typeof useH
               ))}
             </div>
           ) : <p className="note" style={{ margin: 0 }}>Every widget is on your home.</p>}
-          <button type="button" className="linkbtn" style={{ alignSelf: 'flex-start' }} onClick={reset}>Reset to the usual layout</button>
         </section>
       {toast && (
         <div className="toast" role="status">

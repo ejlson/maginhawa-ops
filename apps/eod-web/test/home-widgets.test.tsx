@@ -1,6 +1,6 @@
 /** The home as widgets (designs W1–W8): each role's starting set, Customise, compact tiles, rings, sets by shift, Your day and Smart stack. */
-import { describe, expect, it } from 'vitest';
-import { screen, within } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
+import { act, fireEvent, screen, within } from '@testing-library/react';
 import { admin, manager, renderApp, staff, supervisor } from './harness';
 import { setNow } from '../app/lib/clock';
 import { deviceChecklistStore } from '../app/lib/store';
@@ -158,12 +158,76 @@ describe('Customise home', () => {
     expect(widgets()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Repairs', 'Handover', 'Recipes']);
   });
 
-  it('Reset goes back to the usual layout, with Undo', async () => {
+  it('the page has its own bar: Reset, the title and Done; no back link or breadcrumb', async () => {
+    const { user } = renderApp('/home/customise', manager);
+    const bar = document.querySelector<HTMLElement>('header.cz-bar')!;
+    expect(bar).not.toBeNull();
+    expect([...bar.children].map((el) => el.textContent)).toEqual(['Reset', 'Customise home', 'Done']);
+    expect(within(bar).getByRole('button', { name: 'Reset' })).toHaveClass('cz-reset');
+    expect(within(bar).getByRole('heading', { name: 'Customise home', level: 1 })).toBeInTheDocument();
+    expect(within(bar).getByRole('button', { name: 'Done' })).toHaveClass('cz-done');
+    // One title, and nothing to go "back" to: Done is the way out.
+    expect(screen.getAllByRole('heading', { name: 'Customise home' })).toHaveLength(1);
+    expect(screen.queryByRole('link', { name: /home|back/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+    // The old reset link at the bottom has gone.
+    expect(screen.queryByRole('button', { name: 'Reset to the usual layout' })).not.toBeInTheDocument();
+    await user.click(within(bar).getByRole('button', { name: 'Done' }));
+    expect(document.querySelector('header.cz-bar')).toBeNull();
+    expect(widgets()[0]).toBe('Checklists');
+  });
+
+  describe('dragging', () => {
+    const real = document.elementFromPoint;
+    afterEach(() => { document.elementFromPoint = real; });
+    /** jsdom has no layout: say which tile is under the pointer. */
+    const pointAt = (id: string) => { document.elementFromPoint = () => document.querySelector(`[data-cz="${id}"] .cz-th`); };
+    const grip = (id: string) => document.querySelector<HTMLElement>(`[data-cz="${id}"] .cz-grip`)!;
+
+    it('the grip follows the pointer: the widget under it gives up its place, and letting go saves', () => {
+      renderApp('/home/customise', manager);
+      fireEvent.pointerDown(grip('repairs'), { pointerId: 1 });
+      expect(document.querySelector('.cz-grid')).toHaveClass('dragging');
+      expect(document.querySelector('[data-cz="repairs"]')).toHaveClass('drag');
+      // Over the first widget: Repairs takes its place.
+      pointAt('checklists');
+      fireEvent.pointerMove(window, { pointerId: 1, clientX: 20, clientY: 20 });
+      expect(onHome()).toEqual(['Repairs', 'Checklists', 'End of day report', 'Stock', 'Food safety', 'Handover', 'Recipes']);
+      // Nothing is saved until it is dropped.
+      expect(saved('manager', 'Jo')).toBeNull();
+      // Over itself, or over nothing: no change.
+      pointAt('repairs');
+      fireEvent.pointerMove(window, { pointerId: 1, clientX: 20, clientY: 20 });
+      document.elementFromPoint = () => null;
+      fireEvent.pointerMove(window, { pointerId: 1, clientX: 900, clientY: 900 });
+      expect(onHome()[0]).toBe('Repairs');
+      fireEvent.pointerUp(window, { pointerId: 1 });
+      expect(document.querySelector('.cz-grid')).not.toHaveClass('dragging');
+      expect(document.querySelector('[data-cz="repairs"]')).toHaveClass('on');
+      expect(saved('manager', 'Jo').order).toEqual(['repairs', 'checklists', 'eod', 'stock', 'food', 'handover', 'recipes']);
+      // Moves after the drop do nothing.
+      pointAt('recipes');
+      fireEvent.pointerMove(window, { pointerId: 1, clientX: 20, clientY: 20 });
+      expect(onHome()[0]).toBe('Repairs');
+    });
+
+    it('dragging later in the list, and a cancelled pointer still drops where it is', () => {
+      renderApp('/home/customise', manager);
+      fireEvent.pointerDown(grip('checklists'), { pointerId: 1 });
+      pointAt('food');
+      fireEvent.pointerMove(window, { pointerId: 1, clientX: 20, clientY: 20 });
+      expect(onHome().slice(0, 4)).toEqual(['End of day report', 'Stock', 'Food safety', 'Checklists']);
+      fireEvent.pointerCancel(window, { pointerId: 1 });
+      expect(saved('manager', 'Jo').order.slice(0, 4)).toEqual(['eod', 'stock', 'food', 'checklists']);
+    });
+  });
+
+  it('Reset (in the bar) goes back to the usual layout, with Undo', async () => {
     const { user } = renderApp('/home/customise', manager);
     await user.click(screen.getByRole('button', { name: 'Hide Checklists' }));
     await user.click(screen.getByRole('button', { name: 'Move Repairs earlier' }));
     expect(onHome()).toEqual(['End of day report', 'Stock', 'Repairs', 'Food safety', 'Handover', 'Recipes']);
-    await user.click(screen.getByRole('button', { name: 'Reset to the usual layout' }));
+    await user.click(within(document.querySelector<HTMLElement>('header.cz-bar')!).getByRole('button', { name: 'Reset' }));
     expect(screen.getByRole('status')).toHaveTextContent('Back to the usual layout');
     expect(onHome()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Repairs', 'Handover', 'Recipes']);
     expect(saved('manager', 'Jo')).toBeNull();
@@ -428,53 +492,142 @@ describe('Your day', () => {
 });
 
 describe('Smart stack', () => {
-  it('puts late checklists first, then what needs doing now, and counts them', () => {
+  const stackFor = (role: string, name: string) => localStorage.setItem(key(role, name), JSON.stringify({ order: ['stack'], hidden: [] }));
+  /** The cards, in the order they are stacked (most urgent first). */
+  const cards = () => [...region('Smart stack').querySelectorAll<HTMLElement>('li.wstk-card')];
+  const names = () => cards().map((c) => c.getAttribute('aria-label'));
+  const top = () => region('Smart stack').querySelector<HTMLElement>('li.wstk-card.top')!;
+  const then = () => region('Smart stack').querySelector('.wstk-then')?.textContent;
+  const dot = (name: string) => within(region('Smart stack')).getByRole('button', { name: `Show ${name}` });
+
+  it('one card per topic, most urgent first: a late checklist puts Checklists on top', () => {
     at('2026-10-05T09:00:00Z'); // 10:00 BST: Opening checks 30 min late
-    localStorage.setItem(key('manager', 'Jo'), JSON.stringify({ order: ['stack'], hidden: [] }));
+    stackFor('manager', 'Jo');
     renderApp('/', manager);
-    const stack = region('Smart stack');
-    const cards = within(within(stack).getByRole('list', { name: 'Most urgent first' })).getAllByRole('listitem');
-    expect(cards[0]).toHaveTextContent(/^ChecklistOpening checks30 min lateStart$/);
-    expect(cards[0]).toHaveClass('bad');
-    expect(within(cards[0]!).getByRole('link')).toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|opening|09:30'));
-    expect(stack.querySelector('.wmeta')).toHaveTextContent(`1 of ${cards.length}`);
-    // Everything urgent (red) comes before anything that's only to do today.
-    const tones = cards.map((c) => c.classList.contains('bad'));
-    expect(tones.indexOf(false)).toBeGreaterThan(tones.lastIndexOf(true));
+    expect(names()).toEqual(['1 of 3: Checklists', '2 of 3: Food safety', '3 of 3: End of day report']);
+    const [lists, food, eod] = cards();
+    expect(lists).toHaveClass('top');
+    expect(lists!.querySelector('.wmeta')).toHaveTextContent('1 of 3 · swipe');
+    // Checklists: a ring, how many are done, the urgent list in a pill, and Start.
+    expect(lists!.querySelector('svg.wring')).not.toBeNull();
+    expect(lists!.querySelector('.wtile')).toHaveTextContent(/^0 of 6 done$/);
+    expect(lists!.querySelector('.pill')).toHaveTextContent('Opening checks · 30 min late');
+    expect(lists!.querySelector('.pill')).toHaveClass('p-bad');
+    expect(within(lists!).getByRole('link', { name: 'Start opening checks' })).toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|opening|09:30'));
+    // Food safety: how many to do, the first in a pill, no ring.
+    expect(food!.querySelector('svg.wring')).toBeNull();
+    expect(food!.querySelector('.wtile')).toHaveTextContent(/^\d+ to do$/);
+    expect(food!.querySelector('.pill')).not.toBeNull();
+    expect(food!.querySelector('a.mini')).toHaveTextContent('Open food safety');
+    expect(food!.querySelector('a.mini')).toHaveAttribute('href', '/food-safety');
+    // The end of day report: sections done, with a ring.
+    expect(eod!.querySelector('.wtile')).toHaveTextContent(/^0 of 8 sections$/);
+    expect(eod!.querySelector('svg.wring')).not.toBeNull();
+    // Only the top card can be read or used; the rest wait behind it.
+    for (const c of [food!, eod!]) {
+      expect(c).toHaveAttribute('aria-hidden', 'true');
+      expect(c).toHaveAttribute('inert');
+    }
+    expect(lists).not.toHaveAttribute('inert');
+    expect(lists).toHaveAttribute('aria-hidden', 'false');
+    expect(then()).toBe('Then: Food safety · End of day report');
   });
 
-  it('every overdue checklist comes before anything else; one only due waits behind the urgent things', () => {
-    at('2026-10-05T10:50:00Z'); // 11:50 BST: Opening checks missed, Hot holding 12:00 due
-    localStorage.setItem(key('manager', 'Jo'), JSON.stringify({ order: ['stack'], hidden: [] }));
+  it('a list only due waits behind something urgent; nothing urgent goes last', () => {
+    at('2026-10-05T08:20:00Z'); // 09:20 BST: Opening checks due in 10 min
+    stackFor('manager', 'Jo');
     renderApp('/', manager);
-    const cards = within(region('Smart stack')).getAllByRole('listitem');
-    const kinds = cards.map((c) => c.querySelector('small')!.textContent);
-    expect(cards[0]).toHaveTextContent(/^ChecklistOpening checksMissed/);
-    const due = cards.findIndex((c) => /Hot holding · 12:00/.test(c.textContent ?? ''));
-    expect(cards[due]).toHaveTextContent('Due in 10 min');
-    // The urgent food safety items are ahead of the due list.
-    expect(kinds.slice(1, due).every((k) => k === 'Food safety')).toBe(true);
-    expect(due).toBeGreaterThan(1);
+    // Food safety has something to do now (red); the due list is amber; the EOD has nothing wrong.
+    expect(names()).toEqual(['1 of 3: Food safety', '2 of 3: Checklists', '3 of 3: End of day report']);
+    expect(cards()[0]!.querySelector('.pill')).toHaveClass('p-bad');
+    expect(cards()[1]!.querySelector('.pill')).toHaveTextContent('Opening checks · due in 10 min');
+    expect(cards()[1]!.querySelector('.pill')).toHaveClass('p-warn');
+    expect(cards()[2]!.querySelector('.pill')).toBeNull();
+    expect(top()).toHaveAccessibleName('1 of 3: Food safety');
   });
 
-  it('a late list comes before a missed one: it can still be done in its window', () => {
-    at('2026-10-05T11:10:00Z'); // 12:10 BST: Hot holding 12:00 is 10 min late; Opening checks missed
-    localStorage.setItem(key('manager', 'Jo'), JSON.stringify({ order: ['stack'], hidden: [] }));
-    renderApp('/', manager);
-    const cards = within(region('Smart stack')).getAllByRole('listitem');
-    expect(cards[0]).toHaveTextContent(/^ChecklistHot holding · 12:0010 min lateStart$/);
-    expect(cards[0]).toHaveClass('bad');
-    expect(within(cards[0]!).getByRole('link')).toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|hothold|12:00'));
-    expect(cards[1]).toHaveTextContent(/^ChecklistOpening checksMissed/);
-    expect(cards[1]).toHaveClass('warn');
-    expect(within(cards[1]!).getByRole('link')).toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|opening|09:30'));
+  it('staff never get the End of day report card; supervisors do', () => {
+    stackFor('staff', 'Sam');
+    const { unmount } = renderApp('/', staff);
+    expect(names()).toEqual(['1 of 2: Checklists', '2 of 2: Food safety']);
+    expect(region('Smart stack')).not.toHaveTextContent(/End of day report|sections/);
+    expect(then()).toBe('Then: Food safety');
+    unmount();
+    stackFor('supervisor', 'Jo');
+    renderApp('/', supervisor);
+    expect(names()).toContain('3 of 3: End of day report');
   });
 
-  it('with no checklists, there are no checklist cards', () => {
-    localStorage.setItem(key('staff', 'Sam'), JSON.stringify({ order: ['stack'], hidden: [] }));
+  it('the dots and the arrow keys change the top card and the Then line', async () => {
+    stackFor('manager', 'Jo');
+    const { user } = renderApp('/', manager);
+    expect(dot('Checklists')).toHaveAttribute('aria-current', 'true');
+    expect(dot('Food safety')).not.toHaveAttribute('aria-current');
+    await user.click(dot('End of day report'));
+    expect(top()).toHaveAccessibleName('3 of 3: End of day report');
+    expect(top().querySelector('.wmeta')).toHaveTextContent('3 of 3 · swipe');
+    expect(dot('End of day report')).toHaveAttribute('aria-current', 'true');
+    expect(dot('Checklists')).not.toHaveAttribute('aria-current');
+    expect(then()).toBe('Then: Checklists · Food safety');
+    expect(cards()[0]).toHaveAttribute('inert');
+    // Right goes round to the first again; left goes back.
+    await user.keyboard('{ArrowRight}');
+    expect(top()).toHaveAccessibleName('1 of 3: Checklists');
+    expect(then()).toBe('Then: Food safety · End of day report');
+    await user.keyboard('{ArrowLeft}');
+    expect(top()).toHaveAccessibleName('3 of 3: End of day report');
+    await user.keyboard('{ArrowLeft}');
+    expect(top()).toHaveAccessibleName('2 of 3: Food safety');
+    expect(dot('Food safety')).toHaveAttribute('aria-current', 'true');
+    expect(then()).toBe('Then: End of day report · Checklists');
+  });
+
+  it('a swipe of more than 80px moves to the next card; a shorter one snaps back', async () => {
+    stackFor('manager', 'Jo');
+    renderApp('/', manager);
+    const swipe = (dx: number) => {
+      const li = top();
+      fireEvent.pointerDown(li, { pointerId: 1, button: 0, clientX: 200 });
+      fireEvent.pointerMove(li, { pointerId: 1, buttons: 1, clientX: 200 + dx / 2 });
+      fireEvent.pointerMove(li, { pointerId: 1, buttons: 1, clientX: 200 + dx });
+      fireEvent.pointerUp(li, { pointerId: 1, clientX: 200 + dx });
+    };
+    // Short: back where it was.
+    swipe(-60);
+    expect(top()).toHaveAccessibleName('1 of 3: Checklists');
+    expect(then()).toBe('Then: Food safety · End of day report');
+    // Exactly 80 isn't enough.
+    swipe(-80);
+    expect(top()).toHaveAccessibleName('1 of 3: Checklists');
+    // Left past 80px: the next card.
+    swipe(-120);
+    expect(top()).toHaveAccessibleName('2 of 3: Food safety');
+    expect(dot('Food safety')).toHaveAttribute('aria-current', 'true');
+    expect(then()).toBe('Then: End of day report · Checklists');
+    // Right past 80px: back one.
+    swipe(120);
+    expect(top()).toHaveAccessibleName('1 of 3: Checklists');
+    // The drag lets go of the card after the gesture.
+    await act(async () => { await new Promise((r) => setTimeout(r, 400)); });
+    expect(region('Smart stack').querySelector('.wstk-deck')).not.toHaveClass('dragging');
+  });
+
+  it('a tap on the top card\'s button still opens it', async () => {
+    at('2026-10-05T09:00:00Z');
+    stackFor('manager', 'Jo');
+    const { user } = renderApp('/', manager);
+    await user.click(within(top()).getByRole('link', { name: 'Start opening checks' }));
+    // The pointer went down and up without moving, so it's a tap, not a swipe: the list opens.
+    expect(screen.queryByRole('region', { name: 'Smart stack' })).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Freezer')).toBeInTheDocument();
+  });
+
+  it('with no checklists, there is no Checklists card', () => {
+    stackFor('staff', 'Sam');
     localStorage.setItem('mgh.templates.v1', '[]');
     renderApp('/', staff);
-    expect(within(region('Smart stack')).queryByText('Checklist')).not.toBeInTheDocument();
+    expect(names()).not.toContain(expect.stringMatching(/Checklists$/));
+    expect(within(region('Smart stack')).queryByRole('button', { name: 'Show Checklists' })).not.toBeInTheDocument();
   });
 });
 

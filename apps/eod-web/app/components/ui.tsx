@@ -162,16 +162,17 @@ export function SignedTempInput({ value, onChange, label, invalid, disabled, neg
   const input = useRef<HTMLInputElement>(null);
   return (
     // The field is right-aligned and sized to its digits, so the sign sits right next to the number.
-    // A tap anywhere on the box focuses it.
-    <span className={`tfield${invalid ? ' bad' : ''}`} onClick={(e) => { if (e.target === e.currentTarget) input.current?.focus(); }}>
+    // A tap anywhere but the sign focuses the field, so an empty box is easy to type into.
+    <span className={`tfield${invalid ? ' bad' : ''}`} onClick={(e) => { if (!(e.target as HTMLElement).closest('.tsign')) input.current?.focus(); }}>
+      <input ref={input} type="text" inputMode="decimal" enterKeyHint="next" disabled={disabled} aria-label={label}
+        placeholder={placeholder} value={shown} onKeyDown={nextEmptyOnEnter} onChange={(e) => type(e.target.value)}
+        style={{ width: `${Math.max(shown.length, 2) + 0.4}ch` }} />
+      {/* After the input in the page, drawn before it: a wrapping <label> then focuses the field, never the sign. */}
       {showSign && (
         <button type="button" className="tsign" disabled={disabled} aria-label={`Below zero: ${label}`} aria-pressed={neg}
           // Keep the keyboard up: don't take focus from the field.
           onPointerDown={(e) => e.preventDefault()} onClick={flip}>{neg ? '−' : '+'}</button>
       )}
-      <input ref={input} type="text" inputMode="decimal" enterKeyHint="next" disabled={disabled} aria-label={label}
-        placeholder={placeholder} value={shown} onKeyDown={nextEmptyOnEnter} onChange={(e) => type(e.target.value)}
-        style={{ width: `${Math.max(shown.length, 1) + 0.1}ch` }} />
       <span className="tunit" aria-hidden="true" onClick={() => input.current?.focus()}>°C</span>
     </span>
   );
