@@ -70,9 +70,9 @@ export default function CashCount() {
   return (
     <main className="page">
       <header className="nav" style={{ paddingLeft: 20 }}>
-        <Link to={`/close/${session}`} style={{ textDecoration: 'none' }}>Cancel</Link>
+        <Link to={`/close/${session}?step=cash`} style={{ textDecoration: 'none' }}>Cancel</Link>
         <span className="title">Count the cash</span>
-        <Link to={`/close/${session}`} style={{ textDecoration: 'none', fontWeight: 600 }}>Done</Link>
+        <Link to={`/close/${session}?step=cash`} style={{ textDecoration: 'none', fontWeight: 600 }}>Done</Link>
       </header>
       <div className="body" style={{ gap: 32 }}>
         <FirstTimeTip id="cash" title="First time counting?">Add the notes and coins in the drawer and type how many of each. We add it up and take off the {formatPounds(settings.float)} float.</FirstTimeTip>

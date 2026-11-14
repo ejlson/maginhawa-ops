@@ -24,7 +24,7 @@ describe('switching site', () => {
     joAt('BUN', ['GUA']);
     const { user } = renderApp('/', manager);
     await user.click(screen.getByRole('button', { name: /^Bunso/ }));
-    const sheet = screen.getByRole('dialog', { name: 'Your sites' });
+    const sheet = screen.getByRole('dialog', { name: 'Switch site' });
     expect(within(sheet).getAllByRole('option').map((o) => o.textContent)).toEqual([expect.stringMatching(/^BUBunso/), expect.stringMatching(/^GBGuanabana/)]);
     await user.click(within(sheet).getByRole('option', { name: /Guanabana/ }));
     expect(screen.getByRole('button', { name: /^Guanabana/ })).toBeInTheDocument();
@@ -37,7 +37,8 @@ describe('switching site', () => {
     joAt('BUN', ['GUA']);
     const first = renderApp('/close/lunch', manager);
     await first.user.type(screen.getByLabelText('Gross sales'), '100');
-    await first.user.click(screen.getByRole('button', { name: 'Save lunch' }));
+    for (const next of ['Next: covers', 'Next: cash', 'Next: discounts', 'Next: dinner']) await first.user.click(screen.getByRole('button', { name: next }));
+    await first.user.click(await screen.findByRole('link', { name: 'End of day report' }));
     expect(await screen.findByRole('img', { name: '1 of 8 sections done' })).toBeInTheDocument();
     first.unmount();
     const { user } = renderApp('/close', manager);
@@ -62,7 +63,7 @@ describe('head office in a site', () => {
     expect(screen.getByText(/as head office/)).toHaveTextContent('Viewing Guanabana as head office');
     expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'EOD' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /^Guanabana/ }));
-    const sheet = screen.getByRole('dialog', { name: 'Sites' });
+    const sheet = screen.getByRole('dialog', { name: 'Switch site' });
     expect(within(sheet).getAllByRole('option')).toHaveLength(8);
     await user.type(within(sheet).getByLabelText('Find a site'), 'bel');
     await user.click(within(sheet).getByRole('option', { name: /Belly/ }));
@@ -103,7 +104,7 @@ describe('My sites', () => {
     joAt('BUN', ['GUA']);
     const { user } = renderApp('/', manager);
     await user.click(screen.getByRole('button', { name: /^Bunso/ }));
-    await user.click(screen.getByRole('button', { name: /^My sites/ }));
+    await user.click(screen.getByRole('button', { name: /^All my sites/ }));
     expect(await screen.findByRole('heading', { name: 'My sites' })).toBeInTheDocument();
     const table = screen.getByRole('table', { name: 'Sites' });
     expect(within(table).getAllByRole('row').slice(1).map((r) => r.getAttribute('aria-label'))).toEqual(['Bunso: open', 'Guanabana: open']);
