@@ -88,7 +88,7 @@ export const staff: User = { name: 'Sam', initials: 'S', role: 'staff', siteCode
 export const supervisor: User = { name: 'Jo', initials: 'JO', role: 'supervisor', siteCode: 'BUN' };
 
 export function renderApp(path: string, user: User | null = manager) {
-  const u = userEvent.setup();
+  const u = userEvent.setup({ delay: null });
   const utils = render(
     <AuthProvider initialUser={user}>
       <MemoryRouter initialEntries={[path]}>
