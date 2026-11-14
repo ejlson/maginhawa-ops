@@ -65,7 +65,8 @@ describe('end-of-day report on two devices', () => {
     expect(alert).toHaveTextContent('Nothing was sent twice.');
     await user.click(within(alert).getByRole('link', { name: 'See the sent report' }));
     expect(await screen.findByRole('heading', { name: 'Day closed' })).toBeInTheDocument();
-    expect(screen.getByText(/Sent at 23:48 by Sam/)).toBeInTheDocument();
+    // The receipt has Sam's send time, not this device's.
+    expect(document.querySelector('.sent-pill')).toHaveTextContent('Saved on this device · 23:48');
     expect(await deviceStore().listByDate('2026-10-05')).toHaveLength(1);
   });
 

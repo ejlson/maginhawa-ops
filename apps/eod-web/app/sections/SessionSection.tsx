@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { CASH_REASONS, formatPounds, SECTION_LABELS, type AdjustmentLine, type SessionKey } from '@maginhawa/core';
 import { useDraft } from '../lib/draft';
 import { BigMoney, Chevron, CountInput, Icon, MoneyInput, MoneyRow } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 import { EodPage } from '../components/EodPage';
+import { useEffect } from 'react';
 import { AddedInputs } from './AddedInputs';
 
 const ADJ_REASONS: Record<AdjustmentLine['kind'], string[]> = {
@@ -23,6 +24,20 @@ export function SessionSection({ session }: { session: SessionKey }) {
   const set = (change: (x: typeof s) => void) => update((d) => change(d.sessions[session]));
 
   const [adding, setAdding] = useState<null | { kind: AdjustmentLine['kind']; reason: string; amount: number | null; note: string }>(null);
+  // Design P4: one step at a time: Till, Covers, Cash, Discounts. The stepper jumps between them.
+  const STEPS = ['Till', 'Covers', 'Cash', 'Discounts'];
+  // The step comes from the address (?step=cash), or from the field being returned to (?at=Till says),
+  // so "Pick up where you left off" and coming back from the cash count open the right step.
+  const [params, setParams] = useSearchParams();
+  const FIELD_STEP: Record<string, number> = { 'Booked covers': 1, 'Walk-in covers': 1, 'Till says': 2, 'Line amount': 3, 'Line note': 3, 'Note about the cash difference': 2 };
+  const stepI = (() => {
+    const named = STEPS.findIndex((n) => n.toLowerCase() === (params.get('step') ?? '').toLowerCase());
+    if (named >= 0) return named;
+    return FIELD_STEP[params.get('at') ?? ''] ?? 0;
+  })();
+  const setStep = (i: number) => setParams((p) => { const n = new URLSearchParams(p); n.set('step', STEPS[i]!.toLowerCase()); n.delete('at'); return n; }, { replace: true });
+  useEffect(() => { window.scrollTo?.(0, 0); }, [stepI]);
+  const stepState = (i: number) => (i === stepI ? 'on' : i < stepI ? 'done' : '');
 
   const cashPill = r.cash.status === 'balanced' ? ['p-ok', 'Balanced']
     : r.cash.status === 'short' ? ['p-warn', `${formatPounds(Math.abs(r.cash.difference ?? 0))} short`]
@@ -31,30 +46,30 @@ export function SessionSection({ session }: { session: SessionKey }) {
   const gap = r.adjustments.gap;
 
   return (
-    <EodPage section={session}>
-        <div className="hero" role="status" aria-live="polite">
-          <div className="hero-row"><span className="hl">{label} net sales</span></div>
+    <EodPage section={session} step={{ index: stepI, names: STEPS, go: setStep }}>
+        <nav className="eod-steps" aria-label={`${label} steps`}>
+          {STEPS.map((n, i) => (
+            <button key={n} type="button" className={`eod-step ${stepState(i)}`} aria-current={i === stepI ? 'step' : undefined} onClick={() => setStep(i)}>{n}</button>
+          ))}
+        </nav>
+        <div className="hero eod-card" role="status" aria-live="polite">
+          <span className="hl">{label} net · updates as you type</span>
           <BigMoney value={r.net} />
-          <div className="hm">
-            <span>{formatPounds(s.gross ?? 0).replace(/\.\d\d$/, '')}<small>Gross</small></span>
-            <span>{r.covers}<small>Covers</small></span>
-            <span>{r.perHead !== null ? formatPounds(r.perHead) : '—'}<small>A head</small></span>
-          </div>
+          <span className="eod-formula">Gross − service − VAT − discounts</span>
         </div>
 
-        <section className="grp">
-          <div className="gh"><h2>Sales</h2><p>Copy these from the end-of-service report. Net works itself out.</p></div>
+        {stepI === 0 && <section className="grp eod-fields">
+          <div className="hd"><h2>From the till report</h2><span>Z report</span></div>
           <div className="sub">
-            <div className="sl"><span>From the till</span></div>
-            <MoneyRow label="Gross sales" value={s.gross} onChange={(v) => set((x) => { x.gross = v; })} />
-            <MoneyRow label="Service charge" value={s.serviceCharge} onChange={(v) => set((x) => { x.serviceCharge = v; })} />
-            <MoneyRow label="VAT" value={s.vat} onChange={(v) => set((x) => { x.vat = v; })} />
-            <MoneyRow label="Discounts & comps" value={s.discounts} onChange={(v) => set((x) => { x.discounts = v; })} />
-            <div className="fr tot"><span>Net sales</span><span data-testid="net">{formatPounds(r.net)}</span></div>
+            <MoneyRow label="Gross sales" sub="Total on the Z report" value={s.gross} onChange={(v) => set((x) => { x.gross = v; })} />
+            <MoneyRow label="Service charge" sub="Goes to Tips" value={s.serviceCharge} onChange={(v) => set((x) => { x.serviceCharge = v; })} />
+            <MoneyRow label="VAT" sub="From the till" value={s.vat} onChange={(v) => set((x) => { x.vat = v; })} />
+            <MoneyRow label="Discounts and comps" sub="Lines come next" value={s.discounts} onChange={(v) => set((x) => { x.discounts = v; })} />
+            <span className="vh" data-testid="net">{formatPounds(r.net)}</span>
           </div>
 
           <div className="sub">
-            <div className="sl"><span>Food &amp; drink</span><span>{r.foodDrink.foodPct !== null ? `${r.foodDrink.foodPct}% food` : ''}</span></div>
+            <div className="sl"><span>Food and drink</span><span>{r.foodDrink.foodPct !== null ? `${r.foodDrink.foodPct}% food` : ''}</span></div>
             <MoneyRow label="Food" value={s.food} onChange={(v) => set((x) => { x.food = v; x.foodDrinkConfirmed = false; })} />
             <MoneyRow label="Drink" value={s.drink} onChange={(v) => set((x) => { x.drink = v; x.foodDrinkConfirmed = false; })} />
             {(s.food !== null || s.drink !== null) && (r.foodDrink.matches
@@ -71,8 +86,13 @@ export function SessionSection({ session }: { session: SessionKey }) {
             )}
           </div>
 
+        </section>}
+
+        {stepI === 0 && <AddedInputs section={session} />}
+
+        {stepI === 3 && <section className="grp eod-fields">
+          <div className="hd"><h2>Discount and comp lines</h2><span>{formatPounds(r.adjustments.listed)} of {formatPounds(s.discounts ?? 0)}</span></div>
           <div className="sub">
-            <div className="sl"><span>Discount &amp; comp lines</span><span>{formatPounds(r.adjustments.listed)} of {formatPounds(s.discounts ?? 0)}</span></div>
             {s.adjustments.map((a) => (
               <div className="li" key={a.id}>
                 <span className={`av ${a.kind === 'comp' ? 'warn' : ''}`} style={a.kind === 'discount' ? { background: 'rgba(0,113,227,.12)', color: 'var(--link)' } : undefined}>
@@ -114,21 +134,19 @@ export function SessionSection({ session }: { session: SessionKey }) {
               </div>
             )}
           </div>
-        </section>
+        </section>}
 
-        <AddedInputs section={session} />
-
-        <section className="grp">
-          <div className="gh"><h2>Covers</h2></div>
+        {stepI === 1 && <section className="grp eod-fields">
+          <div className="hd"><h2>Covers</h2></div>
           <div className="sub">
             <div className="sl"><span>Guests</span><span>{r.covers} total</span></div>
             <label className="fr"><span>Booked</span><CountInput label="Booked covers" value={s.booked} onChange={(v) => set((x) => { x.booked = v; })} /></label>
             <label className="fr"><span>Walk-ins</span><CountInput label="Walk-in covers" value={s.walkins} onChange={(v) => set((x) => { x.walkins = v; })} /></label>
             <div className="fr"><span className="muted">Gross a head</span><span>{r.perHeadGross !== null ? formatPounds(r.perHeadGross) : '—'}</span></div>
           </div>
-        </section>
+        </section>}
 
-        <section className="grp">
+        {stepI === 2 && <section className="grp eod-fields">
           <div className="gh"><h2>Cash</h2><p>Count the drawer, then copy the cash figure from the till report. Within {formatPounds(settings.cashTolerance)} counts as balanced.</p></div>
           <div className="sub">
             <Link className="li" to={`/close/${session}/cash`}>
@@ -150,7 +168,7 @@ export function SessionSection({ session }: { session: SessionKey }) {
               <textarea className="ta" placeholder="Add a note (optional), e.g. table 4" aria-label="Note about the cash difference" value={s.cash.note} onChange={(e) => set((x) => { x.cash.note = e.target.value; })} />
             </div>
           )}
-        </section>
+        </section>}
     </EodPage>
   );
 }

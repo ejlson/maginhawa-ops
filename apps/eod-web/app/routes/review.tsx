@@ -9,13 +9,16 @@ import { BigMoney, Foot, Icon, Nav } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 import { AddedFigures } from '../sections/AddedInputs';
 
+/** Which step of Lunch or Dinner holds what needs sorting (P4), so Finish opens it there. */
+const stepFor = (code: string) => (code.startsWith('cash') ? '?step=cash' : code.startsWith('adjustments') ? '?step=discounts' : code.startsWith('covers') ? '?step=covers' : '');
+
 /** One thing to look at before sending: what it is, why, and one button to sort it (P8). */
 function CheckRow({ i }: { i: Issue }) {
   const tone = i.level === 'block' ? 't-bad' : i.level === 'warn' ? 't-warn' : 't-ok';
   return (
     <div className="li rv-check">
       <span className="tx"><span>{i.title}</span><small className={tone}>{i.detail}</small></span>
-      {i.level !== 'ok' && <Link className="chip sm" to={`/close/${i.section}`}>{i.level === 'block' ? 'Finish' : 'Check'}<span className="vh"> {SECTION_LABELS[i.section]}</span></Link>}
+      {i.level !== 'ok' && <Link className="chip sm" to={`/close/${i.section}${stepFor(i.code)}`}>{i.level === 'block' ? 'Finish' : 'Check'}<span className="vh"> {SECTION_LABELS[i.section]}</span></Link>}
     </div>
   );
 }

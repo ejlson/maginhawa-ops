@@ -117,13 +117,22 @@ describe('roles', () => {
 });
 
 describe('lunch', () => {
+  /** The stepper at the top of Lunch (design P4): Till, Covers, Cash, Discounts. */
+  const steps = () => screen.getByRole('navigation', { name: 'Lunch steps' });
+  const stepTo = (name: string) => within(steps()).getByRole('button', { name });
+
   it('works out net sales as the manager types (discounts subtracted)', async () => {
     const { user } = renderApp('/close/lunch');
     await user.type(screen.getByLabelText('Gross sales'), '£1,200.00');
     await user.type(screen.getByLabelText('Service charge'), '120');
     await user.type(screen.getByLabelText('VAT'), '180');
-    await user.type(screen.getByLabelText('Discounts & comps'), '50');
+    await user.type(screen.getByLabelText('Discounts and comps'), '50');
     expect(screen.getByTestId('net')).toHaveTextContent('£850.00');
+    // The card shows the same net, says it updates as you type, and how it is worked out.
+    const card = document.querySelector<HTMLElement>('.eod-card')!;
+    expect(card).toHaveTextContent('Lunch net · updates as you type');
+    expect(card).toHaveTextContent('£850.00');
+    expect(card).toHaveTextContent('Gross − service − VAT − discounts');
   });
 
   it('editing a filled field replaces the figure instead of adding to "£180.00"', async () => {
@@ -152,6 +161,7 @@ describe('lunch', () => {
 
   it('asks for a reason when cash is out by more than £1', async () => {
     const { user } = renderApp('/close/lunch');
+    await user.click(stepTo('Cash'));
     await user.type(screen.getByLabelText('Till says'), '20');
     // Nothing counted: £0 − £150 float − £20 till = £170 short.
     expect(screen.getByTestId('cash-status')).toHaveTextContent('£170.00 short');
@@ -163,7 +173,8 @@ describe('lunch', () => {
 
   it('adds a discount line and shows what is still to list', async () => {
     const { user } = renderApp('/close/lunch');
-    await user.type(screen.getByLabelText('Discounts & comps'), '50');
+    await user.type(screen.getByLabelText('Discounts and comps'), '50');
+    await user.click(stepTo('Discounts'));
     await user.click(screen.getByRole('button', { name: 'Add discount, comp or void' }));
     await user.click(screen.getByRole('button', { name: 'Staff meal 20%' }));
     await user.type(screen.getByLabelText('Line amount'), '9.40');
@@ -174,7 +185,11 @@ describe('lunch', () => {
   it('saving marks the section done on the hub', async () => {
     const { user } = renderApp('/close/lunch');
     await user.type(screen.getByLabelText('Gross sales'), '100');
-    await user.click(screen.getByRole('button', { name: 'Save lunch' }));
+    // Next walks through the steps; the last one saves lunch and goes on to dinner.
+    for (const next of ['Next: covers', 'Next: cash', 'Next: discounts']) await user.click(screen.getByRole('button', { name: next }));
+    await user.click(screen.getByRole('button', { name: 'Next: dinner' }));
+    expect(await screen.findByRole('navigation', { name: 'Dinner steps' })).toBeInTheDocument();
+    await user.click(screen.getByRole('link', { name: 'End of day report' }));
     expect(await screen.findByRole('heading', { name: 'End of day report' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: '1 of 8 sections done' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Sales' }).querySelector('.cl-hd')).toHaveTextContent('Sales1 of 4 done');
@@ -273,7 +288,7 @@ describe('review and submit', () => {
     const row = checks.querySelector<HTMLElement>('.rv-check')!;
     expect(row.querySelector('small')).toHaveClass('t-bad');
     expect(row).toHaveTextContent('Add a reason to submit.');
-    expect(within(row).getByRole('link', { name: /^Finish\s*Dinner$/ })).toHaveAttribute('href', '/close/dinner');
+    expect(within(row).getByRole('link', { name: /^Finish\s*Dinner$/ })).toHaveAttribute('href', '/close/dinner?step=cash');
   });
 
   it('the card links each session to its section, and says when one didn\'t run', async () => {
@@ -341,7 +356,7 @@ describe('review and submit', () => {
     const checks = screen.getByRole('region', { name: 'Before you send' });
     expect(checks.querySelector('.hd')).toHaveTextContent('2 to finish');
     expect(within(checks).getByRole('link', { name: /^Finish\s*Wages/ })).toHaveAttribute('href', '/close/wages');
-    expect(within(checks).getByRole('link', { name: /^Finish\s*Dinner$/ })).toHaveAttribute('href', '/close/dinner');
+    expect(within(checks).getByRole('link', { name: /^Finish\s*Dinner$/ })).toHaveAttribute('href', '/close/dinner?step=cash');
     expect(screen.getByText('Finish 2 things first')).toBeInTheDocument();
   });
 
@@ -403,9 +418,9 @@ describe('review and submit', () => {
     await user.click(screen.getByRole('checkbox'));
     await user.click(screen.getByRole('button', { name: 'Send Monday · £2,687.50' }));
     const heading = await screen.findByRole('heading', { name: 'Day closed' });
-    // Straight after sending, the one animated moment plays, with the day's key figures.
+    // Straight after sending, the one animated moment plays, with the day and its net.
     expect(heading.closest('main')).toHaveClass('celebrate');
-    expect(screen.getByText('29.8%')).toBeInTheDocument();
+    expect(screen.getByText('Bunso · Monday 5 Oct · £2,687.50 net')).toBeInTheDocument();
     const saved = await deviceStore().get('BUN', '2026-10-05');
     expect(saved?.status).toBe('submitted');
     expect(saved?.official?.totalNet).toBe(268750);

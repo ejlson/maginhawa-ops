@@ -1,21 +1,29 @@
 /**
- * One EOD section's screen. On phones: the form with a save button at the bottom. On desktop and
+ * One EOD section's screen (design P4). On phones: the form, then "Next: …" floating at the bottom with
+ * "Saved on this phone · 21:42" under it. A section with steps (Lunch, Dinner) passes its own step count
+ * and button; the last step, like every other section, saves and goes to the next section. On desktop and
  * iPad: the form in two columns with a panel on the right (day so far, what's left, save and go to
  * the next section). ⌘↵ / Ctrl+Enter saves and moves on.
  */
 import { useEffect, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { formatPounds, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
-import { useDraft } from '../lib/draft';
+import { timeHM, useDraft } from '../lib/draft';
 import { Foot, Nav } from './ui';
 import { EOD_SALES, EOD_TEAM } from './site-shell-helpers';
 import { useWide } from '../lib/wide';
 
 const ORDER = [...EOD_SALES, ...EOD_TEAM];
 
-export function EodPage({ section, children }: { section: SectionKey; children: ReactNode }) {
+/** A section done in steps: which one is showing, the step names, and how to show another. */
+export interface EodStep { index: number; names: string[]; go: (i: number) => void }
+
+/** The label for the button that finishes a section and moves on. */
+export function nextLabel(next: SectionKey | undefined) { return next ? `Next: ${SECTION_LABELS[next].toLowerCase()}` : 'Review and send'; }
+
+export function EodPage({ section, step, children }: { section: SectionKey; step?: EodStep; children: ReactNode }) {
   const navigate = useNavigate();
-  const { draft, result, update, progress } = useDraft();
+  const { draft, result, update, progress, savedAt } = useDraft();
   const label = SECTION_LABELS[section];
   const wide = useWide();
 
@@ -26,10 +34,13 @@ export function EodPage({ section, children }: { section: SectionKey; children: 
 
   const save = (to: string) => { update((d) => { d.completed[section] = true; }); navigate(to); };
   const saveAndNext = () => save(next ? `/close/${next}` : '/close/review');
+  // A section in steps finishes its steps first, on every screen size, before it is saved and left.
+  const moreSteps = step && step.index < step.names.length - 1;
+  const advance = () => (moreSteps ? step!.go(step!.index + 1) : saveAndNext());
 
   useEffect(() => {
     if (!wide) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); saveAndNext(); } };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); advance(); } };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
@@ -49,7 +60,8 @@ export function EodPage({ section, children }: { section: SectionKey; children: 
 
   return (
     <main className="page eod-page">
-      <Nav back="/close" title={label} right={<span className="saved"><span className="dot" />Saved</span>} />
+      <Nav back="/close" backLabel="End of day report" title={label}
+        right={step ? <span className="eod-count">{step.index + 1}/{step.names.length}</span> : <span className="saved"><span className="dot" />Saved</span>} />
       <div className="eod-wrap">
         <div className="body form eod-form">{children}</div>
         {wide && <aside className="eod-rail" aria-label="Day so far">
@@ -63,8 +75,8 @@ export function EodPage({ section, children }: { section: SectionKey; children: 
             <div className="hd"><h2>Still to do</h2><span>{left.length}</span></div>
             <span className="eod-left">{left.length ? left.map((k) => SECTION_LABELS[k]).join(', ') + '.' : 'Nothing else. This is the last one.'}</span>
           </div>
-          <button type="button" className="btn b1" onClick={saveAndNext}>
-            {next ? `Save and go to ${SECTION_LABELS[next]}` : 'Save and review'}
+          <button type="button" className="btn b1" onClick={advance}>
+            {moreSteps ? `Next: ${step!.names[step!.index + 1]!.toLowerCase()}` : next ? `Save and go to ${SECTION_LABELS[next]}` : 'Save and review'}
             <span className="kbd" aria-hidden="true">⌘↵</span>
           </button>
           <Link className="btn b2" to="/close/review">
@@ -73,7 +85,10 @@ export function EodPage({ section, children }: { section: SectionKey; children: 
         </aside>}
       </div>
       {!wide && <Foot>
-        <button type="button" className="btn b1" onClick={() => save('/close')}>Save {label.toLowerCase()}</button>
+        {step && step.index < step.names.length - 1
+          ? <button type="button" className="btn b1" onClick={() => step.go(step.index + 1)}>Next: {step.names[step.index + 1]!.toLowerCase()}</button>
+          : <button type="button" className="btn b1" onClick={saveAndNext}>{nextLabel(next)}</button>}
+        <p className="note">{savedAt ? `Saved on this phone · ${timeHM(savedAt)}` : 'Saves on this phone as you type'}</p>
       </Foot>}
     </main>
   );
