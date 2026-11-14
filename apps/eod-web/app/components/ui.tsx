@@ -7,8 +7,9 @@ import { SECTION_ICONS, plainPounds, nextOnEnter, nextEmptyOnEnter, flipSign, to
 
 export function Chevron() {
   return (
-    <svg className="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M1.5 1.5L6.5 7l-5 5.5" />
+    // As the boards: a 14px chevron, stroke 2.4, in the light grey.
+    <svg className="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 6l6 6-6 6" />
     </svg>
   );
 }
