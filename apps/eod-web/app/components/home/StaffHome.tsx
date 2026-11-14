@@ -9,7 +9,8 @@ import { ICONS } from '../ui-helpers';
 import { TabBar } from '../TabBar';
 import { HomeHeader } from './shared';
 import { firstName, useToday } from './shared-helpers';
-import { checklistStep, ChecklistCard, ChecklistsSection, EndOfDaySection, FoodSafetySection, RepairsSection, service } from './today';
+import { checklistStep, ChecklistCard, service } from './today';
+import { RingsCard, useCardStyle, WidgetGrid } from './widgets';
 
 export function StaffHome() {
   const { user } = useAuth();
@@ -18,7 +19,9 @@ export function StaffHome() {
   const { at, tasks, urgent, next } = useToday();
   const wide = useTwoColumns();
   const reported = Boolean((useLocation().state as { reported?: boolean } | null)?.reported);
-  const card = <ChecklistCard label="Checklists to do today" tour="hero-check" next={checklistStep(urgent[0] ?? next, tasks.filter((t) => t.status === 'missed').length)} />;
+  const step = checklistStep(urgent[0] ?? next, tasks.filter((t) => t.status === 'missed').length);
+  const style = useCardStyle();
+  const card = style === 'rings' ? <RingsCard next={step} tour="hero-check" /> : <ChecklistCard label="Checklists to do today" tour="hero-check" next={step} />;
   const title = (
     <div className="titleblock mh-title">
       <span className="eyebrow">{formatDay(businessDate)}{wide ? '' : service(at, settings.timezone)}</span>
@@ -33,8 +36,7 @@ export function StaffHome() {
         <div className="body mh-desk">
           <div className="mh-head">{title}<span className="saved" data-tour="sync"><span className="dot" />{savedAt ? `All saved · ${timeHM(savedAt)}` : 'Saved on this device'}</span></div>
           {banner}
-          <div className="mh-top">{card}<ChecklistsSection /></div>
-          <div className="mh-pair"><RepairsSection at={at} list={false} report /><div className="mh-stack"><EndOfDaySection eodRow={false} /><FoodSafetySection /></div></div>
+          <WidgetGrid card={card} />
         </div>
       </main>
     );
@@ -46,10 +48,7 @@ export function StaffHome() {
         {title}
         {banner}
         {card}
-        <ChecklistsSection />
-        <EndOfDaySection eodRow={false} />
-        <FoodSafetySection />
-        <RepairsSection at={at} list={false} report />
+        <WidgetGrid />
       </div>
       <TabBar />
     </main>

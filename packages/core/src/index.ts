@@ -33,3 +33,4 @@ export * from './ordering';
 export * from './recipes';
 export * from './safety';
 export * from './records';
+export * from './home';
