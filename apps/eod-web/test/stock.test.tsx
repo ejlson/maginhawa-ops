@@ -21,7 +21,7 @@ describe('stock: counting', () => {
   it('staff count the bar one item at a time and send it, without seeing money', async () => {
     const { user } = renderApp('/stock', staff);
     const hero = screen.getByRole('status');
-    expect(hero).toHaveTextContent('Due today');
+    expect(hero).toHaveTextContent('Due tonight');
     expect(hero).toHaveTextContent('Bar spot count');
     await countBar(user, ['5.4', '7.6', '3.5', '6', '4']);
 
@@ -41,7 +41,7 @@ describe('stock: counting', () => {
     expect(screen.getByRole('status')).toHaveTextContent('5 items are low');
     expect(screen.getByRole('link', { name: "Order what's low" })).toHaveAttribute('href', '/stock/order/bibendum');
     await user.click(screen.getByRole('link', { name: 'Not now' }));
-    await user.click(within(screen.getByRole('region', { name: 'Sent' })).getAllByRole('link', { name: /Bar spot count/ })[0]!);
+    await user.click(within(screen.getByRole('region', { name: 'Past counts' })).getAllByRole('link', { name: /Bar spot count/ })[0]!);
 
     expect(screen.getByText(/sent at 22:00 by Sam/)).toBeInTheDocument();
     expect(screen.getByText('5 items counted')).toBeInTheDocument();
@@ -89,7 +89,7 @@ describe('stock: counting', () => {
 
   it('a manager sees the value of a sent count and corrects a figure; the old one stays', async () => {
     const { user } = renderApp('/stock', manager);
-    const sent = screen.getByRole('region', { name: 'Sent' });
+    const sent = screen.getByRole('region', { name: 'Past counts' });
     expect(within(sent).getAllByText(/£/).length).toBeGreaterThan(0);
     await user.click(within(sent).getByRole('link', { name: /Meat and fish/ }));
     expect(screen.getByText('Worth')).toBeInTheDocument();
@@ -119,6 +119,49 @@ describe('stock: counting', () => {
   it('Stock is in More for everyone', () => {
     renderApp('/more', staff);
     expect(screen.getByRole('link', { name: /Stock/ })).toHaveAttribute('href', '/stock');
+  });
+});
+
+describe('stock: the boards (S1, S5, S6)', () => {
+  it('at a site: no back button, the site line, the title and the tab bar', () => {
+    renderApp('/stock', staff);
+    expect(document.querySelector('.navbar')).toBeNull();
+    expect(document.querySelector('.site-line')).toHaveTextContent('Bunso · Mon 5 Oct');
+    expect(screen.getByRole('heading', { name: 'Stock', level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Sent' })).not.toBeInTheDocument();
+  });
+
+  it('head office outside a site keeps the way back and has no tab bar', () => {
+    renderApp('/stock', admin);
+    expect(document.querySelector('.navbar .backbtn')).toHaveAttribute('href', '/head-office');
+    expect(document.querySelector('.navbar .backbtn')).toHaveTextContent('Head office');
+    expect(document.querySelector('.site-line')).toBeNull();
+    expect(screen.queryByRole('navigation', { name: 'Main' })).not.toBeInTheDocument();
+  });
+
+  it('head office inside a site sees it as the site does', () => {
+    renderApp('/stock', { ...admin, inSite: true });
+    expect(document.querySelector('.navbar')).toBeNull();
+    expect(document.querySelector('.site-line')).toHaveTextContent('Bunso · Mon 5 Oct');
+    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
+  });
+
+  it('the send screen says what the count is worth, without "so far"; what\'s low reads as the boards', async () => {
+    const { user } = renderApp('/stock', manager);
+    await countBar(user, ['5.4', '7.6', '3.5', '6', '4']);
+    expect(screen.getByText(/^Worth £[\d,]+\.\d\d$/)).toBeInTheDocument();
+    expect(screen.queryByText(/so far/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Prosecco DOC is right' }));
+    await user.click(screen.getByRole('button', { name: 'Send count' }));
+
+    const bySupplier = screen.getByRole('region', { name: 'By supplier' });
+    expect(within(bySupplier).getByText('Next order cut-off first')).toBeInTheDocument();
+    expect(within(bySupplier).getByText(/^Low = below the usual level for that item\./)).toBeInTheDocument();
+    expect(screen.queryByText('Soonest cut-off first')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Not now' })).toHaveClass('btn', 'b3');
+    expect(screen.getByRole('link', { name: 'Not now' })).not.toHaveClass('b2');
+    expect(document.querySelector('.navbar .title')).toBeEmptyDOMElement();
   });
 });
 

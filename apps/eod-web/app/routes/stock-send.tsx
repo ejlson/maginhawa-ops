@@ -39,7 +39,7 @@ export default function StockSend() {
         <div className="hero stk-hero">
           <span className="hl">{count.name} · {dayText(count.businessDate, businessDate)}</span>
           <span className="stk-title">{counted} of {total} counted</span>
-          {can.seeStockValue(user.role) && <span className="stk-sub">Worth {formatPounds(countValue(count, data.items).value)} so far</span>}
+          {can.seeStockValue(user.role) && <span className="stk-sub">Worth {formatPounds(countValue(count, data.items).value)}</span>}
         </div>
 
         {left.length + changes.length > 0 ? (

@@ -43,7 +43,7 @@ export default function SafetyAccident() {
 
   return (
     <main className="page">
-      <Nav back="/safety" backLabel="Health and safety" title={`Report an accident · ${step + 1} of 4`} />
+      <Nav back="/safety" backLabel="Health and safety" title="Report an accident" right={<span className="eod-count">{step + 1}/4</span>} />
       <div className="body stk-body">
         <div className="stk-segs">{[0, 1, 2, 3].map((k) => <span key={k} className={k <= step ? 'on' : ''} />)}</div>
         {step === 0 && <div className="sf-q"><p className="sf-question">Who was hurt?</p><Chips label="Who" options={ACCIDENT_WHO} value={who} onPick={setWho} />

@@ -2,6 +2,8 @@
  * Stock (anyone): the one count to do next on the main card, then the site's other regular counts
  * and the last few sent. Designs: design/redesign-canvas/project/S1-Stock.dc.html.
  */
+import { TabBar } from '../components/TabBar';
+import { SiteLine } from '../components/SiteLine';
 import { useNavigate } from 'react-router';
 import { areasFor, countValue, formatPounds, itemIdsOf, type StockPlan } from '@maginhawa/core';
 import { can, recordedAs, useAuth } from '../lib/auth';
@@ -25,6 +27,7 @@ export default function Stock() {
   const navigate = useNavigate();
   const ops = useOps();
   if (!user) return null;
+  const atSite = !(user.role === 'headoffice' && !user.inSite);
   const low = suggestions(data.items, data.counts, ops, user.siteCode).filter((s) => s.packs > 0 && s.onHand !== null)
     .map((s) => ({ ...s, lasts: runsOutText(s.onHand!, dailyUse(s.item.id, ops.data.recipes)) }))
     .sort((a, b) => (a.onHand! / a.par) - (b.onHand! / b.par)).slice(0, 3);
@@ -52,21 +55,23 @@ export default function Stock() {
   const sub = (s: PlanState, plan: StockPlan) => {
     if (s.kind === 'open') return `${Object.keys(s.count.lines).length} of ${itemIdsOf(s.count).length} counted`;
     if (s.kind === 'done') return `Done today at ${hm(s.count.sentAt!)}`;
-    if (s.kind === 'due') return `Due today · ${itemCount(plan)} items`;
+    if (s.kind === 'due') return `Due tonight · ${itemCount(plan)} items`;
     return s.next ? `Next: ${dayText(s.next, today)}` : '';
   };
   const pie = (s: PlanState) => <Pie status={s.kind === 'done' ? 'done' : s.kind === 'open' ? 'started' : 'todo'} />;
 
   return (
-    <main className="page">
-      <Nav back={user.role === 'headoffice' && !user.inSite ? '/head-office' : '/more'} backLabel={user.role === 'headoffice' && !user.inSite ? 'Head office' : 'More'} title="Stock" />
+    <main className={`page${atSite ? ' tabs' : ''}`}>
+      {/* Design S1: at a site, the site line and the tab bar (More); head office keeps its way back. */}
+      {!atSite && <Nav back="/head-office" backLabel="Head office" title="Stock" />}
       <div className="body">
-        <div className="titleblock"><h1>Stock</h1><p className="lead">{settings.siteName}</p></div>
+        {atSite && <SiteLine />}
+        <div className="titleblock mh-title page-title"><h1>Stock</h1>{!atSite && <p className="lead">{settings.siteName}</p>}</div>
 
         <div className="hero stk-hero" role="status">
           {focus ? (
             <>
-              <span className="hl">{focus.state.kind === 'open' ? `Started by ${focus.state.count.startedBy}` : 'Due today'}</span>
+              <span className="hl">{focus.state.kind === 'open' ? `Started by ${focus.state.count.startedBy}` : 'Due tonight'}</span>
               <span className="stk-title">{focus.plan.name}</span>
               <span className="stk-sub">{focus.state.kind === 'open' ? sub(focus.state, focus.plan) : `${itemCount(focus.plan)} items · ${minutesText(itemCount(focus.plan))}`}</span>
               <button type="button" className="upnext" onClick={() => go(focus.plan)}>
@@ -109,7 +114,7 @@ export default function Stock() {
         <section className="grp" aria-label="Orders and waste">
           <div className="hd"><h2>Orders and waste</h2></div>
           <div className="sub">
-            {toCheck.map((o) => <RowLink key={o.id} to={`/stock/delivery/${o.id}`} lead={<span className="av warn"><Icon d={ICONS.check} /></span>}
+            {toCheck.map((o) => <RowLink key={o.id} to={`/stock/delivery/${o.id}`} lead={<span className="av warn"><Icon d={ICONS.truck} /></span>}
               title={`Check in ${ops.supplier(o.supplierId)?.name ?? 'a delivery'}`} sub="Arrived? Tap only what didn't come" />)}
             {can.placeOrders(user.role) && toPlace.length > 0 && <RowLink to="/stock/order" lead={<span className="av warn"><Icon d={ICONS.box} /></span>}
               title={`${toPlace.length} ${toPlace.length === 1 ? 'order' : 'orders'} to place`} sub={toPlace.map((o) => ops.supplier(o.supplierId)?.name).join(', ')} />}
@@ -119,8 +124,8 @@ export default function Stock() {
         </section>
 
         {past.length > 0 && (
-          <section className="grp" aria-label="Sent">
-            <div className="hd"><h2>Sent</h2></div>
+          <section className="grp" aria-label="Past counts">
+            <div className="hd"><h2>Past counts</h2></div>
             <div className="sub">
               {past.map((c) => (
                 <RowLink key={c.id} to={`/stock/count/${c.id}`} lead={<span className="av"><Icon d={c.kind === 'full' ? ICONS.box : ICONS.list} /></span>}
@@ -133,6 +138,7 @@ export default function Stock() {
 
         {!isConnected() && <div className="banner" role="note"><Icon d={ICONS.bang} size={16} /><span>Example stock, saved on this device until the app is connected. Names and figures are made up.</span></div>}
       </div>
+      {atSite && <TabBar />}
     </main>
   );
 }

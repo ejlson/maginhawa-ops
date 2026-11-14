@@ -53,7 +53,7 @@ export default function SafetyCheck() {
 
   return (
     <main className="page">
-      <Nav back="/safety" backLabel="Health and safety" title={`${info.title}${done ? '' : ` · ${i + 1} of ${qs.length}`}`} />
+      <Nav back="/safety" backLabel="Health and safety" title={info.title} right={done ? undefined : <span className="eod-count">{i + 1}/{qs.length}</span>} />
       <div className="body stk-body">
         <div className="hero stk-hero stk-item">
           <span className="hl">{k === 'fire-alarm' ? 'This week' : info.every === 'week' ? 'Weekly' : 'Monthly'}</span>

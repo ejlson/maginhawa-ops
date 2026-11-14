@@ -2179,3 +2179,11 @@ a.wmeta { text-decoration: none; } a.wmeta:hover { color: var(--text); }
 }
 @media (prefers-reduced-motion: reduce) { .tsheet.ssheet { animation: none; } }
 .ssheet .siteopts .menuitem small.warn, .ssheet .siteopts .menuitem small.ok { color: var(--sec); }
+
+/* ---- Batch 3: stock, safety, maintenance (designs S1–S6, HS1–HS3, PM1–PM3) ---- */
+.site-line + .page-title, .site-line + .top > .page-title { margin-top: -12px; }
+.page-title h1 { margin: 0; }
+/* A grey full-width button for "Not now" (S6). */
+.btn.b3 { background: var(--fill); color: var(--text); }
+.stk-chip { gap: 6px; }
+.banner.warn { background: var(--warnbg); color: var(--warn); }

@@ -30,7 +30,7 @@ export default function StockLow() {
 
   return (
     <main className="page">
-      <Nav back="/stock" backLabel="Stock" title="Count sent" />
+      <Nav back="/stock" backLabel="Stock" />
       <div className="body">
         <div className="hero stk-hero" role="status">
           <span className="hl">{count.name} sent{count.sentAt ? ` · ${hm(count.sentAt)}` : ''}</span>
@@ -43,18 +43,18 @@ export default function StockLow() {
         </div>
 
         <section className="grp" aria-label="By supplier">
-          <div className="hd"><h2>By supplier</h2><span>Soonest cut-off first</span></div>
+          <div className="hd"><h2>By supplier</h2><span>Next order cut-off first</span></div>
           <div className="sub">
             {bySupplier.map(({ sup, lines }) => (
-              <RowLink key={sup.id} to={`/stock/order/${sup.id}`} lead={<span className="av"><Icon d={ICONS.box} /></span>}
+              <RowLink key={sup.id} to={`/stock/order/${sup.id}`} lead={<span className="av"><Icon d={ICONS.truck} /></span>}
                 title={sup.name} sub={`${lines.length} ${lines.length === 1 ? 'item' : 'items'} · order by ${sup.orderBy}`}
                 right={<b className="amt">{formatPounds(lines.reduce((n, l) => n + l.packs * l.packPrice, 0))}</b>} />
             ))}
           </div>
-          <p className="lead">Low means below the usual level for that item at this site.</p>
+          <p className="note" style={{ margin: 0 }}>Low = below the usual level for that item. Head office or the manager sets it once.</p>
         </section>
       </div>
-      <Foot><Link className="btn b2" to="/stock">Not now</Link></Foot>
+      <Foot><Link className="btn b3" to="/stock">Not now</Link></Foot>
     </main>
   );
 }

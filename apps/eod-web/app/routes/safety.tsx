@@ -2,6 +2,8 @@
  * Health and safety (HS1): the check due now on the main card, this month's checks, and accidents.
  * Managers see what an accident still needs: a check after a week, and the HSE report (RIDDOR).
  */
+import { TabBar } from '../components/TabBar';
+import { SiteLine } from '../components/SiteLine';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { accidentState, callPointFor, doneThisPeriod, dueBy, SAFETY_CHECKS, type Accident, type SafetyCheckKind } from '@maginhawa/core';
@@ -27,15 +29,17 @@ export default function Safety() {
   const needs = accidents.filter((a) => ['check', 'report'].includes(accidentState(a, today).kind));
   const manager = can.manageAccidents(user.role);
 
+  const atSite = !(user.role === 'headoffice' && !user.inSite);
   return (
-    <main className="page">
-      <Nav back="/more" backLabel="More" title="Health and safety" />
+    <main className={`page${atSite ? ' tabs' : ''}`}>
+      {!atSite && <Nav back="/head-office" backLabel="Head office" title="Health and safety" />}
       <div className="body">
-        <div className="titleblock"><h1>Health and safety</h1></div>
+        {atSite && <SiteLine />}
+        <div className="titleblock mh-title page-title"><h1>Health and safety</h1></div>
         <div className="hero stk-hero" role="status">
           {due ? (
             <>
-              <span className="hl">Due by {dayText(due.by, today)} · {due.every === 'week' ? 'weekly' : 'monthly'}</span>
+              <span className="hl">{(() => { const d = dayText(due.by, today); return /^(Today|Tomorrow)$/.test(d) ? `Due ${d.toLowerCase()}` : `Due by ${d}`; })()} · {due.every === 'week' ? 'weekly' : 'monthly'}</span>
               <span className="stk-title">{due.title}</span>
               <span className="stk-sub">{due.kind === 'fire-alarm' ? `This week: call point ${callPointFor(ops.data.callPoints[site] ?? [], today)}` : due.sub}</span>
               <Link className="upnext" to={`/safety/check/${due.kind}`}><span className="tx"><b>{due.kind === 'fire-alarm' ? 'Start test' : 'Start check'}</b></span><span className="arrow"><Icon d={ICONS.arrow} size={16} /></span></Link>
@@ -65,14 +69,15 @@ export default function Safety() {
           </section>
         )}
 
-        <section className="grp" aria-label="Accidents">
-          <div className="hd"><h2>Accidents</h2>{accidents.length > 0 && <span>{accidents.length} this year</span>}</div>
+        <section className="grp" aria-label="Records">
+          <div className="hd"><h2>Records</h2>{accidents.length > 0 && <span>{accidents.length} this year</span>}</div>
           <div className="sub">
             <RowLink to="/safety/accident" lead={<span className="av"><Icon d={ICONS.plus} /></span>} title="Report an accident" sub="Anyone, straight after" />
             {manager && accidents.slice(0, 3).map((a) => <RowLink key={a.id} lead={<span className="av"><Icon d={ICONS.list} /></span>} title={`${a.what} · ${a.injury.toLowerCase()}`} sub={`${a.name} · ${dayText(a.businessDate, today)}`} />)}
           </div>
         </section>
       </div>
+      {atSite && <TabBar />}
     </main>
   );
 }

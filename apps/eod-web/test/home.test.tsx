@@ -861,7 +861,7 @@ describe('Stock widget (W1)', () => {
     expect(lines).toHaveLength(3);
     const mini = (a: Element) => a.querySelector('.mini')!.textContent;
     // A count not started yet: Start.
-    expect(lines[0]).toHaveTextContent(/^Bar spot count due todayNot started yet/);
+    expect(lines[0]).toHaveTextContent(/^Bar spot count due tonightNot started yet/);
     expect(lines[0]).toHaveAttribute('href', '/stock');
     expect(mini(lines[0]!)).toBe('Start');
     expect(within(st).queryByRole('progressbar')).not.toBeInTheDocument();

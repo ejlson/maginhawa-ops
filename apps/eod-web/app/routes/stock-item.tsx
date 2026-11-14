@@ -4,7 +4,7 @@
  */
 import { Link, Navigate, useParams } from 'react-router';
 import { dailyUse, dishesUsing, formatPounds, priceChangeText, runsOutText } from '@maginhawa/core';
-import { can, useAuth } from '../lib/auth';
+import { useAuth } from '../lib/auth';
 import { useStock } from '../lib/stock';
 import { useOps } from '../lib/ops';
 import { amountText, onHand } from '../lib/ops-helpers';
@@ -28,7 +28,7 @@ export default function StockItem() {
 
   return (
     <main className="page">
-      <Nav back="/stock" backLabel="Stock" title={it.name} />
+      <Nav back="/stock" backLabel="Stock" />
       <div className="body">
         <div className="hero stk-hero" role="status">
           <span className="hl">{it.name} · {have === null ? 'not counted yet' : `${amountText(have, it.unit)} left (last count)`}</span>
