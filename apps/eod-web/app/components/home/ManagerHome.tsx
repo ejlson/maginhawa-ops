@@ -2,20 +2,20 @@
  * Managers: in the morning, how last night went and what needs sorting; from the afternoon, the EOD.
  * A late checklist always comes first.
  */
-import { addDays, dayNet, formatPounds, lastSevenDays, SECTION_KEYS, SECTION_LABELS, sectionStatus, splitPounds, weekday, WEEKDAY_NAMES, type Pence } from '@maginhawa/core';
+import { addDays, dayNet, splitPounds, weekday, WEEKDAY_NAMES, type Pence } from '@maginhawa/core';
 import { useAuth } from '../../lib/auth';
 import { formatDay, timeHM, useDraft } from '../../lib/draft';
 import { runPath, useChecklists } from '../../lib/checklists';
 import { useSite } from '../../lib/site';
 import { useTradingHistory } from '../../lib/history';
 import { useTwoColumns } from '../../lib/wide';
-import { sectionFigure, sectionSub } from '../../lib/section-text';
-import { BigMoney, Pie, RowLink, Segments } from '../ui';
+import { BigMoney, Segments } from '../ui';
 import { TabBar } from '../TabBar';
 import { HomeHeader } from './shared';
 import { firstName, greeting, isDaytime, useEod, useToday } from './shared-helpers';
 import { FirstWeek } from './FirstWeek';
-import { ChecklistsSection, EndOfDaySection, eodStep, FoodSafetySection, RepairsSection, service, UpNext, type UpNextStep } from './today';
+import { eodStep, service, UpNext, type UpNextStep } from './today';
+import { RingsCard, useCardStyle, WidgetGrid } from './widgets';
 
 interface LastNight {
   net: Pence;
@@ -74,30 +74,6 @@ function LastNightHero({ n, next }: { n: LastNight; next: UpNextStep }) {
   );
 }
 
-function LastSevenDays() {
-  const { settings } = useDraft();
-  const { rows, example, lastDate } = useTradingHistory();
-  const w = lastSevenDays(rows, settings.siteCode, lastDate);
-  if (!w) return null;
-  const top = Math.max(...w.days.map((d) => d.net ?? 0), 1);
-  const change = (n: number | null) => (n === null ? null : <span className={n >= 0 ? 'ok' : 'warn'} style={{ fontSize: 13, fontWeight: 600 }}>{n >= 0 ? '+' : '−'}{Math.abs(n)}%</span>);
-  return (
-    <section className="grp">
-      <div className="hd"><h2>Last 7 days</h2><span>{example ? 'Example figures' : 'Net sales'}</span></div>
-      <div className="bars" role="img" aria-label={`Net sales each day: ${w.days.map((d) => `${d.label} ${d.net === null ? 'closed' : formatPounds(d.net)}`).join(', ')}`}>
-        {w.days.map((d, i) => (
-          <div key={d.date} className={`bar${i === 6 ? ' now' : ''}`}><i style={{ height: d.net === null ? 2 : Math.max(4, Math.round((d.net / top) * 72)) }} />{d.label}</div>
-        ))}
-      </div>
-      <div className="sub">
-        <div className="fr"><span>Net sales</span><span className="rt"><span className="amt">{formatPounds(w.net)}</span>{change(w.netChange)}</span></div>
-        {w.wagePct !== null && <div className="fr"><span>Wages</span><span className="rt"><span className="amt">{w.wagePct}%</span>{w.wagePct > 30 && <span className="warn" style={{ fontSize: 13, fontWeight: 600 }}>Over 30%</span>}</span></div>}
-        <div className="fr"><span>Covers</span><span className="rt"><span className="amt">{w.covers}</span>{change(w.coversChange)}</span></div>
-      </div>
-    </section>
-  );
-}
-
 /** The EOD as the main card: net so far, the sections as bars, and the next step. */
 function EodCard({ next, wide }: { next: UpNextStep; wide: boolean }) {
   const eod = useEod();
@@ -116,25 +92,6 @@ function EodCard({ next, wide }: { next: UpNextStep; wide: boolean }) {
     </div>
   );
 }
-
-/** End of day (desktop): the eight sections in two columns, each with its circle and figure (D1). */
-function CloseGrid() {
-  const { draft, result, settings, progress } = useDraft();
-  const keys = SECTION_KEYS.filter((k) => sectionStatus(draft, k) !== 'skipped');
-  const half = Math.ceil(keys.length / 2);
-  const col = (ks: typeof keys) => (
-    <div className="sub">
-      {ks.map((k) => <RowLink key={k} to={`/close/${k}`} lead={<Pie status={sectionStatus(draft, k)} size={22} />} title={SECTION_LABELS[k]} sub={sectionSub(k, draft, result, settings)} right={<span className="amt">{sectionFigure(k, draft, result)}</span>} />)}
-    </div>
-  );
-  return (
-    <section className="grp mh-close" aria-label="End of day report">
-      <div className="hd"><h2>End of day report</h2><span>{progress.done} of {progress.active} done · {progress.left} left</span></div>
-      <div className="mh-close-cols">{col(keys.slice(0, half))}{col(keys.slice(half))}</div>
-    </section>
-  );
-}
-
 
 export function ManagerHome() {
   const { user } = useAuth();
@@ -158,7 +115,8 @@ export function ManagerHome() {
         ? { to: runPath(nextTask.key), text: `${nextTask.title}${nextTask.dueTime ? ` · ${nextTask.dueTime}` : ''}`, label: `Start: ${nextTask.title}` }
         : eodStep(eod);
 
-  const card = morning && lastNight ? <LastNightHero n={lastNight} next={step} /> : <EodCard next={step} wide={wide} />;
+  const style = useCardStyle();
+  const card = style === 'rings' ? <RingsCard next={step} tour="hero-eod" /> : morning && lastNight ? <LastNightHero n={lastNight} next={step} /> : <EodCard next={step} wide={wide} />;
   const title = (
     <div className="titleblock mh-title">
       <span className="eyebrow">{formatDay(businessDate)}{wide ? '' : service(at, settings.timezone)}</span>
@@ -171,11 +129,8 @@ export function ManagerHome() {
       <main className="page tabs mh-page wide">
         <div className="body mh-desk">
           <div className="mh-head">{title}<span className="saved" data-tour="sync"><span className="dot" />{savedAt ? `All saved · ${timeHM(savedAt)}` : 'Saved on this device'}</span></div>
-          <div className="mh-top">{card}<ChecklistsSection yesterday /></div>
-          <CloseGrid />
-          <div className="mh-pair"><RepairsSection at={at} /><div className="mh-stack"><EndOfDaySection eodRow={false} issues /><FoodSafetySection /></div></div>
+          <WidgetGrid card={card} />
           <FirstWeek />
-          {morning && <LastSevenDays />}
         </div>
       </main>
     );
@@ -186,12 +141,8 @@ export function ManagerHome() {
       <div className="body mh-phone">
         {title}
         {card}
-        <ChecklistsSection yesterday />
-        <RepairsSection at={at} />
-        <EndOfDaySection />
-        <FoodSafetySection />
+        <WidgetGrid />
         <FirstWeek />
-        {morning && <LastSevenDays />}
       </div>
       <TabBar />
     </main>

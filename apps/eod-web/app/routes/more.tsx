@@ -2,6 +2,7 @@
  * More (phone): everything that isn't Today, Close or Checks, grouped the same way as the desktop
  * sidebar, with search at the top so nothing is more than two taps away.
  */
+import { Link } from 'react-router';
 import { useState } from 'react';
 import { can, useAuth } from '../lib/auth';
 import { useSite } from '../lib/site';
@@ -24,7 +25,7 @@ export default function More() {
       <Nav title="More" />
       <div className="body">
         <div className="top">
-          <h1>More</h1>
+          <div className="more-hd"><h1>More</h1>{user && (user.role !== 'headoffice' || user.inSite) ? <Link to="/home/customise" className="chip">Customise home</Link> : null}</div>
           <button type="button" className="searchfield" onClick={() => setSearch(true)}>
             <Icon d={ICONS.search} size={18} />
             <span>Search sites, past days, checks, people</span>

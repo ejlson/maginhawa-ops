@@ -39,6 +39,27 @@ describe('More', () => {
     expect(screen.getByRole('link', { name: /Report a problem/ })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /^Repairs/ })).not.toBeInTheDocument();
   });
+
+  it('has Customise home at the top, which opens Customise', async () => {
+    const { user } = renderApp('/more', staff);
+    const link = screen.getByRole('link', { name: 'Customise home' });
+    expect(link).toHaveAttribute('href', '/home/customise');
+    // Next to the title, before search.
+    expect(link.closest('.top')).toContainElement(screen.getByRole('heading', { name: 'More', level: 1 }));
+    await user.click(link);
+    expect(screen.getByRole('heading', { name: 'Customise home', level: 1 })).toBeInTheDocument();
+  });
+
+  it('Customise home is there for managers and head office in a site, not head office on its own home', () => {
+    const m = renderApp('/more');
+    expect(screen.getByRole('link', { name: 'Customise home' })).toBeInTheDocument();
+    m.unmount();
+    const h = renderApp('/more', { ...admin, inSite: true });
+    expect(screen.getByRole('link', { name: 'Customise home' })).toBeInTheDocument();
+    h.unmount();
+    renderApp('/more', admin);
+    expect(screen.queryByRole('link', { name: 'Customise home' })).not.toBeInTheDocument();
+  });
 });
 
 describe('head office all sites', () => {

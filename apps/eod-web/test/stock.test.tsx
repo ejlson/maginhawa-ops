@@ -147,6 +147,8 @@ describe('stock: head office', () => {
 
   it("isn't open to anyone else", () => {
     renderApp('/head-office/stock', manager);
-    expect(screen.queryByRole('heading', { name: 'Stock' })).not.toBeInTheDocument();
+    // They land on their home: its Stock widget is there, but not the head-office Stock screen.
+    expect(screen.getByRole('heading', { name: /, Jo$/, level: 1 })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Stock', level: 1 })).not.toBeInTheDocument();
   });
 });
