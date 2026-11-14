@@ -133,7 +133,7 @@ function StockWidget({ small }: { small?: boolean }) {
     const open = focus.state.kind === 'open' ? focus.state.count : null;
     const total = open ? itemIdsOf(open).length : 0;
     const counted = open ? Object.keys(open.lines).length : 0;
-    rows.push(<Link key="count" className="ln" to="/stock"><span className="t"><b>{focus.plan.name}{open ? '' : ' due today'}</b><span>{open ? `${counted} of ${total} counted` : 'Not started yet'}</span></span><span className="mini" aria-hidden="true">{open ? 'Carry on' : 'Start'}</span></Link>);
+    rows.push(<Link key="count" className="ln" to="/stock"><span className="t"><b>{focus.plan.name}{open ? '' : ' due tonight'}</b><span>{open ? `${counted} of ${total} counted` : 'Not started yet'}</span></span><span className="mini" aria-hidden="true">{open ? 'Carry on' : 'Start'}</span></Link>);
     if (open) rows.push(<div key="bar" className="wbar" role="progressbar" aria-label={`${focus.plan.name} counted`} aria-valuemin={0} aria-valuemax={total} aria-valuenow={counted}><i style={{ width: `${total ? (counted / total) * 100 : 0}%` }} /></div>);
   }
   if (low.length) {
@@ -148,7 +148,7 @@ function StockWidget({ small }: { small?: boolean }) {
     const open = focus?.state.kind === 'open' ? focus.state.count : null;
     return open
       ? <Tile id="stock" to="/stock" big={Object.keys(open.lines).length} of={`/ ${itemIdsOf(open).length}`} label={`${focus!.plan.name} counted`} />
-      : <Tile id="stock" to="/stock" big={low.length} label={focus ? `${focus.plan.name} due today` : 'Running low'} tone={low.length ? 'warn' : undefined} />;
+      : <Tile id="stock" to="/stock" big={low.length} label={focus ? `${focus.plan.name} due tonight` : 'Running low'} tone={low.length ? 'warn' : undefined} />;
   }
   return (
     <W id="stock" to="/stock" meta={<Link className="wmeta" to="/stock">Open stock</Link>}>

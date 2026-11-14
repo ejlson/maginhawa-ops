@@ -23,7 +23,7 @@ export default function RecipePage() {
 
   return (
     <main className="page">
-      <Nav back="/recipes" backLabel="Recipes" title={`${r.name} · ${i + 1} of ${total}`} />
+      <Nav back="/recipes" backLabel="Recipes" title={r.name} right={<span className="eod-count">{i + 1}/{total}</span>} />
       <div className="body stk-body">
         <div className="stk-segs">{Array.from({ length: total }, (_, k) => <span key={k} className={k <= i ? 'on' : ''} />)}</div>
         <div className="hero stk-hero stk-item">

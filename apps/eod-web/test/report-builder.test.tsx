@@ -13,7 +13,8 @@ import { admin, manager, renderApp, seedVerifiedDraft } from './harness';
 
 const ana = admin;
 /** The longer journeys click through a lot of screens. */
-const SLOW = 20_000;
+// Long journeys (edit, publish, roll back). The limit only catches a hang; a busy machine can take over 20 s.
+const SLOW = 45_000;
 const ben: User = { name: 'Ben', initials: 'B', role: 'headoffice', siteCode: 'BUN' };
 
 /** Opens the builder with both side panels showing (they start hidden on a screen this narrow). */

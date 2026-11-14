@@ -1,8 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import { admin, manager, renderApp, staff } from './harness';
+import { setNow } from '../app/lib/clock';
+import { demoOps } from '../app/lib/ops-demo';
+import type { OpsData } from '../app/lib/ops';
 
 // Trading day Monday 2026-10-05 (test/setup.ts). Example data is dated from it (app/lib/ops-demo.ts).
+
+/** Saves the example data with a change, as if the app had already been used on this device. */
+function seedOps(change: (d: OpsData) => void) {
+  const d = demoOps('2026-10-05');
+  change(d);
+  localStorage.setItem('mgh.ops.v1', JSON.stringify(d));
+}
+
+/** The phone bar: its title and the step count on the right. */
+const barTitle = () => document.querySelector('.navbar .title')?.textContent ?? '';
+const barCount = () => document.querySelector('.navbar .eod-count')?.textContent ?? null;
 
 describe('ordering and waste', () => {
   it('a manager sends a count and orders what\'s low in two taps', async () => {
@@ -110,6 +124,61 @@ describe('health and safety', () => {
     expect(screen.getByRole('region', { name: 'Needs you' })).toHaveTextContent(/report to the HSE by/);
   });
 
+  it('at a site: no back button, the site line, the title and the tab bar; accidents are under Records', () => {
+    renderApp('/safety', staff);
+    expect(document.querySelector('.navbar')).toBeNull();
+    expect(document.querySelector('.site-line')).toHaveTextContent('Bunso · Mon 5 Oct');
+    expect(screen.getByRole('heading', { name: 'Health and safety', level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
+    const records = screen.getByRole('region', { name: 'Records' });
+    expect(within(records).getByRole('heading', { name: 'Records' })).toBeInTheDocument();
+    expect(within(records).getByRole('link', { name: /Report an accident/ })).toHaveAttribute('href', '/safety/accident');
+    expect(screen.queryByRole('region', { name: 'Accidents' })).not.toBeInTheDocument();
+  });
+
+  it('the card says "Due by <day>", "Due tomorrow" or "Due today"', () => {
+    // Monday: the weekly fire alarm test is due by Sunday.
+    const mon = renderApp('/safety', staff);
+    expect(screen.getByRole('status')).toHaveTextContent('Due by Sun 11 Oct · weekly');
+    mon.unmount();
+
+    localStorage.clear();
+    setNow(new Date('2026-10-10T21:00:00Z')); // Saturday 22:00 BST
+    const sat = renderApp('/safety', staff);
+    expect(screen.getByRole('status')).toHaveTextContent('Due tomorrow · weekly');
+    expect(screen.getByRole('status')).not.toHaveTextContent('Due by');
+    sat.unmount();
+
+    localStorage.clear();
+    setNow(new Date('2026-10-11T21:00:00Z')); // Sunday 22:00 BST
+    renderApp('/safety', staff);
+    expect(screen.getByRole('status')).toHaveTextContent('Due today · weekly');
+    expect(screen.getByRole('status')).not.toHaveTextContent('Due by');
+  });
+
+  it('a check has its name in the bar and the step on the right; the count goes once it\'s done', async () => {
+    const { user } = renderApp('/safety/check/fire-alarm', staff);
+    expect(barTitle()).toBe('Fire alarm test');
+    expect(barCount()).toBe('1/2');
+    await user.click(screen.getByRole('button', { name: 'Yes' }));
+    expect(barTitle()).toBe('Fire alarm test');
+    expect(barCount()).toBe('2/2');
+    await user.click(screen.getByRole('button', { name: 'Yes' }));
+    expect(barTitle()).toBe('Fire alarm test');
+    expect(barCount()).toBeNull();
+  });
+
+  it('the accident report counts its four steps on the right', async () => {
+    const { user } = renderApp('/safety/accident', staff);
+    expect(barTitle()).toBe('Report an accident');
+    expect(barCount()).toBe('1/4');
+    await user.click(screen.getByRole('radio', { name: 'Guest' }));
+    await user.type(screen.getByRole('textbox', { name: 'Their name' }), 'A guest');
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    expect(barTitle()).toBe('Report an accident');
+    expect(barCount()).toBe('2/4');
+  });
+
   it('head office sees the accident Kentish Town must report', () => {
     renderApp('/head-office/safety', admin);
     const needs = screen.getByRole('region', { name: 'Needs head office' });
@@ -142,6 +211,69 @@ describe('planned maintenance', () => {
     expect(screen.getByText(/call-outs in 6 months/)).toBeInTheDocument();
   });
 
+  it('at a site: no back button, the site line, the title and the tab bar; Certificates is still there', () => {
+    renderApp('/maintenance', staff);
+    expect(document.querySelector('.navbar')).toBeNull();
+    expect(document.querySelector('.site-line')).toHaveTextContent('Bunso · Mon 5 Oct');
+    expect(screen.getByRole('heading', { name: 'Maintenance', level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Equipment' })).getByText('Certificates')).toBeInTheDocument();
+  });
+
+  it('"Coming up" only adds the contractor when there is one', () => {
+    seedOps((d) => { d.schedules.find((s) => s.id === 'BUN-extraction')!.contractor = ''; });
+    renderApp('/maintenance', manager);
+    const up = screen.getByRole('region', { name: 'Coming up' });
+    const extraction = within(up).getByText('Extraction clean').closest('.li') as HTMLElement;
+    expect(extraction.querySelector('small')).toHaveTextContent(/^Every 6 months$/);
+    const pest = within(up).getByText('Pest control visit').closest('.li') as HTMLElement;
+    expect(pest.querySelector('small')).toHaveTextContent(/^Every 2 months · Rentokil$/);
+  });
+
+  it('equipment that keeps breaking comes first, with its call-outs and a pill', () => {
+    // The ice machine is last in the list until it keeps breaking too.
+    seedOps((d) => {
+      // A fourth, over 6 months ago, isn't counted.
+      for (const date of ['2026-09-30', '2026-09-15', '2026-08-20', '2026-01-10']) d.callOuts.push({ equipmentId: 'BUN-ice', date, title: 'No ice', detail: 'Reset' });
+    });
+    renderApp('/maintenance', staff);
+    const rows = within(screen.getByRole('region', { name: 'Equipment' })).getAllByRole('link');
+    const names = rows.map((r) => r.querySelector('.tx > span')?.textContent);
+    expect(names).toEqual(['Walk-in chiller', 'Ice machine', 'Combi oven', 'Dishwasher']);
+    expect(rows[0]).toHaveTextContent('3 call-outs in 6 months');
+    expect(within(rows[0]!).getByText('Keeps breaking')).toHaveClass('pill', 'p-warn');
+    expect(rows[1]).toHaveTextContent('3 call-outs in 6 months');
+    expect(within(rows[1]!).getByText('Keeps breaking')).toBeInTheDocument();
+    // The rest show their make and no pill.
+    expect(rows[2]).toHaveTextContent('Rational iCombi 6-1/1');
+    expect(within(rows[2]!).queryByText('Keeps breaking')).not.toBeInTheDocument();
+    expect(within(rows[3]!).queryByText('Keeps breaking')).not.toBeInTheDocument();
+  });
+
+  it('a piece of equipment has no bar title, and its keeps-breaking note is a warning', () => {
+    renderApp('/maintenance/equipment/BUN-walkin', manager);
+    expect(barTitle()).toBe('');
+    expect(document.querySelector('.navbar .backbtn')).toHaveAttribute('href', '/maintenance');
+    expect(screen.getByRole('note')).toHaveClass('banner', 'warn');
+    expect(screen.getByRole('note')).toHaveTextContent(/call-outs in 6 months/);
+    // The example equipment has no service schedule, so there's no visit to log.
+    expect(screen.queryByRole('link', { name: 'Log a visit' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Report a fault' })).toHaveAttribute('href', '/report');
+  });
+
+  it('equipment with a schedule links to logging a visit, for those who can log one', () => {
+    seedOps((d) => { d.schedules.find((s) => s.id === 'BUN-extraction')!.equipmentId = 'BUN-combi'; });
+    const m = renderApp('/maintenance/equipment/BUN-combi', manager);
+    expect(screen.getByRole('link', { name: 'Log a visit' })).toHaveAttribute('href', '/maintenance/visit/BUN-extraction');
+    // Not keeping breaking: no warning.
+    expect(screen.queryByRole('note')).not.toBeInTheDocument();
+    m.unmount();
+
+    renderApp('/maintenance/equipment/BUN-combi', staff);
+    expect(screen.queryByRole('link', { name: 'Log a visit' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Report a fault' })).toBeInTheDocument();
+  });
+
   it('head office sees only what needs action, the rest folded away', async () => {
     const { user } = renderApp('/head-office/maintenance', admin);
     expect(screen.getByText(/3 certificates are overdue/)).toBeInTheDocument();
@@ -159,6 +291,17 @@ describe('recipes and menu costing', () => {
     expect(screen.queryByText(/£/)).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Got everything · start' }));
     expect(screen.getByText('Crisp the pork, skin side down.')).toBeInTheDocument();
+  });
+
+  it('a recipe has its name in the bar and the step count on the right', async () => {
+    const adobo = demoOps('2026-10-05').recipes.find((r) => r.id === 'adobo')!;
+    const total = adobo.steps.length + 1;
+    const { user } = renderApp('/recipes/adobo', staff);
+    expect(barTitle()).toBe(adobo.name);
+    expect(barCount()).toBe(`1/${total}`);
+    await user.click(screen.getByRole('button', { name: 'Got everything · start' }));
+    expect(barTitle()).toBe(adobo.name);
+    expect(barCount()).toBe(`2/${total}`);
   });
 
   it('head office sees dishes below target and fixes one with one button', async () => {

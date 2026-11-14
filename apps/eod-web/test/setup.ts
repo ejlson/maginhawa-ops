@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
+
+// findBy / waitFor give a busy machine 5 s, not 1 s: PIN hashing is slow on purpose, and a loaded laptop slows it further.
+configure({ asyncUtilTimeout: 5000 });
 import { setNow } from '../app/lib/clock';
 import { resetDeviceStore } from '../app/lib/store';
 

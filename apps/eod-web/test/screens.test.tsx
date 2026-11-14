@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { screen, within } from '@testing-library/react';
-import { renderApp, seedVerifiedDraft, admin, staff } from './harness';
+import { render, screen, within } from '@testing-library/react';
+import { MemoryRouter, Route, Routes } from 'react-router';
+import { renderApp, seedVerifiedDraft, admin, manager, staff } from './harness';
+import { AuthProvider } from '../app/lib/auth-provider';
+import SignedIn from '../app/routes/signed-in';
+import { TabBar } from '../app/components/TabBar';
 import { deviceStore, resetDemoEod } from '../app/lib/store';
 import { setNow } from '../app/lib/clock';
 
@@ -81,6 +85,45 @@ describe('tab bar', () => {
     }
     expect(within(nav).getByRole('link', { name: 'Today' })).toHaveAttribute('aria-current', 'page');
     expect(within(nav).getByRole('link', { name: 'Today' })).toHaveClass('on');
+  });
+
+  // Batch 3 (boards S1, HS1, PM1, RC1): screens opened from More keep More lit.
+  const litTabs = () => within(screen.getByRole('navigation', { name: 'Main' })).getAllByRole('link').filter((t) => t.classList.contains('on'));
+  const moreTab = () => within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'More' });
+
+  it('More is lit on the stock, safety and maintenance screens, and only More', () => {
+    for (const path of ['/stock', '/safety', '/maintenance']) {
+      const { unmount } = renderApp(path, manager);
+      expect(moreTab()).toHaveClass('on');
+      expect(moreTab()).toHaveAttribute('aria-current', 'page');
+      expect(litTabs()).toEqual([moreTab()]);
+      unmount();
+    }
+  });
+
+  it('More is lit for any path under More, and not on Today, EOD or Checklists', () => {
+    // The tab bar on its own, so paths whose screens have no tab bar (recipes, food safety) can be checked too.
+    const at = (path: string) => render(
+      <AuthProvider initialUser={manager}>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes><Route element={<SignedIn />}><Route index element={<TabBar />} /><Route path="*" element={<TabBar />} /></Route></Routes>
+        </MemoryRouter>
+      </AuthProvider>,
+    );
+    for (const path of ['/more', '/stock', '/stock/count/x', '/safety', '/maintenance', '/recipes', '/recipes/adobo', '/food-safety']) {
+      const { unmount } = at(path);
+      expect(moreTab(), path).toHaveClass('on');
+      expect(moreTab(), path).toHaveAttribute('aria-current', 'page');
+      expect(litTabs(), path).toHaveLength(1);
+      unmount();
+    }
+    for (const [path, tab] of [['/', 'Today'], ['/close', 'EOD'], ['/close/lunch', 'EOD'], ['/checklists', /^Checklists/], ['/checklists/opening', /^Checklists/]] as const) {
+      const { unmount } = at(path);
+      expect(moreTab(), path).not.toHaveClass('on');
+      expect(moreTab(), path).not.toHaveAttribute('aria-current');
+      expect(litTabs().map((t) => t.querySelector('.tab-l')?.textContent), path).toEqual([typeof tab === 'string' ? tab : 'Checklists']);
+      unmount();
+    }
   });
 });
 
