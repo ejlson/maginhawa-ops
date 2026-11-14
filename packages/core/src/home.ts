@@ -28,7 +28,7 @@ export const WIDGETS: Record<WidgetId, WidgetInfo> = {
   stock: { name: 'Stock', desc: 'Counts, running low, deliveries', wide: true, compact: true },
   repairs: { name: 'Repairs', desc: 'Open jobs and report a problem', wide: false, compact: true },
   handover: { name: 'Handover', desc: 'Notes from last night', wide: false, compact: true },
-  food: { name: 'Food safety', desc: 'Log a temp, deliveries, allergens', wide: true, compact: true },
+  food: { name: 'Food safety', desc: 'Log a temp, deliveries, allergens', wide: false, compact: true },
   recipes: { name: 'Recipes', desc: 'Find a dish', wide: false, compact: false },
   onshift: { name: 'On shift', desc: 'Who did what today', wide: true, compact: false },
   week: { name: 'Last 7 days', desc: 'Net sales, wages and covers', wide: true, compact: false },
@@ -53,14 +53,14 @@ export function widgetAllowed(id: WidgetId, role: PersonRole, canDoEod: boolean)
 }
 
 /**
- * Each role's starting layout (docs/specs/bento-home/SPEC.md): shown in this order, the rest under
- * Add widgets. Handover is off by default; Repairs only for managers.
+ * Each role's starting layout (docs/specs/bento-home/SPEC.md, updated 14 Nov 2026): shown in this order,
+ * the rest under Add widgets. Everyone starts with Repairs (report a problem) and Handover.
  */
 export const DEFAULT_HOME: Record<PersonRole, WidgetId[]> = {
-  manager: ['checklists', 'eod', 'stock', 'food', 'recipes', 'repairs'],
-  headoffice: ['checklists', 'eod', 'stock', 'food', 'recipes', 'repairs'],
-  supervisor: ['checklists', 'eod', 'stock', 'food', 'recipes'],
-  staff: ['checklists', 'food', 'recipes'],
+  manager: ['checklists', 'eod', 'stock', 'food', 'repairs', 'handover', 'recipes'],
+  headoffice: ['checklists', 'eod', 'stock', 'food', 'repairs', 'handover', 'recipes'],
+  supervisor: ['checklists', 'eod', 'stock', 'food', 'repairs', 'handover', 'recipes'],
+  staff: ['checklists', 'food', 'repairs', 'handover', 'recipes'],
 };
 
 /** Starting sets when "Change with the shift" is switched on (W7); anything not allowed drops out. */
@@ -77,7 +77,7 @@ const ALL_WIDGETS = Object.keys(WIDGETS) as WidgetId[];
 export function resolveLayout(saved: WidgetSet | null, role: PersonRole, canDoEod: boolean, start: WidgetId[] = DEFAULT_HOME[role]): WidgetSet {
   const ok = (id: WidgetId) => ALL_WIDGETS.includes(id) && widgetAllowed(id, role, canDoEod);
   const base = saved ?? { order: start, hidden: [] };
-  const order = base.order.filter(ok);
+  const order = base.order.filter((id, i, all) => ok(id) && all.indexOf(id) === i);
   // Anything never placed: hidden (under Add widgets).
   const rest = ALL_WIDGETS.filter((id) => ok(id) && !order.includes(id));
   return { order, hidden: [...base.hidden.filter((id) => rest.includes(id)), ...rest.filter((id) => !base.hidden.includes(id))] };

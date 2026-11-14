@@ -465,6 +465,20 @@ describe('End of day overview (design P3)', () => {
     expect(screen.queryByRole('link', { name: /^Review and (submit|send)/ })).not.toBeInTheDocument();
   });
 
+  it('What\'s left is the shared what\'s-next bar: a small line, a big line and one Go with a hidden label', () => {
+    renderApp('/close');
+    const b = bar();
+    expect(b).toHaveClass('leftbar');
+    expect(b).toHaveAttribute('role', 'region');
+    expect(b.querySelector('.tx small')).toHaveTextContent('8 left · Lunch, Dinner, Delivery…');
+    expect(b.querySelector('.tx b')).toHaveTextContent('Next: start lunch');
+    const go = within(b).getByRole('link');
+    expect(go).toHaveClass('go');
+    expect(go.querySelector('.vh')).toHaveTextContent(/^Start lunch,$/);
+    expect(go.firstElementChild).toBe(go.querySelector('.vh'));
+    expect(go.lastChild!.textContent).toBe('Go');
+  });
+
   it('part way: group meta counts what is done, and the bar continues with the next unfinished section', async () => {
     // The verified example: lunch, dinner, delivery and wages done; promotions, tips and the wrap-up not yet.
     await seedVerifiedDraft();

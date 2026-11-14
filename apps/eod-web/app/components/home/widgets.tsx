@@ -28,13 +28,15 @@ export const WIDGET_ICONS: Record<WidgetId, string> = {
 };
 
 /** The card every widget sits in: title (a link when there's a screen behind it), what's on the right, then the content. */
-function W({ id, to, meta, children, small }: { id: WidgetId; to?: string; meta?: ReactNode; children: ReactNode; small?: boolean }) {
+function W({ id, to, meta, children, small, dot }: { id: WidgetId; to?: string; meta?: ReactNode; children: ReactNode; small?: boolean; dot?: { tone: 'bad' | 'warn'; label: string } }) {
   const name = WIDGETS[id].name;
-  const icon = <span className="wi" aria-hidden="true"><Icon d={WIDGET_ICONS[id]} size={16} /></span>;
+  // The dot is drawn on the icon but read after the name: "Food safety, 2 to do".
+  const icon = <span className="wi" aria-hidden="true"><Icon d={WIDGET_ICONS[id]} size={16} />{dot && <span className={`wdot ${dot.tone}`} />}</span>;
+  const said = dot ? <span className="vh">, {dot.label}</span> : null;
   return (
     <section className={`w${WIDGETS[id].wide && !small ? ' wide' : ''}${small ? ' small' : ''}`} aria-label={name} data-widget={id} data-tour={id === 'checklists' ? 'needs' : undefined}>
       <div className="wh">
-        <h2>{to ? <Link to={to}>{icon}{name}</Link> : <>{icon}{name}</>}</h2>
+        <h2>{to ? <Link to={to}>{icon}{name}{said}</Link> : <>{icon}{name}{said}</>}</h2>
         {meta}
       </div>
       {children}
@@ -57,8 +59,9 @@ function Tile({ id, to, big, of, label, tone, children }: { id: WidgetId; to: st
 
 function ChecklistsWidget({ small }: { small?: boolean }) {
   const { user } = useAuth();
-  const { tasks, scheduled, checksDone } = useToday();
+  const { at, tasks, scheduled, checksDone } = useToday();
   const { missedYesterday } = useChecklists();
+  const { settings } = useDraft();
   const rank: Record<string, number> = { late: 0, due: 1, missed: 2, upcoming: 3, anytime: 4 };
   const todo = tasks.filter((t) => !isDone(t) && t.status !== 'anytime')
     .sort((a, b) => (rank[a.status] ?? 5) - (rank[b.status] ?? 5) || (a.dueAt?.getTime() ?? 0) - (b.dueAt?.getTime() ?? 0));
@@ -66,21 +69,36 @@ function ChecklistsWidget({ small }: { small?: boolean }) {
   const missed = tasks.filter((t) => t.status === 'missed').length;
   const yesterday = user && (user.role === 'manager' || user.role === 'headoffice') ? missedYesterday : [];
   if (small) return <Tile id="checklists" to="/checklists" big={checksDone} of={`/ ${scheduled.length}`} label={late ? `${late} late` : missed ? `${missed} missed` : todo[0] ? `Next: ${todo[0].title}` : 'All done'} tone={late ? 'bad' : missed ? 'warn' : undefined} />;
+  const focus = todo[0];
+  // "Next due": the next list with a time after the one shown.
+  const nextDue = todo.filter((t) => t !== focus && t.dueAt && t.dueAt.getTime() > at.getTime()).sort((a, b) => a.dueAt!.getTime() - b.dueAt!.getTime())[0];
+  const hm = (d: Date) => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: settings.timezone });
+  const frac = scheduled.length ? checksDone / scheduled.length : 0;
   return (
-    <W id="checklists" to="/checklists" meta={late ? <span className="pill p-bad">{late} late</span> : missed ? <span className="pill p-warn">{missed} missed</span> : <Meta>{checksDone} of {scheduled.length} done</Meta>}>
-      {todo.length > 0 || yesterday.length > 0 ? (
-        <div className="sub">
-          {todo.slice(0, 3).map((t) => <TaskRow key={t.key} t={t} me={user?.name} />)}
-          {yesterday.length > 0 && (
-            <RowLink to="/checklists" lead={<span className="av" aria-hidden="true">{yesterday.length}</span>}
-              title={yesterday.length === 1 ? `${yesterday[0]!.title} was missed` : `${yesterday.length} checklists missed`} sub="Yesterday" />
-          )}
+    <W id="checklists" to="/checklists" meta={late ? <span className="pill p-warn">{late} late</span> : missed ? <span className="pill p-warn">{missed} missed</span> : <Meta>{checksDone} of {scheduled.length} done</Meta>}>
+      <div className="wck">
+        <svg width="60" height="60" viewBox="0 0 48 48" role="img" aria-label={`${checksDone} of ${scheduled.length} checklists done`} className="wring">
+          <circle cx="24" cy="24" r="20" fill="none" className="wring-track" strokeWidth="5" />
+          <circle cx="24" cy="24" r="20" fill="none" className="wring-fill" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${126 * frac} 126`} strokeOpacity={frac ? 1 : 0} transform="rotate(-90 24 24)" />
+          <text x="24" y="28.5" textAnchor="middle" fontSize="12" fontWeight="700" aria-hidden="true">{checksDone}/{scheduled.length}</text>
+        </svg>
+        <div className="wck-r">
+          {focus ? (
+            <Link className="ln" to={runPath(focus.key)} aria-label={`${focus.status === 'late' || focus.status === 'missed' ? 'Do now' : 'Start'}: ${focus.title}, ${statusPill(focus, at).text}`}>
+              <span className="t"><b>{focus.title}</b><span>{isOverdue(focus) || focus.status === 'due' ? statusPill(focus, at).text : checksText(focus)}{focus.template.who ? ` · ${focus.template.who}` : ''}</span></span>
+              <span className="mini" aria-hidden="true">Start</span>
+            </Link>
+          ) : <p className="wnote">{tasks.length ? 'All done for now.' : 'No checklists today.'}</p>}
+          {nextDue && <span className="wsmall">Next due · {nextDue.title.replace(/ · \d\d:\d\d$/, '')} at {hm(nextDue.dueAt!)}</span>}
+          {todo.length > 1 && !nextDue && <span className="wsmall">{todo.length - 1} more to do</span>}
+          {yesterday.length > 0 && <Link className="wsmall wlink" to="/checklists">Yesterday: {yesterday.length === 1 ? `${yesterday[0]!.title} was missed` : `${yesterday.length} checklists missed`}</Link>}
         </div>
-      ) : <p className="wnote">{tasks.length ? 'All done for now.' : 'No checklists today.'}</p>}
-      <Link className="wfoot" to="/checklists">{todo.length > 3 ? `${todo.length - 3} more to do` : 'All checklists'}<span>{checksDone} of {scheduled.length} done</span></Link>
+      </div>
     </W>
   );
 }
+
+const SHORT: Partial<Record<string, string>> = { promotions: 'Promos', tips: 'Tips' };
 
 function EodWidget({ small }: { small?: boolean }) {
   const eod = useEod();
@@ -92,11 +110,10 @@ function EodWidget({ small }: { small?: boolean }) {
         {SECTION_KEYS.map((k) => {
           const st = sectionStatus(draft, k);
           if (st === 'skipped') return null;
-          return <Link key={k} to={eod.submitted ? '/close/done' : `/close/${k}`} className="wsec"><Pie status={st} size={18} /><span>{SECTION_LABELS[k]}</span></Link>;
+          return <Link key={k} to={eod.submitted ? '/close/done' : `/close/${k}`} className={`wsec ${st}`}><Pie status={st} size={22} /><span>{SHORT[k] ?? SECTION_LABELS[k]}</span></Link>;
         })}
       </div>
-      {eod.issues.length > 0 && <div className="sub"><EodIssueRows issues={eod.issues} /></div>}
-      <Link className="wfoot" to={eod.next.to}>{eod.submitted ? 'See the report' : eod.next.text}<span>{formatPounds(eod.result.totalNet)} net</span></Link>
+      {eod.issues.length > 0 && <div className="sub">{<EodIssueRows issues={eod.issues} />}</div>}
     </W>
   );
 }
@@ -114,18 +131,18 @@ function StockWidget({ small }: { small?: boolean }) {
   const rows: ReactNode[] = [];
   if (focus) {
     const open = focus.state.kind === 'open' ? focus.state.count : null;
-    rows.push(<RowLink key="count" to="/stock" lead={<Pie status={open ? 'started' : 'todo'} />} title={focus.plan.name}
-      sub={open ? `${Object.keys(open.lines).length} of ${itemIdsOf(open).length} counted` : 'Due today'} right={<span className="chip sm">{open ? 'Carry on' : 'Start'}</span>} />);
+    const total = open ? itemIdsOf(open).length : 0;
+    const counted = open ? Object.keys(open.lines).length : 0;
+    rows.push(<Link key="count" className="ln" to="/stock"><span className="t"><b>{focus.plan.name}{open ? '' : ' due today'}</b><span>{open ? `${counted} of ${total} counted` : 'Not started yet'}</span></span><span className="mini" aria-hidden="true">{open ? 'Carry on' : 'Start'}</span></Link>);
+    if (open) rows.push(<div key="bar" className="wbar" role="progressbar" aria-label={`${focus.plan.name} counted`} aria-valuemin={0} aria-valuemax={total} aria-valuenow={counted}><i style={{ width: `${total ? (counted / total) * 100 : 0}%` }} /></div>);
   }
   if (low.length) {
     const names = low.slice(0, 2).map((s) => s.item.name).join(', ');
-    rows.push(<RowLink key="low" to="/stock/order" lead={<span className="av warn"><Icon d={ICONS.box} /></span>} title={`${low.length} running low`}
-      sub={low.length > 2 ? `${names} and ${low.length - 2} more` : names} right={<span className="chip sm">Order</span>} />);
+    rows.push(<Link key="low" className="ln sep" to="/stock/order"><span className="t"><b>{low.length} running low</b><span>{low.length > 2 ? `${names} and ${low.length - 2} more` : names}</span></span><span className="mini g" aria-hidden="true">Order</span></Link>);
   }
   if (toCheck.length) {
     const o = toCheck[0]!;
-    rows.push(<RowLink key="del" to={toCheck.length === 1 ? `/stock/delivery/${o.id}` : '/stock'} lead={<span className="av"><Icon d={ICONS.moped} /></span>}
-      title={toCheck.length === 1 ? `Delivery to check · ${ops.supplier(o.supplierId)?.name ?? 'supplier'}` : `${toCheck.length} deliveries to check`} right={<span className="chip sm">Check in</span>} />);
+    rows.push(<Link key="del" className="ln sep" to={toCheck.length === 1 ? `/stock/delivery/${o.id}` : '/stock'}><span className="t"><b>{toCheck.length === 1 ? `Delivery · ${ops.supplier(o.supplierId)?.name ?? 'supplier'}` : `${toCheck.length} deliveries to check`}</b><span>Tick what came</span></span><span className="mini g" aria-hidden="true">Check in</span></Link>);
   }
   if (small) {
     const open = focus?.state.kind === 'open' ? focus.state.count : null;
@@ -134,8 +151,8 @@ function StockWidget({ small }: { small?: boolean }) {
       : <Tile id="stock" to="/stock" big={low.length} label={focus ? `${focus.plan.name} due today` : 'Running low'} tone={low.length ? 'warn' : undefined} />;
   }
   return (
-    <W id="stock" to="/stock">
-      {rows.length ? <div className="sub">{rows}</div> : <p className="wnote">Nothing to count or check in today.</p>}
+    <W id="stock" to="/stock" meta={<Link className="wmeta" to="/stock">Open stock</Link>}>
+      {rows.length ? rows : <p className="wnote">Nothing to count or check in today.</p>}
     </W>
   );
 }
@@ -158,8 +175,9 @@ function RepairsWidget({ small }: { small?: boolean }) {
 
 function HandoverWidget({ small }: { small?: boolean }) {
   const { user } = useAuth();
-  const { handover, handoverBy, handoverRead } = useSite();
+  const { handover, handoverBy, handoverRead, teamNotes } = useSite();
   const eod = useEod();
+  // The closer writes it in the end of day report; anyone else (or after it's sent) adds a note.
   const write = user ? canDoEod(user) && !eod.submitted : false;
   if (small) return <Tile id="handover" to="/handover" big={handover.length} label={handover.length ? (handoverRead ? `${handover.length === 1 ? 'note' : 'notes'} from ${handoverBy ?? 'last night'}` : 'New from last night') : 'Nothing from last night'} tone={handover.length && !handoverRead ? 'warn' : undefined} />;
   return (
@@ -170,7 +188,9 @@ function HandoverWidget({ small }: { small?: boolean }) {
             <span>{handover[0]!.body}</span>
           </Link>
         : <p className="wnote">Nothing from last night.</p>}
-      {write && <Link className="wfoot" to="/close/handover"><Icon d={ICONS.pen} size={16} />Write the handover</Link>}
+      {write
+        ? <Link className="wfoot" to="/close/handover"><Icon d={ICONS.pen} size={16} />Write the handover</Link>
+        : <Link className="wfoot" to="/handover/new"><Icon d={ICONS.plus} size={16} />Add to the handover{teamNotes.length > 0 && <span>{teamNotes.length} tonight</span>}</Link>}
     </W>
   );
 }
@@ -180,13 +200,12 @@ function FoodWidget({ small }: { small?: boolean }) {
   const bad = items.some((i) => i.level === 'bad');
   if (small) return <Tile id="food" to="/food-safety" big={items.length} label={items[0]?.title ?? 'All up to date'} tone={bad ? 'bad' : items.length ? 'warn' : undefined} />;
   const qa: [string, string, string][] = [
-    ['Log a temp', '/food-safety/probes', ICONS.thermo], ['Delivery', '/food-safety/deliveries/new', ICONS.moped],
-    ['Allergens', '/food-safety/allergens', ICONS.bang], ['Report a problem', '/report', ICONS.wrench],
+    ['Log temp', '/food-safety/probes', ICONS.thermo], ['Delivery', '/food-safety/deliveries/new', ICONS.moped],
+    ['Allergens', '/food-safety/allergens', ICONS.bang], ['Problem', '/report', ICONS.wrench],
   ];
   return (
-    <W id="food" to="/food-safety" meta={items.length ? <span className={`pill ${bad ? 'p-bad' : 'p-warn'}`}>{items.length} to do</span> : undefined}>
-      {items[0] && <p className="wnote wfirst">{items[0].title}</p>}
-      <div className="wqa">{qa.map(([l, to, ic]) => <Link key={to} to={to}><span aria-hidden="true"><Icon d={ic} size={16} /></span>{l}</Link>)}</div>
+    <W id="food" to="/food-safety" dot={items.length ? { tone: bad ? 'bad' : 'warn', label: `${items.length} to do${bad ? ', something failed' : ''}` } : undefined}>
+      <div className="wqa">{qa.map(([l, to, ic]) => <Link key={to} to={to} aria-label={l === 'Problem' ? 'Report a problem' : undefined}><span aria-hidden="true"><Icon d={ic} size={15} /></span>{l}</Link>)}</div>
     </W>
   );
 }

@@ -1,3 +1,4 @@
+import { HANDOVER_CATS, useSite } from '../lib/site';
 import { useState, type ReactNode } from 'react';
 import { formatPounds, SECTION_LABELS, type NoteItem, type SectionKey } from '@maginhawa/core';
 import { useDraft } from '../lib/draft';
@@ -174,7 +175,6 @@ export function TipsSection() {
 }
 
 const FEEDBACK_CATS = ['Guest', 'Staff', 'Maintenance'];
-const HANDOVER_CATS = ['Stock', 'Maintenance', 'Staff', 'Bookings', 'Other'];
 
 const CAT_ICONS: Record<string, string> = {
   Guest: ICONS.people, Staff: ICONS.people, Maintenance: ICONS.wrench, Stock: ICONS.box, Bookings: ICONS.cal, Other: ICONS.chat,
@@ -227,7 +227,29 @@ function NotesSection({ section, field, cats, intro, hero }: { section: 'feedbac
         )}
         {section === 'handover' && <p className="note" style={{ margin: 0 }}>Nothing to hand over? Leave it empty. Saving still marks it done.</p>}
       </section>
+      {section === 'handover' && <TeamNotes />}
     </Shell>
+  );
+}
+
+/** Notes the team added to tonight's handover: they go to the opener with the closer's notes. */
+function TeamNotes() {
+  const { teamNotes, removeTeamNote } = useSite();
+  if (!teamNotes.length) return null;
+  return (
+    <section className="grp" aria-label="From the team tonight">
+      <div className="hd"><h2>From the team tonight</h2><span>{teamNotes.length}</span></div>
+      <div className="sub">
+        {teamNotes.map((n) => (
+          <div className="li note-li" key={n.id}>
+            <span className="av"><Icon d={CAT_ICONS[n.category] ?? ICONS.chat} size={17} /></span>
+            <span className="tx"><span>{n.body}</span><small>{n.category} · {n.by}</small></span>
+            <button type="button" className="linkbtn" aria-label={`Remove note: ${n.body}`} onClick={() => removeTeamNote(n.id)}>Remove</button>
+          </div>
+        ))}
+      </div>
+      <p className="note" style={{ margin: 0 }}>These go to the opener with your notes.</p>
+    </section>
   );
 }
 

@@ -75,7 +75,7 @@ function LastNightHero({ n, next }: { n: LastNight; next: UpNextStep }) {
 }
 
 /** The EOD as the main card: net so far, the sections as bars, and the next step. */
-function EodCard({ next, wide }: { next: UpNextStep; wide: boolean }) {
+export function EodCard({ next, wide }: { next: UpNextStep; wide: boolean }) {
   const eod = useEod();
   const { result, progress } = useDraft();
   const due = eod.due();

@@ -55,6 +55,7 @@ export default [
     route('maintenance/equipment/:id', 'routes/equipment.tsx'),
     route('maintenance/visit/:schedule', 'routes/visit.tsx'),
     route('handover', 'routes/handover.tsx'),
+    route('handover/new', 'routes/handover-add.tsx'),
     route('day', 'routes/day.tsx'),
     route('switch', 'routes/switch.tsx'),
     route('more', 'routes/more.tsx'),

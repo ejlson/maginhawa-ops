@@ -10,7 +10,18 @@ import { useDraft } from '../lib/draft';
 import { resolveLayout, shiftAt, SHIFTS, useHomeLayout, WIDGETS, type Shift, type WidgetId } from '../lib/home-layout';
 import { Icon, Nav, Toggle } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
-import { WIDGET_ICONS } from '../components/home/widgets';
+import { RingsCard, WIDGET_ICONS } from '../components/home/widgets';
+import { EodCard } from '../components/home/ManagerHome';
+import { ChecklistCard, type UpNextStep } from '../components/home/today';
+
+/** A small, live picture of a main card style, to choose from (it can't be tapped into). */
+function CardPreview({ style, role }: { style: 'standard' | 'rings'; role: string }) {
+  const next: UpNextStep = { to: '/', text: 'Your next step', label: 'Up next' };
+  const card = style === 'rings' ? <RingsCard next={next} tour="" />
+    : role === 'staff' || role === 'supervisor' ? <ChecklistCard label="Checklists to do today" tour="" next={next} />
+    : <EodCard next={next} wide={false} />;
+  return <div className="cz-preview" aria-hidden="true" ref={(el) => el?.setAttribute('inert', '')}><div className="cz-preview-in">{card}</div></div>;
+}
 
 export default function HomeCustomise() {
   const { user } = useAuth();
@@ -33,9 +44,15 @@ export default function HomeCustomise() {
 
         <section className="grp" aria-label="Main card">
           <div className="hd"><h2>Main card</h2></div>
-          <div className="seg cz-seg" role="radiogroup" aria-label="Main card style">
+          <div className="cz-cards" role="radiogroup" aria-label="Main card style">
             {(['standard', 'rings'] as const).map((c) => (
-              <button key={c} type="button" role="radio" aria-checked={layout.card === c} onClick={() => layout.setCard(c)}>{c === 'standard' ? 'Standard' : 'Rings'}</button>
+              // The preview sits beside the radio, not inside it: a button can't hold links.
+              <div key={c} className={`cz-card${layout.card === c ? ' on' : ''}`} onClick={() => layout.setCard(c)}>
+                <CardPreview style={c} role={role} />
+                <button type="button" role="radio" aria-checked={layout.card === c} className="cz-card-l" onClick={(e) => { e.stopPropagation(); layout.setCard(c); }}>
+                  <span className="cz-radio" aria-hidden="true" />{c === 'standard' ? 'Standard' : 'Rings'}
+                </button>
+              </div>
             ))}
           </div>
           <p className="note" style={{ margin: 0 }}>{layout.card === 'rings' ? 'Checklists, the end of day report and stock counts as rings to close.' : 'The card for your role, with Up next.'}</p>

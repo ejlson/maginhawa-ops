@@ -4,7 +4,7 @@ import { clockTime, evaluate, summariseRun } from '@maginhawa/core';
 import { can, useAuth } from '../lib/auth';
 import { runPath, useChecklists } from '../lib/checklists';
 import { timeHM } from '../lib/draft';
-import { Foot, Icon, Nav, Pie } from '../components/ui';
+import { Foot, Icon, Nav, NextBar, Pie } from '../components/ui';
 import { blockingLabel, finishStats, nextToDo, rowState } from '../components/checklist-run-helpers';
 import { FixInRow } from '../components/FixInRow';
 import { ICONS } from '../components/ui-helpers';
@@ -145,12 +145,16 @@ export default function ChecklistRun() {
           </section>
         ))}
       </div>
-      {!done && (
+      {!done && s.canFinish && (
+        <div className="nextbar-wrap">
+          <NextBar name="What's next" small="Saved. Submit it with the others under the checklists."
+            big={after ? `Next: ${after.title}` : 'Back to checklists'} to={after ? runPath(after.key) : '/checklists'} label={after ? `Next: ${after.title}` : 'Back to checklists'} />
+        </div>
+      )}
+      {!done && !s.canFinish && (
         <Foot>
-          {s.canFinish
-            ? <Link className="btn b1" to={after ? runPath(after.key) : '/checklists'}>{after ? `Next: ${after.title}` : 'Back to checklists'}</Link>
-            : <button type="button" className="btn b1" disabled>{blockingLabel(s)}</button>}
-          <p className="note">{s.canFinish ? 'Saved. Submit it with the others under the checklists.' : 'Answers save as you go.'}</p>
+          <button type="button" className="btn b1" disabled>{blockingLabel(s)}</button>
+          <p className="note">Answers save as you go.</p>
         </Foot>
       )}
       {bigCheck && (
