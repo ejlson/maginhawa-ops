@@ -23,29 +23,29 @@ const onHome = () => within(region('On your home')).getAllByRole('listitem').map
 const addable = () => within(region('Add widgets')).queryAllByRole('button', { name: /^Add / }).map((b) => b.getAttribute('aria-label')!.slice(4));
 
 describe('default widgets per role', () => {
-  it('staff: Checklists, Food safety and Recipes; never the EOD, Last 7 days or On shift', () => {
+  it('staff: Checklists, Food safety, Repairs, Handover and Recipes; never the EOD, Last 7 days or On shift', () => {
     renderApp('/', staff);
-    expect(widgets()).toEqual(['Checklists', 'Food safety', 'Recipes']);
+    expect(widgets()).toEqual(['Checklists', 'Food safety', 'Repairs', 'Handover', 'Recipes']);
     for (const name of ['End of day report', 'Last 7 days', 'On shift']) expect(screen.queryByRole('region', { name })).not.toBeInTheDocument();
     // Off by default, and can be added.
-    for (const name of ['Handover', 'Repairs', 'Stock', 'Your day', 'Smart stack', 'Quick actions']) expect(screen.queryByRole('region', { name })).not.toBeInTheDocument();
+    for (const name of ['Stock', 'Your day', 'Smart stack', 'Quick actions']) expect(screen.queryByRole('region', { name })).not.toBeInTheDocument();
   });
 
   it('staff can\'t add the EOD, Last 7 days or On shift from Customise either', async () => {
     const { user } = renderApp('/', staff);
     await user.click(screen.getByRole('link', { name: 'Customise' }));
     expect(screen.getByRole('heading', { name: 'Customise home', level: 1 })).toBeInTheDocument();
-    expect(onHome()).toEqual(['Checklists', 'Food safety', 'Recipes']);
-    expect(addable()).toEqual(['Your day', 'Smart stack', 'Quick actions', 'Stock', 'Repairs', 'Handover']);
+    expect(onHome()).toEqual(['Checklists', 'Food safety', 'Repairs', 'Handover', 'Recipes']);
+    expect(addable()).toEqual(['Your day', 'Smart stack', 'Quick actions', 'Stock']);
     for (const name of ['End of day report', 'Last 7 days', 'On shift']) expect([...onHome(), ...addable()]).not.toContain(name);
   });
 
-  it('supervisors: Checklists, the EOD, Stock, Food safety and Recipes; On shift to add; no Last 7 days', async () => {
+  it('supervisors: Checklists, the EOD, Stock, Food safety, Repairs, Handover and Recipes; On shift to add; no Last 7 days', async () => {
     const { user } = renderApp('/', supervisor);
-    expect(widgets()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Recipes']);
+    expect(widgets()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Repairs', 'Handover', 'Recipes']);
     expect(screen.queryByRole('region', { name: 'On shift' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('link', { name: 'Customise' }));
-    expect(addable()).toEqual(['Your day', 'Smart stack', 'Quick actions', 'Repairs', 'Handover', 'On shift']);
+    expect(addable()).toEqual(['Your day', 'Smart stack', 'Quick actions', 'On shift']);
     expect([...onHome(), ...addable()]).not.toContain('Last 7 days');
     // Adding On shift puts it on their home.
     await user.click(screen.getByRole('button', { name: 'Add On shift' }));
@@ -53,17 +53,17 @@ describe('default widgets per role', () => {
     expect(widgets().at(-1)).toBe('On shift');
   });
 
-  it('managers: the supervisor\'s set plus Repairs; Last 7 days is under Add widgets', async () => {
+  it('managers: the supervisor\'s set; Last 7 days is under Add widgets', async () => {
     const { user } = renderApp('/', manager);
-    expect(widgets()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Recipes', 'Repairs']);
+    expect(widgets()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Repairs', 'Handover', 'Recipes']);
     await user.click(screen.getByRole('link', { name: 'Customise' }));
-    expect(onHome()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Recipes', 'Repairs']);
-    expect(addable()).toEqual(['Your day', 'Smart stack', 'Quick actions', 'Handover', 'On shift', 'Last 7 days']);
+    expect(onHome()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Repairs', 'Handover', 'Recipes']);
+    expect(addable()).toEqual(['Your day', 'Smart stack', 'Quick actions', 'On shift', 'Last 7 days']);
   });
 
   it('head office in a site starts with the manager\'s set', () => {
     renderApp('/', { ...admin, inSite: true });
-    expect(widgets()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Recipes', 'Repairs']);
+    expect(widgets()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Repairs', 'Handover', 'Recipes']);
   });
 
   it('who can have each widget, and a saved layout only keeps what the person may have', () => {
@@ -71,13 +71,14 @@ describe('default widgets per role', () => {
     expect(widgetAllowed('week', 'supervisor', true)).toBe(false);
     expect(widgetAllowed('onshift', 'staff', false)).toBe(false);
     expect(DEFAULT_LAYOUT).toEqual({
-      staff: ['checklists', 'food', 'recipes'],
-      supervisor: ['checklists', 'eod', 'stock', 'food', 'recipes'],
-      manager: ['checklists', 'eod', 'stock', 'food', 'recipes', 'repairs'],
-      headoffice: ['checklists', 'eod', 'stock', 'food', 'recipes', 'repairs'],
+      staff: ['checklists', 'food', 'repairs', 'handover', 'recipes'],
+      supervisor: ['checklists', 'eod', 'stock', 'food', 'repairs', 'handover', 'recipes'],
+      manager: ['checklists', 'eod', 'stock', 'food', 'repairs', 'handover', 'recipes'],
+      headoffice: ['checklists', 'eod', 'stock', 'food', 'repairs', 'handover', 'recipes'],
     });
-    // Off by default for everyone.
-    for (const id of ['handover', 'onshift', 'week', 'day', 'stack', 'quick'] as const) {
+    // Everyone starts with Repairs and Handover; these are off by default for everyone.
+    for (const set of Object.values(DEFAULT_LAYOUT)) expect(set).toEqual(expect.arrayContaining(['repairs', 'handover']));
+    for (const id of ['onshift', 'week', 'day', 'stack', 'quick'] as const) {
       for (const set of Object.values(DEFAULT_LAYOUT)) expect(set).not.toContain(id);
     }
     // Every default is something that role may have.
@@ -108,14 +109,14 @@ describe('Customise home', () => {
     expect(saved('manager', 'Jo').hidden).toContain('repairs');
     await user.click(within(screen.getByRole('status')).getByRole('button', { name: 'Undo' }));
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
-    expect(onHome()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Recipes', 'Repairs']);
-    expect(saved('manager', 'Jo').order).toEqual(['checklists', 'eod', 'stock', 'food', 'recipes', 'repairs']);
+    expect(onHome()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Repairs', 'Handover', 'Recipes']);
+    expect(saved('manager', 'Jo').order).toEqual(['checklists', 'eod', 'stock', 'food', 'repairs', 'handover', 'recipes']);
   });
 
   it('the arrows move a widget; the first can\'t go earlier and the last can\'t go later', async () => {
     const { user } = renderApp('/home/customise', manager);
     expect(screen.getByRole('button', { name: 'Move Checklists earlier' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Move Repairs later' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Move Recipes later' })).toBeDisabled();
     await user.click(screen.getByRole('button', { name: 'Move End of day report earlier' }));
     expect(onHome().slice(0, 2)).toEqual(['End of day report', 'Checklists']);
     await user.click(screen.getByRole('button', { name: 'Move Checklists later' }));
@@ -142,8 +143,8 @@ describe('Customise home', () => {
     await user.click(screen.getByRole('button', { name: 'Move End of day report earlier' }));
     await user.click(screen.getByRole('button', { name: 'Add Smart stack' }));
     await user.click(screen.getByRole('button', { name: 'Done' }));
-    expect(widgets()).toEqual(['End of day report', 'Checklists', 'Stock', 'Food safety', 'Recipes', 'Smart stack']);
-    expect(saved('manager', 'Jo')).toMatchObject({ order: ['eod', 'checklists', 'stock', 'food', 'recipes', 'stack'] });
+    expect(widgets()).toEqual(['End of day report', 'Checklists', 'Stock', 'Food safety', 'Handover', 'Recipes', 'Smart stack']);
+    expect(saved('manager', 'Jo')).toMatchObject({ order: ['eod', 'checklists', 'stock', 'food', 'handover', 'recipes', 'stack'] });
     expect(saved('manager', 'Jo').hidden).toContain('repairs');
     // Still there next time.
     unmount();
@@ -154,17 +155,17 @@ describe('Customise home', () => {
   it('layouts are per person and role: the supervisor called Jo keeps the usual layout', () => {
     localStorage.setItem(key('manager', 'Jo'), JSON.stringify({ order: ['stock'], hidden: [] }));
     renderApp('/', supervisor);
-    expect(widgets()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Recipes']);
+    expect(widgets()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Repairs', 'Handover', 'Recipes']);
   });
 
   it('Reset goes back to the usual layout, with Undo', async () => {
     const { user } = renderApp('/home/customise', manager);
     await user.click(screen.getByRole('button', { name: 'Hide Checklists' }));
     await user.click(screen.getByRole('button', { name: 'Move Repairs earlier' }));
-    expect(onHome()).toEqual(['End of day report', 'Stock', 'Food safety', 'Repairs', 'Recipes']);
+    expect(onHome()).toEqual(['End of day report', 'Stock', 'Repairs', 'Food safety', 'Handover', 'Recipes']);
     await user.click(screen.getByRole('button', { name: 'Reset to the usual layout' }));
     expect(screen.getByRole('status')).toHaveTextContent('Back to the usual layout');
-    expect(onHome()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Recipes', 'Repairs']);
+    expect(onHome()).toEqual(['Checklists', 'End of day report', 'Stock', 'Food safety', 'Repairs', 'Handover', 'Recipes']);
     expect(saved('manager', 'Jo')).toBeNull();
     // Undo brings the custom layout back.
     await user.click(screen.getByRole('button', { name: 'Undo' }));
@@ -252,6 +253,73 @@ describe('rings card', () => {
     renderApp('/', staff);
     const rings = screen.getByRole('img', { name: /^Checklists 0 of 6/ });
     expect(rings).not.toHaveAccessibleName(/End of day report/);
+  });
+});
+
+describe('main card previews in Customise', () => {
+  /** Customise: the two style choices, each with its live preview. */
+  const choice = (name: 'Standard' | 'Rings') => within(screen.getByRole('radiogroup', { name: 'Main card style' })).getByRole('radio', { name });
+  const preview = (name: 'Standard' | 'Rings') => choice(name).closest('.cz-card')!.querySelector<HTMLElement>('.cz-preview')!;
+
+  it('for a manager, Standard previews the end of day card and Rings the rings card', () => {
+    renderApp('/home/customise', manager);
+    const radios = within(screen.getByRole('radiogroup', { name: 'Main card style' })).getAllByRole('radio');
+    expect(radios.map((r) => r.textContent?.trim().endsWith('Standard') || r.textContent?.trim().endsWith('Rings'))).toEqual([true, true]);
+    expect(radios).toHaveLength(2);
+    // The previews are hidden from screen readers, so each radio is just named by its word.
+    expect(choice('Standard')).toHaveAccessibleName('Standard');
+    expect(choice('Rings')).toHaveAccessibleName('Rings');
+    const std = preview('Standard');
+    expect(std.querySelector('.hero')).not.toBeNull();
+    expect(std.querySelector('.hero')).not.toHaveClass('rings-card');
+    expect(std).toHaveTextContent(/Net so far/);
+    const rings = preview('Rings');
+    expect(rings.querySelector('.hero.rings-card')).not.toBeNull();
+    expect(rings).toHaveTextContent('Today at a glance');
+    expect(rings.querySelector('svg[aria-label^="Checklists "]')).toHaveAttribute('aria-label', expect.stringMatching(/End of day report/));
+  });
+
+  it('for staff, Standard previews the checklists card, and Rings has no end of day ring', () => {
+    renderApp('/home/customise', staff);
+    expect(preview('Standard')).toHaveTextContent('Checklists to do today');
+    expect(preview('Standard').querySelector('.rings-card')).toBeNull();
+    expect(preview('Rings').querySelector('svg[aria-label^="Checklists "]')).not.toHaveAttribute('aria-label', expect.stringMatching(/End of day report/));
+  });
+
+  it('a supervisor gets the checklists card too', () => {
+    renderApp('/home/customise', supervisor);
+    expect(preview('Standard')).toHaveTextContent('Checklists to do today');
+  });
+
+  it('choosing Rings checks it, and the home then shows the rings card', async () => {
+    const { user } = renderApp('/home/customise', manager);
+    expect(choice('Standard')).toHaveAttribute('aria-checked', 'true');
+    expect(choice('Rings')).toHaveAttribute('aria-checked', 'false');
+    // Tapping the preview picks the style, like tapping the word.
+    await user.click(preview('Rings'));
+    expect(choice('Rings')).toHaveAttribute('aria-checked', 'true');
+    expect(choice('Standard')).toHaveAttribute('aria-checked', 'false');
+    // Both previews stay as they were: they show the styles, not the choice.
+    expect(preview('Standard').querySelector('.rings-card')).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Done' }));
+    const home = document.querySelector('.hero')!;
+    expect(home).toHaveClass('rings-card');
+    expect(home.closest('.cz-preview')).toBeNull();
+  });
+
+  it('the previews are inert and hidden, so nothing in them can be tabbed to or read out', () => {
+    renderApp('/home/customise', manager);
+    for (const name of ['Standard', 'Rings'] as const) {
+      const p = preview(name);
+      expect(p).toHaveAttribute('inert');
+      expect(p).toHaveAttribute('aria-hidden', 'true');
+      // The cards have links of their own (Up next), but not one is reachable.
+      expect(p.querySelectorAll('a').length).toBeGreaterThan(0);
+      expect(within(choice(name)).queryAllByRole('link')).toHaveLength(0);
+      for (const a of p.querySelectorAll('a, button')) expect(a.closest('[inert]')).toBe(p);
+    }
+    expect(within(screen.getByRole('radiogroup', { name: 'Main card style' })).queryAllByRole('link')).toHaveLength(0);
+    // (jsdom doesn't apply inert to focus, so tab order is a browser check.)
   });
 });
 

@@ -1,24 +1,33 @@
 /** Pieces the staff, supervisor and manager home screens share. */
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router';
 import { formatPounds, type Issue } from '@maginhawa/core';
 import { timeHM, useDraft } from '../../lib/draft';
 import { checksText, doneAt, isDone, phaseSummaries, runPath, statusPill, taskPie, type PhaseSummary, type TaskView } from '../../lib/checklists';
 import { WhoMenu } from './WhoMenu';
 import { SitePicker } from '../SitePicker';
+import { CommandMenu } from '../CommandMenu';
 import { BigMoney, Chevron, Icon, Pie, RowLink, Segments, StatusIcon } from '../ui';
 import { ICONS, PHASE_ICONS } from '../ui-helpers';
 import { useToday, useEod } from './shared-helpers';
 
+/** The home's top bar (P1, W1): the site pill on the left; Search and the account on the right. */
 export function HomeHeader({ right }: { right?: ReactNode }) {
   const { savedAt } = useDraft();
+  const [search, setSearch] = useState(false);
   return (
     <header className="nav homenav" style={{ paddingLeft: 20 }}>
       <SitePicker place="top" />
       {right ?? <>
         <span className="saved" data-tour="sync"><span className="dot" />{savedAt ? `Saved ${timeHM(savedAt)}` : 'On this device'}</span>
-        <WhoMenu />
+        <span className="homenav-r">
+          <button type="button" className="homenav-search" aria-label="Search" onClick={() => setSearch(true)}><Icon d={ICONS.search} size={19} /></button>
+          <WhoMenu />
+        </span>
       </>}
+      {/* Drawn at the page root: the bar's blur would otherwise hold the search inside the bar. */}
+      {search && createPortal(<CommandMenu onClose={() => setSearch(false)} />, document.body)}
     </header>
   );
 }

@@ -87,7 +87,11 @@ describe('the food-safety hub', () => {
 
   it('home links to it with the count', () => {
     renderApp('/', manager);
-    expect(screen.getByRole('link', { name: /^Food safety/ })).toHaveAttribute('href', '/food-safety');
+    const w = screen.getByRole('region', { name: 'Food safety' });
+    // The count is the dot on the icon (W1), not a pill; the link reads it after the name.
+    expect(within(w).getByRole('link', { name: /^Food safety, \d+ to do(, something failed)?$/ })).toHaveAttribute('href', '/food-safety');
+    expect(w.querySelector('.wi .wdot')).not.toBeNull();
+    expect(w.querySelector('.pill')).toBeNull();
   });
 });
 

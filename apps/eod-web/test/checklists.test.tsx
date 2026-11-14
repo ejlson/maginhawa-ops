@@ -2,53 +2,109 @@ import { describe, expect, it } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import { renderApp } from './harness';
 import { setNow } from '../app/lib/clock';
+import { deviceChecklistStore } from '../app/lib/store';
 
 const at = (iso: string) => setNow(new Date(iso));
 const opening = '/checklists/' + encodeURIComponent('2026-10-05|opening|09:30');
 const bar = '/checklists/' + encodeURIComponent('2026-10-05|bar|16:30');
+const hot12 = '/checklists/' + encodeURIComponent('2026-10-05|hothold|12:00');
+
+/** Lists finished earlier today (the store writes synchronously). */
+function seedDone(...keys: string[]) {
+  for (const key of keys) {
+    const [, templateId, dueTime] = key.split('|');
+    void deviceChecklistStore().apply('BUN', [{ kind: 'finish', run: { key, templateId: templateId!, businessDate: '2026-10-05', dueTime: dueTime! }, by: 'Sam', at: '2026-10-05T08:00:00Z' }]);
+  }
+}
 
 describe('checklists are available all day, separate from the end-of-day report', () => {
   it('in the morning, home puts the late checklist first', () => {
     at('2026-10-05T09:00:00Z'); // 10:00 BST, opening was due 09:30
     renderApp('/');
     // The one Up next pill in the main card goes straight to the late list.
-    expect(screen.getByRole('link', { name: /^Do\ now:\ Opening\ checks,/ })).toHaveAttribute('href', opening);
-    // The main card doesn't offer the EOD; the EOD stays one tap away in its own widget.
     const hero = document.querySelector<HTMLElement>('.hero')!;
+    expect(within(hero).getByRole('link', { name: /^Do\ now:\ Opening\ checks,/ })).toHaveAttribute('href', opening);
+    // The main card doesn't offer the EOD; the EOD stays one tap away in its own widget.
     expect(within(hero).queryByRole('link', { name: /Start (lunch|today's EOD)/ })).not.toBeInTheDocument();
     const eod = screen.getByRole('region', { name: 'End of day report' });
     expect(within(eod).getByRole('heading', { name: 'End of day report' }).querySelector('a')).toHaveAttribute('href', '/close');
-    // Checklists leads its rows with it, with how late it is.
+    // Checklists makes it the one to do now, with how late it is, and the pill counts it.
     const lists = screen.getByRole('region', { name: 'Checklists' });
     expect(lists.querySelector('.wh')).toHaveTextContent(/^Checklists1 late$/);
-    const first = lists.querySelector<HTMLElement>('.sub a')!;
-    expect(first).toHaveTextContent(/^Opening checks.*30 min late$/);
+    const first = within(lists).getByRole('link', { name: 'Do now: Opening checks, 30 min late' });
+    expect(first).toHaveClass('ln');
+    expect(first).toHaveTextContent(/^Opening checks30 min late/);
     expect(first).toHaveAttribute('href', opening);
   });
 
   it('during the day, before anything is due, the top card shows the next checklist', () => {
     at('2026-10-05T07:00:00Z'); // 08:00 BST
     renderApp('/');
-    const up = screen.getByRole('link', { name: /^Start:\ Opening\ checks,/ });
+    const hero = document.querySelector<HTMLElement>('.hero')!;
+    const up = within(hero).getByRole('link', { name: /^Start:\ Opening\ checks,/ });
     expect(up).toHaveAttribute('href', opening);
     expect(up).toHaveTextContent('Up nextOpening checks · 09:30');
-    // Nothing is late yet, so the Checklists header counts only what's done.
-    expect(screen.getByRole('region', { name: 'Checklists' }).querySelector('.wh')).toHaveTextContent(/^Checklists0 of 6 done$/);
+    // Nothing is late yet, so the Checklists header counts only what's done; its own Start goes to the same list.
+    const lists = screen.getByRole('region', { name: 'Checklists' });
+    expect(lists.querySelector('.wh')).toHaveTextContent(/^Checklists0 of 6 done$/);
+    expect(within(lists).getByRole('link', { name: /^Start:\ Opening\ checks,/ })).toHaveAttribute('href', opening);
   });
 
   it('in the evening, the end-of-day report is the main button and checklists stay open', () => {
     renderApp('/'); // 22:00 BST
     // Up next is the EOD's next step.
-    expect(screen.getByRole('link', { name: /^Start\ lunch,/ })).toHaveAttribute('href', '/close/lunch');
-    expect(screen.queryByRole('link', { name: /^(Do now|Start): / })).not.toBeInTheDocument();
-    // Lists missed earlier lead Checklists, each opening its own list; the rest (closing still to come)
-    // are counted at the foot, which opens the checklists.
+    const hero = document.querySelector<HTMLElement>('.hero')!;
+    expect(within(hero).getByRole('link', { name: /^Start\ lunch,/ })).toHaveAttribute('href', '/close/lunch');
+    expect(within(hero).queryByRole('link', { name: /^(Do now|Start): / })).not.toBeInTheDocument();
+    // The first list missed earlier is the one to do now in Checklists; the closing list still to come is Next due.
     const lists = screen.getByRole('region', { name: 'Checklists' });
-    expect(within(lists).getByRole('link', { name: /Opening checks.*Missed$/ })).toHaveAttribute('href', opening);
+    expect(within(lists).getByRole('link', { name: 'Do now: Opening checks, Missed' })).toHaveAttribute('href', opening);
     expect(lists.querySelector('.wh')).toHaveTextContent(/^Checklists5 missed$/);
-    const more = within(lists).getByRole('link', { name: /^3 more to do/ });
-    expect(more).toHaveAttribute('href', '/checklists');
-    expect(within(lists).queryByText(/Closing checks/)).not.toBeInTheDocument();
+    expect(lists).toHaveTextContent('Next due · Closing checks at 23:00');
+    expect(within(lists).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/checklists', opening]);
+  });
+
+  it('the Checklists page ends with the Next checklist bar: how many are left, then the next one', () => {
+    at('2026-10-05T07:00:00Z'); // 08:00 BST, nothing due yet
+    renderApp('/checklists');
+    const bar = screen.getByRole('region', { name: 'Next checklist' });
+    expect(bar).toHaveClass('leftbar');
+    expect(bar.querySelector('small')).toHaveTextContent(/^6 to do$/);
+    expect(bar.querySelector('b')).toHaveTextContent(/^Next: Opening checks$/);
+    const go = within(bar).getByRole('link', { name: /^Start: Opening checks,\s*Go$/ });
+    expect(go).toHaveAttribute('href', opening);
+    // The label is for screen readers; the button just says Go.
+    expect(go.querySelector('.vh')).toHaveTextContent('Start: Opening checks,');
+    // The old full-width button is gone.
+    expect(screen.queryByRole('link', { name: /^Start:? Opening checks$/ })).not.toBeInTheDocument();
+    expect(document.querySelectorAll('a.btn.b1')).toHaveLength(0);
+    expect(document.querySelector('.foot .btn.b1')).toBeNull();
+  });
+
+  it('the Next checklist bar says Do now for a late list and counts what is late or missed', () => {
+    at('2026-10-05T11:10:00Z'); // 12:10 BST: Hot holding 12:00 late, opening missed
+    renderApp('/checklists');
+    const bar = screen.getByRole('region', { name: 'Next checklist' });
+    expect(bar.querySelector('small')).toHaveTextContent(/^6 to do · 2 late or missed$/);
+    expect(bar.querySelector('b')).toHaveTextContent(/^Do now: Hot holding · 12:00$/);
+    expect(within(bar).getByRole('link', { name: /^Do now: Hot holding · 12:00,\s*Go$/ }))
+      .toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|hothold|12:00'));
+  });
+
+  it('on a wide screen, the split view uses the same Next checklist bar', () => {
+    window.matchMedia = ((q: string) => ({ matches: /min-width/.test(q), media: q, addEventListener() {}, removeEventListener() {} })) as unknown as typeof window.matchMedia;
+    try {
+      at('2026-10-05T07:00:00Z');
+      renderApp('/checklists');
+      expect(document.querySelector('.split-body')).not.toBeNull();
+      const bar = screen.getByRole('region', { name: 'Next checklist' });
+      expect(bar.closest('.split-body')).not.toBeNull();
+      expect(bar.querySelector('b')).toHaveTextContent(/^Next: Opening checks$/);
+      expect(within(bar).getByRole('link', { name: /^Start: Opening checks,\s*Go$/ })).toHaveAttribute('href', opening);
+      expect(document.querySelector('.split-body .btn.b1')).toBeNull();
+    } finally {
+      delete (window as { matchMedia?: unknown }).matchMedia;
+    }
   });
 
   it('a phase opens the checklists filtered to it', () => {
@@ -144,6 +200,51 @@ describe('doing a checklist', () => {
     renderApp('/checklists');
     const row = screen.getByText('Opening checks').closest('a')!;
     expect(within(row).getByRole('img', { name: 'In progress' })).toBeInTheDocument();
+  });
+});
+
+describe('the end of a finished checklist', () => {
+  /** Answers Hot holding's two required temperatures, so it can finish. */
+  async function answerHotHolding(user: ReturnType<typeof renderApp>['user']) {
+    await user.type(screen.getByLabelText('Pass'), '70');
+    await user.type(screen.getByLabelText('Bain-marie'), '70');
+  }
+
+  it('while answers are missing, the disabled button stays and there is no What\'s next bar', async () => {
+    at('2026-10-05T10:50:00Z'); // 11:50 BST
+    const { user } = renderApp(hot12);
+    expect(screen.getByRole('button', { name: '2 left to answer' })).toBeDisabled();
+    expect(screen.getByText('Answers save as you go.')).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: "What's next" })).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText('Pass'), '70');
+    expect(screen.getByRole('button', { name: '1 left to answer' })).toBeDisabled();
+    expect(screen.queryByRole('region', { name: "What's next" })).not.toBeInTheDocument();
+  });
+
+  it('once it can finish, the What\'s next bar goes to the next list', async () => {
+    at('2026-10-05T10:50:00Z'); // 11:50 BST
+    seedDone('2026-10-05|opening|09:30', '2026-10-05|bar|16:30');
+    const { user } = renderApp(hot12);
+    await answerHotHolding(user);
+    const next = screen.getByRole('region', { name: "What's next" });
+    expect(next).toHaveClass('leftbar');
+    expect(next.querySelector('small')).toHaveTextContent('Saved. Submit it with the others under the checklists.');
+    expect(next.querySelector('b')).toHaveTextContent(/^Next: Hot holding · 15:00$/);
+    expect(within(next).getByRole('link', { name: /^Next: Hot holding · 15:00,\s*Go$/ }))
+      .toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|hothold|15:00'));
+    // The old button and its foot are gone.
+    expect(screen.queryByRole('button', { name: /left to answer/ })).not.toBeInTheDocument();
+    expect(document.querySelector('.foot .btn.b1')).toBeNull();
+  });
+
+  it('with nothing else to do, What\'s next goes back to the checklists', async () => {
+    at('2026-10-05T10:50:00Z');
+    seedDone('2026-10-05|opening|09:30', '2026-10-05|bar|16:30', '2026-10-05|hothold|15:00', '2026-10-05|hothold|18:00', '2026-10-05|closing|23:00');
+    const { user } = renderApp(hot12);
+    await answerHotHolding(user);
+    const next = screen.getByRole('region', { name: "What's next" });
+    expect(next.querySelector('b')).toHaveTextContent(/^Back to checklists$/);
+    expect(within(next).getByRole('link', { name: /^Back to checklists,\s*Go$/ })).toHaveAttribute('href', '/checklists');
   });
 });
 

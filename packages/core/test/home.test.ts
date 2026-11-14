@@ -5,16 +5,14 @@ const ids = Object.keys(WIDGETS) as WidgetId[];
 
 describe('home widgets: role defaults (docs/specs/bento-home/SPEC.md)', () => {
   it('starts each role with the agreed widgets', () => {
-    expect(DEFAULT_HOME.staff).toEqual(['checklists', 'food', 'recipes']);
-    expect(DEFAULT_HOME.supervisor).toEqual(['checklists', 'eod', 'stock', 'food', 'recipes']);
-    expect(DEFAULT_HOME.manager).toEqual(['checklists', 'eod', 'stock', 'food', 'recipes', 'repairs']);
+    expect(DEFAULT_HOME.staff).toEqual(['checklists', 'food', 'repairs', 'handover', 'recipes']);
+    expect(DEFAULT_HOME.supervisor).toEqual(['checklists', 'eod', 'stock', 'food', 'repairs', 'handover', 'recipes']);
+    expect(DEFAULT_HOME.manager).toEqual(DEFAULT_HOME.supervisor);
     expect(DEFAULT_HOME.headoffice).toEqual(DEFAULT_HOME.manager);
   });
 
-  it('keeps Handover off by default for everyone, and Repairs for managers only', () => {
-    for (const set of Object.values(DEFAULT_HOME)) expect(set).not.toContain('handover');
-    expect(DEFAULT_HOME.staff).not.toContain('repairs');
-    expect(DEFAULT_HOME.supervisor).not.toContain('repairs');
+  it('starts everyone with Repairs and Handover, so anyone can report a problem or leave a note', () => {
+    for (const set of Object.values(DEFAULT_HOME)) { expect(set).toContain('repairs'); expect(set).toContain('handover'); }
   });
 
   it('never starts anyone with a widget their role cannot use', () => {
@@ -54,6 +52,19 @@ describe('home widgets: reading a saved layout back', () => {
     expect(l.order).toEqual(['food', 'checklists']);
     expect(l.hidden[0]).toBe('recipes');
     expect(l.hidden).toContain('day');
+  });
+
+  it('drops a widget saved twice, keeping its first place', () => {
+    const l = resolveLayout({ order: ['food', 'checklists', 'food', 'recipes', 'checklists'], hidden: [] }, 'staff', false);
+    expect(l.order).toEqual(['food', 'checklists', 'recipes']);
+    // Still everything allowed exactly once across the two lists.
+    const all = [...l.order, ...l.hidden];
+    expect(new Set(all).size).toBe(all.length);
+    expect(all.sort()).toEqual(ids.filter((id) => widgetAllowed(id, 'staff', false)).sort());
+  });
+
+  it('a duplicate of a widget the role can\'t have is dropped too', () => {
+    expect(resolveLayout({ order: ['eod', 'checklists', 'eod'], hidden: [] }, 'staff', false).order).toEqual(['checklists']);
   });
 
   it('shift sets start from their own defaults', () => {

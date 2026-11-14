@@ -27,8 +27,8 @@ Today each role's home is a long list. The user wants a home that shows the day 
 | Stock | wide | Count due and progress; items running low (count + top 2 names) with **Order**; deliveries due today with **Check in** | Opens Stock | Supervisor, manager |
 | Recipes | square | Search box and the last 3 opened dishes *(assumed)* | Opens Recipes or that dish | All |
 | Food safety | square | Four quick actions: **Log a temperature**, **Check in a delivery**, **Allergens**, **Report a problem** *(assumed)*; a red dot when something failed | Each action goes straight there | All |
-| Handover | square | "From last night · not read yet" or "Nothing to read" | Opens Handover | Off by default; can be added |
-| Repairs | square | Open and urgent counts | Opens Repairs | Off by default (manager on) |
+| Handover | square | "From last night · not read yet" or "Nothing to read"; **Add to the handover** for anyone | Opens Handover | All (on by default since 14 Nov 2026) |
+| Repairs | square | Open and urgent counts (supervisors and up); **Report a problem** for everyone | Opens Repairs | All (on by default since 14 Nov 2026) |
 
 Widgets only offer what the person's role can use (`can` in `lib/auth`): staff never get End of day; Repairs shows "Report a problem" for staff.
 

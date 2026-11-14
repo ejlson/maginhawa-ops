@@ -1882,3 +1882,76 @@ html, .split-list, .siteopts, .ho-side, .hosearch-list, .sitepop { scrollbar-wid
   .wi, .wqa a, .wsearch, .wstack-c a, .wround a span, .cz-arr, .cz-size:not(.on) { background: var(--fill); }
   .wqa a span { background: var(--side); }
 }
+/* The "what's next" bar outside End of day: it floats at the bottom of the screen the same way. */
+.nextbar-wrap { position: sticky; bottom: 0; z-index: 5; padding: var(--sp-3) max(24px, env(safe-area-inset-left)) calc(var(--sp-4) + env(safe-area-inset-bottom, 0px)); pointer-events: none; }
+.nextbar-wrap .leftbar { position: static; margin: 0; pointer-events: auto; }
+.page.tabs .nextbar-wrap { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); padding-bottom: var(--sp-3); }
+@media (min-width: 900px) { .site-shell .page.tabs .nextbar-wrap { bottom: 0; padding-bottom: var(--sp-4); } }
+.split-body .leftbar { position: static; margin: 0; }
+
+/* ---- Widgets, exactly as W1 ---- */
+.wh h2 { font-size: 15px; }
+.w .ln { display: flex; align-items: center; gap: 10px; min-height: 34px; color: var(--text); text-decoration: none; }
+.w .ln.sep { border-top: 1px solid var(--sep); padding-top: 10px; }
+.w .ln .t { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.w .ln .t b { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w .ln .t span { font-size: 12px; color: var(--sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w .mini { width: auto; height: 30px; padding: 0 12px; border-radius: 999px; background: var(--text); color: var(--bg); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.w .mini.g { background: var(--bg); color: var(--text); box-shadow: 0 0 0 1px var(--sep); }
+@media (prefers-color-scheme: dark) { .w .mini.g { background: var(--fill); box-shadow: none; } }
+.wck { display: flex; align-items: center; gap: var(--sp-4); }
+.wck-r { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.wring { flex: none; }
+.wring-track { stroke: var(--sep); }
+.wring-fill { stroke: var(--site); transition: stroke-dasharray .7s cubic-bezier(.23,1,.32,1); }
+.wring text { fill: var(--text); font-family: inherit; }
+.wsmall { font-size: 12px; color: var(--sec); }
+.wsmall.wlink { text-decoration: none; }
+.wsmall.wlink:hover { color: var(--text); }
+.wbar { height: 6px; border-radius: 3px; background: var(--sep); overflow: hidden; margin-top: -4px; }
+.wbar i { display: block; height: 100%; border-radius: 3px; background: var(--site); }
+.wsecs { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 6px; }
+.wsec { flex-direction: column; justify-content: flex-start; gap: 4px; min-height: 0; font-size: 11px; text-align: center; color: var(--text); font-weight: 500; }
+.wsec.done { color: var(--sec); }
+.wsec.started { color: var(--sec); font-weight: 600; }
+.wsec span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.wi { position: relative; }
+.wdot { position: absolute; top: -2px; right: -2px; width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 2px var(--wbg); }
+.wdot.bad { background: var(--bad); }
+.wdot.warn { background: var(--warn); }
+.w:not(.wide) .wqa { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.wqa a { min-height: 0; padding: 10px 4px; font-size: 11.5px; gap: 6px; }
+a.wmeta { text-decoration: none; } a.wmeta:hover { color: var(--text); }
+/* Home top bar (P1/W1): Search beside the account, both 40px circles, 8 apart. */
+.homenav-r { display: flex; align-items: center; gap: var(--sp-2); }
+.homenav-search { width: 40px; height: 40px; flex: none; border: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  color: var(--text); background: color-mix(in srgb, var(--bg) 70%, transparent); box-shadow: inset 0 0 0 1px var(--sep); }
+.homenav-search:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--link); }
+@media (min-width: 900px) { .site-shell .homenav-search { display: none; } }
+.mh-page .homenav .sitetitle { font-size: 16px; }
+/* P1: fully round shapes stay round (no squircle), and the bar's row sits 24 from the top. */
+.mh-page .homenav .sitetitle, .mh-page .homenav .sitetitle .sitemono, .homenav-search, .homenav .who .av { corner-shape: round; }
+@media (max-width: 899px) { .mh-page .homenav { padding-top: calc(env(safe-area-inset-top, 0px) + 12px) !important; min-height: 76px; } }
+/* Customise: the two main card styles as live previews to tap. */
+.cz-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); }
+.cz-card { display: flex; flex-direction: column; gap: var(--sp-2); padding: 8px; border: 0; border-radius: 22px; background: var(--wbg); color: var(--text); font: inherit; cursor: pointer; text-align: left; box-shadow: 0 0 0 1px var(--sep); corner-shape: superellipse(1.6); }
+.cz-card[aria-checked="true"] { box-shadow: 0 0 0 2px var(--text); }
+.cz-card:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--link), 0 0 0 4px var(--bg); }
+.cz-preview { position: relative; display: block; height: 150px; overflow: hidden; border-radius: 16px; pointer-events: none; corner-shape: superellipse(1.6); }
+.cz-preview-in { position: absolute; top: 0; left: 0; width: 340px; transform: scale(.46); transform-origin: top left; }
+.cz-preview-in .hero { min-height: 0; animation: none !important; }
+.cz-card-l { display: flex; align-items: center; gap: var(--sp-2); padding: 2px 4px 4px; font-size: 15px; font-weight: 600; }
+.cz-radio { width: 18px; height: 18px; flex: none; box-sizing: border-box; border-radius: 999px; border: 2px solid var(--sec); }
+.cz-card[aria-checked="true"] .cz-radio { border: 5px solid var(--text); }
+@media (min-width: 900px) { .cz-preview { height: 170px; } .cz-preview-in { transform: scale(.52); } }
+/* Fit the preview to its tile exactly: draw the card at 1/0.46 of the tile's width, then scale it down. */
+.cz-preview-in { width: calc(100% / .46); }
+@media (min-width: 900px) { .cz-preview-in { width: calc(100% / .52); } }
+/* The "what's next" bar sits at the bottom of the screen even when the page is short; on desktop it lines up with the content. */
+.nextbar-wrap { margin-top: auto; }
+.split-main > .nextbar-wrap { width: 100%; max-width: 760px; box-sizing: border-box; padding: 24px 48px; }
+.cz-preview-in .hero::before, .cz-preview-in .hero::after, .cz-preview-in * { animation: none !important; }
+.cz-card.on { box-shadow: 0 0 0 2px var(--text); }
+.cz-card-l { border: 0; background: none; color: inherit; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; text-align: left; border-radius: 10px; }
+.cz-card-l:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.cz-card-l[aria-checked="true"] .cz-radio { border: 5px solid var(--text); }

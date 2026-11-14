@@ -2,7 +2,7 @@ import { Link, useSearchParams } from 'react-router';
 import { PHASE_LABELS, PHASES, type Phase } from '@maginhawa/core';
 import { formatDay } from '../lib/draft';
 import { isDone, isScheduled, runPath, useChecklists } from '../lib/checklists';
-import { Foot, Nav } from '../components/ui';
+import { Nav, NextBar } from '../components/ui';
 import { groupTasks } from '../components/checklist-split-helpers';
 import { SplitFrame, SubmitLists, TaskRow } from '../components/ChecklistSplit';
 import { useTwoColumns } from '../lib/wide';
@@ -21,6 +21,11 @@ export default function Checklists() {
   const two = useTwoColumns();
   const lateOrMissed = now.filter((t) => t.status === 'late').length + missed.length;
   const fixedToday = done.filter((t) => t.status === 'failed').length;
+  // The bar at the bottom: how many are left, then the next one, as on End of day.
+  const left = tasks.filter((t) => !isDone(t) && t.status !== 'anytime').length;
+  const nextSmall = `${left} to do${lateOrMissed ? ` · ${lateOrMissed} late or missed` : ''}`;
+  const nextBig = next ? `${next.status === 'late' ? 'Do now' : 'Next'}: ${next.title}` : '';
+  const nextLabel = next ? `${next.status === 'late' ? 'Do now' : 'Start'}: ${next.title}` : '';
 
   const hero = (
     // Compact, like the card on a list: what's done, one bar per list, and only what needs attention.
@@ -51,7 +56,7 @@ export default function Checklists() {
         <div className="body split-body">
           {hero}
           {next
-            ? <Link className="btn b1" to={runPath(next.key)}>{next.status === 'late' ? 'Do now: ' : 'Start '}{next.title}</Link>
+            ? <NextBar name="Next checklist" small={nextSmall} big={nextBig} to={runPath(next.key)} label={nextLabel} />
             : <p className="note" style={{ margin: 0 }}>Nothing left today. Good work.</p>}
           <p className="lead" style={{ margin: 0 }}>Do them any time of day. They're separate from the end of day report.</p>
         </div>
@@ -98,11 +103,7 @@ export default function Checklists() {
 
         <SubmitLists />
       </div>
-      {next && !ready.length && (
-        <Foot>
-          <Link className="btn b1" to={runPath(next.key)}>{next.status === 'late' ? 'Do now: ' : 'Start '}{next.title}</Link>
-        </Foot>
-      )}
+      {next && !ready.length && <div className="nextbar-wrap"><NextBar name="Next checklist" small={nextSmall} big={nextBig} to={runPath(next.key)} label={nextLabel} /></div>}
       <TabBar />
     </main>
   );

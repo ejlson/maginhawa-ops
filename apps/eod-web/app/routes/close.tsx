@@ -4,7 +4,7 @@ import { formatPounds, isEditable, SECTION_LABELS, sectionStatus, type SectionKe
 import { recordedAs, useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
 import { EodSyncNotice } from '../components/Sync';
-import { BigMoney, Icon, Pie, RowLink, SiteMono, Toggle } from '../components/ui';
+import { BigMoney, Icon, NextBar, Pie, RowLink, SiteMono, Toggle } from '../components/ui';
 import { SECTION_ICONS } from '../components/ui-helpers';
 import { TabBar } from '../components/TabBar';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -121,10 +121,7 @@ export default function Close() {
           </div>
         </section>
 
-        <div className="leftbar" role="region" aria-label="What's left">
-          <span className="tx"><small>{bar.small}</small><b>{bar.big}</b></span>
-          <Link className="go" to={bar.to}><span className="vh">{bar.go}, </span>Go</Link>
-        </div>
+        <NextBar name="What's left" small={bar.small} big={bar.big} to={bar.to} label={bar.go} />
       </div>
       <TabBar />
     </main>

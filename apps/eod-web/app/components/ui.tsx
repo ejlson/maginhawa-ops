@@ -261,6 +261,19 @@ export function MoneyRow({ label, value, onChange, sub, invalid }: { label: stri
   );
 }
 
+/**
+ * The floating "what's next" bar (End of day's "What's left", design P3): a line of context, the next step,
+ * and one Go. Used wherever the bottom of a screen takes you to the next thing to do, so it looks the same everywhere.
+ */
+export function NextBar({ name, small, big, to, label }: { name: string; small: ReactNode; big: ReactNode; to: string; label: string }) {
+  return (
+    <div className="leftbar" role="region" aria-label={name}>
+      <span className="tx"><small>{small}</small><b>{big}</b></span>
+      <Link className="go" to={to}><span className="vh">{label}, </span>Go</Link>
+    </div>
+  );
+}
+
 export function Foot({ children }: { children: ReactNode }) {
   return <div className="foot">{children}</div>;
 }

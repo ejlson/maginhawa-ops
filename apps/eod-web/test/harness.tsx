@@ -28,6 +28,7 @@ import ChecklistCheck from '../app/routes/checklist-check';
 import Report from '../app/routes/report';
 import Repairs from '../app/routes/repairs';
 import Handover from '../app/routes/handover';
+import HandoverAdd from '../app/routes/handover-add';
 import Switch from '../app/routes/switch';
 import Account from '../app/routes/account';
 import People from '../app/routes/people';
@@ -128,6 +129,7 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="report" element={<Report />} />
             <Route path="repairs" element={<Repairs />} />
             <Route path="handover" element={<Handover />} />
+            <Route path="handover/new" element={<HandoverAdd />} />
             <Route path="switch" element={<Switch />} />
             <Route path="account" element={<Account />} />
             <Route path="people" element={<People />} />
