@@ -2,22 +2,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { evaluate, ruleText, type AnswerValue, type Checkpoint } from '@maginhawa/core';
 import { Icon, SignedTempInput } from './ui';
+import { shrinkPhoto } from '../lib/photo';
 import { ICONS, nextOnEnter, parseNumber, toggled } from './ui-helpers';
 
-/** Downscales a photo to keep it small enough to store on the device. */
-async function shrinkPhoto(file: File): Promise<string> {
-  const url = URL.createObjectURL(file);
-  try {
-    const img = await new Promise<HTMLImageElement>((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
-    const scale = Math.min(1, 480 / Math.max(img.width, img.height));
-    const c = document.createElement('canvas');
-    c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
-    c.getContext('2d')?.drawImage(img, 0, 0, c.width, c.height);
-    return c.toDataURL('image/jpeg', 0.7);
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-}
 
 function NumberAnswer({ c, value, onChange, invalid, disabled }: { c: Checkpoint; value: AnswerValue | undefined; onChange: (v: AnswerValue) => void; invalid: boolean; disabled: boolean }) {
   const [text, setText] = useState(typeof value === 'number' ? String(value) : '');

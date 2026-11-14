@@ -66,7 +66,7 @@ export function PageSkeleton({ wide }: { wide?: boolean }) {
           <SkGroup w={140} rows={2} />
         </div>
         {!wide && <nav className="tabbar skel-tabs" aria-hidden="true">
-          {[0, 1, 2, 3].map((i) => <span key={i} className="tab"><Sk w={56} h={30} r={15} /><Sk w={40} h={10} /></span>)}
+          {[0, 1, 2, 3].map((i) => <span key={i} className="tab">{i === 0 ? <Sk w={96} h={48} r={24} /> : <Sk w={24} h={24} r={12} />}</span>)}
         </nav>}
       </main>
     </div>

@@ -106,10 +106,10 @@ export function EndOfDaySection({ eodRow = true, issues = eodRow, write = false 
   const showIssues = issues && eod.issues.length > 0;
   if (!eodRow && !showIssues && !handover.length) return null;
   return (
-    <section className="grp" aria-label={eodRow ? 'End of day' : showIssues ? 'Before you send' : 'Handover'}>
-      <div className="hd"><h2>{eodRow ? 'End of day' : showIssues ? 'Before you send' : 'Handover'}</h2></div>
+    <section className="grp" aria-label={eodRow ? 'End of day report' : showIssues ? 'Before you send' : 'Handover'}>
+      <div className="hd"><h2>{eodRow ? 'End of day report' : showIssues ? 'Before you send' : 'Handover'}</h2></div>
       <div className="sub">
-        {eodRow && <RowLink to={eod.to} lead={<span className="av"><Icon d={ICONS.list} /></span>} title="End-of-day report" sub={eod.rowSub}
+        {eodRow && <RowLink to={eod.to} lead={<span className="av"><Icon d={ICONS.list} /></span>} title="Tonight's report" sub={eod.rowSub}
           right={eod.result.totalNet ? <span className="amt">{formatPounds(eod.result.totalNet)}</span> : undefined} />}
         {issues && <EodIssueRows issues={eod.issues} />}
         {handover.length > 0 && (

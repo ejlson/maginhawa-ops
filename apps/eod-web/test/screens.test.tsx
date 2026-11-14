@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import { renderApp, seedVerifiedDraft, admin, staff } from './harness';
 import { deviceStore, resetDemoEod } from '../app/lib/store';
+import { setNow } from '../app/lib/clock';
 
 describe('sign-in', () => {
   it('sends people who are not signed in to sign-in', async () => {
     renderApp('/close', null);
-    expect(await screen.findByRole('heading', { name: 'End of day' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'End of day report' })).toBeInTheDocument();
     expect(screen.getByText(/Demo mode/)).toBeInTheDocument();
   });
 
@@ -25,8 +26,8 @@ describe('tab bar', () => {
     const tabs = screen.getByRole('navigation', { name: 'Main' });
     expect(within(tabs).getByRole('link', { name: 'Today' })).toHaveAttribute('aria-current', 'page');
     expect(within(tabs).getByRole('link', { name: 'EOD' })).not.toHaveAttribute('aria-current');
-    expect(within(tabs).getAllByRole('link').map((l) => l.textContent)).toEqual(['Today', 'EOD', 'Checklists', 'More']);
-    expect(within(tabs).getByRole('link', { name: 'Checklists' })).toHaveAttribute('href', '/checklists');
+    expect(within(tabs).getAllByRole('link').map((l) => l.querySelector('.tab-l')?.textContent)).toEqual(['Today', 'EOD', 'Checklists', 'More']);
+    expect(within(tabs).getByRole('link', { name: /^Checklists/ })).toHaveAttribute('href', '/checklists');
   });
 
   it('shows on the EOD and checklists screens, and not inside a task', () => {
@@ -35,6 +36,51 @@ describe('tab bar', () => {
     unmount();
     renderApp('/close/lunch');
     expect(screen.queryByRole('navigation', { name: 'Main' })).not.toBeInTheDocument();
+  });
+
+  it('every tab keeps its name for screen readers, though only the selected one shows it', () => {
+    renderApp('/checklists');
+    const nav = screen.getByRole('navigation', { name: 'Main' });
+    const tabs = within(nav).getAllByRole('link');
+    expect(tabs.map((t) => t.querySelector('.tab-l')?.textContent)).toEqual(['Today', 'EOD', 'Checklists', 'More']);
+    for (const name of ['Today', 'EOD', 'Checklists', 'More']) {
+      expect(within(nav).getByRole('link', { name: new RegExp(`^${name}`) })).toBeInTheDocument();
+    }
+    const on = tabs.filter((t) => t.classList.contains('on'));
+    expect(on).toHaveLength(1);
+    expect(on[0]).toHaveAccessibleName(/^Checklists/);
+    expect(on[0]).toHaveAttribute('aria-current', 'page');
+    expect(tabs.filter((t) => t.hasAttribute('aria-current'))).toEqual(on);
+  });
+
+  it('a red dot on Checklists means one is late or missed', () => {
+    setNow(new Date('2026-10-05T09:00:00Z')); // 10:00 BST, opening was due 09:30
+    const { unmount } = renderApp('/');
+    const nav = screen.getByRole('navigation', { name: 'Main' });
+    const dots = nav.querySelectorAll('.tab-dot');
+    expect(dots).toHaveLength(1);
+    expect(dots[0]!.closest('a')).toHaveAttribute('href', '/checklists');
+    expect(dots[0]).toHaveAttribute('aria-hidden', 'true');
+    // The dot doesn't change the tab's name.
+    // The dot is said out loud too.
+    expect(within(nav).getByRole('link', { name: /^Checklists/ })).toHaveAccessibleName('Checklists, 1 late or missed');
+    unmount();
+
+    setNow(new Date('2026-10-05T07:00:00Z')); // 08:00 BST, nothing due yet
+    renderApp('/');
+    expect(screen.getByRole('navigation', { name: 'Main' }).querySelector('.tab-dot')).toBeNull();
+  });
+
+  it('head office phone tabs keep their names too', () => {
+    renderApp('/head-office', admin);
+    const nav = screen.getByRole('navigation', { name: 'Head office' });
+    const tabs = within(nav).getAllByRole('link');
+    expect(tabs.map((t) => t.querySelector('.tab-l')?.textContent)).toEqual(['Today', 'Days', 'Reports', 'More']);
+    for (const name of ['Today', 'Days', 'Reports', 'More']) {
+      expect(within(nav).getByRole('link', { name })).toBeInTheDocument();
+    }
+    expect(within(nav).getByRole('link', { name: 'Today' })).toHaveAttribute('aria-current', 'page');
+    expect(within(nav).getByRole('link', { name: 'Today' })).toHaveClass('on');
   });
 });
 
@@ -53,7 +99,7 @@ describe('roles', () => {
     const nav = screen.getByRole('navigation', { name: 'Main' });
     expect(within(nav).queryByRole('link', { name: 'EOD' })).not.toBeInTheDocument();
     expect(screen.queryByText("Today's EOD")).not.toBeInTheDocument();
-    expect(screen.queryByText('End-of-day report')).not.toBeInTheDocument();
+    expect(screen.queryByText("Tonight's report")).not.toBeInTheDocument();
   });
 
   it('staff are sent home from the EOD screens', () => {
@@ -129,7 +175,7 @@ describe('lunch', () => {
     const { user } = renderApp('/close/lunch');
     await user.type(screen.getByLabelText('Gross sales'), '100');
     await user.click(screen.getByRole('button', { name: 'Save lunch' }));
-    expect(await screen.findByRole('heading', { name: 'End of day' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'End of day report' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: '1 of 8 sections done' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Sales' }).querySelector('.cl-hd')).toHaveTextContent('Sales1 of 4 done');
     // No covers entered yet, so the card doesn't say "0 covers".
@@ -233,7 +279,7 @@ describe('review and submit', () => {
   it('the card links each session to its section, and says when one didn\'t run', async () => {
     await seedVerifiedDraft((d) => { d.ran.lunch = false; d.sessions.dinner.booked = 40; d.sessions.dinner.walkins = 12; });
     renderApp('/close/review');
-    expect(screen.getByRole('link', { name: 'End of day' })).toHaveAttribute('href', '/close');
+    expect(screen.getByRole('link', { name: 'End of day report' })).toHaveAttribute('href', '/close');
     expect(screen.getByRole('heading', { level: 1, name: 'Ready to send?' })).toBeInTheDocument();
     const strip = document.querySelector<HTMLElement>('.rv-strip')!;
     const links = within(strip).getAllByRole('link');
@@ -390,7 +436,7 @@ describe('End of day overview (design P3)', () => {
 
   it('a fresh day: site and date on top, the net card with a ring, three groups all to do, and Start lunch', () => {
     renderApp('/close'); // Monday 5 October, nothing entered
-    expect(screen.getByRole('heading', { level: 1, name: 'End of day' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'End of day report' })).toBeInTheDocument();
     expect(screen.queryByText("Today's EOD")).not.toBeInTheDocument();
     // No top Nav: the site and the day sit in the top row, with the saved state.
     expect(screen.getByText('Bunso · Mon 5 Oct')).toBeInTheDocument();

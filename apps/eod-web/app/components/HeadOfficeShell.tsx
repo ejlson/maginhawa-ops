@@ -109,8 +109,8 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
           const on = phoneTab === l.label;
           return (
           <Link key={l.to} to={l.to} data-tour={l.label === 'Days' ? 'ho-days' : undefined} className={`tab${on ? ' on' : ''}`} aria-current={on ? 'page' : undefined}>
-            <span className="pillbg"><Icon d={l.icon} size={22} /></span>
-            <span>{l.label}</span>
+            <Icon d={l.icon} size={22} />
+            <span className="tab-l">{l.label}</span>
           </Link>
           );
         })}

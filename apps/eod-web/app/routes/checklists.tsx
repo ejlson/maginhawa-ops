@@ -53,7 +53,7 @@ export default function Checklists() {
           {next
             ? <Link className="btn b1" to={runPath(next.key)}>{next.status === 'late' ? 'Do now: ' : 'Start '}{next.title}</Link>
             : <p className="note" style={{ margin: 0 }}>Nothing left today. Good work.</p>}
-          <p className="lead" style={{ margin: 0 }}>Do them any time of day. They're separate from the end-of-day report.</p>
+          <p className="lead" style={{ margin: 0 }}>Do them any time of day. They're separate from the end of day report.</p>
         </div>
       </SplitFrame>
     );
@@ -68,7 +68,7 @@ export default function Checklists() {
           <div className="titleblock">
             <span className="eyebrow">{formatDay(businessDate)}</span>
             <h1>{title}</h1>
-            <p className="lead">Do them any time of day. They're separate from the end-of-day report.</p>
+            <p className="lead">Do them any time of day. They're separate from the end of day report.</p>
           </div>
           {hero}
         </div>

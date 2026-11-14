@@ -62,7 +62,7 @@ function itemsFor(day: SiteDay, today: string): Item[] {
   if (r || day.businessDate < today) {
     const warn = r ? r.issues.some((i) => i.level === 'warn') || r.official?.wageRag === 'red' : false;
     out.push({
-      id: `${site.code}|${day.businessDate}|eod`, date: day.businessDate, siteCode: site.code, siteName: site.name, kind: 'eod', title: 'End of day',
+      id: `${site.code}|${day.businessDate}|eod`, date: day.businessDate, siteCode: site.code, siteName: site.name, kind: 'eod', title: 'End of day report',
       sub: r ? eodSubText(r, day.settings) : 'Nothing sent', pill: r ? eodPill(r) : { text: 'Not sent', cls: 'p-bad' }, done: Boolean(r?.submittedAt),
       problem: !r || r.status === 'draft' || warn, missed: false, notSent: !r || r.status === 'draft',
       to: r ? `${base}/eod` : `/head-office/${site.code.toLowerCase()}?tab=day&date=${day.businessDate}`, sort: r?.submittedAt ?? `${day.businessDate}T23:59`,

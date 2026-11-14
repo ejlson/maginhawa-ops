@@ -29,12 +29,12 @@ describe('first-run tour', () => {
     expect(within(welcome).getByText(/You're a manager at Bunso/)).toBeInTheDocument();
     await user.click(within(welcome).getByRole('button', { name: 'Show me around' }));
 
-    const first = screen.getByRole('dialog', { name: 'Your end of day' });
+    const first = screen.getByRole('dialog', { name: 'Your end of day report' });
     expect(within(first).getByLabelText(/^Tip 1 of \d$/)).toBeInTheDocument();
     expect(within(first).queryByRole('button', { name: 'Back' })).not.toBeInTheDocument();
 
     const titles = await walk(user);
-    expect(titles[0]).toBe('Your end of day');
+    expect(titles[0]).toBe('Your end of day report');
     // Jo works at one site, so there's no site name to switch with and that tip is left out.
     expect(titles).not.toContain('More than one site?');
     expect(titles.at(-1)).toBe('Checklists and the EOD');
@@ -51,7 +51,7 @@ describe('first-run tour', () => {
     await user.click(await screen.findByRole('button', { name: 'Show me around' }));
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(screen.getByRole('button', { name: 'Back' }));
-    expect(screen.getByRole('dialog', { name: 'Your end of day' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Your end of day report' })).toBeInTheDocument();
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent("Tour hidden. It's in Account.");
@@ -78,7 +78,7 @@ describe('first-run tour', () => {
     await user.click(await screen.findByRole('button', { name: 'Show me around' }));
     const titles = await walk(user);
     expect(titles).toContain('Quick temperatures');
-    expect(titles).not.toContain('Your end of day');
+    expect(titles).not.toContain('Your end of day report');
   });
 
   it('shows head office its own tips', async () => {

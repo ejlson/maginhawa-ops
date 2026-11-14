@@ -1671,3 +1671,49 @@ button.sitecard:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--link)
 }
 .ho-links .sgh { padding: var(--sp-5) 12px var(--sp-1); }
 .ho-links > :first-child > .sgh, .ho-links > .sgh:first-child { padding-top: var(--sp-1); }
+
+/* Photos on Report a problem and Repairs. */
+.photo-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.photo-thumb { position: relative; }
+.photo-row img { width: 84px; height: 84px; object-fit: cover; border-radius: 14px; display: block; }
+.photo-thumb button { position: absolute; top: -6px; right: -6px; width: 24px; height: 24px; border-radius: 999px; border: 0; background: var(--ink); color: var(--onink); font-size: 15px; line-height: 1; cursor: pointer; }
+.photo-row.sm { margin-top: var(--sp-2); }
+.photo-row.sm img { width: 56px; height: 56px; border-radius: 10px; }
+
+/* ---- Bottom tab bar: a floating capsule of icons (designs W1–W8) ----
+   Only the selected tab shows its name; the others keep it for screen readers. */
+.tabbar { left: 50%; right: auto; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); gap: 4px; padding: 6px;
+  border: 0; border-radius: 999px; background: var(--nav); box-shadow: 0 12px 32px -14px rgba(0,0,0,.32), 0 0 0 1px var(--sep); }
+.tabbar .tab { position: relative; flex: none; max-width: none; flex-direction: row; gap: 8px; height: 48px; min-width: 52px; padding: 0 14px; box-sizing: border-box;
+  justify-content: center; border-radius: 999px; color: var(--sec); font-size: 15px; font-weight: 600; letter-spacing: -.01em;
+  transition: background-color .3s ease, color .25s ease, padding .3s cubic-bezier(.23,1,.32,1); }
+.tabbar .tab .tab-l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.tabbar .tab.on { padding: 0 18px 0 14px; background: color-mix(in oklch, var(--site) 18%, transparent); color: oklch(from var(--site) min(l, .5) c h); }
+.tabbar .tab.on .tab-l { position: static; width: auto; height: auto; overflow: visible; clip-path: none; color: var(--text); }
+.tabbar .tab:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--link); }
+.tabbar .tab-dot { position: absolute; top: 10px; right: 12px; width: 8px; height: 8px; border-radius: 999px; background: var(--bad); box-shadow: 0 0 0 2px var(--bg); }
+.tabbar .tab.on .tab-dot { right: 8px; }
+@media (prefers-color-scheme: dark) { .tabbar .tab.on { background: color-mix(in oklch, var(--site) 30%, transparent); color: oklch(from var(--site) max(l, .8) c h); } }
+@media (prefers-reduced-motion: reduce) { .tabbar .tab { transition: none; } }
+/* What sits above the bar: the page foot and End of day's bar clear it by 12. */
+.page.tabs .foot { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 899px) { .leftbar { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); } }
+
+/* ---- Scroll bars: thin, rounded, in the theme's colours ---- */
+:root { --scroll: rgba(0,0,0,.22); --scrollHover: rgba(0,0,0,.38); }
+@media (prefers-color-scheme: dark) { :root { --scroll: rgba(255,255,255,.2); --scrollHover: rgba(255,255,255,.36); } }
+html, .split-list, .siteopts, .ho-side, .hosearch-list, .sitepop { scrollbar-width: thin; scrollbar-color: var(--scroll) transparent; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 999px; border: 3px solid transparent; background-clip: padding-box; min-height: 40px; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--scrollHover); }
+::-webkit-scrollbar-corner { background: transparent; }
+.skel-tabs .tab { padding: 0; min-width: 52px; height: 48px; flex-direction: row; justify-content: center; align-items: center; }
+.skel-tabs .tab:first-child { padding: 0; }
+/* Toasts float 12 above the tab bar on screens that have it. */
+@media (max-width: 899px) { body:has(.tabbar) .toast { bottom: calc(88px + env(safe-area-inset-bottom, 0px)); } }
+/* On phone pages with the tab bar, toasts sit at the top so they never cover the page's main button. */
+@media (max-width: 899px) { body:has(.tabbar) .toast { bottom: auto; top: calc(16px + env(safe-area-inset-top, 0px)); } }
+.photo-add:focus-within { box-shadow: 0 0 0 2px var(--link); }
+.photo-add.busy { opacity: .6; }
+.photo-add { position: relative; }

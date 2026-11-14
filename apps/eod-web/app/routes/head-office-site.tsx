@@ -144,7 +144,7 @@ function SiteDayView({ code, date, onDate }: { code: string; date?: string; onDa
       </div>
 
       <section className="grp">
-        <div className="hd"><h2>End of day</h2><span>{report ? eodStatusText(report) : businessDate === today ? 'Not started yet' : 'No report'}</span></div>
+        <div className="hd"><h2>End of day report</h2><span>{report ? eodStatusText(report) : businessDate === today ? 'Not started yet' : 'No report'}</span></div>
         <div className="sub">
           {report ? (
             <RowLink to={`${base}/eod`} lead={<span className="av"><Icon d={ICONS.list} /></span>}

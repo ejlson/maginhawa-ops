@@ -64,7 +64,7 @@ export default function Close() {
           <span className="saved close-saved"><span className="dot" />{locked ? 'Sent' : savedAt ? `Saved on this device · ${timeHM(savedAt)}` : 'Not started'}</span>
         </div>
         <div className="titleblock mh-title">
-          <h1>End of day</h1>
+          <h1>End of day report</h1>
           {!locked && progress.done === 0 && !savedAt && <p className="lead">Do the sections in any order. Everything saves on this device, even without signal.</p>}
         </div>
         {resume && (

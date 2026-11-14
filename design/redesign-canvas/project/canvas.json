@@ -15,14 +15,14 @@
       "y": 0,
       "w": 1440,
       "h": 1260,
-      "title": "Direction \u00b7 site colours, navigation, motion"
+      "title": "Direction · site colours, navigation, motion"
     },
     "P1-Today.dc.html": {
       "x": 2312,
       "y": 1680,
       "w": 390,
       "h": 844,
-      "title": "1 \u00b7 Today: what needs you (tap the site to switch)",
+      "title": "1 · Today: what needs you (tap the site to switch)",
       "is_interactive": true,
       "radius": 48
     },
@@ -39,7 +39,7 @@
       "y": 1680,
       "w": 390,
       "h": 844,
-      "title": "2 \u00b7 End of day: the sections left",
+      "title": "2 · End of day: the sections left",
       "radius": 48
     },
     "P4-Lunch.dc.html": {
@@ -47,7 +47,7 @@
       "y": 1680,
       "w": 390,
       "h": 844,
-      "title": "3 \u00b7 Lunch, one step at a time (try it)",
+      "title": "3 · Lunch, one step at a time (try it)",
       "is_interactive": true,
       "radius": 48
     },
@@ -56,7 +56,7 @@
       "y": 3060,
       "w": 390,
       "h": 844,
-      "title": "1 \u00b7 Checks",
+      "title": "1 · Checks",
       "radius": 48
     },
     "P6-Search.dc.html": {
@@ -72,7 +72,7 @@
       "y": 13888,
       "w": 390,
       "h": 844,
-      "title": "Phone \u00b7 Settings \u203a Site colour (try it)",
+      "title": "Phone · Settings › Site colour (try it)",
       "is_interactive": true,
       "radius": 48
     },
@@ -81,7 +81,7 @@
       "y": 1680,
       "w": 1440,
       "h": 960,
-      "title": "Same flow on desktop \u00b7 Manager, Today",
+      "title": "Same flow on desktop · Manager, Today",
       "expand": "fill"
     },
     "D2-HeadOffice.dc.html": {
@@ -89,7 +89,7 @@
       "y": 5704,
       "w": 1440,
       "h": 960,
-      "title": "Earlier version \u00b7 Head office, all sites",
+      "title": "Earlier version · Head office, all sites",
       "expand": "fill"
     },
     "D3-Settings.dc.html": {
@@ -97,7 +97,7 @@
       "y": 13888,
       "w": 1440,
       "h": 960,
-      "title": "Desktop \u00b7 Settings \u203a Sites and colours (try it)",
+      "title": "Desktop · Settings › Sites and colours (try it)",
       "is_interactive": true,
       "expand": "fill"
     },
@@ -106,7 +106,7 @@
       "y": 15268,
       "w": 1440,
       "h": 900,
-      "title": "Motion \u00b7 press each demo",
+      "title": "Motion · press each demo",
       "is_interactive": true
     },
     "R1-Research.dc.html": {
@@ -114,14 +114,14 @@
       "y": 15268,
       "w": 1440,
       "h": 1100,
-      "title": "Research \u00b7 what we borrowed"
+      "title": "Research · what we borrowed"
     },
     "H1-ActionList.dc.html": {
       "x": 2976,
       "y": 5704,
       "w": 1440,
       "h": 960,
-      "title": "Option A \u00b7 Action list (click a site)",
+      "title": "Option A · Action list (click a site)",
       "is_interactive": true,
       "expand": "fill"
     },
@@ -130,7 +130,7 @@
       "y": 5704,
       "w": 1440,
       "h": 760,
-      "title": "Option B \u00b7 Night board",
+      "title": "Option B · Night board",
       "expand": "fill"
     },
     "H3-FinanceTable.dc.html": {
@@ -138,7 +138,7 @@
       "y": 5704,
       "w": 1440,
       "h": 1060,
-      "title": "Chosen \u00b7 C \u00b7 Finance table (search, click a site)",
+      "title": "Chosen · C · Finance table (search, click a site)",
       "expand": "fill",
       "is_interactive": true
     },
@@ -147,7 +147,7 @@
       "y": 4324,
       "w": 390,
       "h": 844,
-      "title": "1 \u00b7 Stock: tonight's count first",
+      "title": "1 · Stock: tonight's count first",
       "radius": 48
     },
     "S2-StockAreas.dc.html": {
@@ -155,7 +155,7 @@
       "y": 4324,
       "w": 390,
       "h": 844,
-      "title": "2 \u00b7 Full stocktake: next area first",
+      "title": "2 · Full stocktake: next area first",
       "radius": 48
     },
     "S3-StockCount.dc.html": {
@@ -163,7 +163,7 @@
       "y": 4324,
       "w": 390,
       "h": 844,
-      "title": "3 \u00b7 Count one item at a time (try it)",
+      "title": "3 · Count one item at a time (try it)",
       "radius": 48,
       "is_interactive": true
     },
@@ -172,7 +172,7 @@
       "y": 4324,
       "w": 390,
       "h": 844,
-      "title": "4 \u00b7 Ready to send? (try it)",
+      "title": "4 · Ready to send? (try it)",
       "radius": 48,
       "is_interactive": true
     },
@@ -181,7 +181,7 @@
       "y": 4324,
       "w": 1440,
       "h": 960,
-      "title": "6 \u00b7 Head office: Stock",
+      "title": "6 · Head office: Stock",
       "expand": "fill"
     },
     "P8-Review.dc.html": {
@@ -189,7 +189,7 @@
       "y": 1680,
       "w": 390,
       "h": 844,
-      "title": "4 \u00b7 Ready to send? (try it)",
+      "title": "4 · Ready to send? (try it)",
       "is_interactive": true,
       "radius": 48
     },
@@ -198,13 +198,13 @@
       "y": 1680,
       "w": 390,
       "h": 844,
-      "title": "5 \u00b7 Day closed",
+      "title": "5 · Day closed",
       "radius": 48
     },
     "HS1-Safety.dc.html": {
       "w": 390,
       "h": 844,
-      "title": "1 \u00b7 Health and safety: what is due",
+      "title": "1 · Health and safety: what is due",
       "radius": 48,
       "x": 1884,
       "y": 7184
@@ -212,7 +212,7 @@
     "HS2-FireTest.dc.html": {
       "w": 390,
       "h": 844,
-      "title": "2 \u00b7 Weekly fire alarm test (try it)",
+      "title": "2 · Weekly fire alarm test (try it)",
       "radius": 48,
       "is_interactive": true,
       "x": 2354,
@@ -221,7 +221,7 @@
     "HS3-Accident.dc.html": {
       "w": 390,
       "h": 844,
-      "title": "3 \u00b7 Report an accident (try it)",
+      "title": "3 · Report an accident (try it)",
       "radius": 48,
       "is_interactive": true,
       "x": 2824,
@@ -230,7 +230,7 @@
     "HS4-SafetyHO.dc.html": {
       "w": 1440,
       "h": 900,
-      "title": "4 \u00b7 Head office: all sites",
+      "title": "4 · Head office: all sites",
       "expand": "fill",
       "x": 3294,
       "y": 7184
@@ -238,7 +238,7 @@
     "PM1-Maintenance.dc.html": {
       "w": 390,
       "h": 844,
-      "title": "1 \u00b7 Maintenance: what is due",
+      "title": "1 · Maintenance: what is due",
       "radius": 48,
       "x": 1884,
       "y": 8504
@@ -246,7 +246,7 @@
     "PM2-Equipment.dc.html": {
       "w": 390,
       "h": 844,
-      "title": "2 \u00b7 One piece of equipment and its history",
+      "title": "2 · One piece of equipment and its history",
       "radius": 48,
       "x": 2354,
       "y": 8504
@@ -254,7 +254,7 @@
     "PM3-LogVisit.dc.html": {
       "w": 390,
       "h": 844,
-      "title": "3 \u00b7 Log a visit and the certificate (try it)",
+      "title": "3 · Log a visit and the certificate (try it)",
       "radius": 48,
       "is_interactive": true,
       "x": 2824,
@@ -263,7 +263,7 @@
     "PM4-MaintenanceHO.dc.html": {
       "w": 1440,
       "h": 1000,
-      "title": "4 \u00b7 Head office: only what needs action",
+      "title": "4 · Head office: only what needs action",
       "expand": "fill",
       "x": 3294,
       "y": 8504
@@ -271,7 +271,7 @@
     "OW1-Order.dc.html": {
       "w": 390,
       "h": 844,
-      "title": "1 \u00b7 Order: already filled in, one tap to send (try it)",
+      "title": "1 · Order: already filled in, one tap to send (try it)",
       "radius": 48,
       "is_interactive": true,
       "x": 1884,
@@ -280,7 +280,7 @@
     "OW2-Receive.dc.html": {
       "w": 390,
       "h": 844,
-      "title": "2 \u00b7 Delivery: all ticked, tap what didn't come (try it)",
+      "title": "2 · Delivery: all ticked, tap what didn't come (try it)",
       "radius": 48,
       "is_interactive": true,
       "x": 2354,
@@ -289,7 +289,7 @@
     "OW3-Waste.dc.html": {
       "w": 390,
       "h": 844,
-      "title": "3 \u00b7 Waste: pick the item, the rest is filled in (try it)",
+      "title": "3 · Waste: pick the item, the rest is filled in (try it)",
       "radius": 48,
       "is_interactive": true,
       "x": 2824,
@@ -298,7 +298,7 @@
     "OW4-OrderingHO.dc.html": {
       "w": 1440,
       "h": 900,
-      "title": "4 \u00b7 Head office: the answer first, then accept",
+      "title": "4 · Head office: the answer first, then accept",
       "expand": "fill",
       "x": 3294,
       "y": 9924
@@ -306,7 +306,7 @@
     "RC1-Recipe.dc.html": {
       "w": 390,
       "h": 844,
-      "title": "1 \u00b7 Recipe: get ready, then one step at a time (try it)",
+      "title": "1 · Recipe: get ready, then one step at a time (try it)",
       "radius": 48,
       "is_interactive": true,
       "x": 1456,
@@ -315,7 +315,7 @@
     "RC2-MenuCostingHO.dc.html": {
       "w": 1440,
       "h": 860,
-      "title": "3 \u00b7 Head office: problems first, the fix as one button",
+      "title": "3 · Head office: problems first, the fix as one button",
       "expand": "fill",
       "x": 2396,
       "y": 11244
@@ -323,7 +323,7 @@
     "S6-CountToOrder.dc.html": {
       "w": 390,
       "h": 844,
-      "title": "5 \u00b7 Count sent: order what's low",
+      "title": "5 · Count sent: order what's low",
       "radius": 48,
       "x": 4620,
       "y": 4324
@@ -331,7 +331,7 @@
     "RC3-ItemUse.dc.html": {
       "w": 390,
       "h": 844,
-      "title": "2 \u00b7 One item: what it's in, how long it lasts",
+      "title": "2 · One item: what it's in, how long it lasts",
       "radius": 48,
       "x": 1926,
       "y": 11244
@@ -348,7 +348,7 @@
     "FM1-CloseMap.dc.html": {
       "w": 2072,
       "h": 656,
-      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "title": "Map · which button goes where (click a screen in Play)",
       "is_interactive": true,
       "x": 0,
       "y": 1680
@@ -356,7 +356,7 @@
     "FM2-ChecksMap.dc.html": {
       "w": 1216,
       "h": 656,
-      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "title": "Map · which button goes where (click a screen in Play)",
       "is_interactive": true,
       "x": 0,
       "y": 3060
@@ -364,7 +364,7 @@
     "FM3-StockMap.dc.html": {
       "w": 2500,
       "h": 512,
-      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "title": "Map · which button goes where (click a screen in Play)",
       "is_interactive": true,
       "x": 0,
       "y": 4324
@@ -372,7 +372,7 @@
     "FM4-NightMap.dc.html": {
       "w": 1216,
       "h": 656,
-      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "title": "Map · which button goes where (click a screen in Play)",
       "is_interactive": true,
       "x": 0,
       "y": 5704
@@ -380,7 +380,7 @@
     "FM5-SafetyMap.dc.html": {
       "w": 1644,
       "h": 656,
-      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "title": "Map · which button goes where (click a screen in Play)",
       "is_interactive": true,
       "x": 0,
       "y": 7184
@@ -388,7 +388,7 @@
     "FM6-MaintenanceMap.dc.html": {
       "w": 1644,
       "h": 656,
-      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "title": "Map · which button goes where (click a screen in Play)",
       "is_interactive": true,
       "x": 0,
       "y": 8504
@@ -396,7 +396,7 @@
     "FM7-OrderingMap.dc.html": {
       "w": 1644,
       "h": 800,
-      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "title": "Map · which button goes where (click a screen in Play)",
       "is_interactive": true,
       "x": 0,
       "y": 9924
@@ -404,7 +404,7 @@
     "FM8-RecipesMap.dc.html": {
       "w": 1216,
       "h": 800,
-      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "title": "Map · which button goes where (click a screen in Play)",
       "is_interactive": true,
       "x": 0,
       "y": 11244
@@ -412,10 +412,75 @@
     "FM9-ExportsMap.dc.html": {
       "w": 1216,
       "h": 944,
-      "title": "Map \u00b7 which button goes where (click a screen in Play)",
+      "title": "Map · which button goes where (click a screen in Play)",
       "is_interactive": true,
       "x": 0,
       "y": 12524
+    },
+    "W1-HomeManager.dc.html": {
+      "x": 0,
+      "y": 16728,
+      "w": 390,
+      "h": 1390,
+      "title": "1 · Manager home: main card, then widgets",
+      "radius": 48
+    },
+    "W2-HomeStaff.dc.html": {
+      "x": 470,
+      "y": 16728,
+      "w": 390,
+      "h": 1090,
+      "title": "2 · Staff home: checks on the main card",
+      "radius": 48
+    },
+    "W3-Customise.dc.html": {
+      "x": 940,
+      "y": 16728,
+      "w": 390,
+      "h": 1060,
+      "title": "3 · Customise home (try it)",
+      "radius": 48,
+      "is_interactive": true
+    },
+    "W4-Bento.dc.html": {
+      "x": 0,
+      "y": 18600,
+      "w": 390,
+      "h": 1180,
+      "title": "A · Bento: big numbers, mixed sizes",
+      "radius": 48
+    },
+    "W5-Timeline.dc.html": {
+      "x": 470,
+      "y": 18600,
+      "w": 390,
+      "h": 1240,
+      "title": "B · Your day as a timeline",
+      "radius": 48
+    },
+    "W6-Rings.dc.html": {
+      "x": 940,
+      "y": 18600,
+      "w": 390,
+      "h": 1200,
+      "title": "C · Rings: three things to close",
+      "radius": 48
+    },
+    "W7-ShiftModes.dc.html": {
+      "x": 1410,
+      "y": 18600,
+      "w": 390,
+      "h": 1160,
+      "title": "D · By shift: widgets change at opening, service and close",
+      "radius": 48
+    },
+    "W8-SmartStack.dc.html": {
+      "x": 1880,
+      "y": 18600,
+      "w": 390,
+      "h": 1240,
+      "title": "E · Smart stack: one widget at a time, most urgent first",
+      "radius": 48
     }
   },
   "order": [
@@ -467,7 +532,15 @@
     "P7-SiteColours.dc.html",
     "D3-Settings.dc.html",
     "M1-Motion.dc.html",
-    "R1-Research.dc.html"
+    "R1-Research.dc.html",
+    "W1-HomeManager.dc.html",
+    "W2-HomeStaff.dc.html",
+    "W3-Customise.dc.html",
+    "W4-Bento.dc.html",
+    "W5-Timeline.dc.html",
+    "W6-Rings.dc.html",
+    "W7-ShiftModes.dc.html",
+    "W8-SmartStack.dc.html"
   ],
   "notes": {
     "examples": {
@@ -481,14 +554,14 @@
     "flow0": {
       "x": 0,
       "y": -300,
-      "text": "Start here \u00b7 the direction",
+      "text": "Start here · the direction",
       "kind": "title1",
       "maxW": 1440
     },
     "flow1": {
       "x": 0,
       "y": 1440,
-      "text": "Flow 1 \u00b7 Closing the day  (manager or supervisor)",
+      "text": "Flow 1 · Closing the day  (manager or supervisor)",
       "kind": "title1",
       "maxW": 6102
     },
@@ -496,14 +569,14 @@
       "x": 6182,
       "y": 1680,
       "w": 340,
-      "text": "Today \u2192 End of day \u2192 fill in each section \u2192 ready to send? \u2192 day closed.\n\nOnly a section not done stops sending; anything unusual is a tap on It's right. The send button names the day and the figure.\n\nPhone first; the desktop board is the same day on a laptop.",
+      "text": "Today → End of day → fill in each section → ready to send? → day closed.\n\nOnly a section not done stops sending; anything unusual is a tap on It's right. The send button names the day and the figure.\n\nPhone first; the desktop board is the same day on a laptop.",
       "fill": "blue",
       "size": "m"
     },
     "flow2": {
       "x": 0,
       "y": 2820,
-      "text": "Flow 2 \u00b7 Checks and getting around  (anyone)",
+      "text": "Flow 2 · Checks and getting around  (anyone)",
       "kind": "title1",
       "maxW": 2786
     },
@@ -518,7 +591,7 @@
     "flow3": {
       "x": 0,
       "y": 4084,
-      "text": "Flow 3 \u00b7 Counting stock  (anyone \u2192 head office)",
+      "text": "Flow 3 · Counting stock  (anyone → head office)",
       "kind": "title1",
       "maxW": 6530
     },
@@ -526,14 +599,14 @@
       "x": 6610,
       "y": 4324,
       "w": 340,
-      "text": "Stock \u2192 (full count: pick the next area) \u2192 count one item at a time \u2192 ready to send? \u2192 'Order what's low' straight away \u2192 head office sees it.\n\nAnyone can count. Corrections after sending need supervisor or above. Staff never see money.",
+      "text": "Stock → (full count: pick the next area) → count one item at a time → ready to send? → 'Order what's low' straight away → head office sees it.\n\nAnyone can count. Corrections after sending need supervisor or above. Staff never see money.",
       "fill": "orange",
       "size": "m"
     },
     "flow4": {
       "x": 0,
       "y": 5464,
-      "text": "Flow 4 \u00b7 Head office checks the night  (desktop)",
+      "text": "Flow 4 · Head office checks the night  (desktop)",
       "kind": "title1",
       "maxW": 7456
     },
@@ -541,14 +614,14 @@
       "x": 7536,
       "y": 5704,
       "w": 340,
-      "text": "Head office opens All sites after close: what needs a look, then each site.\n\nC \u00b7 Finance table is the one built in the app. A and B were the other options; the first board is the earlier version.",
+      "text": "Head office opens All sites after close: what needs a look, then each site.\n\nC · Finance table is the one built in the app. A and B were the other options; the first board is the earlier version.",
       "fill": "blue",
       "size": "m"
     },
     "flow5": {
       "x": 0,
       "y": 6944,
-      "text": "Flow 5 \u00b7 Health and safety  (anyone \u2192 head office)",
+      "text": "Flow 5 · Health and safety  (anyone → head office)",
       "kind": "title1",
       "maxW": 4734
     },
@@ -556,14 +629,14 @@
       "x": 4814,
       "y": 7184,
       "w": 340,
-      "text": "Due checks on the main card \u2192 fire alarm test one question at a time \u2192 anyone reports an accident \u2192 head office sees every site.\n\nA failed check raises a repair. An injury that keeps someone off work more than 7 days must be reported to the HSE within 15 days (RIDDOR).",
+      "text": "Due checks on the main card → fire alarm test one question at a time → anyone reports an accident → head office sees every site.\n\nA failed check raises a repair. An injury that keeps someone off work more than 7 days must be reported to the HSE within 15 days (RIDDOR).",
       "fill": "blue",
       "size": "m"
     },
     "flow6": {
       "x": 0,
       "y": 8264,
-      "text": "Flow 6 \u00b7 Planned maintenance  (manager \u2192 head office)",
+      "text": "Flow 6 · Planned maintenance  (manager → head office)",
       "kind": "title1",
       "maxW": 4734
     },
@@ -571,14 +644,14 @@
       "x": 4814,
       "y": 8504,
       "w": 340,
-      "text": "What's due \u2192 one piece of equipment and its history \u2192 log the visit with the certificate \u2192 head office sees every certificate.\n\nReminders 30 and 7 days before. 'Keeps breaking' = 3 or more call-outs in 6 months.",
+      "text": "What's due → one piece of equipment and its history → log the visit with the certificate → head office sees every certificate.\n\nReminders 30 and 7 days before. 'Keeps breaking' = 3 or more call-outs in 6 months.",
       "fill": "blue",
       "size": "m"
     },
     "flow7": {
       "x": 0,
       "y": 9684,
-      "text": "Flow 7 \u00b7 Ordering and waste  (site \u2192 head office)",
+      "text": "Flow 7 · Ordering and waste  (site → head office)",
       "kind": "title1",
       "maxW": 4734
     },
@@ -593,7 +666,7 @@
     "flow8": {
       "x": 0,
       "y": 11004,
-      "text": "Flow 8 \u00b7 Recipes and dish costing  (kitchen \u2192 head office)",
+      "text": "Flow 8 · Recipes and dish costing  (kitchen → head office)",
       "kind": "title1",
       "maxW": 3836
     },
@@ -608,7 +681,7 @@
     "flow9": {
       "x": 0,
       "y": 13648,
-      "text": "Settings \u00b7 site colours  (head office)",
+      "text": "Settings · site colours  (head office)",
       "kind": "title1",
       "maxW": 1910
     },
@@ -623,7 +696,7 @@
     "flow10": {
       "x": 0,
       "y": 15028,
-      "text": "Reference \u00b7 motion and research",
+      "text": "Reference · motion and research",
       "kind": "title1",
       "maxW": 2960
     },
@@ -633,12 +706,12 @@
       "w": 380,
       "fill": "green",
       "size": "m",
-      "text": "How the screens are kept simple\n\n\u2022 One job per screen, one obvious button (Hick's law: fewer choices, faster decisions).\n\u2022 Filled in for you: orders, deliveries and waste start with the likely answer, so most tasks are one or two taps (defaults).\n\u2022 Only the exceptions: lists show what needs action; the rest folds into one line (progressive disclosure).\n\u2022 The answer first: head office cards say what's going on in a sentence, then the detail.\n\u2022 Show, don't make people read: bars instead of numbers to compare (recognition over recall).\n\u2022 Big targets near the thumb, status always in words, and nothing locks you in: Back is always there."
+      "text": "How the screens are kept simple\n\n• One job per screen, one obvious button (Hick's law: fewer choices, faster decisions).\n• Filled in for you: orders, deliveries and waste start with the likely answer, so most tasks are one or two taps (defaults).\n• Only the exceptions: lists show what needs action; the rest folds into one line (progressive disclosure).\n• The answer first: head office cards say what's going on in a sentence, then the detail.\n• Show, don't make people read: bars instead of numbers to compare (recognition over recall).\n• Big targets near the thumb, status always in words, and nothing locks you in: Back is always there."
     },
     "flow11": {
       "x": 0,
       "y": 12284,
-      "text": "Flow 9 \u00b7 Records and exports  (head office)",
+      "text": "Flow 9 · Records and exports  (head office)",
       "kind": "title1",
       "maxW": 2896
     },
@@ -648,7 +721,37 @@
       "w": 380,
       "fill": "green",
       "size": "m",
-      "text": "Start from who is asking (inspector, accountant or HMRC, HSE or insurer, staff and pay, a whole site), not from a list of record types. The app picks the records, the format and the dates.\n\nKeep periods researched 13 Nov 2026: accounts and VAT 6 years; tips 3 years; holiday pay 6 years (from Apr 2026); minimum wage 6 years; right to work: employment + 2 years; accident book 3 years; waste transfer notes 2 years. Details and sources: docs/reports/next-modules-scope.md \u00a76."
+      "text": "Start from who is asking (inspector, accountant or HMRC, HSE or insurer, staff and pay, a whole site), not from a list of record types. The app picks the records, the format and the dates.\n\nKeep periods researched 13 Nov 2026: accounts and VAT 6 years; tips 3 years; holiday pay 6 years (from Apr 2026); minimum wage 6 years; right to work: employment + 2 years; accident book 3 years; waste transfer notes 2 years. Details and sources: docs/reports/next-modules-scope.md §6."
+    },
+    "flow12": {
+      "x": 0,
+      "y": 16488,
+      "text": "Flow 10 · Home as widgets  (staff, supervisors, managers)",
+      "kind": "title1",
+      "maxW": 1330
+    },
+    "flow12-note": {
+      "x": 1410,
+      "y": 16728,
+      "w": 340,
+      "fill": "blue",
+      "size": "m",
+      "text": "Main card first (managers: tonight's net and Up next; staff: their checks). Then widgets: Checklists, End of day, Stock, Recipes, Food safety. Everything at the bottom lists the rest.\n\nEach person can hide, add and reorder widgets; Reset goes back to their role's default. Sizes are fixed so it always looks tidy.\n\nSpec: docs/specs/bento-home/SPEC.md"
+    },
+    "flow13": {
+      "x": 0,
+      "y": 18360,
+      "text": "Flow 10b · Other ways to lay out the home widgets  (manager, Bunso)",
+      "kind": "title1",
+      "maxW": 2270
+    },
+    "flow13-note": {
+      "x": 2350,
+      "y": 18600,
+      "w": 360,
+      "fill": "blue",
+      "size": "m",
+      "text": "Five other layouts for the same widgets, all at 18:40 on a Thursday with the same example figures.\n\nA · Bento: numbers first, tiles of mixed sizes.\nB · Timeline: widgets sit at the time they're due, with a Now line.\nC · Rings: three rings to close (checklists, end of day report, food safety), then what closes them.\nD · By shift: Opening, Service and Closing each get their own widgets; switches by itself.\nE · Smart stack: one swipeable widget, most urgent on top, plus quick actions and recent activity.\n\nAll can still be customised (board 3): drag to reorder, tap – to hide."
     }
   },
   "designSystems": []

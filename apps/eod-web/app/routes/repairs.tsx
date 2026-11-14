@@ -30,6 +30,7 @@ export default function Repairs() {
                   <span className="tx">
                     <span>{r.title}</span>
                     <small>{[r.place, `${reportedText(r.reportedAt, at)} by ${r.reportedBy}`, r.note].filter(Boolean).join(' · ')}</small>
+                    {r.photos?.length ? <span className="photo-row sm">{r.photos.map((src, i) => <img key={i} src={src} alt={`${r.title}, photo ${i + 1}`} />)}</span> : null}
                   </span>
                   <span className="rt">
                     {r.urgent && <span className="pill p-bad">Urgent</span>}
