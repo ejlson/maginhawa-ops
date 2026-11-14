@@ -128,8 +128,8 @@ function CloseGrid() {
     </div>
   );
   return (
-    <section className="grp mh-close" aria-label="End of day">
-      <div className="hd"><h2>End of day</h2><span>{progress.done} of {progress.active} done · {progress.left} left</span></div>
+    <section className="grp mh-close" aria-label="End of day report">
+      <div className="hd"><h2>End of day report</h2><span>{progress.done} of {progress.active} done · {progress.left} left</span></div>
       <div className="mh-close-cols">{col(keys.slice(0, half))}{col(keys.slice(half))}</div>
     </section>
   );

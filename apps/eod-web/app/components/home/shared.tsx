@@ -62,8 +62,8 @@ export function EodHero() {
   const eod = useEod();
   const due = eod.due();
   return (
-    <Link className="hero" data-tour="hero-eod" to={eod.next.to} aria-label={`End of day, ${formatPounds(eod.result.totalNet)} net. ${eod.soFar}. ${eod.next.text}`}>
-      <div className="hero-row"><span className="hl">End of day</span>{due.text && <span className={`hs-small ${due.cls}`} style={{ fontWeight: due.cls ? 600 : undefined }}>{due.text}</span>}</div>
+    <Link className="hero" data-tour="hero-eod" to={eod.next.to} aria-label={`End of day report, ${formatPounds(eod.result.totalNet)} net. ${eod.soFar}. ${eod.next.text}`}>
+      <div className="hero-row"><span className="hl">End of day report</span>{due.text && <span className={`hs-small ${due.cls}`} style={{ fontWeight: due.cls ? 600 : undefined }}>{due.text}</span>}</div>
       <div className="titleblock">
         <BigMoney value={eod.result.totalNet} />
         <span className="hs-small">{eod.submitted ? 'Net for the day' : 'Net so far'}</span>
@@ -145,7 +145,7 @@ export function EodIssueRows({ issues }: { issues: Issue[] }) {
 export function EodRow() {
   const eod = useEod();
   return (
-    <RowLink to={eod.to} lead={<span className="av"><Icon d={ICONS.list} /></span>} title="End-of-day report"
+    <RowLink to={eod.to} lead={<span className="av"><Icon d={ICONS.list} /></span>} title="Tonight's report"
       sub={eod.rowSub} right={eod.result.totalNet ? <span className="amt">{formatPounds(eod.result.totalNet)}</span> : undefined} />
   );
 }

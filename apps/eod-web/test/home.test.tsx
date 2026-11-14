@@ -50,11 +50,11 @@ describe('staff home (the shared kitchen iPad)', () => {
     const hot = '/checklists/' + encodeURIComponent('2026-10-05|hothold|12:00');
     const up = screen.getByRole('link', { name: /^Start:\ Hot\ holding\ ·\ 12:00,/ });
     expect(up).toHaveAttribute('href', hot);
-    expect(up.closest('.hero')!).toHaveTextContent('Your checklists');
+    expect(up.closest('.hero')!).toHaveTextContent('Checklists to do today');
     expect(up.closest('.hero')!).toHaveTextContent('0 of 6 checklists done');
     expect(screen.getByRole('link', { name: /^Report a problem/ })).toHaveAttribute('href', '/report');
     expect(screen.queryByText(/EOD/)).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /^End-of-day report/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /^Tonight's report/ })).not.toBeInTheDocument();
   });
 
   it('Checklists puts their due list, then the missed one, then what is coming in To do, and nothing for managers only', () => {
@@ -79,7 +79,7 @@ describe('staff home (the shared kitchen iPad)', () => {
     expect(group(lists, 'Done')).toBeNull();
     // Open repairs and EOD issues are for supervisors and managers; staff only get a way to report one.
     expect(within(region('Repairs')).getAllByRole('link').map((l) => l.textContent)).toEqual([expect.stringMatching(/^Report a problem/)]);
-    expect(screen.queryByRole('region', { name: 'End of day' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'End of day report' })).not.toBeInTheDocument();
   });
 
   it('a late list is the one to do now', () => {
@@ -135,9 +135,9 @@ describe('staff home (the shared kitchen iPad)', () => {
     const report = within(repairs).getByRole('link', { name: /^Report a problem/ });
     expect(report).toHaveAttribute('href', '/report');
     expect(report).toHaveTextContent('Something broken or not working');
-    expect(screen.queryByRole('link', { name: /End-of-day report/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Tonight's report/ })).not.toBeInTheDocument();
     // No handover, so no End of day / Handover section at all.
-    expect(screen.queryByRole('region', { name: 'End of day' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'End of day report' })).not.toBeInTheDocument();
     expect(within(region('Food safety')).getByRole('link', { name: /^Food safety/ })).toHaveAttribute('href', '/food-safety');
   });
 
@@ -307,11 +307,11 @@ describe('supervisor home (during service)', () => {
     seedRun('2026-10-05|bar|16:30', 'Alex', '2026-10-05T08:10:00Z');
     renderApp('/', supervisor);
     expect(screen.getByRole('heading', { name: 'Good morning, Jo' })).toBeInTheDocument();
-    const stats = screen.getByRole('group', { name: 'Today so far: 1 of 6 checklists done, 1 late or missed' });
+    const stats = screen.getByRole('group', { name: 'Checklists to do today: 1 of 6 checklists done, 1 late or missed' });
     expect(stats).toHaveTextContent('1Late or missed');
     expect(stats).toHaveTextContent('0Re-checks due');
     expect(stats).toHaveTextContent('£0EOD so far');
-    expect(stats.closest('.hero')!).toHaveTextContent('Today so far');
+    expect(stats.closest('.hero')!).toHaveTextContent('Checklists to do today');
     const lists = region('Checklists');
     expect(within(group(lists, 'To do')!).getAllByRole('link')[0]).toHaveTextContent(/^Opening checks.*30 min late$/);
     expect(within(group(lists, 'Done')!).getByRole('link', { name: /Bar opening/ })).toHaveTextContent(/^Bar openingDone 09:10 by Alex$/);
@@ -320,17 +320,17 @@ describe('supervisor home (during service)', () => {
     expect(within(shift).getByText('Alex')).toBeInTheDocument();
     expect(within(shift).getByText('1 done')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^Do\ now:\ Opening\ checks,/ })).toHaveAttribute('href', '/checklists/' + encodeURIComponent('2026-10-05|opening|09:30'));
-    const eod = region('End of day');
-    expect(within(eod).getByRole('heading', { name: 'End of day' })).toBeInTheDocument();
+    const eod = region('End of day report');
+    expect(within(eod).getByRole('heading', { name: 'End of day report' })).toBeInTheDocument();
     expect(within(eod).getByRole('link', { name: 'Write the handover' })).toHaveAttribute('href', '/close/handover');
-    expect(within(eod).getByRole('link', { name: /^End-of-day report/ })).toHaveAttribute('href', '/close');
+    expect(within(eod).getByRole('link', { name: /^Tonight's report/ })).toHaveAttribute('href', '/close');
   });
 
   it('Write the handover sits under End of day, after last night\'s handover, until the EOD is sent', async () => {
     await seedHandover();
     renderApp('/', supervisor);
-    const rows = within(region('End of day')).getAllByRole('link');
-    expect(rows[0]).toHaveAccessibleName(/^End-of-day report/);
+    const rows = within(region('End of day report')).getAllByRole('link');
+    expect(rows[0]).toHaveAccessibleName(/^Tonight's report/);
     expect(rows.at(-2)).toHaveAccessibleName(/^Handover from /);
     expect(within(rows.at(-2)!).getByText('New')).toHaveClass('pill', 'p-new');
     expect(rows.at(-1)).toHaveAccessibleName('Write the handover');
@@ -344,14 +344,14 @@ describe('supervisor home (during service)', () => {
     await user.click(screen.getByRole('button', { name: 'Submit' }));
     await screen.findByRole('heading', { name: 'Day closed' });
     renderApp('/', supervisor);
-    expect(within(region('End of day')).queryByRole('link', { name: 'Write the handover' })).not.toBeInTheDocument();
+    expect(within(region('End of day report')).queryByRole('link', { name: 'Write the handover' })).not.toBeInTheDocument();
   });
 
   it('Needs you counts late, due and missed separately', () => {
     at('2026-10-05T11:10:00Z'); // 12:10 BST: Hot holding 12:00 late, opening missed
     renderApp('/', supervisor);
     expect(meta(region('Checklists'))).toBe('0 of 6 done · 1 late · 1 missed');
-    expect(screen.getByRole('group', { name: 'Today so far: 0 of 6 checklists done, 2 late or missed' })).toHaveTextContent('2Late or missed');
+    expect(screen.getByRole('group', { name: 'Checklists to do today: 0 of 6 checklists done, 2 late or missed' })).toHaveTextContent('2Late or missed');
   });
 
   it('a list that is only due is counted as due, not late', () => {
@@ -360,7 +360,7 @@ describe('supervisor home (during service)', () => {
     const lists = region('Checklists');
     expect(meta(lists)).toBe('0 of 6 done · 1 missed');
     expect(within(group(lists, 'To do')!).getAllByRole('link')[0]).toHaveTextContent(/^Hot holding · 12:00.*Due in 10 min$/);
-    expect(screen.getByRole('group', { name: 'Today so far: 0 of 6 checklists done, 1 late or missed' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Checklists to do today: 0 of 6 checklists done, 1 late or missed' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^Start:\ Hot\ holding\ ·\ 12:00,/ })).toBeInTheDocument();
   });
 
@@ -385,7 +385,7 @@ describe('manager home', () => {
     at('2026-10-05T07:00:00Z'); // 08:00 BST, nothing due yet
     await seedHandover();
     const { user } = renderApp('/', manager);
-    const row = within(region('End of day')).getByRole('link', { name: /^Handover from / });
+    const row = within(region('End of day report')).getByRole('link', { name: /^Handover from / });
     expect(within(row).getByText('New')).toBeInTheDocument();
     await user.click(screen.getByRole('link', { name: /^Read\ last\ night's\ handover,/ }));
     expect(screen.getByText('Walk-in door sticks, push it shut.')).toBeInTheDocument();
@@ -477,12 +477,12 @@ describe('manager home', () => {
     expect(todo.join()).not.toMatch(/Delivery check/);
     expect(todo.join()).not.toMatch(/Opening checks/);
     expect(within(group(lists, 'Done')!).getByRole('link', { name: /Opening checks/ })).toHaveTextContent(/^Opening checksDone 09:40 by Sam$/);
-    const eod = region('End of day');
-    expect(within(eod).getAllByRole('link')[0]).toHaveTextContent(/^End-of-day report8 sections · start any time/);
+    const eod = region('End of day report');
+    expect(within(eod).getAllByRole('link')[0]).toHaveTextContent(/^Tonight's report8 sections · start any time/);
     // Managers don't write the handover from home.
     expect(within(eod).queryByRole('link', { name: 'Write the handover' })).not.toBeInTheDocument();
     // The sections come in the plain order: Checklists, Repairs (none open), End of day, Food safety.
-    expect(screen.getAllByRole('region').map((r) => r.getAttribute('aria-label')).filter((n) => ['Checklists', 'Repairs', 'End of day', 'Food safety'].includes(n!))).toEqual(['Checklists', 'End of day', 'Food safety']);
+    expect(screen.getAllByRole('region').map((r) => r.getAttribute('aria-label')).filter((n) => ['Checklists', 'Repairs', 'End of day report', 'Food safety'].includes(n!))).toEqual(['Checklists', 'End of day report', 'Food safety']);
     // The old headings are gone.
     expect(screen.queryByRole('heading', { name: /^(Needs you|Later today|Your day)$/ })).not.toBeInTheDocument();
   });
@@ -495,7 +495,7 @@ describe('the name menu, for every role', () => {
     await user.click(screen.getByRole('menuitemradio', { name: 'Manager' }));
     // The manager home, with the EOD's next step as Up next (22:00).
     expect(screen.getByRole('link', { name: /^Start\ lunch,/ })).toHaveAttribute('href', '/close/lunch');
-    expect(screen.getByRole('link', { name: /^End-of-day report/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^Tonight's report/ })).toBeInTheDocument();
   });
 
   it('supervisors and managers get the same menu, with their role ticked', async () => {
@@ -514,7 +514,7 @@ describe('the name menu, for every role', () => {
     const { user } = renderApp('/', manager);
     await user.click(screen.getByRole('button', { name: /Signed in as Jo/ }));
     await user.click(screen.getByRole('menuitem', { name: 'Sign out' }));
-    expect(screen.getByRole('heading', { name: 'End of day' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'End of day report' })).toBeInTheDocument();
   });
 
   it('head office gets back to a site view too', async () => {
@@ -543,7 +543,7 @@ describe('manager home on a wide screen (two columns, 1100px and up)', () => {
       const issue = within(eod).getByRole('link', { name: /Add a reason to submit\./ });
       expect(issue).toHaveAttribute('href', '/close/dinner');
       // The main card already carries the EOD on desktop, so no report row here.
-      expect(within(eod).queryByRole('link', { name: /^End-of-day report/ })).not.toBeInTheDocument();
+      expect(within(eod).queryByRole('link', { name: /^Tonight's report/ })).not.toBeInTheDocument();
     } finally {
       phone();
     }
@@ -566,10 +566,10 @@ describe('manager home on a wide screen (two columns, 1100px and up)', () => {
   it('on a phone, End of day still has the EOD row, then the same issue', async () => {
     await seedVerifiedDraft((d) => { d.sessions.dinner.cash.tillCash = 40000; });
     renderApp('/', manager);
-    const eod = await screen.findByRole('region', { name: 'End of day' });
+    const eod = await screen.findByRole('region', { name: 'End of day report' });
     expect(document.querySelector('.mh-desk')).toBeNull();
     const rows = within(eod).getAllByRole('link');
-    expect(rows[0]).toHaveTextContent(/^End-of-day report/);
+    expect(rows[0]).toHaveTextContent(/^Tonight's report/);
     expect(rows[1]).toHaveAttribute('href', '/close/dinner');
     expect(rows[1]).toHaveTextContent('Add a reason to submit.');
   });
@@ -580,7 +580,7 @@ describe('Checklists on the home', () => {
     localStorage.setItem('mgh.templates.v1', '[]');
     at('2026-10-05T10:00:00Z');
     renderApp('/', manager);
-    expect(screen.getByRole('region', { name: 'End of day' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'End of day report' })).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Checklists' })).not.toBeInTheDocument();
   });
 

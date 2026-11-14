@@ -37,7 +37,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const groups: { title: string; links: NavLinkItem[] }[] = [
     { title: 'Today', links: [
       { to: '/', label: 'Today', icon: ICONS.home, on: pathname === '/' },
-      ...(canDoEod(user) ? [{ to: '/close', label: 'End of day', icon: ICONS.list, on: pathname.startsWith('/close'), meta: `${progress.done} of ${progress.active}` }] : []),
+      ...(canDoEod(user) ? [{ to: '/close', label: 'End of day report', icon: ICONS.list, on: pathname.startsWith('/close'), meta: `${progress.done} of ${progress.active}` }] : []),
       { to: '/checklists', label: 'Checklists', icon: ICONS.check, on: pathname.startsWith('/checklists'), badge: counts.checklists },
       { to: '/day', label: 'Timeline', icon: ICONS.clock, on: pathname === '/day' },
     ] },

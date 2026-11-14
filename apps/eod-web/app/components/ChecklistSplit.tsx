@@ -103,7 +103,7 @@ export function SplitFrame({ selected, children }: { selected: string | null; ch
 
   return (
     <main className="page split-page">
-      <aside className="split-list" aria-label="Today's checklists">
+      <aside className="split-list" aria-label="Checklists to do today">
         <div className="split-hd">
           <span className="eyebrow">{formatDay(businessDate)}</span>
           {user && can.editChecklists(user.role) && <Link className="linkbtn" to="/checklists/edit">Edit lists</Link>}

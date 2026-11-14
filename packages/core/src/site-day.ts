@@ -79,6 +79,8 @@ export interface Repair {
   place: RepairPlace;
   note: string;
   urgent: boolean;
+  /** Optional photos (small JPEG data URLs, up to 3). */
+  photos?: string[];
   reportedBy: string;
   reportedAt: string;
   /** Set when it came from a failed checklist item. */

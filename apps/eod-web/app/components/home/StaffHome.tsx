@@ -18,7 +18,7 @@ export function StaffHome() {
   const { at, tasks, urgent, next } = useToday();
   const wide = useTwoColumns();
   const reported = Boolean((useLocation().state as { reported?: boolean } | null)?.reported);
-  const card = <ChecklistCard label="Your checklists" tour="hero-check" next={checklistStep(urgent[0] ?? next, tasks.filter((t) => t.status === 'missed').length)} />;
+  const card = <ChecklistCard label="Checklists to do today" tour="hero-check" next={checklistStep(urgent[0] ?? next, tasks.filter((t) => t.status === 'missed').length)} />;
   const title = (
     <div className="titleblock mh-title">
       <span className="eyebrow">{formatDay(businessDate)}{wide ? '' : service(at, settings.timezone)}</span>

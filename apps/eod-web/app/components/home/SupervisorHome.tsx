@@ -43,13 +43,13 @@ export function SupervisorHome() {
   const rechecks = tasks.filter((t) => t.recheckOf && !isDone(t));
   const step: UpNextStep = urgent[0] ? checklistStep(urgent[0]) : eodStep(eod);
   const stats = (
-    <div className="hm" role="group" aria-label={`Today so far: ${checksDone} of ${scheduled.length} checklists done, ${late.length} late or missed`}>
+    <div className="hm" role="group" aria-label={`Checklists to do today: ${checksDone} of ${scheduled.length} checklists done, ${late.length} late or missed`}>
       <span className={late.length ? 'h-bad' : ''}>{late.length}<small>Late or missed</small></span>
       <span className={rechecks.length ? 'h-warn' : ''}>{rechecks.length}<small>Re-checks due</small></span>
       <span>{eod.submitted ? 'Sent' : formatPounds(eod.result.totalNet).replace(/\.00$/, '')}<small>EOD so far</small></span>
     </div>
   );
-  const card = <ChecklistCard label="Today so far" tour="hero-today" next={step} stats={stats} />;
+  const card = <ChecklistCard label="Checklists to do today" tour="hero-today" next={step} stats={stats} />;
   const title = (
     <div className="titleblock mh-title">
       <span className="eyebrow">{formatDay(businessDate)}{wide ? '' : service(at, settings.timezone)}</span>

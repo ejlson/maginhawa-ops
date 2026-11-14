@@ -82,7 +82,7 @@ export default function HeadOfficeEod() {
   return (
     <HeadOfficeShell>
     <main className="page wide">
-      <Nav back={dayLink} backLabel={`${site.name} · ${formatDay(date, { weekday: 'short', day: 'numeric', month: 'short' })}`} title="End of day" />
+      <Nav back={dayLink} backLabel={`${site.name} · ${formatDay(date, { weekday: 'short', day: 'numeric', month: 'short' })}`} title="End of day report" />
       <div className="body" style={{ paddingTop: 16 }}>
         <div className="hero" style={{ maxWidth: 720 }}>
           <div className="hero-row"><span className="hl">{site.name} · {formatDay(date, { weekday: 'long', day: 'numeric', month: 'long' })}</span><span className={`pill ${pill.cls}`}>{pill.text}</span></div>

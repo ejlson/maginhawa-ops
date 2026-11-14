@@ -15,7 +15,7 @@ describe('checklists are available all day, separate from the end-of-day report'
     expect(screen.getByRole('link', { name: /^Do\ now:\ Opening\ checks,/ })).toHaveAttribute('href', opening);
     // No separate EOD button; the EOD stays one tap away as a row.
     expect(screen.queryByRole('link', { name: /Start (lunch|today's EOD)/ })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /^End-of-day report/ })).toHaveAttribute('href', '/close');
+    expect(screen.getByRole('link', { name: /^Tonight's report/ })).toHaveAttribute('href', '/close');
     // Checklists leads its To do group with it, with how late it is.
     const lists = screen.getByRole('region', { name: 'Checklists' });
     expect(lists.querySelector('.hd')).toHaveTextContent('0 of 6 done · 1 late');

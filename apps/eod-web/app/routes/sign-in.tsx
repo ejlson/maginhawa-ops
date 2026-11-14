@@ -33,8 +33,8 @@ function DemoSignIn() {
         <div className="hero">
           <div className="av" style={{ width: 44, height: 44, borderRadius: 12, background: '#f5f5f7', color: '#1d1d1f', fontWeight: 700 }}>M</div>
           <div className="titleblock">
-            <h1>End of day</h1>
-            <span className="hl">End-of-day reports for the Maginhawa restaurants.</span>
+            <h1>End of day report</h1>
+            <span className="hl">End of day reports for the Maginhawa restaurants.</span>
           </div>
           <div className="hs-small" style={{ paddingTop: 14, borderTop: '.5px solid var(--heroline)' }}>9 sites · works offline · saves as you go</div>
         </div>
@@ -80,8 +80,8 @@ function Hero() {
     <div className="hero">
       <div className="av" style={{ width: 44, height: 44, borderRadius: 12, background: '#f5f5f7', color: '#1d1d1f', fontWeight: 700 }}>M</div>
       <div className="titleblock">
-        <h1>End of day</h1>
-        <span className="hl">End-of-day reports and checklists for the Maginhawa restaurants.</span>
+        <h1>End of day report</h1>
+        <span className="hl">End of day reports and checklists for the Maginhawa restaurants.</span>
       </div>
       <div className="hs-small" style={{ paddingTop: 14, borderTop: '.5px solid var(--heroline)' }}>Sign in with a code sent to your email</div>
     </div>

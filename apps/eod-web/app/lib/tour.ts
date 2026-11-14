@@ -26,7 +26,7 @@ export interface TourStep {
   tryIt?: boolean;
 }
 
-const HERO_EOD: TourStep = { id: 'hero-eod', target: 'hero-eod', title: 'Your end of day', body: 'Your end-of-day report. Do the sections in any order; each bar fills as you finish one.', icon: 'list', demo: 'segs' };
+const HERO_EOD: TourStep = { id: 'hero-eod', target: 'hero-eod', title: 'Your end of day report', body: 'Tonight\'s figures for head office. Do the sections in any order; each bar fills as you finish one.', icon: 'list', demo: 'segs' };
 /** Managers see one of these dark cards, depending on the time of day; only the one on screen is shown. */
 const HERO_CHECK: TourStep = { id: 'hero-check', target: 'hero-check', title: "What's due now", body: 'The card always shows the most urgent thing first. Tap Up next to start.', icon: 'list' };
 const HERO_NIGHT: TourStep = { id: 'hero-night', target: 'hero-night', title: 'How last night went', body: 'Net sales, wages and covers from the last close, against the week before.', icon: 'chart' };

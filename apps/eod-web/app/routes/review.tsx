@@ -53,7 +53,7 @@ export default function Review() {
 
   return (
     <main className="page rv-page">
-      <Nav back="/close" backLabel="End of day" right={<SyncState />} />
+      <Nav back="/close" backLabel="End of day report" right={<SyncState />} />
       <div className="body form rv-body">
         <div className="titleblock mh-title"><h1>Ready to send?</h1></div>
         <div className="hero rv-card">
