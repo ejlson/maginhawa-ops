@@ -39,6 +39,20 @@ export const LINKS = [
   { to: '/head-office/records', label: 'Records and exports', icon: ICONS.list },
 ] as const;
 
+type HoItem = { to: string; label: string; icon: string; on?: (path: string) => boolean };
+const byLabel = (label: string) => LINKS.find((l) => l.label === label)!;
+/** The sidebar in sections (design H3: Tonight, Reports, Group), with the site records in their own section. */
+const HO_GROUPS: { title: string; items: HoItem[] }[] = [
+  { title: 'Tonight', items: [byLabel('Today'), byLabel('Sites'), { ...byLabel('Days'), label: 'Checklists & EODs' }] },
+  { title: 'Operations', items: ['Food safety', 'Stock', 'Ordering and waste', 'Menu costing', 'Health and safety', 'Maintenance'].map(byLabel) },
+  { title: 'Reports', items: [byLabel('Reports'), { ...byLabel('Trends'), label: 'Trends & forecast' }, byLabel('Records and exports'),
+    { to: '/head-office/report-builder', label: 'Report builder', icon: BUILDER_ICON, on: (p) => p.startsWith('/head-office/report-builder') }] },
+  { title: 'Group', items: [
+    { to: '/people', label: 'People', icon: ICONS.people, on: (p) => p.startsWith('/people') },
+    { to: '/head-office/sites', label: 'Sites and colours', icon: ICONS.palette, on: (p) => p === '/head-office/sites' },
+  ] },
+];
+
 /** Fixed presets for now. Each person's own saved searches need storing in SharePoint first. */
 export const SAVED_SEARCHES = [
   { id: 'wages', label: 'Wages 30% or more, last 30 days' },
@@ -79,21 +93,21 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
       {wide && <nav className="ho-side" aria-label="Head office">
         <div className="ho-brand"><span>Maginhawa · {SITES.length} sites</span><b>Head office</b></div>
         <div className="ho-links">
-          {LINKS.map((l) => (
-            <Link key={l.to} to={l.to} className={`si${isOn(l.to) ? ' on' : ''}`} data-tour={l.label === 'Days' ? 'ho-days' : undefined} aria-current={isOn(l.to) ? 'page' : undefined}>
-              <Icon d={l.icon} size={20} />{l.label === 'Trends' ? 'Trends & forecast' : l.label === 'Days' ? 'Checklists & EODs' : l.label}
-              {l.label === 'Today' && inToday && <small>{inToday}</small>}
-            </Link>
+          {/* Grouped like the site sidebar and the H3 board: tonight first, then the records, reports, and the group. */}
+          {HO_GROUPS.map((g) => (
+            <div key={g.title} role="group" aria-labelledby={`ho-nav-${g.title}`} style={{ display: 'contents' }}>
+              <div className="sgh" id={`ho-nav-${g.title}`}>{g.title}</div>
+              {g.items.map((l) => {
+                const on = l.on ? l.on(pathname) : isOn(l.to);
+                return (
+                  <Link key={l.to} to={l.to} className={`si${on ? ' on' : ''}`} data-tour={l.to === '/head-office/days' ? 'ho-days' : undefined} aria-current={on ? 'page' : undefined}>
+                    <Icon d={l.icon} size={20} />{l.label}
+                    {l.to === '/head-office' && inToday && <small>{inToday}</small>}
+                  </Link>
+                );
+              })}
+            </div>
           ))}
-          <Link to="/people" className={`si${pathname.startsWith('/people') ? ' on' : ''}`} aria-current={pathname.startsWith('/people') ? 'page' : undefined}>
-            <Icon d={ICONS.people} size={20} />People
-          </Link>
-          <Link to="/head-office/report-builder" className="si">
-            <Icon d={BUILDER_ICON} size={20} />Report builder
-          </Link>
-          <Link to="/head-office/sites" className={`si${pathname === '/head-office/sites' ? ' on' : ''}`} aria-current={pathname === '/head-office/sites' ? 'page' : undefined}>
-            <Icon d={ICONS.palette} size={20} />Sites and colours
-          </Link>
         </div>
         <div className="ho-saved">
           <span>Saved searches</span>
