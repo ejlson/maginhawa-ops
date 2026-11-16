@@ -1236,9 +1236,6 @@ h1 { font-size: 34px; letter-spacing: -.038em; }
 .colour-preview { min-height: 200px; justify-content: flex-end; }
 .sitebrand-hero { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; margin-bottom: auto; }
 .hue-row { display: flex; align-items: center; gap: 14px; font-size: 15px; font-weight: 600; margin-top: 8px; }
-.colour-note { flex-direction: row; align-items: center; gap: 14px; }
-.colour-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
-.colour-actions .note { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .searchfield:active { transform: none; } }
 
 /* ==== Redesign, part 3: head office "All sites" (design/redesign-canvas, Option C) ==== */
@@ -1426,8 +1423,6 @@ a.chip.stk-chip { display: inline-flex; align-items: center; text-decoration: no
 .rc-allergens { margin-top: 8px; align-self: flex-start; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.18); }
 .rc-step p { font-size: 26px; font-weight: 600; letter-spacing: -.025em; line-height: 1.3; margin: 8px 0 14px; }
 .ho-sentence { font-size: 28px; font-weight: 600; letter-spacing: -.03em; line-height: 1.2; }
-.menu-row.on { background: var(--side, var(--fill)); border-radius: 14px; }
-.menu-row .rt { gap: 14px; }
 .rec-kinds { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .rec-kind { text-align: left; border: 0; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 6px; min-height: 104px; background: var(--bg); color: var(--text); box-shadow: 0 0 0 1px var(--sep); font: inherit; cursor: pointer; }
 .rec-kind b { font-size: 16px; font-weight: 600; }
@@ -2028,7 +2023,8 @@ a.wmeta { text-decoration: none; } a.wmeta:hover { color: var(--text); }
    ===================================================================================================== */
 /* Buttons and chips: the main button is 56 tall at 17/600; chips 40 at 15; small chips 34 at 14. */
 .btn:not(.b2, .ho-approve) { height: 56px; font-size: 17px; font-weight: 600; }
-.chip { height: 40px; font-size: 15px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; }
+.chip { height: 40px; font-size: 15px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+/* inline-flex drops the space between words and a count ("All 8"), so the gap puts it back. */
 .chip.sm { height: 34px; font-size: 14px; padding: 0 14px; }
 /* Bottom buttons float on the page (no frosted bar); a soft fade keeps what scrolls under them readable. */
 .foot { background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 0%, transparent), var(--bg) 42%); backdrop-filter: none; -webkit-backdrop-filter: none;
@@ -2187,3 +2183,115 @@ a.wmeta { text-decoration: none; } a.wmeta:hover { color: var(--text); }
 .btn.b3 { background: var(--fill); color: var(--text); }
 .stk-chip { gap: 6px; }
 .banner.warn { background: var(--warnbg); color: var(--warn); }
+
+/* ---- Batch 4: ordering, recipes, site colours, exports (designs OW1–OW4, RC1–RC3, P7, D3, EX1) ---- */
+/* OW1: − and + as type, 21/500; the amount 14/600; the level bar amber when low, grey otherwise. */
+.ord-step .stk-step.sm { font-size: 21px; font-weight: 500; line-height: 1; }
+.ord-step b { font-weight: 600; }
+.ord-bar > span { background: #8E8E93; opacity: 1; }
+.ord-bar > span.low { background: #FF9500; }
+@media (prefers-color-scheme: dark) { .ord-bar > span { background: #8E8E93; } .ord-bar > span.low { background: #FF9F0A; } .menu-th { color: var(--sec); } }
+.btn.sent:disabled { background: #E5E5EA; color: #8E8E93; }
+@media (prefers-color-scheme: dark) { .btn.sent:disabled { background: var(--fill); color: var(--sec); } }
+/* OW2: a filled tick when it came, an amber circle with a minus when it didn't; no grey highlight. */
+.dl-mark { width: 24px; flex: none; display: inline-flex; justify-content: center; }
+.dl-mark circle { fill: var(--site); }
+.dl-mark path { fill: none; stroke: var(--site-on); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.dl-mark.miss circle { fill: #FF9500; }
+.dl-mark.miss path { stroke: #fff; }
+.li.dl-li[aria-pressed="true"] { background: none; }
+.li + .li:has(> .dl-mark)::before { left: 38px; }
+/* OW3: small chips, "Other" in link blue with its magnifier, 56 buttons with the glyph at 28, the number at 72. */
+.waste-other { display: inline-flex; align-items: center; gap: 6px; color: var(--link); }
+.glyph { font-size: 28px; font-weight: 400; line-height: 1; }
+.waste-body { gap: 22px; }
+.waste-body .stk-step { width: 56px; height: 56px; }
+.waste-body .stk-row { gap: 14px; }
+.waste-body .stk-counter { gap: 4px; margin-top: 0; }
+.waste-body .stk-num { font-size: 72px; width: auto; min-width: 150px; height: 84px; }
+/* RC1: amounts 17/600 in black; the allergen pill 12/600. */
+.rc-lines .li .rt .amt { font-size: 17px; }
+.rc-allergens { font-size: 12px; padding: 4px 9px; }
+/* Small black buttons in rows (Accept, Fix the record): 36 tall, 14. */
+.btn.btn-sm:not(.b2, .ho-approve) { height: 36px; padding: 0 18px; font-size: 14px; width: auto; border-radius: 999px; display: inline-flex; align-items: center; }
+.ord-note { margin: 14px 0 0; font-size: 14px; text-align: left; }
+/* OW4 waste by site: 50 tall, a 30 badge, an 8 bar, the % 15/600 in a 44 column. */
+.waste-li { min-height: 50px; gap: 12px; }
+.waste-li .sitemono { width: 30px; height: 30px; border-radius: 10px; font-size: 11px; }
+.waste-li .ord-bar.wide > span { background: #C7C7CC; }
+.waste-li .ord-bar.wide > span.low { background: #FF9500; }
+.waste-pct { width: 44px; text-align: right; font-size: 15px; font-weight: 600; }
+/* RC2: below-target dishes as a table. */
+.menu-table { display: flex; flex-direction: column; }
+.menu-th, .menu-tr { display: grid; grid-template-columns: minmax(0, 2fr) 80px 80px 70px 110px; gap: 12px; align-items: center; padding: 0 12px; text-align: left; }
+.menu-th { font-size: 12px; font-weight: 600; color: #8E8E93; padding-bottom: 8px; }
+.menu-tr { min-height: 56px; border: 0; background: none; font: inherit; font-size: 15px; color: var(--text); cursor: pointer; border-radius: 14px; position: relative; font-variant-numeric: tabular-nums; }
+.menu-tr + .menu-tr::before { content: ''; position: absolute; left: 12px; right: 12px; top: 0; height: .5px; background: var(--sep); }
+.menu-tr.on { background: #F7F7F9; }
+.menu-tr.on::before, .menu-tr.on + .menu-tr::before { opacity: 0; }
+@media (prefers-color-scheme: dark) { .menu-tr.on { background: var(--fill); } }
+.menu-dish { font-weight: 600; }
+.menu-why { font-size: 13px; color: var(--sec); }
+.hm.one { grid-template-columns: auto; }
+.hm.one span { font-size: 22px; }
+/* RC2 dish panel and EX1 export panel: a card with a ring and a soft shadow. */
+.menu-panel, .rec-panel { display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 28px; corner-shape: superellipse(1.6); background: var(--bg);
+  box-shadow: 0 0 0 .5px var(--sep), 0 12px 40px -24px rgba(0,0,0,.18); }
+.menu-panel .hd h2 { font-size: 22px; font-weight: 700; }
+.menu-panel .li { min-height: 0; padding: 8px 0; font-size: 14px; }
+.menu-panel .li .tx > span:first-child { font-size: 14px; font-weight: 500; }
+.menu-panel .li .rt .amt { font-size: 14px; }
+.menu-panel .btn { height: 50px; font-size: 16px; }
+.rec-panel .lab { margin: 4px 0 -4px; }
+.rec-note { margin: 12px 0 0; font-size: 14px; text-align: left; }
+.rec-kind { min-height: 112px; }
+/* D3: a heading over the site list, rows 64 with a 38 badge, swatches in one row of 12 × 40, a contrast strip. */
+.colour-listhd { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #6E6E73; padding: 0 12px 8px; text-transform: uppercase; letter-spacing: .02em; }
+.colourlist .row-site { padding: 0 14px; border-radius: 18px; }
+.colourlist .row-site[aria-current='true'] { background: #F2F2F5; }
+@media (prefers-color-scheme: dark) { .colourlist .row-site[aria-current='true'] { background: var(--fill); } }
+.colourlist .row-site .sitemono { width: 38px; height: 38px; border-radius: 13px; }
+.colourlist .row-site .tx > span:first-child { font-size: 15px; }
+@media (min-width: 900px) { .colour-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 56px; } }
+.colour-edit { gap: 20px; top: 24px; }
+.colour-edit .colour-preview { min-height: 200px; padding: 22px 24px; }
+.colour-edit .colour-preview .big b { font-size: 40px; }
+.colour-edit .colour-preview .big i { font-size: 20px; }
+.colour-edit .colour-pick .hd h2 { font-size: 17px; font-weight: 600; }
+.colour-edit .colour-pick .hd span { font-size: 13px; }
+.colour-edit .swatches { grid-template-columns: repeat(12, minmax(0, 40px)); gap: 8px; justify-content: space-between; }
+.colour-edit .swatch { width: 100%; height: auto; aspect-ratio: 1; }
+.hue-row > span:first-child { flex: none; display: flex; flex-direction: column; }
+.colour-edit .hue-row > span:first-child { width: 60px; font-size: 14px; }
+.colour-edit .hue, .colour-edit .hue::-webkit-slider-thumb { height: 24px; }
+.colour-edit .hue::-webkit-slider-thumb { width: 24px; }
+.colour-strip { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 20px; corner-shape: superellipse(1.6); background: #F7F7F9; font-size: 14px; }
+@media (prefers-color-scheme: dark) { .colour-strip { background: var(--fill); } }
+.colour-strip .tx { flex: 1; min-width: 0; }
+.colour-saved { color: var(--sec); white-space: nowrap; }
+.colour-aa { width: 36px; height: 36px; border-radius: 999px; flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+  background: var(--site); color: var(--site-on); }
+.colour-aa.lg { width: 42px; height: 42px; font-size: 15px; }
+.li + .li:has(> .colour-aa)::before { left: 56px; }
+/* P7 on a phone: preview 180 tall, swatches 6 to a row at 44. */
+.colour-phone .colour-preview { min-height: 180px; padding: 20px 22px; }
+.colour-phone .colour-preview .big b { font-size: 36px; }
+.colour-phone .colour-preview .big i { font-size: 18px; }
+.colour-phone .swatches { grid-template-columns: repeat(6, 44px); justify-content: space-between; row-gap: 16px; }
+.colour-phone .swatch { width: 44px; height: 44px; }
+.colour-phone .hue-row small { font-size: 13px; font-weight: 400; color: var(--sec); }
+.colour-phone .hue-row > span:first-child b { font-size: 16px; font-weight: 600; }
+
+/* Head office sidebar: each section heading folds its section (the one you're in stays open). */
+.ho-grp { display: flex; flex-direction: column; gap: 2px; }
+.ho-grp-items { display: flex; flex-direction: column; gap: 2px; }
+.ho-grp-items[hidden] { display: none; }
+.ho-links button.sgh { display: flex; align-items: center; gap: 6px; width: 100%; border: 0; background: none; font-family: inherit; text-align: left; cursor: pointer; border-radius: 8px; }
+.ho-links button.sgh:hover:not(:disabled) { color: var(--text); }
+.ho-links button.sgh:disabled { cursor: default; }
+.ho-links button.sgh:focus-visible { outline: 2px solid var(--link); outline-offset: -2px; }
+.sgh-chev { flex: none; opacity: 0; transition: transform .2s var(--ease-out), opacity .15s ease; }
+.ho-links button.sgh:hover .sgh-chev, .ho-links button.sgh:focus-visible .sgh-chev, .ho-grp.folded .sgh-chev { opacity: 1; }
+.ho-links button.sgh:disabled .sgh-chev { display: none; }
+.ho-grp.folded .sgh-chev { transform: rotate(-90deg); }
+.ho-links > .ho-grp:first-child > .sgh { padding-top: var(--sp-1); }

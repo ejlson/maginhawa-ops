@@ -1,8 +1,8 @@
 /**
  * Head office's frame: a sidebar on desktop and iPad, a bottom tab bar on phones. Sites and Trends are
- * sections of the Head office page for now, so they scroll to it. Saved searches open Reports pre-filtered.
+ * sections of the Head office page for now, so they scroll to it.
  */
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
 import { SITES } from '@maginhawa/core';
 import { Icon } from './ui';
@@ -41,29 +41,37 @@ export const LINKS = [
 
 type HoItem = { to: string; label: string; icon: string; on?: (path: string) => boolean };
 const byLabel = (label: string) => LINKS.find((l) => l.label === label)!;
-/** The sidebar in sections (design H3: Tonight, Reports, Group), with the site records in their own section. */
+/** The sidebar in sections (design H3, with "Overview" for its "Tonight": it's used all day), the site records in their own section. */
 const HO_GROUPS: { title: string; items: HoItem[] }[] = [
-  { title: 'Tonight', items: [byLabel('Today'), byLabel('Sites'), { ...byLabel('Days'), label: 'Checklists & EODs' }] },
+  { title: 'Overview', items: [byLabel('Today'), byLabel('Sites'), { ...byLabel('Days'), label: 'Checklists & EODs' }] },
   { title: 'Operations', items: ['Food safety', 'Stock', 'Ordering and waste', 'Menu costing', 'Health and safety', 'Maintenance'].map(byLabel) },
   { title: 'Reports', items: [byLabel('Reports'), { ...byLabel('Trends'), label: 'Trends & forecast' }, byLabel('Records and exports'),
     { to: '/head-office/report-builder', label: 'Report builder', icon: BUILDER_ICON, on: (p) => p.startsWith('/head-office/report-builder') }] },
-  { title: 'Group', items: [
+  { title: 'Settings', items: [
     { to: '/people', label: 'People', icon: ICONS.people, on: (p) => p.startsWith('/people') },
     { to: '/head-office/sites', label: 'Sites and colours', icon: ICONS.palette, on: (p) => p === '/head-office/sites' },
   ] },
 ];
 
-/** Fixed presets for now. Each person's own saved searches need storing in SharePoint first. */
-export const SAVED_SEARCHES = [
-  { id: 'wages', label: 'Wages 30% or more, last 30 days' },
-  { id: 'cash', label: 'Cash short or over, last 30 days' },
-  { id: 'refund', label: 'Refunds, any date' },
-] as const;
+/** Which sidebar sections are folded away, remembered on this device. */
+const FOLDED_KEY = 'mgh.ho-nav.folded.v1';
+function useFolded() {
+  const [folded, setFolded] = useState<string[]>(() => {
+    try { const v = JSON.parse(localStorage.getItem(FOLDED_KEY) ?? '[]'); return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []; } catch { return []; }
+  });
+  const toggle = (title: string) => setFolded((f) => {
+    const next = f.includes(title) ? f.filter((x) => x !== title) : [...f, title];
+    try { localStorage.setItem(FOLDED_KEY, JSON.stringify(next)); } catch { /* storage off: still folds for now */ }
+    return next;
+  });
+  return { folded, toggle };
+}
 
 export function HeadOfficeShell({ inToday, children }: { inToday?: string; children: ReactNode }) {
   const { pathname, hash, search } = useLocation();
   const saved = new URLSearchParams(search).get('saved');
   const wide = useWide();
+  const { folded, toggle } = useFolded();
 
   // Sites and Trends are on the Head office page: scroll to them once it has drawn.
   useEffect(() => {
@@ -94,26 +102,31 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
         <div className="ho-brand"><span>Maginhawa · {SITES.length} sites</span><b>Head office</b></div>
         <div className="ho-links">
           {/* Grouped like the site sidebar and the H3 board: tonight first, then the records, reports, and the group. */}
-          {HO_GROUPS.map((g) => (
-            <div key={g.title} role="group" aria-labelledby={`ho-nav-${g.title}`} style={{ display: 'contents' }}>
-              <div className="sgh" id={`ho-nav-${g.title}`}>{g.title}</div>
-              {g.items.map((l) => {
-                const on = l.on ? l.on(pathname) : isOn(l.to);
-                return (
-                  <Link key={l.to} to={l.to} className={`si${on ? ' on' : ''}`} data-tour={l.to === '/head-office/days' ? 'ho-days' : undefined} aria-current={on ? 'page' : undefined}>
-                    <Icon d={l.icon} size={20} />{l.label}
-                    {l.to === '/head-office' && inToday && <small>{inToday}</small>}
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-        <div className="ho-saved">
-          <span>Saved searches</span>
-          {SAVED_SEARCHES.map((s) => (
-            <Link key={s.id} to={`/head-office/reports?saved=${s.id}`} className={saved === s.id ? 'on' : ''} aria-current={saved === s.id ? 'page' : undefined}>{s.label}</Link>
-          ))}
+          {/* Each heading folds its section away. The section you're in stays open, so you never lose your place. */}
+          {HO_GROUPS.map((g) => {
+            const hasPage = g.items.some((l) => (l.on ? l.on(pathname) : isOn(l.to)));
+            const open = hasPage || !folded.includes(g.title);
+            const id = `ho-nav-${g.title}`;
+            return (
+              <div key={g.title} className={`ho-grp${open ? '' : ' folded'}`}>
+                <button type="button" className="sgh" id={`${id}-h`} aria-expanded={open} aria-controls={id}
+                  disabled={hasPage} title={hasPage ? "You're in this section" : undefined} onClick={() => toggle(g.title)}>
+                  {g.title}<svg className="sgh-chev" width="10" height="10" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </button>
+                <div id={id} role="group" aria-labelledby={`${id}-h`} className="ho-grp-items" hidden={!open}>
+                  {g.items.map((l) => {
+                    const on = l.on ? l.on(pathname) : isOn(l.to);
+                    return (
+                      <Link key={l.to} to={l.to} className={`si${on ? ' on' : ''}`} data-tour={l.to === '/head-office/days' ? 'ho-days' : undefined} aria-current={on ? 'page' : undefined}>
+                        <Icon d={l.icon} size={20} />{l.label}
+                        {l.to === '/head-office' && inToday && <small>{inToday}</small>}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
         <div className="ho-me"><WhoMenu /></div>
       </nav>}

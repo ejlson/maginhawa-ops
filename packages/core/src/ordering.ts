@@ -11,6 +11,8 @@ export interface Supplier {
   /** Order by this time (site time, HH:MM) for delivery after `leadDays`. */
   orderBy: string;
   leadDays: number;
+  /** Delivered before this time (HH:MM) on the day it arrives, when the supplier says. */
+  arrivesBy?: string;
   /** How orders go out: email in v1. */
   email: string;
 }

@@ -3,7 +3,7 @@
  * per line, and one button to send. Supervisors and above.
  */
 import { useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router';
+import { Navigate, useParams } from 'react-router';
 import { addDays, cutOffText, formatPounds, orderTotal } from '@maginhawa/core';
 import { recordedAs, useAuth } from '../lib/auth';
 import { useStock } from '../lib/stock';
@@ -12,8 +12,7 @@ import { amountText, packsText, suggestions } from '../lib/ops-helpers';
 import { useChecklists } from '../lib/checklists';
 import { dayText } from '../lib/stock-helpers';
 import { now } from '../lib/clock';
-import { Foot, Icon, Nav } from '../components/ui';
-import { ICONS } from '../components/ui-helpers';
+import { Foot, Nav } from '../components/ui';
 
 export default function OrderPage() {
   const { supplier: supplierId = '' } = useParams();
@@ -34,12 +33,12 @@ export default function OrderPage() {
 
   return (
     <main className="page">
-      <Nav back="/stock/order" backLabel="Order" title={sup.name} />
+      <Nav back="/stock" backLabel="Stock" title={sup.name} />
       <div className="body">
         <div className="hero stk-hero" role="status">
           <span className="hl">Order by {sup.orderBy} · {cutOffText(now(), sup.orderBy)}</span>
           <span className="stk-title">{formatPounds(total)}</span>
-          <span className="stk-sub">Arrives {dayText(addDays(businessDate, sup.leadDays), businessDate).toLowerCase()}</span>
+          <span className="stk-sub">Arrives {dayText(addDays(businessDate, sup.leadDays), businessDate).toLowerCase()}{sup.arrivesBy ? ` before ${sup.arrivesBy}` : ''}</span>
         </div>
 
         {lines.length === 0 ? <p className="lead">Nothing from {sup.name} is below its usual level.</p> : (
@@ -57,9 +56,9 @@ export default function OrderPage() {
                         {l.onHand === null ? 'Not counted yet' : l.onHand === 0 ? 'None left' : `${Number.isInteger(l.onHand) ? l.onHand : l.onHand.toFixed(1)} of ${amountText(l.par, l.item.unit)}`}</small>
                     </span>
                     <span className="rt ord-step">
-                      <button type="button" className="stk-step sm" aria-label={`One less of ${l.item.name}`} disabled={!!sent} onClick={() => set(l.item.id, -1)}><Icon d="M4 9h10" size={16} /></button>
+                      <button type="button" className="stk-step sm" aria-label={`One less of ${l.item.name}`} disabled={!!sent} onClick={() => set(l.item.id, -1)}><span aria-hidden="true">−</span></button>
                       <b>{packsText(n, l.pack)}</b>
-                      <button type="button" className="stk-step sm" aria-label={`One more of ${l.item.name}`} disabled={!!sent} onClick={() => set(l.item.id, 1)}><Icon d={ICONS.plus} size={16} /></button>
+                      <button type="button" className="stk-step sm" aria-label={`One more of ${l.item.name}`} disabled={!!sent} onClick={() => set(l.item.id, 1)}><span aria-hidden="true">+</span></button>
                     </span>
                   </div>
                 );
@@ -71,8 +70,8 @@ export default function OrderPage() {
       <Foot>
         {sent ? (
           <>
-            <Link className="btn b1" to="/stock">Done</Link>
-            <p className="note t-ok">Sent to the team. They'll place it with {sup.name}.</p>
+            <button type="button" className="btn b1 sent" disabled>Sent</button>
+            <p className="note t-ok">Sent to the team. They'll place it with {sup.name}; tick it in when it arrives.</p>
           </>
         ) : (
           <>

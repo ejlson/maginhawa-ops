@@ -25,6 +25,12 @@ export function suggestions(items: StockItem[], counts: StockCount[], ops: OpsVa
 /** "4 kg", "half a box" style: the number and the unit, trimmed. */
 export const amountText = (n: number, unit: string) => `${Number.isInteger(n) ? n : n.toFixed(1)} ${n === 1 ? unit.replace(/s$/, '') : unit}`;
 
+/** One of a unit, for prices: "bottles" → "bottle", "kg" stays "kg". */
+export const unitOne = (unit: string) =>
+  /(x|ch|sh|ss)es$/.test(unit) ? unit.slice(0, -2)
+  : /[^aeiou]ves$/.test(unit) || /aves$/.test(unit) ? `${unit.slice(0, -3)}f`
+  : unit.endsWith('s') && !unit.endsWith('ss') && unit.length > 2 ? unit.slice(0, -1) : unit;
+
 export const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 /** Packs in words: "3 boxes", "1 bag". */

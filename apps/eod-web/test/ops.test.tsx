@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import { admin, manager, renderApp, staff } from './harness';
 import { setNow } from '../app/lib/clock';
 import { demoOps } from '../app/lib/ops-demo';
+import { demoStock } from '../app/lib/stock-demo';
 import type { OpsData } from '../app/lib/ops';
 
 // Trading day Monday 2026-10-05 (test/setup.ts). Example data is dated from it (app/lib/ops-demo.ts).
@@ -32,15 +33,16 @@ describe('ordering and waste', () => {
     const send = screen.getByRole('button', { name: /^Send to the team · £/ });
     await user.click(screen.getByRole('button', { name: 'One more of Tanduay rum 70cl' }));
     await user.click(screen.getByRole('button', { name: /^Send to the team · £/ }));
-    expect(send).not.toBeInTheDocument();
-    expect(screen.getByText("Sent to the team. They'll place it with Bibendum.")).toBeInTheDocument();
+    expect(send).toHaveTextContent('Sent'); // OW1: the button turns into a grey Sent
+    expect(send).toBeDisabled();
+    expect(screen.getByText("Sent to the team. They'll place it with Bibendum; tick it in when it arrives.")).toBeInTheDocument();
   });
 
   it('staff send an order to the team; a supervisor or above places it and ticks it off', async () => {
     const first = renderApp('/stock/order/wingyip', staff);
     await first.user.click(screen.getByRole('button', { name: 'One more of Jasmine rice 20kg' }));
     await first.user.click(screen.getByRole('button', { name: /^Send to the team · £/ }));
-    expect(screen.getByText("Sent to the team. They'll place it with Wing Yip.")).toBeInTheDocument();
+    expect(screen.getByText("Sent to the team. They'll place it with Wing Yip; tick it in when it arrives.")).toBeInTheDocument();
     first.unmount();
 
     const second = renderApp('/stock/order', staff);
@@ -64,6 +66,29 @@ describe('ordering and waste', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Checked in');
   });
 
+  it('an order (OW1) goes back to Stock and says when it arrives, with "before" only when the supplier says', () => {
+    const first = renderApp('/stock/order/fresh', manager);
+    expect(screen.getByRole('link', { name: /Stock/ })).toHaveAttribute('href', '/stock');
+    expect(screen.getByRole('status')).toHaveTextContent(/Arrives tomorrow before 10:00/);
+    first.unmount();
+    renderApp('/stock/order/wingyip', manager);
+    expect(screen.getByRole('status')).toHaveTextContent(/Arrives .+/);
+    expect(screen.getByRole('status')).not.toHaveTextContent('before');
+  });
+
+  it('a delivery (OW2) prices per unit when the pack holds several, goes back to Stock, and marks what\'s missing', async () => {
+    const { user } = renderApp('/stock/delivery/order-demo-1', staff);
+    expect(screen.getByRole('link', { name: /Stock/ })).toHaveAttribute('href', '/stock');
+    // Pork belly: a 5 kg box at £49.00 → £53.00 is £9.80 → £10.60 a kg.
+    expect(screen.getByText('Invoice £10.60 a kg, was £9.80')).toBeInTheDocument();
+    expect(screen.queryByText(/Stock goes up/)).not.toBeInTheDocument();
+    const chicken = screen.getByRole('button', { name: /Chicken thigh 5kg/ });
+    expect(chicken.querySelector('.dl-mark')).not.toHaveClass('miss');
+    await user.click(chicken);
+    expect(chicken).toHaveAttribute('aria-pressed', 'true');
+    expect(chicken.querySelector('.dl-mark')).toHaveClass('miss');
+  });
+
   it('waste starts with the usual amount and reason, so it\'s item then Log', async () => {
     const { user } = renderApp('/stock/waste', staff);
     await user.click(screen.getByRole('radio', { name: 'Pork belly' }));
@@ -78,6 +103,39 @@ describe('ordering and waste', () => {
     for (const d of ['Pork adobo', 'Lechon kawali', 'Sisig']) expect(within(used).getByText(d)).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent(/Runs out|Lasts about/);
     expect(screen.getByRole('link', { name: 'Order more' })).toHaveAttribute('href', '/stock/order/fresh');
+  });
+
+  it('an item (RC3) says when it was last counted and what it costs a unit', () => {
+    // Pork belly was last counted in the Thursday meat count; the bar was counted last night.
+    const first = renderApp('/stock/item/pork', manager);
+    expect(screen.getByRole('status')).toHaveTextContent(/Pork belly · .+ left \(counted Thu 1 Oct\)/);
+    expect(screen.getByRole('region', { name: 'Buying it' })).toHaveTextContent('5 kg box · £9.80 a kg');
+    first.unmount();
+    const second = renderApp('/stock/item/rum', manager);
+    expect(screen.getByRole('status')).toHaveTextContent('(counted yesterday)');
+    second.unmount();
+    // Counted today: move Bunso's bar count onto today.
+    const stock = demoStock('2026-10-05');
+    const bar = stock.counts.find((c) => c.siteCode === 'BUN' && c.planId === 'BUN-bar')!;
+    bar.businessDate = '2026-10-05'; bar.startedAt = '2026-10-05T20:00:00Z'; bar.sentAt = '2026-10-05T20:30:00Z';
+    localStorage.setItem('mgh.stock.v1', JSON.stringify(stock));
+    renderApp('/stock/item/rum', manager);
+    expect(screen.getByRole('status')).toHaveTextContent('(counted today)');
+    expect(screen.getByRole('status')).not.toHaveTextContent('last count');
+  });
+
+  it('head office (OW4) can ask the supplier about any price, drops too, and sees dishes below target', () => {
+    seedOps((d) => { d.targetGp = 90; }); // at 90% every pork dish is below target
+    renderApp('/head-office/ordering', admin);
+    const prices = screen.getByRole('region', { name: 'Price changes' });
+    expect(within(prices).getAllByRole('button', { name: 'Ask supplier' })).toHaveLength(3);
+    // Prosecco went down (case of 6, £42.60 → £40.50): per bottle, and Ask supplier is still there.
+    expect(prices).toHaveTextContent(/Prosecco DOC · Bibendum.*£7\.10 → £6\.75 a bottle/);
+    expect(prices).toHaveTextContent(/Pork belly · Fresh Direct.*£9\.80 → £10\.60 a kg/);
+    // Pork belly is in adobo, lechon kawali and sisig.
+    expect(within(prices).getByRole('link', { name: '3 dishes below target' })).toHaveAttribute('href', '/head-office/menu');
+    expect(screen.getByText('Bought, ex VAT')).toBeInTheDocument();
+    expect(screen.getByText('Credits to chase')).toBeInTheDocument();
   });
 
   it('head office accepts a new price; the dish costs move with it', async () => {
@@ -316,6 +374,21 @@ describe('recipes and menu costing', () => {
   it('flags an ingredient allergen the record doesn\'t list', () => {
     renderApp('/head-office/menu', admin);
     expect(screen.getByRole('region', { name: 'Allergen check' })).toHaveTextContent(/Sisig.*Mayonnaise 1kg contains eggs/);
+    // RC2: straight to that dish's allergen record.
+    expect(within(screen.getByRole('region', { name: 'Allergen check' })).getByRole('link', { name: 'Fix the record' }))
+      .toHaveAttribute('href', '/food-safety/allergens/sisig');
+  });
+
+  it('the menu (RC2) is a table of dishes; the card says why, and the rest are behind Show', async () => {
+    const { user } = renderApp('/head-office/menu', admin);
+    expect(document.querySelector('.ho-sentence')?.textContent).toMatch(/^\d+ dish(es are| is) below 70%(\.|, (all|it|\d+ of them) because [a-z].+\.)$/);
+    const dishes = () => screen.getByRole('region', { name: 'Dishes' });
+    const before = within(dishes()).getAllByRole('button', { pressed: false }).length;
+    expect(within(dishes()).queryByText('On target')).not.toBeInTheDocument();
+    await user.click(within(dishes()).getByRole('button', { name: /dishes on target.*Show/ }));
+    expect(within(dishes()).queryByRole('button', { name: /dishes on target/ })).not.toBeInTheDocument();
+    expect(within(dishes()).getAllByText('On target').length).toBeGreaterThan(0);
+    expect(within(dishes()).getAllByRole('button', { pressed: false }).length).toBeGreaterThan(before);
   });
 });
 
@@ -325,8 +398,59 @@ describe('records and exports', () => {
     await user.click(screen.getByRole('radio', { name: /Accountant or HMRC/ }));
     expect(screen.getByRole('region', { name: "What's included" })).toHaveTextContent('6 years');
     await user.click(screen.getByRole('button', { name: 'Export' }));
-    expect(screen.getByRole('status')).toHaveTextContent('Exported 3 record types, last 12 months');
+    expect(screen.getByRole('status')).toHaveTextContent('Exported 3 record types for all 8 sites, last 12 months');
     expect(screen.getByText(/Last export: Accountant or HMRC/)).toBeInTheDocument();
+  });
+
+  it('everything for one site needs one site picked; inspector has no site filter', async () => {
+    const { user } = renderApp('/head-office/records', admin);
+    expect(screen.queryByRole('radiogroup', { name: 'Sites' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('radio', { name: /Everything for one site/ }));
+    expect(screen.getByRole('button', { name: 'Export' })).toBeDisabled();
+    expect(screen.getByText('Pick the site first.')).toBeInTheDocument();
+    await user.click(within(screen.getByRole('radiogroup', { name: 'Which site' })).getByRole('radio', { name: 'Bunso' }));
+    expect(screen.getByRole('button', { name: 'Export' })).toBeEnabled();
+  });
+
+  it('Sites (EX1): all of them, or only the ones picked go in the file', async () => {
+    // Catch what would be downloaded: download() hands a Blob to URL.createObjectURL.
+    const files: Blob[] = [];
+    const orig = { create: URL.createObjectURL, revoke: URL.revokeObjectURL };
+    URL.createObjectURL = vi.fn((b: Blob) => { files.push(b); return 'blob:test'; });
+    URL.revokeObjectURL = vi.fn();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const read = (b: Blob) => new Promise<string>((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.readAsText(b); });
+    try {
+      const { user } = renderApp('/head-office/records', admin);
+      await user.click(screen.getByRole('radio', { name: /Accountant or HMRC/ }));
+      const sites = screen.getByRole('radiogroup', { name: 'Sites' });
+      expect(within(sites).getByRole('radio', { name: 'All 8 sites' })).toHaveAttribute('aria-checked', 'true');
+      expect(screen.queryByRole('group', { name: 'Which sites' })).not.toBeInTheDocument();
+      expect(screen.getByText(/Downloads to this computer for now/)).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Export' }));
+      const all = await read(files[0]!);
+      expect(all).toContain('Bunso');
+      expect(all).toContain('Mamasons Kentish Town');
+
+      await user.click(within(sites).getByRole('radio', { name: 'Pick sites' }));
+      await user.click(within(screen.getByRole('group', { name: 'Which sites' })).getByRole('button', { name: 'Bunso' }));
+      expect(within(screen.getByRole('group', { name: 'Which sites' })).getByRole('button', { name: 'Bunso' })).toHaveAttribute('aria-pressed', 'true');
+      await user.click(screen.getByRole('button', { name: 'Export' }));
+      const one = await read(files[1]!);
+      expect(one).toContain('Bunso');
+      expect(one).not.toContain('Mamasons Kentish Town');
+    } finally {
+      URL.createObjectURL = orig.create;
+      URL.revokeObjectURL = orig.revoke;
+      click.mockRestore();
+    }
+  });
+
+  it('the inspector\'s button says Export too, and says what it opens', () => {
+    renderApp('/head-office/records', admin);
+    expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Make the records pack' })).not.toBeInTheDocument();
+    expect(screen.getByText('Opens the records pack for the inspector, ready to print.')).toBeInTheDocument();
   });
 
   it('staff and pay records say where they live', async () => {
