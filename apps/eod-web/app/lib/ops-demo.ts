@@ -100,8 +100,8 @@ export function demoOps(businessDate: string): OpsData {
 
   return {
     suppliers: [
-      { id: 'fresh', name: 'Fresh Direct', orderBy: '14:00', leadDays: 1, email: 'orders@freshdirect.example' },
-      { id: 'bibendum', name: 'Bibendum', orderBy: '17:00', leadDays: 2, email: 'orders@bibendum.example' },
+      { id: 'fresh', name: 'Fresh Direct', orderBy: '14:00', leadDays: 1, arrivesBy: '10:00', email: 'orders@freshdirect.example' },
+      { id: 'bibendum', name: 'Bibendum', orderBy: '17:00', leadDays: 2, arrivesBy: '12:00', email: 'orders@bibendum.example' },
       { id: 'wingyip', name: 'Wing Yip', orderBy: '12:00', leadDays: 3, email: 'trade@wingyip.example' },
     ],
     supplierItems, pars,

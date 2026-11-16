@@ -33,7 +33,7 @@ export default function RecipePage() {
         </div>
         {i === 0 ? (
           <section className="grp" aria-label="For one plate">
-            <div className="sub">
+            <div className="sub rc-lines">
               {r.lines.map((l) => <div className="li" key={l.itemId}><span className="tx"><span>{item(l.itemId)?.name.replace(/ \d.*$/, '')}</span></span><span className="rt"><b className="amt">{l.shown}</b></span></div>)}
               {r.extras.map((e) => <div className="li" key={e.label}><span className="tx"><span>{e.label}</span></span></div>)}
             </div>

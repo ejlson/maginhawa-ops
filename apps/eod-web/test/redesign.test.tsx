@@ -9,17 +9,23 @@ describe('site colours', () => {
     expect(document.documentElement.style.getPropertyValue('--site-on')).toBe('#1D1D1F');
   });
 
-  it('lets head office change a site’s colour, and undo it', async () => {
+  it('on a phone (P7): pick a site, try a colour, Save for everyone, and undo it', async () => {
     const { user } = renderApp('/head-office/sites', admin);
     expect(screen.getByRole('heading', { name: 'Sites and colours' })).toBeInTheDocument();
     await user.click(screen.getByRole('option', { name: /Bunso/ }));
+    const save = screen.getByRole('button', { name: 'Save for everyone at Bunso' });
+    expect(save).toBeDisabled(); // nothing changed yet
     const swatches = screen.getByRole('radiogroup', { name: 'Colour for Bunso' });
     expect(within(swatches).getByRole('radio', { name: 'Mango' })).toHaveAttribute('aria-checked', 'true');
     await user.click(within(swatches).getByRole('radio', { name: 'Teal' }));
     expect(within(swatches).getByRole('radio', { name: 'Teal' })).toHaveAttribute('aria-checked', 'true');
-    expect(screen.getByRole('option', { name: /Bunso/ })).toHaveTextContent('Teal');
+    expect(screen.getByRole('status')).toHaveTextContent('Not saved yet'); // only a draft until Save
+    await user.click(save);
+    expect(screen.getByRole('status')).toHaveTextContent('Saved on this device');
     await user.click(screen.getByRole('button', { name: 'Undo' }));
     expect(within(swatches).getByRole('radio', { name: 'Mango' })).toHaveAttribute('aria-checked', 'true');
+    await user.click(screen.getByRole('link', { name: 'Sites' }));
+    expect(screen.getByRole('option', { name: /Bunso/ })).toHaveTextContent('Mango');
   });
 });
 

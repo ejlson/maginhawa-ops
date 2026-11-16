@@ -9,6 +9,8 @@ import { HeadOfficeShell } from '../components/HeadOfficeShell';
 import { WhoMenu } from '../components/home/WhoMenu';
 import { useOps } from '../lib/ops';
 import { useStock } from '../lib/stock';
+import { Chevron, Icon } from '../components/ui';
+import { ICONS } from '../components/ui-helpers';
 
 export default function HoMenu() {
   const ops = useOps();
@@ -29,35 +31,53 @@ export default function HoMenu() {
   };
   const fix = picked ? priceForTarget(picked.cost, target) : 0;
 
+  // RC2's table: Dish · Price · Cost · GP · why. A row is a button that opens the dish on the right.
   const line = (d: (typeof dishes)[number]) => (
-    <button type="button" key={d.r.id} className={`li menu-row${picked?.r.id === d.r.id ? ' on' : ''}`} onClick={() => setSel(d.r.id)} aria-pressed={picked?.r.id === d.r.id}>
-      <span className="tx"><span>{d.r.name}</span><small>{d.r.section}{why(d) ? ` · ${why(d)}` : ''}</small></span>
-      <span className="rt"><span className="stk-meta">{formatPounds(d.r.pricePence)}</span><span className="stk-meta">cost {formatPounds(d.cost)}</span><b className={`amt${d.gp < target ? ' t-warn' : ''}`}>{d.gp.toFixed(1)}%</b></span>
+    <button type="button" key={d.r.id} className={`menu-tr${picked?.r.id === d.r.id ? ' on' : ''}`} onClick={() => setSel(d.r.id)} aria-pressed={picked?.r.id === d.r.id}
+      aria-label={`${d.r.name}: price ${formatPounds(d.r.pricePence)}, cost ${formatPounds(d.cost)}, GP ${d.gp.toFixed(1)}%${why(d) ? `, ${why(d)}` : ''}`}>
+      <span className="menu-dish">{d.r.name}</span>
+      <span>{formatPounds(d.r.pricePence)}</span>
+      <span>{formatPounds(d.cost)}</span>
+      <b className={d.gp < target ? 't-warn' : ''}>{d.gp.toFixed(1)}%</b>
+      <span className="menu-why">{why(d) || (d.gp < target ? '' : 'On target')}</span>
     </button>
   );
+  const reasons = below.map(why).filter(Boolean);
+  const topReason = reasons.length ? Object.entries(reasons.reduce<Record<string, number>>((m, x) => ({ ...m, [x]: (m[x] ?? 0) + 1 }), {})).sort((a, b) => b[1] - a[1])[0]! : null;
+  // ", because pork went up." for one dish; ", all because …" or ", 2 of them because …" for more.
+  const reasonText = !topReason ? '.' : `, ${below.length === 1 ? '' : topReason[1] === below.length ? 'all ' : `${topReason[1]} of them `}because ${topReason[0].charAt(0).toLowerCase() + topReason[0].slice(1)}.`;
 
   return (
     <HeadOfficeShell>
       <main className="page wide">
         <header className="nav" style={{ paddingLeft: 24 }}><span className="title">Menu costing</span><WhoMenu /></header>
         <div className="body" style={{ paddingTop: 24, gap: 28 }}>
-          <div className="titleblock"><span className="eyebrow">Food menu · prices include 20% VAT · target GP {target}%</span><h1>Menu costing</h1></div>
+          <div className="titleblock"><span className="eyebrow">Food menu · target GP {target}%</span><h1>Menu costing</h1></div>
           <div className="hero">
             <span className="hl">Today's prices</span>
-            <span className="ho-sentence">{below.length ? `${below.length} dish${below.length > 1 ? 'es are' : ' is'} below ${target}%.` : `Every dish is at ${target}% or more.`}</span>
-            <div className="hm"><span>{avg}%<small>Menu average</small></span><span>{below.length}<small>Below target</small></span><span>{gaps.length}<small>Allergen checks</small></span></div>
+            <span className="ho-sentence">{below.length ? `${below.length} dish${below.length > 1 ? 'es are' : ' is'} below ${target}%` : `Every dish is at ${target}% or more.`}{below.length ? reasonText : ''}</span>
+            <div className="hm one"><span>{avg}%<small>Menu average</small></span></div>
           </div>
           <div className="stk-cols">
             <section className="grp" aria-label="Dishes">
-              <div className="hd"><h2>{below.length ? 'Below target' : 'Dishes'}</h2><span>Price · cost · GP</span></div>
-              <div className="sub">
+              <div className="hd"><h2>{below.length ? 'Below target' : 'Dishes'}</h2><span>Price includes VAT</span></div>
+              <div className="sub menu-table">
+                {(below.length > 0 || showAll) && <div className="menu-th" aria-hidden="true"><span>Dish</span><span>Price</span><span>Cost</span><span>GP</span><span /></div>}
                 {below.map(line)}
-                {!showAll ? <button type="button" className="li" onClick={() => setShowAll(true)}><span className="tx"><span>{fine.length} dishes on target</span><small>{fine.slice(0, 3).map((d) => d.r.name).join(', ')} and more</small></span><span className="rt"><span className="stk-meta" style={{ color: 'var(--link)' }}>Show</span></span></button>
-                  : fine.map(line)}
+                {showAll && fine.map(line)}
               </div>
+              {!showAll && fine.length > 0 && (
+                <div className="sub">
+                  <button type="button" className="li" onClick={() => setShowAll(true)}>
+                    <span className="av ok"><Icon d={ICONS.check} /></span>
+                    <span className="tx"><span>{fine.length} dishes on target</span><small>{fine.slice(0, 3).map((d) => d.r.name).join(', ')} and more</small></span>
+                    <span className="rt"><span className="stk-meta" style={{ color: 'var(--link)' }}>Show</span><Chevron /></span>
+                  </button>
+                </div>
+              )}
             </section>
             {picked && (
-              <section className="grp menu-panel" aria-label={picked.r.name}>
+              <section className="menu-panel" aria-label={picked.r.name}>
                 <div className="hd"><h2>{picked.r.name}</h2><span className={picked.gp < target ? 't-warn' : ''}>{picked.gp.toFixed(1)}%</span></div>
                 <p className="lead">Costs {formatPounds(picked.cost)} to make, sells for {formatPounds(picked.r.pricePence)}</p>
                 <div className="sub">
@@ -74,8 +94,8 @@ export default function HoMenu() {
             <section className="grp" aria-label="Allergen check">
               <div className="hd"><h2>Allergen check</h2><span>Recipe ingredients against the allergen record</span></div>
               <div className="sub">
-                {gaps.map(({ r, gaps: g }) => <div className="li" key={r.id}><span className="tx"><span>{r.name}</span><small>{g.map((x) => `${name(x.itemId)} contains ${x.allergen.toLowerCase()}`).join('; ')}, but the allergen record doesn't list it</small></span>
-                  <span className="rt"><Link className="chip stk-chip" to="/food-safety/allergens">Fix the record</Link></span></div>)}
+                {gaps.map(({ r, gaps: g }) => <div className="li" key={r.id}><span className="av warn"><Icon d={ICONS.bang} /></span><span className="tx"><span>{r.name}</span><small>{g.map((x) => `${name(x.itemId)} contains ${x.allergen.toLowerCase()}`).join('; ')}, but the allergen record doesn't list it</small></span>
+                  <span className="rt"><Link className="btn b1 btn-sm" to={`/food-safety/allergens/${r.id}`}>Fix the record</Link></span></div>)}
               </div>
               <p className="lead">The allergen record stays the source of truth: a mismatch is flagged, never changed for you.</p>
             </section>

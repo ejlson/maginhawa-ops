@@ -16,6 +16,7 @@ export const EXPORTS: Record<ExportFor, { title: string; sub: string; format: st
       { what: 'Allergen matrix and every change', law: 'Food Information Regs 2014', keep: '3 years', inApp: true },
       { what: 'Deliveries, batch codes, recalls', law: 'General Food Law, traceability', keep: '2 years', inApp: true },
       { what: 'Customer complaints (no contact details)', law: 'Due diligence', keep: '3 years', inApp: true },
+      { what: 'Food hygiene training certificates', law: 'Reg (EC) 852/2004 (assimilated), Annex II', keep: 'While they work here', inApp: false },
     ],
   },
   accountant: {
@@ -24,6 +25,7 @@ export const EXPORTS: Record<ExportFor, { title: string; sub: string; format: st
     records: [
       { what: 'Daily sales: EODs, cash, card, delivery', law: 'Companies Act 2006 · HMRC record rules', keep: '6 years', inApp: true },
       { what: 'Purchases, orders and credits', law: 'HMRC record rules', keep: '6 years', inApp: true },
+      { what: 'VAT on sales and purchases', law: 'VAT Act 1994 · Making Tax Digital', keep: '6 years', inApp: false },
       { what: 'Stock counts and waste', law: 'Year-end stock valuation', keep: '6 years', inApp: true },
       { what: 'Tips and service charge shared out', law: 'Employment (Allocation of Tips) Act 2023', keep: '3 years', inApp: false },
     ],
@@ -35,6 +37,7 @@ export const EXPORTS: Record<ExportFor, { title: string; sub: string; format: st
       { what: 'Accident book and RIDDOR reports', law: 'RIDDOR 2013 · Social Security (Claims and Payments) Regs', keep: '3 years (we keep 6)', inApp: true },
       { what: 'Fire alarm, lights and extinguisher checks', law: 'Regulatory Reform (Fire Safety) Order 2005', keep: 'Latest + 3 years', inApp: true },
       { what: 'Service certificates: gas, electrics, extraction', law: 'Gas Safety Regs 1998 · Electricity at Work Regs 1989 · insurer', keep: 'Latest + the one before', inApp: true },
+      { what: 'Risk assessments, fire risk assessment', law: 'Management of Health and Safety at Work Regs 1999', keep: 'The current one + 3 years', inApp: false },
       { what: 'Waste transfer notes', law: 'Environmental Protection Act 1990, duty of care', keep: '2 years', inApp: false },
     ],
   },
@@ -55,6 +58,7 @@ export const EXPORTS: Record<ExportFor, { title: string; sub: string; format: st
     records: [
       { what: 'All of the above for one site', law: 'Each record keeps its own keep period', keep: 'As above', inApp: true },
       { what: 'Who changed what, and when', law: 'Corrections are never written over', keep: 'As above', inApp: true },
+      { what: 'Photos and certificates', law: 'Evidence behind the checks and service visits', keep: 'As above', inApp: false },
     ],
   },
 };

@@ -7,7 +7,9 @@ import { dailyUse, dishesUsing, formatPounds, priceChangeText, runsOutText } fro
 import { useAuth } from '../lib/auth';
 import { useStock } from '../lib/stock';
 import { useOps } from '../lib/ops';
-import { amountText, onHand } from '../lib/ops-helpers';
+import { amountText, onHand, unitOne } from '../lib/ops-helpers';
+import { useChecklists } from '../lib/checklists';
+import { dayText } from '../lib/stock-helpers';
 import { Icon, Nav, RowLink } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 
@@ -16,9 +18,13 @@ export default function StockItem() {
   const { user } = useAuth();
   const { data, siteCode, item } = useStock();
   const ops = useOps();
+  const { businessDate } = useChecklists();
   const it = item(itemId);
   if (!user || !it) return <Navigate to="/stock" replace />;
   const have = onHand(data.counts, siteCode, itemId);
+  // When it was last counted: "(counted today)", "(counted yesterday)", "(counted Thu 12 Nov)".
+  const lastCount = data.counts.filter((c) => c.siteCode === siteCode && c.sentAt && c.lines[itemId]).sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
+  const counted = lastCount ? `counted ${dayText(lastCount.businessDate, businessDate).replace(/^(Today|Yesterday)$/, (d) => d.toLowerCase())}` : 'last count';
   const perDay = dailyUse(itemId, ops.data.recipes);
   const lasts = have === null ? null : runsOutText(have, perDay);
   const dishes = dishesUsing(itemId, ops.data.recipes);
@@ -31,7 +37,7 @@ export default function StockItem() {
       <Nav back="/stock" backLabel="Stock" />
       <div className="body">
         <div className="hero stk-hero" role="status">
-          <span className="hl">{it.name} · {have === null ? 'not counted yet' : `${amountText(have, it.unit)} left (last count)`}</span>
+          <span className="hl">{it.name} · {have === null ? 'not counted yet' : `${amountText(have, it.unit)} left (${counted})`}</span>
           <span className="stk-title">{lasts ?? (have === null ? 'Count it to see' : 'Not used in a dish')}</span>
           {perDay > 0 && <span className="stk-sub">At the usual pace of about {amountText(Math.round(perDay * 10) / 10, it.unit)} a day</span>}
           {sup && (
@@ -48,7 +54,7 @@ export default function StockItem() {
             <div className="sub">
               {dishes.map((r) => {
                 const line = r.lines.find((l) => l.itemId === itemId)!;
-                return <RowLink key={r.id} to={`/recipes/${r.id}`} lead={<span className="av"><Icon d={ICONS.list} /></span>} title={r.name} sub={`${line.shown} a plate · about ${r.perDay} a day`} />;
+                return <RowLink key={r.id} to={`/recipes/${r.id}`} lead={<span className="av"><Icon d={ICONS.hat} /></span>} title={r.name} sub={`${line.shown} a plate · about ${r.perDay} a day`} />;
               })}
             </div>
           </section>
@@ -58,8 +64,8 @@ export default function StockItem() {
           <section className="grp" aria-label="Buying it">
             <div className="hd"><h2>Buying it</h2></div>
             <div className="sub">
-              <RowLink lead={<span className="av"><Icon d={ICONS.box} /></span>} title={sup.name}
-                sub={`${buy.pack} · ${formatPounds(buy.packPrice)}`}
+              <RowLink lead={<span className="av"><Icon d={ICONS.truck} /></span>} title={sup.name}
+                sub={`${buy.pack} · ${buy.packSize > 1 ? `${formatPounds(Math.round(buy.packPrice / buy.packSize))} a ${unitOne(it.unit)}` : formatPounds(buy.packPrice)}`}
                 right={pc ? <span className="pill p-warn">{priceChangeText(pc.from, pc.to)}</span> : undefined} />
             </div>
           </section>
