@@ -28,7 +28,7 @@ export default function HoMaintenance() {
       <span className="tx"><span>{s.name}</span><small>{name(s.siteCode)} · {st === 'overdue' ? `was due ${dayText(next, today)}` : `due ${dayText(next, today)}`} · {s.contractor}</small></span>
       <span className="rt">
         {st === 'overdue' ? <span className="pill p-bad">Overdue</span> : s.booked ? <span className="pill p-ok">Booked</span> : st === 'soon' ? <span className="pill p-mut">In {daysBetween(today, next)} days</span> : <span className="stk-meta">{dayText(next, today)}</span>}
-        {st === 'overdue' && <button type="button" className="chip">Chase site</button>}
+        {st === 'overdue' && <button type="button" className="chip sm">Chase site</button>}
       </span>
     </div>
   );
@@ -37,9 +37,9 @@ export default function HoMaintenance() {
     <HeadOfficeShell>
       <main className="page wide">
         <header className="nav" style={{ paddingLeft: 24 }}><span className="title">Maintenance</span><WhoMenu /></header>
-        <div className="body" style={{ paddingTop: 24, gap: 28 }}>
+        <div className="body">
           <div className="titleblock"><span className="eyebrow">All sites</span><h1>Maintenance</h1></div>
-          <div className="hero">
+          <div className="hero ho-group">
             <span className="hl">This week</span>
             <span className="ho-sentence">{overdue ? `${overdue} certificate${overdue > 1 ? 's are' : ' is'} overdue.` : 'Nothing is overdue.'} Everything else is in date.</span>
           </div>
@@ -57,7 +57,7 @@ export default function HoMaintenance() {
             <section className="grp" aria-label="Keeps breaking">
               <div className="hd"><h2>Keeps breaking</h2><span>3 or more call-outs in 6 months</span></div>
               <div className="sub">
-                {breaking.map(({ e, outs }) => <div className="li" key={e.id}><SiteMono code={e.siteCode} /><span className="tx"><span>{e.name}</span><small>{name(e.siteCode)} · {outs.length} call-outs · {e.contractor}</small></span><span className="rt"><button type="button" className="chip">Ask for a quote</button></span></div>)}
+                {breaking.map(({ e, outs }) => <div className="li" key={e.id}><SiteMono code={e.siteCode} /><span className="tx"><span>{e.name}</span><small>{name(e.siteCode)} · {outs.length} call-outs · {e.contractor}</small></span><span className="rt"><button type="button" className="chip sm">Ask for a quote</button></span></div>)}
               </div>
             </section>
           )}

@@ -3,7 +3,7 @@
  * Anyone can see it; managers log visits.
  */
 import { TabBar } from '../components/TabBar';
-import { SiteLine } from '../components/SiteLine';
+import { PhoneHomeHeader } from '../components/home/shared';
 import { Link } from 'react-router';
 import { daysBetween, dueStatus, keepsBreaking, serviceNextDue } from '@maginhawa/core';
 import { can, useAuth } from '../lib/auth';
@@ -32,8 +32,8 @@ export default function Maintenance() {
   return (
     <main className={`page${atSite ? ' tabs' : ''}`}>
       {!atSite && <Nav back="/head-office" backLabel="Head office" title="Maintenance" />}
+      {atSite && <PhoneHomeHeader />}
       <div className="body">
-        {atSite && <SiteLine />}
         <div className="titleblock mh-title page-title"><h1>Maintenance</h1></div>
         {first && (
           <div className="hero stk-hero" role="status">

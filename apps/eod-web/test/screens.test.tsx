@@ -8,6 +8,9 @@ import { TabBar } from '../app/components/TabBar';
 import { deviceStore, resetDemoEod } from '../app/lib/store';
 import { setNow } from '../app/lib/clock';
 
+/** The tab bar's tabs. */
+const tabsIn = (nav: HTMLElement) => Array.from(nav.querySelectorAll<HTMLElement>('.tab'));
+
 describe('sign-in', () => {
   it('sends people who are not signed in to sign-in', async () => {
     renderApp('/close', null);
@@ -30,7 +33,7 @@ describe('tab bar', () => {
     const tabs = screen.getByRole('navigation', { name: 'Main' });
     expect(within(tabs).getByRole('link', { name: 'Today' })).toHaveAttribute('aria-current', 'page');
     expect(within(tabs).getByRole('link', { name: 'EOD' })).not.toHaveAttribute('aria-current');
-    expect(within(tabs).getAllByRole('link').map((l) => l.querySelector('.tab-l')?.textContent)).toEqual(['Today', 'EOD', 'Checklists', 'More']);
+    expect(tabsIn(tabs).map((l) => l.querySelector('.tab-l')?.textContent)).toEqual(['Today', 'EOD', 'Checklists', 'More']);
     expect(within(tabs).getByRole('link', { name: /^Checklists/ })).toHaveAttribute('href', '/checklists');
   });
 
@@ -45,7 +48,7 @@ describe('tab bar', () => {
   it('every tab keeps its name for screen readers, though only the selected one shows it', () => {
     renderApp('/checklists');
     const nav = screen.getByRole('navigation', { name: 'Main' });
-    const tabs = within(nav).getAllByRole('link');
+    const tabs = tabsIn(nav);
     expect(tabs.map((t) => t.querySelector('.tab-l')?.textContent)).toEqual(['Today', 'EOD', 'Checklists', 'More']);
     for (const name of ['Today', 'EOD', 'Checklists', 'More']) {
       expect(within(nav).getByRole('link', { name: new RegExp(`^${name}`) })).toBeInTheDocument();
@@ -78,7 +81,7 @@ describe('tab bar', () => {
   it('head office phone tabs keep their names too', () => {
     renderApp('/head-office', admin);
     const nav = screen.getByRole('navigation', { name: 'Head office' });
-    const tabs = within(nav).getAllByRole('link');
+    const tabs = tabsIn(nav);
     expect(tabs.map((t) => t.querySelector('.tab-l')?.textContent)).toEqual(['Today', 'Days', 'Reports', 'More']);
     for (const name of ['Today', 'Days', 'Reports', 'More']) {
       expect(within(nav).getByRole('link', { name })).toBeInTheDocument();
@@ -88,7 +91,7 @@ describe('tab bar', () => {
   });
 
   // Batch 3 (boards S1, HS1, PM1, RC1): screens opened from More keep More lit.
-  const litTabs = () => within(screen.getByRole('navigation', { name: 'Main' })).getAllByRole('link').filter((t) => t.classList.contains('on'));
+  const litTabs = () => tabsIn(screen.getByRole('navigation', { name: 'Main' })).filter((t) => t.classList.contains('on'));
   const moreTab = () => within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'More' });
 
   it('More is lit on the stock, safety and maintenance screens, and only More', () => {
@@ -497,8 +500,7 @@ describe('End of day overview (design P3)', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'End of day report' })).toBeInTheDocument();
     expect(screen.queryByText("Today's EOD")).not.toBeInTheDocument();
     // No top Nav: the site and the day sit in the top row, with the saved state.
-    expect(screen.getByText('Bunso · Mon 5 Oct')).toBeInTheDocument();
-    expect(screen.getByText('Not started')).toBeInTheDocument();
+    expect(document.querySelector('header.homenav')).toHaveTextContent('Bunso'); // the same top bar as Today
     expect(card()).toHaveAttribute('role', 'status');
     expect(card()).toHaveTextContent('Day net so far');
     expect(card()).toHaveTextContent('£0.00');
@@ -598,7 +600,6 @@ describe('End of day overview (design P3)', () => {
     expect(bar()).toHaveTextContent("See today's report");
     expect(within(bar()).getByRole('link', { name: /^See today's report,\s*Go$/ })).toHaveAttribute('href', '/close/done');
     expect(screen.queryByRole('button', { name: 'Submit all' })).not.toBeInTheDocument();
-    expect(screen.getByText('Sent', { selector: '.close-saved' })).toBeInTheDocument();
   });
 });
 

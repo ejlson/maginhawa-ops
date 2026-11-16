@@ -8,7 +8,7 @@ import { SplitFrame, SubmitLists, TaskRow } from '../components/ChecklistSplit';
 import { useTwoColumns } from '../lib/wide';
 import { TabBar } from '../components/TabBar';
 import { can, useAuth } from '../lib/auth';
-import { SiteLine } from '../components/SiteLine';
+import { PhoneHomeHeader } from '../components/home/shared';
 import { Icon } from '../components/ui';
 import { ICONS } from '../components/ui-helpers';
 
@@ -75,11 +75,10 @@ export default function Checklists() {
 
   return (
     <main className="page tabs lists-page">
-      {phase && <Nav back="/checklists" backLabel="All" title={title} />}
+      {phase ? <Nav back="/checklists" backLabel="All" title={title} /> : <PhoneHomeHeader />}
       <div className="body">
-        <SiteLine right={user && can.editChecklists(user.role) ? <Link className="site-line-act" to="/checklists/edit">Edit lists</Link> : undefined} />
         <div className="top">
-          <div className="titleblock mh-title"><h1>{title}</h1></div>
+          <div className="more-hd"><h1>{title}</h1>{user && can.editChecklists(user.role) && <Link className="chip" to="/checklists/edit">Edit lists</Link>}</div>
           {hero}
         </div>
 

@@ -3,7 +3,7 @@
  * and the last few sent. Designs: design/redesign-canvas/project/S1-Stock.dc.html.
  */
 import { TabBar } from '../components/TabBar';
-import { SiteLine } from '../components/SiteLine';
+import { PhoneHomeHeader } from '../components/home/shared';
 import { useNavigate } from 'react-router';
 import { areasFor, countValue, formatPounds, itemIdsOf, type StockPlan } from '@maginhawa/core';
 import { can, recordedAs, useAuth } from '../lib/auth';
@@ -64,8 +64,8 @@ export default function Stock() {
     <main className={`page${atSite ? ' tabs' : ''}`}>
       {/* Design S1: at a site, the site line and the tab bar (More); head office keeps its way back. */}
       {!atSite && <Nav back="/head-office" backLabel="Head office" title="Stock" />}
+      {atSite && <PhoneHomeHeader />}
       <div className="body">
-        {atSite && <SiteLine />}
         <div className="titleblock mh-title page-title"><h1>Stock</h1>{!atSite && <p className="lead">{settings.siteName}</p>}</div>
 
         <div className="hero stk-hero" role="status">

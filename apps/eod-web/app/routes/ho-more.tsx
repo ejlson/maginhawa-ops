@@ -15,7 +15,7 @@ export default function HoMore() {
     <HeadOfficeShell>
       <main className="page wide">
         <header className="nav" style={{ paddingLeft: 24 }}><span className="title">More</span><WhoMenu /></header>
-        <div className="body" style={{ paddingTop: 16, gap: 28 }}>
+        <div className="body">
           <div className="titleblock"><span className="eyebrow">Head office · all sites</span><h1>More</h1></div>
           <HoSearch sites={SITES.map((x) => ({ code: x.code, name: x.name, sub: 'Open the site' }))} onSite={(code) => navigate(`/head-office/${code}`)} />
           <section className="grp">

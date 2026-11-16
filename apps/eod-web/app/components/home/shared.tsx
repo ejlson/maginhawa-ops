@@ -1,4 +1,5 @@
 /** Pieces the staff, supervisor and manager home screens share. */
+import { useWide } from '../../lib/wide';
 import { useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router';
@@ -13,6 +14,11 @@ import { ICONS, PHASE_ICONS } from '../ui-helpers';
 import { useToday, useEod } from './shared-helpers';
 
 /** The home's top bar (P1, W1): the site pill on the left; Search and the account on the right. */
+/** The Today bar on the other top-level screens, on phones only: on a desktop the sidebar has the site and you. */
+export function PhoneHomeHeader() {
+  return useWide() ? null : <HomeHeader />;
+}
+
 export function HomeHeader({ right }: { right?: ReactNode }) {
   const { savedAt } = useDraft();
   const [search, setSearch] = useState(false);

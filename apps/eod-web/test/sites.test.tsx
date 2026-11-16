@@ -47,11 +47,11 @@ describe('switching site', () => {
     await user.click(screen.getByRole('option', { name: /Guanabana/ }));
     await user.click(screen.getByRole('link', { name: 'EOD' }));
     expect(await screen.findByRole('heading', { name: 'End of day report' })).toBeInTheDocument();
-    expect(screen.getByText(/^Guanabana · /)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Guanabana/ })).toBeInTheDocument(); // the site pill in the bar
     expect(document.body).not.toHaveTextContent('£100.00');
     await user.click(screen.getByRole('button', { name: 'Back to Bunso' }));
     await screen.findByRole('heading', { name: 'End of day report' });
-    expect(screen.getByText(/^Bunso · /)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Bunso/ })).toBeInTheDocument();
     expect(document.body).toHaveTextContent('£100.00');
   });
 });

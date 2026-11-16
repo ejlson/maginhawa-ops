@@ -58,9 +58,9 @@ export default function HoOrdering() {
     <HeadOfficeShell>
       <main className="page wide">
         <header className="nav" style={{ paddingLeft: 24 }}><span className="title">Ordering and waste</span><WhoMenu /></header>
-        <div className="body" style={{ paddingTop: 24, gap: 28 }}>
+        <div className="body">
           <div className="titleblock"><span className="eyebrow">All sites · so far</span><h1>Ordering and waste</h1></div>
-          <div className="hero">
+          <div className="hero ho-group">
             <span className="hl">So far</span>
             <span className="ho-sentence">{toPlace.length ? `${toPlace.length} order${toPlace.length > 1 ? 's are' : ' is'} waiting to be placed. ` : ''}{open.length ? `${open.length} price${open.length > 1 ? 's' : ''} changed. ` : 'No price changes. '}Waste is {formatPounds(totalWaste)}{high.length ? `, with ${high.length} site${high.length > 1 ? 's' : ''} above 3%` : ''}.</span>
             <div className="hm two"><span>{formatPounds(boughtAll)}<small>Bought, ex VAT</small></span><span>{formatPounds(credits)}<small>Credits to chase</small></span></div>

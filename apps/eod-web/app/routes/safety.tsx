@@ -3,7 +3,7 @@
  * Managers see what an accident still needs: a check after a week, and the HSE report (RIDDOR).
  */
 import { TabBar } from '../components/TabBar';
-import { SiteLine } from '../components/SiteLine';
+import { PhoneHomeHeader } from '../components/home/shared';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { accidentState, callPointFor, doneThisPeriod, dueBy, SAFETY_CHECKS, type Accident, type SafetyCheckKind } from '@maginhawa/core';
@@ -33,8 +33,8 @@ export default function Safety() {
   return (
     <main className={`page${atSite ? ' tabs' : ''}`}>
       {!atSite && <Nav back="/head-office" backLabel="Head office" title="Health and safety" />}
+      {atSite && <PhoneHomeHeader />}
       <div className="body">
-        {atSite && <SiteLine />}
         <div className="titleblock mh-title page-title"><h1>Health and safety</h1></div>
         <div className="hero stk-hero" role="status">
           {due ? (

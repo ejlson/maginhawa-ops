@@ -26,24 +26,32 @@ export default function HoSafety() {
     <HeadOfficeShell>
       <main className="page wide">
         <header className="nav" style={{ paddingLeft: 24 }}><span className="title">Health and safety</span><WhoMenu /></header>
-        <div className="body" style={{ paddingTop: 24, gap: 28 }}>
+        <div className="body">
           <div className="titleblock"><span className="eyebrow">All sites · this week</span><h1>Health and safety</h1></div>
-          <div className="hero">
+          <div className="hero ho-group">
             <span className="hl">This week</span>
             <span className="ho-sentence">{reports.length ? `${reports.length} accident${reports.length > 1 ? 's' : ''} must be reported to the HSE. ` : ''}{missed.length ? `${missed.length} site${missed.length > 1 ? 's haven’t' : ' hasn’t'} done the fire alarm test.` : 'Every fire alarm test is done.'}</span>
             <div className="hm"><span>{upToDate} of {SITES.length}<small>Up to date</small></span><span>{missed.length}<small>Fire tests to do</small></span><span>{reports.length}<small>HSE reports due</small></span></div>
           </div>
           <div className="stk-cols">
             <section className="grp" aria-label="Sites">
-              <div className="hd"><h2>Sites</h2></div>
-              <div className="sub">
-                {rows.map(({ s, fire, left, acc }) => (
-                  <div className="li" key={s.code}>
-                    <SiteMono code={s.code} size="lg" />
-                    <span className="tx"><span>{s.name}</span><small>{left ? `${left} monthly check${left > 1 ? 's' : ''} to do` : 'Monthly checks done'}{acc.length ? ` · ${acc.length} accident to follow up` : ''}</small></span>
-                    <span className="rt"><span className={`pill ${fire ? 'p-ok' : 'p-warn'}`}>{fire ? 'Fire test done' : 'Fire test due'}</span></span>
+              <div className="hd"><h2>Sites</h2><span>This week and this month</span></div>
+              {/* HS4: one row per site, every column a word, never a colour alone. */}
+              <div className="table">
+                <div className="otable hs-table" role="table" aria-label="Sites">
+                  <div className="oth" role="row">
+                    <span role="columnheader">Site</span><span role="columnheader">Weekly fire test</span><span role="columnheader">Monthly checks</span><span role="columnheader">Accidents</span>
                   </div>
-                ))}
+                  {rows.map(({ s, fire, left, acc }) => (
+                    <div className="otr" role="row" key={s.code}>
+                      <span role="cell" className="ot-site"><SiteMono code={s.code} /><b>{s.name}</b></span>
+                      <span role="cell"><span className={`pill ${fire ? 'p-ok' : 'p-warn'}`}>{fire ? 'Done' : 'Due by Sunday'}</span></span>
+                      <span role="cell"><span className={`pill ${left ? 'p-warn' : 'p-ok'}`}>{left ? `${left} to do` : 'All done'}</span></span>
+                      <span role="cell"><span className={`pill ${acc.some((x) => x.st.kind === 'report') ? 'p-bad' : acc.length ? 'p-warn' : 'p-mut'}`}>
+                        {acc.some((x) => x.st.kind === 'report') ? `Report to HSE${acc.length > 1 ? ` · ${acc.length - 1} more` : ''}` : acc.length ? `${acc.length} to follow up` : 'None'}</span></span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
             <section className="grp" aria-label="Needs head office">

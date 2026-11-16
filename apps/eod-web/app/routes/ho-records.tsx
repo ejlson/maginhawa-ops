@@ -74,7 +74,7 @@ export default function HoRecords() {
     <HeadOfficeShell>
       <main className="page wide">
         <header className="nav" style={{ paddingLeft: 24 }}><span className="title">Records and exports</span><WhoMenu /></header>
-        <div className="body" style={{ paddingTop: 24, gap: 28 }}>
+        <div className="body">
           <div className="titleblock"><span className="eyebrow">Head office · all sites</span><h1>Records and exports</h1></div>
           <div>
             <div className="lab">Who is it for?</div>

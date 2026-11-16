@@ -61,7 +61,7 @@ export default function HoStock() {
           <span className="title">Stock</span>
           <WhoMenu />
         </header>
-        <div className="body" style={{ paddingTop: 24, gap: 28 }}>
+        <div className="body">
           <div className="stk-hohead">
             <div className="titleblock">
               <span className="eyebrow">Latest full counts · {SITES.length} sites</span>
@@ -73,7 +73,7 @@ export default function HoStock() {
             </div>
           </div>
 
-          <div className="hero stk-hero">
+          <div className="hero stk-hero ho-group">
             <span className="hl">Stock on hand · ex VAT</span>
             <BigMoney value={total} />
             <div className="hm">
@@ -85,25 +85,23 @@ export default function HoStock() {
 
           <div className="stk-cols">
             <section className="grp" aria-label="Sites">
-              <div className="hd"><h2>Sites</h2></div>
-              <div className="sub">
-                {rows.map((r) => (
-                  <div className="li" key={r.site.code}>
-                    <SiteMono code={r.site.code} size="lg" />
-                    <span className="tx">
-                      <span>{r.site.name}</span>
-                      <small>{!r.latest ? 'No full count yet'
-                        : r.status.cls === 'p-warn' ? `Last full count ${dayText(r.latest.businessDate, today)}`
-                        : r.change === null ? 'First full count'
-                        : r.change === 0 ? 'Same as last time'
-                        : `${formatPounds(Math.abs(r.change))} ${r.change < 0 ? 'less' : 'more'} than last time`}</small>
-                    </span>
-                    <span className="rt">
-                      {r.latest && <span className="amt">{formatPounds(val(r.latest))}</span>}
-                      <span className={`pill ${r.status.cls}`}>{r.status.text}</span>
-                    </span>
+              <div className="hd"><h2>Sites</h2><span>Latest full count</span></div>
+              {/* S5's table. Its GP columns wait for purchases and sales (phase 2); the change since last count stands in. */}
+              <div className="table">
+                <div className="otable stk-table" role="table" aria-label="Sites">
+                  <div className="oth" role="row">
+                    <span role="columnheader">Site</span><span role="columnheader" className="r">Stock value</span><span role="columnheader" className="r">vs last count</span><span role="columnheader">Count</span>
                   </div>
-                ))}
+                  {rows.map((r) => (
+                    <div className="otr" role="row" key={r.site.code}>
+                      <span role="cell" className="ot-site"><SiteMono code={r.site.code} />
+                        <span className="tx"><b>{r.site.name}</b>{r.latest && r.status.cls === 'p-warn' && <small>Last full count {dayText(r.latest.businessDate, today)}</small>}</span></span>
+                      <span role="cell" className="r amt">{r.latest ? formatPounds(val(r.latest)) : '—'}</span>
+                      <span role="cell" className="r muted">{!r.latest ? 'No count yet' : r.change === null ? 'First count' : r.change === 0 ? 'Same' : `${r.change < 0 ? '−' : '+'}${formatPounds(Math.abs(r.change))}`}</span>
+                      <span role="cell"><span className={`pill ${r.status.cls}`}>{r.status.text}</span></span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
 
