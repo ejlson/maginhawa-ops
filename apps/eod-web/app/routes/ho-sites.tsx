@@ -122,7 +122,7 @@ export default function HoSites() {
           <span className="title">Sites and colours</span>
           <WhoMenu />
         </header>
-        <div className="body" style={{ paddingTop: 24, gap: 28 }}>
+        <div className="body">
           <div className="titleblock">
             <span className="eyebrow">Settings › Group</span>
             <h1>Sites and colours</h1>

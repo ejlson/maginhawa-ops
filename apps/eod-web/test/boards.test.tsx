@@ -225,21 +225,20 @@ describe('Day closed (P9)', () => {
 describe('Checklists page on a phone (P5)', () => {
   const opening = '/checklists/' + encodeURIComponent('2026-10-05|opening|09:30');
 
-  it('a site line with Edit lists, then the title, with no bar title or lead paragraph', () => {
+  it('the same top bar as Today (site, search, you), then the title with Edit lists', () => {
     setNow(new Date('2026-10-05T07:00:00Z')); // 08:00 BST
     renderApp('/checklists');
-    expect(document.querySelector('header.nav')).toBeNull();
-    const line = document.querySelector<HTMLElement>('.site-line')!;
-    expect(line).toHaveTextContent('Bunso · Mon 5 Oct');
-    expect(within(line).getByRole('link', { name: 'Edit lists' })).toHaveAttribute('href', '/checklists/edit');
+    const bar = document.querySelector<HTMLElement>('header.homenav')!;
+    expect(within(bar).getByRole('button', { name: /Bunso/ })).toBeInTheDocument();
+    expect(within(bar).getByRole('button', { name: 'Search' })).toBeInTheDocument();
     const h1 = screen.getByRole('heading', { level: 1, name: 'Checklists' });
-    expect(line.compareDocumentPosition(h1) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(h1.parentElement!).getByRole('link', { name: 'Edit lists' })).toHaveAttribute('href', '/checklists/edit');
     expect(screen.queryByText(/Do them any time of day/)).not.toBeInTheDocument();
   });
 
-  it('staff get the site line without Edit lists', () => {
+  it('staff get the same bar without Edit lists', () => {
     renderApp('/checklists', staff);
-    expect(document.querySelector('.site-line')).toHaveTextContent('Bunso · Mon 5 Oct');
+    expect(document.querySelector('header.homenav')).not.toBeNull();
     expect(screen.queryByRole('link', { name: 'Edit lists' })).not.toBeInTheDocument();
   });
 

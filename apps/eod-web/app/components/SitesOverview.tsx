@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import {
-  cashWords, clockTime, dailyNet, forecastNet, formatPounds, isSyncError, reviewedMessage, siteName, splitPounds,
+  addDays, cashWords, clockTime, csv, dailyNet, forecastNet, formatPounds, isSyncError, reviewedMessage, siteName, splitPounds,
   type ReportStatus, type Site, type StoredReport,
 } from '@maginhawa/core';
 import { useAuth } from '../lib/auth';
@@ -27,15 +27,30 @@ import { useTradingHistory } from '../lib/history';
 import { PageSkeleton } from './Skeleton';
 import { useDelayed } from './skeleton-helpers';
 import { colourVars, SiteMono, useSiteColourChoices } from '../lib/site-colours';
+import { download } from '../lib/ops-helpers';
 
-type SortKey = 'site' | 'net' | 'forecast' | 'wages' | 'cash';
-const SORT_COLS: { key: SortKey; label: string }[] = [
-  { key: 'site', label: 'Site' }, { key: 'net', label: 'Net' }, { key: 'forecast', label: 'vs forecast' }, { key: 'wages', label: 'Wages' }, { key: 'cash', label: 'Cash' },
+/** H3's sort pills: what needs a look first (the default), then the money columns, biggest first. */
+type SortKey = 'look' | 'net' | 'forecast' | 'wages';
+const SORTS: { key: SortKey; label: string; note: string }[] = [
+  { key: 'look', label: 'Needs a look first', note: 'Sorted by what needs a look' },
+  { key: 'net', label: 'Net', note: 'Sorted by net, highest first' },
+  { key: 'forecast', label: 'vs forecast', note: 'Sorted against forecast, highest first' },
+  { key: 'wages', label: 'Wages', note: 'Sorted by wages, highest first' },
 ];
 interface SiteRow {
   s: Site; r: StoredReport | undefined; o: StoredReport['official'] | undefined; warn: number; statusText: string;
-  cashDiff: number | null; vsForecast: number | null; spark: number[];
+  cashDiff: number | null; vsForecast: number | null; vsLastWeek: number | null; spark: number[];
 }
+/** How much a row needs a look: sent back, then anything to check, then closes to approve, then the rest. */
+function lookScore(x: SiteRow): number {
+  if (x.r?.status === 'sent-back') return 5;
+  if (x.r && x.r.status !== 'draft' && x.r.status !== 'approved' && (x.warn > 0 || Boolean(x.cashDiff) || x.o?.wageRag === 'red')) return 4;
+  if (x.r?.status === 'submitted') return 3;
+  if (x.r?.status === 'draft') return 2;
+  if (!x.r) return 1;
+  return 0;
+}
+const pct = (n: number | null) => (n === null ? '—' : `${n >= 0 ? '+' : '−'}${Math.abs(n)}%`);
 type SiteFilter = 'all' | 'check' | 'waiting' | 'approved';
 const SITE_FILTERS: { id: SiteFilter; label: string; test: (x: SiteRow) => boolean }[] = [
   { id: 'all', label: 'All', test: () => true },
@@ -67,7 +82,7 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
   const isExample = (r: StoredReport) => r.draft.clientId.startsWith('demo-');
   const allHistory = useTradingHistory();
   const history = useMemo(() => ({ ...allHistory, rows: allHistory.rows.filter((r) => codes.has(r.siteCode)) }), [allHistory, codes]);
-  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'site', dir: 1 });
+  const [sort, setSort] = useState<SortKey>('look');
   const [siteFilter, setSiteFilter] = useState<SiteFilter>('all');
 
   // Tonight against forecast v1: the whole group, and each site against its own forecast.
@@ -75,13 +90,14 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
     if (!history.rows.length) return null;
     const groupDaily = dailyNet(history.rows);
     const group = forecastNet(groupDaily)[0];
-    const bySite = new Map<string, { forecast: ReturnType<typeof forecastNet>[number] | undefined; last7: number[] }>(sites.map((s) => {
+    const weekAgo = addDays(date, -7);
+    const bySite = new Map<string, { forecast: ReturnType<typeof forecastNet>[number] | undefined; last7: number[]; lastWeek: number | null }>(sites.map((s) => {
       const daily = dailyNet(history.rows.filter((r) => r.siteCode === s.code));
-      return [s.code, { forecast: forecastNet(daily)[0], last7: daily.slice(-7).map((d) => d.value).filter((v): v is number => v !== null) }] as const;
+      return [s.code, { forecast: forecastNet(daily)[0], last7: daily.slice(-7).map((d) => d.value).filter((v): v is number => v !== null), lastWeek: daily.find((d) => d.date === weekAgo)?.value ?? null }] as const;
     }));
     const last14 = groupDaily.slice(-14).filter((d): d is { date: string; value: number } => d.value !== null);
     return { group, last14, bySite };
-  }, [history.rows, sites]);
+  }, [history.rows, sites, date]);
   const loading = useDelayed(reports === null);
 
   // Esc closes the site details.
@@ -101,7 +117,6 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
   const wageNet = sent.reduce((s, r) => s + (r.official?.wagePct != null ? r.official.totalNet : 0), 0);
   const groupWages = wageNet ? sent.reduce((s, r) => s + (r.official?.wagePct ?? 0) * (r.official?.wagePct != null ? r.official.totalNet : 0), 0) / wageNet : null;
   const clean = reports.filter((r) => r.status === 'submitted' && !r.issues.some((i) => i.level === 'warn'));
-  const toCheck = reports.filter((r) => r.issues.some((i) => i.level === 'warn')).length;
   const [p, d] = splitPounds(net);
   const sentForecast = tonight ? sent.reduce((s, r) => s + (tonight.bySite.get(r.draft.siteCode)?.forecast?.p50 ?? 0), 0) : 0;
   const pace = sentForecast ? net / sentForecast - 1 : null;
@@ -132,24 +147,34 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
     const cashDiff = o ? dayCashDiff(o) : null;
     const f = tonight?.bySite.get(s.code);
     const vsForecast = o && f?.forecast?.p50 ? Math.round((o.totalNet / f.forecast.p50) * 100) : null;
-    return { s, r, o, warn, statusText, cashDiff, vsForecast, spark: f?.last7 ?? [] };
+    // Only for closes that are in: a half-done day against a whole one would read as a big drop.
+    const vsLastWeek = o && r && r.status !== 'draft' && f?.lastWeek ? Math.round((o.totalNet / f.lastWeek - 1) * 100) : null;
+    return { s, r, o, warn, statusText, cashDiff, vsForecast, vsLastWeek, spark: f?.last7 ?? [] };
   });
-  const sortValue = (x: SiteRow): number | string | null => {
-    switch (sort.key) {
-      case 'site': return x.s.name;
+  const sortValue = (x: SiteRow): number | null => {
+    switch (sort) {
+      case 'look': return lookScore(x);
       case 'net': return x.o?.totalNet ?? null;
       case 'forecast': return x.vsForecast;
       case 'wages': return x.o?.wagePct ?? null;
-      // Cash sorts by how far out it is, either way.
-      case 'cash': return x.cashDiff === null ? null : Math.abs(x.cashDiff);
     }
   };
   const activeFilter = SITE_FILTERS.find((f) => f.id === siteFilter)!;
+  // Biggest first; blanks last; ties by name, so the order never jumps about.
   const shownRows = siteRows.filter((x) => activeFilter.test(x)).sort((a, b) => {
     const va = sortValue(a), vb = sortValue(b);
-    if (va === null || vb === null) return va === vb ? 0 : va === null ? 1 : -1;
-    return (typeof va === 'string' ? va.localeCompare(vb as string) : va - (vb as number)) * sort.dir;
+    if (va === null || vb === null) return va === vb ? a.s.name.localeCompare(b.s.name) : va === null ? 1 : -1;
+    return vb - va || a.s.name.localeCompare(b.s.name);
   });
+  // Group against the same sites a week ago (only those that are in tonight and traded then).
+  const lastWeekPairs = siteRows.filter((x) => x.o && x.r && x.r.status !== 'draft' && tonight?.bySite.get(x.s.code)?.lastWeek);
+  const lastWeekSum = lastWeekPairs.reduce((n, x) => n + (tonight?.bySite.get(x.s.code)?.lastWeek ?? 0), 0);
+  const groupVsLastWeek = lastWeekSum ? Math.round((lastWeekPairs.reduce((n, x) => n + x.o!.totalNet, 0) / lastWeekSum - 1) * 100) : null;
+  const lastWeekDay = new Date(`${addDays(date, -7)}T12:00:00Z`).toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'UTC' });
+  const exportCsv = () => download(`maginhawa-sites-${date}.csv`, csv(
+    ['Site', 'Status', 'Net (£)', 'vs forecast (%)', `vs last ${lastWeekDay} (%)`, 'Wages (%)', 'Cash'],
+    shownRows.map((x) => [x.s.name, x.statusText, x.o ? (x.o.totalNet / 100).toFixed(2) : '', x.vsForecast ?? '', x.vsLastWeek ?? '', x.o?.wagePct ?? '', x.cashDiff === null ? '' : cashWords(x.cashDiff)]),
+  ));
   const openRow = open ? siteRows.find((x) => x.s.code === open) ?? null : null;
   const pickSite = (code: string) => {
     if (mine) { switchSite(code); navigate('/'); } else setOpen(code);
@@ -164,11 +189,12 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
           <WhoMenu />
         </header>
       )}
-      <div className="body" style={{ paddingTop: 24 }}>
+      <div className="body" style={mine ? { paddingTop: 24 } : undefined}>
         <div className="ho-head">
           <div className="titleblock"><span className="eyebrow">{formatDay(date)}</span><h1>{mine ? 'My sites' : 'All sites'}</h1></div>
           <div className="ho-head-r">
             <HoSearch sites={siteRows.map((x) => ({ code: x.s.code, name: x.s.name, sub: x.statusText }))} onSite={pickSite} screens={!mine} />
+            {!mine && <button type="button" className="ho-pill" onClick={exportCsv}>Export CSV</button>}
             {!mine && (
               <button type="button" className="btn b1 ho-approve" data-tour="ho-approve" disabled={!clean.length} onClick={() => review(clean, 'approved')}>
                 {clean.length ? `Approve ${clean.length} clean ${clean.length === 1 ? 'close' : 'closes'}` : 'Nothing to approve'}
@@ -187,7 +213,7 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
               <span><small>vs forecast</small>{pace === null ? '—' : `${pace >= 0 ? '+' : '−'}${Math.abs(Math.round(pace * 100))}%`}<small>{pace === null ? 'Waiting for the first close' : `for the ${sent.length} in`}</small></span>
               <span><small>Wages</small>{groupWages === null ? '—' : `${groupWages.toFixed(1)}%`}<small>{reports.filter((r) => r.official?.wageRag === 'red').length ? `${reports.filter((r) => r.official?.wageRag === 'red').length} over the red line` : 'Weighted by net'}</small></span>
               <span><small>Covers</small>{covers.toLocaleString('en-GB')}<small>{covers ? `${formatPounds(Math.round(net / covers))} a head` : 'None in yet'}</small></span>
-              <span className={toCheck ? 'h-warn' : ''}><small>To check</small>{toCheck}<small>{sites.length - sent.length} still to come</small></span>
+              <span><small>vs last {lastWeekDay}</small>{pct(groupVsLastWeek)}<small>{groupVsLastWeek === null ? 'Nothing to compare yet' : `the same ${lastWeekPairs.length} ${lastWeekPairs.length === 1 ? 'site' : 'sites'}`}</small></span>
             </div>
           </div>
           <GroupChart last14={tonight?.last14 ?? []} forecast={tonight?.group} soFar={net} />
@@ -201,17 +227,17 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
                 return <button key={f.id} type="button" className="chip" aria-pressed={siteFilter === f.id} onClick={() => setSiteFilter(f.id)}>{f.label} <span className="muted" style={{ fontWeight: 500 }}>{n}</span></button>;
               })}
             </div>
-            {!mine && <span>Click a site for its details</span>}
+            <div className="ho-sort">
+              <div className="chips" role="group" aria-label="Sort by">
+                {SORTS.map((o) => <button key={o.key} type="button" className="chip sm" aria-pressed={sort === o.key} onClick={() => setSort(o.key)}>{o.label}</button>)}
+              </div>
+              <span>{SORTS.find((o) => o.key === sort)!.note}</span>
+            </div>
           </div>
           <div className="table stable" role="table" aria-label="Sites">
             <div className="th" role="row">
-              {SORT_COLS.map((c) => (
-                <span key={c.key} role="columnheader" aria-sort={sort.key === c.key ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none'}>
-                  <button type="button" className={`sortbtn ${sort.key === c.key ? 'on' : ''}`} onClick={() => setSort(sort.key === c.key ? { key: c.key, dir: sort.dir === 1 ? -1 : 1 } : { key: c.key, dir: c.key === 'site' ? 1 : -1 })}>
-                    {c.label}
-                    <svg width="8" height="10" viewBox="0 0 8 10" aria-hidden="true" style={{ transform: sort.key === c.key && sort.dir === 1 ? 'rotate(180deg)' : undefined }}><path d="M1 3.5L4 7l3-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  </button>
-                </span>
+              {['Site', 'Status', 'Net', 'vs forecast', `vs last ${lastWeekDay}`, 'Wages', 'Cash'].map((h) => (
+                <span key={h} role="columnheader" aria-sort={(sort === 'net' && h === 'Net') || (sort === 'forecast' && h === 'vs forecast') || (sort === 'wages' && h === 'Wages') ? 'descending' : undefined}>{h}</span>
               ))}
               <span role="columnheader" className="r">Last 7 nights</span>
             </div>
@@ -243,7 +269,7 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
       </div>
 
       {openRow && !mine && (
-        <SiteDetails x={openRow} colour={colourOf(openRow.s.code)} onClose={() => setOpen(null)}
+        <SiteDetails x={openRow} colour={colourOf(openRow.s.code)} lastWeekDay={lastWeekDay} onClose={() => setOpen(null)}
           onReview={(status) => openRow.r && review([openRow.r], status)} />
       )}
     </main>
@@ -253,15 +279,17 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
 
 /** One site's row: badge and status, net, against forecast, wages, cash and the last week. */
 function SiteCells({ x, colour }: { x: SiteRow; colour: string }) {
-  const { s, o, warn, statusText, cashDiff, vsForecast, spark } = x;
+  const { s, o, warn, statusText, cashDiff, vsForecast, vsLastWeek, spark } = x;
   return (
     <>
       <span className="st-site">
         <SiteMono code={s.code} />
-        <span className="tx"><span>{s.name}</span><small className={warn ? 'warn' : ''}>{statusText}</small></span>
+        <span className="tx"><span>{s.name}</span></span>
       </span>
+      <span className={`st-status${warn || x.r?.status === 'sent-back' ? ' warn' : ''}`}>{statusText}</span>
       <span className="st-net">{o ? formatPounds(o.totalNet) : '—'}</span>
       <span className="st-fc">{vsForecast === null ? '—' : <>{vsForecast}%<span className="st-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, vsForecast)}%` }} /></span></>}</span>
+      <span className={vsLastWeek !== null && vsLastWeek < 0 ? 'st-down' : ''}>{pct(vsLastWeek)}</span>
       <span className={o?.wageRag === 'red' ? 'bad' : o?.wageRag === 'amber' ? 'warn' : ''}>{o?.wagePct != null ? `${o.wagePct}%` : '—'}</span>
       <span>{cashDiff === null ? <span className="muted">—</span> : <span className={`pill ${cashDiff ? 'bad' : 'ok'}`}>{cashWords(cashDiff)}</span>}</span>
       <span className="r"><Spark values={spark} colour={colour} /></span>
@@ -315,11 +343,11 @@ function GroupChart({ last14, forecast, soFar }: { last14: { date: string; value
 }
 
 /** A site's details beside the table: figures, the manager's note, and approve or send back. */
-function SiteDetails({ x, colour, onClose, onReview }: {
-  x: SiteRow; colour: ReturnType<ReturnType<typeof useSiteColourChoices>['colourOf']>;
+function SiteDetails({ x, colour, lastWeekDay, onClose, onReview }: {
+  x: SiteRow; lastWeekDay: string; colour: ReturnType<ReturnType<typeof useSiteColourChoices>['colourOf']>;
   onClose: () => void; onReview: (status: 'approved' | 'sent-back') => void;
 }) {
-  const { s, r, o, statusText, cashDiff, vsForecast, spark } = x;
+  const { s, r, o, statusText, cashDiff, vsForecast, vsLastWeek, spark } = x;
   const note = r ? [...r.draft.handover, ...r.draft.feedback].map((n) => n.body.trim()).find(Boolean) : undefined;
   // First sends read "Sent by Jo at 23:18"; reviews and re-sends use the shared wording.
   const reviewed = !r || r.status === 'draft' ? statusText
@@ -342,6 +370,7 @@ function SiteDetails({ x, colour, onClose, onReview }: {
         </div>
         <div className="ho-kv">
           <div><span>vs forecast</span><b>{vsForecast === null ? '—' : `${vsForecast}%`}</b></div>
+          <div><span>vs last {lastWeekDay}</span><b>{pct(vsLastWeek)}</b></div>
           <div><span>Covers</span><b>{o ? o.covers : '—'}</b></div>
           <div><span>Wages</span><b className={o?.wageRag === 'red' ? 'bad' : o?.wageRag === 'amber' ? 'warn' : ''}>{o?.wagePct != null ? `${o.wagePct}%` : '—'}</b></div>
           <div><span>Cash</span><b className={cashDiff ? 'bad' : ''}>{cashDiff === null ? '—' : cashWords(cashDiff)}</b></div>

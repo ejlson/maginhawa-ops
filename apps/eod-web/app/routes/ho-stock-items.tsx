@@ -20,7 +20,7 @@ export default function HoStockItems() {
     <HeadOfficeShell>
       <main className="page wide">
         <Nav back="/head-office/stock" backLabel="Stock" title="Items and costs" right={<WhoMenu />} />
-        <div className="body" style={{ paddingTop: 24, gap: 28 }}>
+        <div className="body">
           <div className="titleblock">
             <h1>Items and costs</h1>
             <p className="lead">Cost of one unit, ex VAT. {noCost ? `${noCost} ${noCost === 1 ? 'item has' : 'items have'} no cost yet: they're counted but not valued.` : 'Every item has a cost.'} Changes only affect counts sent from now on.</p>

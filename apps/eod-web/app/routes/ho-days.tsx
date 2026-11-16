@@ -127,7 +127,7 @@ export default function HeadOfficeDays() {
         <span className="title">Checklists &amp; EODs</span>
         <WhoMenu />
       </header>
-      <div className="body" style={{ paddingTop: 24, gap: 24 }}>
+      <div className="body">
         <div className="titleblock"><span className="eyebrow">Head office · {SITES.length} sites</span><h1>Checklists &amp; EODs</h1></div>
 
         <div className="rs-tools">

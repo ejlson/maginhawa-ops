@@ -51,9 +51,9 @@ export default function HoMenu() {
     <HeadOfficeShell>
       <main className="page wide">
         <header className="nav" style={{ paddingLeft: 24 }}><span className="title">Menu costing</span><WhoMenu /></header>
-        <div className="body" style={{ paddingTop: 24, gap: 28 }}>
+        <div className="body">
           <div className="titleblock"><span className="eyebrow">Food menu · target GP {target}%</span><h1>Menu costing</h1></div>
-          <div className="hero">
+          <div className="hero ho-group">
             <span className="hl">Today's prices</span>
             <span className="ho-sentence">{below.length ? `${below.length} dish${below.length > 1 ? 'es are' : ' is'} below ${target}%` : `Every dish is at ${target}% or more.`}{below.length ? reasonText : ''}</span>
             <div className="hm one"><span>{avg}%<small>Menu average</small></span></div>

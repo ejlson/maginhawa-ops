@@ -185,7 +185,7 @@ describe('health and safety', () => {
   it('at a site: no back button, the site line, the title and the tab bar; accidents are under Records', () => {
     renderApp('/safety', staff);
     expect(document.querySelector('.navbar')).toBeNull();
-    expect(document.querySelector('.site-line')).toHaveTextContent('Bunso · Mon 5 Oct');
+    expect(document.querySelector('header.homenav')).toHaveTextContent('Bunso'); // the same top bar as Today
     expect(screen.getByRole('heading', { name: 'Health and safety', level: 1 })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
     const records = screen.getByRole('region', { name: 'Records' });
@@ -243,6 +243,17 @@ describe('health and safety', () => {
     expect(needs).toHaveTextContent('Kitchen porter: burn, arm');
     expect(needs).toHaveTextContent(/Report by/);
   });
+
+  it('head office sees one row per site (HS4), with a column for each check', () => {
+    renderApp('/head-office/safety', admin);
+    const table = within(screen.getByRole('region', { name: 'Sites' })).getByRole('table', { name: 'Sites' });
+    expect(within(table).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['Site', 'Weekly fire test', 'Monthly checks', 'Accidents']);
+    const rows = within(table).getAllByRole('row').slice(1);
+    expect(rows).toHaveLength(8);
+    rows.forEach((r) => expect(within(r).getAllByRole('cell')).toHaveLength(4));
+    const kentish = within(table).getByText('Mamasons Kentish Town').closest('[role="row"]') as HTMLElement;
+    expect(within(kentish).getAllByRole('cell')[3]).toHaveTextContent('Report to HSE');
+  });
 });
 
 describe('planned maintenance', () => {
@@ -272,7 +283,7 @@ describe('planned maintenance', () => {
   it('at a site: no back button, the site line, the title and the tab bar; Certificates is still there', () => {
     renderApp('/maintenance', staff);
     expect(document.querySelector('.navbar')).toBeNull();
-    expect(document.querySelector('.site-line')).toHaveTextContent('Bunso · Mon 5 Oct');
+    expect(document.querySelector('header.homenav')).toHaveTextContent('Bunso'); // the same top bar as Today
     expect(screen.getByRole('heading', { name: 'Maintenance', level: 1 })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
     expect(within(screen.getByRole('region', { name: 'Equipment' })).getByText('Certificates')).toBeInTheDocument();

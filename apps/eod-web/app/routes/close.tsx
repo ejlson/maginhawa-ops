@@ -1,10 +1,11 @@
+import { PhoneHomeHeader } from '../components/home/shared';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { formatPounds, isEditable, SECTION_LABELS, sectionStatus, type SectionKey } from '@maginhawa/core';
 import { recordedAs, useAuth } from '../lib/auth';
 import { formatDay, timeHM, useDraft } from '../lib/draft';
 import { EodSyncNotice } from '../components/Sync';
-import { BigMoney, Icon, NextBar, Pie, RowLink, SiteMono, Toggle } from '../components/ui';
+import { BigMoney, Icon, NextBar, Pie, RowLink, Toggle } from '../components/ui';
 import { SECTION_ICONS } from '../components/ui-helpers';
 import { TabBar } from '../components/TabBar';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -57,13 +58,12 @@ export default function Close() {
 
   return (
     <main className="page tabs close-page">
+      <PhoneHomeHeader />
       <EodSyncNotice />
       <div className="body close-body">
-        <div className="close-top">
-          <span className="close-site"><SiteMono code={settings.siteCode} size="sm" />{settings.siteName} · {formatDay(draft.businessDate, { weekday: 'short', day: 'numeric', month: 'short' })}</span>
-          <span className="saved close-saved"><span className="dot" />{locked ? 'Sent' : savedAt ? `Saved on this device · ${timeHM(savedAt)}` : 'Not started'}</span>
-        </div>
         <div className="titleblock mh-title">
+          {/* The trading day and where it stands: after midnight the day is the main cue for which report this is. */}
+          <span className="eyebrow">{formatDay(draft.businessDate, { weekday: 'short', day: 'numeric', month: 'short' })} · {locked ? 'Sent' : savedAt ? `Saved on this device · ${timeHM(savedAt)}` : 'Not started'}</span>
           <h1>End of day report</h1>
           {!locked && progress.done === 0 && !savedAt && <p className="lead">Do the sections in any order. Everything saves on this device, even without signal.</p>}
         </div>

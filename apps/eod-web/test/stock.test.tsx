@@ -126,7 +126,7 @@ describe('stock: the boards (S1, S5, S6)', () => {
   it('at a site: no back button, the site line, the title and the tab bar', () => {
     renderApp('/stock', staff);
     expect(document.querySelector('.navbar')).toBeNull();
-    expect(document.querySelector('.site-line')).toHaveTextContent('Bunso · Mon 5 Oct');
+    expect(document.querySelector('header.homenav')).toHaveTextContent('Bunso'); // the same top bar as Today
     expect(screen.getByRole('heading', { name: 'Stock', level: 1 })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Sent' })).not.toBeInTheDocument();
@@ -136,14 +136,14 @@ describe('stock: the boards (S1, S5, S6)', () => {
     renderApp('/stock', admin);
     expect(document.querySelector('.navbar .backbtn')).toHaveAttribute('href', '/head-office');
     expect(document.querySelector('.navbar .backbtn')).toHaveTextContent('Head office');
-    expect(document.querySelector('.site-line')).toBeNull();
+    expect(document.querySelector('header.homenav')).toBeNull();
     expect(screen.queryByRole('navigation', { name: 'Main' })).not.toBeInTheDocument();
   });
 
   it('head office inside a site sees it as the site does', () => {
     renderApp('/stock', { ...admin, inSite: true });
     expect(document.querySelector('.navbar')).toBeNull();
-    expect(document.querySelector('.site-line')).toHaveTextContent('Bunso · Mon 5 Oct');
+    expect(document.querySelector('header.homenav')).toHaveTextContent('Bunso'); // the same top bar as Today
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
   });
 
@@ -170,10 +170,10 @@ describe('stock: head office', () => {
     renderApp('/head-office/stock', admin);
     expect(screen.getByRole('heading', { name: 'Stock' })).toBeInTheDocument();
     const sites = screen.getByRole('region', { name: 'Sites' });
-    const belly = within(sites).getByText('Belly').closest('.li') as HTMLElement;
+    const belly = within(sites).getByText('Belly').closest('[role="row"]') as HTMLElement;
     expect(belly).toHaveTextContent(/Late · due Sun 27 Sept?/);
     expect(belly).toHaveTextContent(/Last full count Sun 30 Aug/);
-    const bunso = within(sites).getByText('Bunso').closest('.li') as HTMLElement;
+    const bunso = within(sites).getByText('Bunso').closest('[role="row"]') as HTMLElement;
     expect(bunso).toHaveTextContent(/Sent Sun 27 Sept?/);
     const changes = screen.getByRole('region', { name: 'Biggest changes' });
     const ribeye = within(changes).getByText('Ribeye 8oz').closest('.li') as HTMLElement;
