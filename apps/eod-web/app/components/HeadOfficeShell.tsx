@@ -2,17 +2,22 @@
  * Head office's frame: a sidebar on desktop and iPad, a bottom tab bar on phones. Sites and Trends are
  * sections of the Head office page for now, so they scroll to it.
  */
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
 import { SITES } from '@maginhawa/core';
 import { Icon } from './ui';
 import { ICONS } from './ui-helpers';
 import { useWide } from '../lib/wide';
 import { WhoMenu } from './home/WhoMenu';
+import type { Tone } from '../lib/ho-today';
 
 const SEARCH = 'M8.5 3.5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12.2 12.2L16.5 16.5';
 const SITES_ICON = 'M3 17V8l7-4 7 4v9M8 17v-5h4v5';
 const BUILDER_ICON = 'M3 4h5v5H3zM12 11h5v5h-5zM8 6.5h2.5a1.5 1.5 0 0 1 1.5 1.5v3';
+const CART_ICON = 'M2 3h2.2l1.6 8.5h8.4l1.6-6H5.1M7 15h.01M13.5 15h.01';
+/** A window with its left pane: the button that folds the sidebar into a rail and back. */
+const PANE_ICON = 'M2.5 3.5h13v11h-13zM7 3.5v11';
+const COG_ICON = 'M9 11.3a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6zM14.4 11.1a1.2 1.2 0 0 0 .2 1.3l.1.1a1.5 1.5 0 1 1-2.1 2.1l-.1-.1a1.2 1.2 0 0 0-2.1.9v.1a1.5 1.5 0 1 1-3 0v-.1a1.2 1.2 0 0 0-2.1-.9l-.1.1a1.5 1.5 0 1 1-2.1-2.1l.1-.1a1.2 1.2 0 0 0-.9-2.1h-.1a1.5 1.5 0 1 1 0-3h.1a1.2 1.2 0 0 0 .9-2.1l-.1-.1a1.5 1.5 0 1 1 2.1-2.1l.1.1a1.2 1.2 0 0 0 2.1-.9v-.1a1.5 1.5 0 1 1 3 0v.1a1.2 1.2 0 0 0 2.1.9l.1-.1a1.5 1.5 0 1 1 2.1 2.1l-.1.1a1.2 1.2 0 0 0 .9 2.1h.1a1.5 1.5 0 1 1 0 3h-.1a1.2 1.2 0 0 0-1.1.6z';
 
 /** Phones get four tabs, like the sites' Today · EOD · Checklists · More; everything else is in More. */
 const PHONE_TABS = [
@@ -32,7 +37,7 @@ export const LINKS = [
   { to: '/head-office#trends', label: 'Trends', icon: ICONS.chart },
   { to: '/food-safety', label: 'Food safety', icon: ICONS.thermo },
   { to: '/head-office/stock', label: 'Stock', icon: ICONS.box },
-  { to: '/head-office/ordering', label: 'Ordering and waste', icon: ICONS.box },
+  { to: '/head-office/ordering', label: 'Ordering and waste', icon: CART_ICON },
   { to: '/head-office/menu', label: 'Menu costing', icon: ICONS.list },
   { to: '/head-office/safety', label: 'Health and safety', icon: ICONS.bang },
   { to: '/head-office/maintenance', label: 'Maintenance', icon: ICONS.wrench },
@@ -77,12 +82,54 @@ function useFolded() {
   return { folded, toggle };
 }
 
-/** `opsCount`: how many operations areas need a look, shown on the Operations heading while it's folded. */
-export function HeadOfficeShell({ inToday, opsCount, opsBad, children }: { inToday?: string; opsCount?: number; opsBad?: boolean; children: ReactNode }) {
+/** Whether the desktop sidebar is folded into a slim icon rail (design C · Review queue), remembered on this device. */
+export const RAIL_KEY = 'mgh.ho-nav.rail.v1';
+function useRail(wide: boolean) {
+  const [rail, setRail] = useState(() => {
+    try { return localStorage.getItem(RAIL_KEY) === '1'; } catch { return false; }
+  });
+  // The toggle that was pressed goes away with the sidebar it was in, so focus moves to the one that replaces it.
+  const moved = useRef(false);
+  const toggle = () => {
+    moved.current = true;
+    setRail((r) => !r);
+  };
+  useEffect(() => {
+    try { localStorage.setItem(RAIL_KEY, rail ? '1' : '0'); } catch { /* storage off: still folds for now */ }
+    if (moved.current) { moved.current = false; document.querySelector<HTMLElement>('.ho-side [data-rail-toggle]')?.focus(); }
+  }, [rail]);
+  // ⌘\ (Ctrl+\ elsewhere) folds and unfolds it, as in Mail and Notes.
+  useEffect(() => {
+    if (!wide) return;
+    const key = (e: KeyboardEvent) => {
+      if (e.repeat || e.isComposing) return;
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key === '\\') {
+        e.preventDefault();
+        // If focus was in the sidebar, it would go with it: keep it on the toggle that replaces it.
+        moved.current = document.activeElement?.closest('.ho-side') != null;
+        setRail((r) => !r);
+      }
+    };
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, [wide]);
+  return { rail, toggle };
+}
+
+/** An operations area's state for the rail's dots: the tile's tone, and its words (e.g. "2 counts late"). */
+export type OpsTones = Partial<Record<string, { tone: Tone; note: string }>>;
+const TONE_WORDS: Record<Tone, string> = { bad: 'urgent', warn: 'needs a look' };
+const isMac = () => typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+
+/** `opsCount`: how many operations areas need a look, shown on the Operations heading while it's folded.
+ *  `opsTones`: per area (keyed by its link), a red or amber dot on the rail's icon. */
+export function HeadOfficeShell({ inToday, opsCount, opsBad, opsTones, children }: { inToday?: string; opsCount?: number; opsBad?: boolean; opsTones?: OpsTones; children: ReactNode }) {
   const { pathname, hash, search } = useLocation();
   const saved = new URLSearchParams(search).get('saved');
   const wide = useWide();
   const { folded, toggle } = useFolded();
+  const { rail, toggle: toggleRail } = useRail(wide);
+  const shortcut = isMac() ? '⌘\\' : 'Ctrl+\\';
 
   // Sites and Trends are on the Head office page: scroll to them once it has drawn.
   useEffect(() => {
@@ -93,7 +140,7 @@ export function HeadOfficeShell({ inToday, opsCount, opsBad, children }: { inTod
 
   const isOn = (to: string) => {
     const [path, h] = to.split('#');
-    if (path === '/head-office' && h === 'sites' && /^\/head-office\/(?!reports$|days$|report-builder$|sites$|stock(\/|$)|ordering$|menu$|safety$|maintenance$|records$)[^/]+(\/|$)/.test(pathname)) return true;
+    if (path === '/head-office' && h === 'sites' && /^\/head-office\/(?!reports$|days$|report-builder$|sites$|more$|stock(\/|$)|ordering$|menu$|safety$|maintenance$|records$)[^/]+(\/|$)/.test(pathname)) return true;
     if (path === '/head-office/stock') return pathname.startsWith(path);
     if (path !== pathname) return false;
     if (path === '/head-office/reports') return !saved;
@@ -107,10 +154,47 @@ export function HeadOfficeShell({ inToday, opsCount, opsBad, children }: { inTod
     : pathname === '/head-office/reports' && !saved ? 'Reports'
     : 'More';
 
+  const settingsOn = pathname === '/head-office/more' || HO_GROUPS.find((g) => g.title === 'Settings')!.items.some((l) => l.on?.(pathname));
+
   return (
     <div className="ho-shell">
-      {wide && <nav className="ho-side" aria-label="Head office">
-        <div className="ho-brand"><span>Maginhawa · {SITES.length} sites</span><b>Head office</b></div>
+      {wide && rail && <nav className="ho-side rail" aria-label="Head office">
+        <button type="button" className="rail-logo" data-rail-toggle aria-expanded={false} aria-label="Expand sidebar" title={`Expand sidebar (${shortcut})`} onClick={toggleRail}>
+          <span className="rail-m" aria-hidden="true">M</span><span className="rail-pane"><Icon d={PANE_ICON} size={20} /></span>
+        </button>
+        {/* Icons only, in the sidebar's sections (Settings at the foot). Each keeps its name for screen readers and as a tooltip. */}
+        {/* Only the links scroll on a short window, so the name menu at the foot can still open out beside the rail. */}
+        <div className="rail-links">
+        {HO_GROUPS.slice(0, 3).map((g, i) => (
+          <div key={g.title} className="rail-grp" role="group" aria-label={g.title}>
+            {i > 0 && <span className="rail-div" aria-hidden="true" />}
+            {g.items.map((l) => {
+              const on = l.on ? l.on(pathname) : isOn(l.to);
+              const st = opsTones?.[l.to];
+              const name = l.to === '/head-office' && inToday ? `${l.label}, ${inToday}` : st ? `${l.label}, ${TONE_WORDS[st.tone]}: ${st.note}` : l.label;
+              return (
+                <Link key={l.to} to={l.to} className={`ri${on ? ' on' : ''}`} aria-label={name} title={name} aria-current={on ? 'page' : undefined}
+                  data-tour={l.to === '/head-office/days' ? 'ho-days' : undefined}>
+                  <Icon d={l.icon} size={20} />
+                  {st && <span className={`rail-dot ${st.tone}`} aria-hidden="true" />}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
+        </div>
+        <Link to="/head-office/more" className={`ri${settingsOn ? ' on' : ''}`} aria-label="Settings" title="Settings" aria-current={settingsOn ? 'page' : undefined}>
+          <Icon d={COG_ICON} size={20} />
+        </Link>
+        <div className="ho-me"><WhoMenu /></div>
+      </nav>}
+      {wide && !rail && <nav className="ho-side" aria-label="Head office">
+        <div className="ho-brand-row">
+          <div className="ho-brand"><span>Maginhawa · {SITES.length} sites</span><b>Head office</b></div>
+          <button type="button" className="rail-btn" data-rail-toggle aria-expanded={true} aria-label="Collapse sidebar" title={`Collapse sidebar (${shortcut})`} onClick={toggleRail}>
+            <Icon d={PANE_ICON} size={18} />
+          </button>
+        </div>
         <div className="ho-links">
           {/* Grouped like the site sidebar and the H3 board: tonight first, then the records, reports, and the group. */}
           {/* Each heading folds its section away. The section you're in stays open, so you never lose your place. */}

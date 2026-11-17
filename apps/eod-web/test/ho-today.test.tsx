@@ -150,6 +150,22 @@ describe('opsToday', () => {
     expect(opsToday(ops, stock, TODAY).tiles[3]).toMatchObject({ big: '1', of: ' dish' });
   });
 
+  it('`why` says what a tone is for, for the sidebar rail: Maintenance overdue, Menu costing below target', () => {
+    const { ops, stock } = demo();
+    const tile = (key: string) => opsToday(ops, stock, TODAY).tiles.find((t) => t.key === key)!;
+    // The tile's own line says "due soon"; the rail's dot is for the overdue ones.
+    expect(tile('maint')).toMatchObject({ tone: 'bad', why: '3 overdue' });
+    // Other tiles have no `why`: the rail falls back to their label.
+    for (const key of ['stock', 'order', 'hs', 'food']) expect(tile(key).why).toBeUndefined();
+
+    const q = quiet();
+    q.ops.targetGp = 100;
+    const menu = () => opsToday(q.ops, q.stock, TODAY).tiles[3]!;
+    expect(menu()).toMatchObject({ tone: 'warn', why: `${q.ops.recipes.length} dishes below 100% GP` });
+    q.ops.recipes = q.ops.recipes.slice(0, 1);
+    expect(menu().why).toBe('1 dish below 100% GP');
+  });
+
   it('small stock values show in pounds and pence', () => {
     const { ops, stock } = quiet();
     stock.counts = [];

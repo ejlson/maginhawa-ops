@@ -2509,7 +2509,7 @@ a.wmeta { text-decoration: none; } a.wmeta:hover { color: var(--text); }
 }
 /* Short screens: tighter rows and a shorter chart so everything still fits without scrolling. */
 @media (min-width: 1100px) and (max-height: 860px) {
-  .hot-sites .stable .sr { min-height: 38px; }
+  .hot-sites .stable .sr { min-height: 36px; }
   .ho-today .hero.ho-hero { padding-top: 14px; padding-bottom: 14px; }
   /* On a short screen the card makes way; "See trends" on the group card opens them. */
   .hot-trends { display: none; }
@@ -2552,3 +2552,47 @@ a.wmeta { text-decoration: none; } a.wmeta:hover { color: var(--text); }
    clipped while the soft shadow outside the card stays. */
 .hero { will-change: transform; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
 .hero::after { border-radius: inherit; corner-shape: inherit; }
+
+/* Head office sidebar folded into an icon rail on desktop (design C · Review queue; user, 17 Nov 2026).
+   The expanded sidebar has a button beside "Head office"; in the rail the M tile is the button back. */
+.ho-brand-row { display: flex; align-items: flex-start; gap: 8px; }
+.ho-brand-row .ho-brand { flex: 1; min-width: 0; }
+.rail-btn { flex: none; width: 36px; height: 36px; margin-top: 2px; border: 0; border-radius: 10px; background: none; color: var(--sec); display: grid; place-items: center; cursor: pointer; corner-shape: superellipse(1.6); }
+.rail-btn:hover { background: var(--sel); color: var(--text); }
+.rail-btn:focus-visible, .rail-logo:focus-visible, .ho-side.rail .ri:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--link); }
+.ho-shell:not(.site-shell) > .ho-side.rail {
+  --rail-bg: var(--bg); --dot-warn: #e07b00;
+  width: 76px; padding: 18px 0 16px; gap: 0; align-items: center; background: var(--rail-bg); border-right: .5px solid var(--sep);
+  /* Visible, so the name menu can open out to the right of the rail. */
+  overflow: visible;
+}
+.rail-logo { position: relative; flex: none; width: 40px; height: 40px; margin-bottom: 10px; border: 0; padding: 0; border-radius: 13px; background: var(--text); color: var(--bg); font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; display: grid; place-items: center; corner-shape: superellipse(1.6); }
+.rail-logo > span { grid-area: 1 / 1; display: grid; place-items: center; transition: opacity .15s ease; }
+.rail-logo .rail-pane { opacity: 0; }
+.rail-logo:hover .rail-m, .rail-logo:focus-visible .rail-m { opacity: 0; }
+.rail-logo:hover .rail-pane, .rail-logo:focus-visible .rail-pane { opacity: 1; }
+.rail-grp { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.rail-div { width: 28px; height: 1px; background: var(--sep); margin: 6px 0; }
+.ho-side.rail .ri { position: relative; flex: none; width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; color: var(--sec); text-decoration: none; corner-shape: superellipse(1.6); }
+.ho-side.rail .ri:hover { background: var(--sel); color: var(--text); }
+.ho-side.rail .ri.on { background: var(--sel); color: var(--text); }
+.rail-dot { position: absolute; top: 9px; right: 9px; width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 2px var(--rail-bg); }
+.rail-dot.bad { background: var(--bad); }
+.rail-dot.warn { background: var(--dot-warn); }
+.rail-links { flex: 1 1 auto; min-height: 0; width: 100%; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; align-items: center; padding: 2px 0 8px; }
+.rail-links::-webkit-scrollbar { display: none; }
+.ho-side.rail > .rail-logo, .ho-side.rail > .ri, .ho-side.rail > .ho-me { flex-shrink: 0; }
+.ho-side.rail .ho-me { margin-top: 8px; padding: 0; }
+.ho-side.rail .ho-me .whomenu { width: auto; }
+.ho-side.rail .ho-me .who { width: 44px; height: 44px; padding: 0; justify-content: center; font-size: 0; gap: 0; border-radius: 50%; }
+.ho-side.rail .ho-me .who .caret { display: none; }
+.ho-side.rail .ho-me .who .av { width: 34px !important; height: 34px !important; font-size: 12px !important; }
+.ho-side.rail .ho-me .menu { left: 8px; width: 260px; }
+@media (prefers-color-scheme: dark) { .ho-shell:not(.site-shell) > .ho-side.rail { --dot-warn: var(--warn); } }
+/* Shorter windows: the icons sit a little closer so the rail fits; on very short ones the links scroll. */
+@media (max-height: 880px) {
+  .ho-side.rail .ri { height: 38px; }
+  .rail-grp { gap: 2px; }
+  .rail-div { margin: 5px 0; }
+}
+@media (prefers-reduced-motion: reduce) { .rail-logo > span { transition: none; } }
