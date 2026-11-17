@@ -2663,3 +2663,42 @@ a.wmeta { text-decoration: none; } a.wmeta:hover { color: var(--text); }
   .hero::before { animation: none; }
   .tabbar .tab, .tabbar .tab .tab-l, .close-ring circle + circle { transition: none; }
 }
+
+/* Head office sites table (user, 17 Nov 2026: cells overlapped at 1280–1536 wide). The number, pill and sparkline
+   columns were fractions of the width, so their content outgrew them: Net ran into Status, Cash into Last 7 nights.
+   Those columns are now sized from the text (one shared font size for the heading row and the rows, so they line up);
+   only Site and Status give way, with an ellipsis. */
+.hot-sites .stable { --fs: 13.5px; }
+.hot-sites .stable .sr { font-size: var(--fs); }
+.hot-sites .stable .th, .hot-sites .stable .sr {
+  grid-template-columns: minmax(calc(var(--fs) * 8), 1.6fr) minmax(calc(var(--fs) * 5.5), 1.3fr) calc(var(--fs) * 6.4) calc(var(--fs) * 6.8) calc(var(--fs) * 4) calc(var(--fs) * 7.6) 96px; }
+.hot-sites .stable .sr > *, .hot-sites .stable .th > * { min-width: 0; }
+.hot-sites .stable .th > * { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hot-sites .st-net { text-align: right; white-space: nowrap; }
+.hot-sites .st-bar { width: calc(var(--fs) * 3); flex: none; }
+.hot-sites .st-fc { white-space: nowrap; }
+.hot-sites .stable .pill { white-space: nowrap; }
+.hot-sites .st-site .tx, .hot-sites .st-site .tx > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (min-width: 1100px) { .hot-sites .stable { --fs: clamp(13.5px, .85vw, 17px); } }
+@media (min-width: 1100px) and (max-width: 1365px) {
+  .hot-sites .stable .th, .hot-sites .stable .sr {
+    grid-template-columns: minmax(calc(var(--fs) * 7), 1.6fr) minmax(calc(var(--fs) * 4.5), 1.2fr) calc(var(--fs) * 6.4) calc(var(--fs) * 6.8) calc(var(--fs) * 4) calc(var(--fs) * 7.6); }
+}
+/* Status fills its column (left-aligned text) so a long status ends in an ellipsis instead of running into Net. */
+.hot-sites .stable .th > :nth-child(2), .hot-sites .stable .sr > :nth-child(2), .hot-sites .stable .sr > :first-child { justify-self: stretch; }
+/* Group card figures: when one label wraps ("vs forecast", "vs last Tue"), every figure still sits on one line.
+   The four figures share rows (label, figure, note), so labels align to the bottom of the tallest one. */
+@supports (grid-template-rows: subgrid) {
+  .ho-kpis > span { display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 1px; align-content: start; }
+  .ho-kpis > span small:first-child { align-self: end; }
+}
+/* Chart key: each marker stays with its label when the key wraps. */
+.ho-key { column-gap: 14px; }
+.ho-key > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.ho-key > span > i { margin-left: 0; }
+/* Narrow head office desks: site names get the room before status does. */
+@media (min-width: 1100px) and (max-width: 1365px) {
+  .hot-sites .stable .th, .hot-sites .stable .sr {
+    grid-template-columns: minmax(calc(var(--fs) * 7.5), 1.7fr) minmax(calc(var(--fs) * 4.5), 1fr) calc(var(--fs) * 5.8) calc(var(--fs) * 6.4) calc(var(--fs) * 3.6) calc(var(--fs) * 7.2); column-gap: 10px; }
+  .hot-sites .st-bar { width: calc(var(--fs) * 2.4); }
+}

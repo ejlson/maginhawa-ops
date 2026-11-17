@@ -421,7 +421,7 @@ function GroupChart({ last14, forecast, soFar, onTrends }: { last14: { date: str
     <div className="ho-chart">
       <div className="ho-chart-hd">
         <span>Last 2 weeks and tonight{seeTrends}</span>
-        <span className="ho-key"><i className="k-line" />Net<i className="k-band" />Tonight's likely range<i className="k-dot" />In so far</span>
+        <span className="ho-key"><span><i className="k-line" />Net</span><span><i className="k-band" />Tonight's likely range</span><span><i className="k-dot" />In so far</span></span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" role="img"
         aria-label={`Group net for the last ${last14.length} nights${forecast ? `, and tonight's forecast of ${formatPounds(Math.round(forecast.p50))}` : ''}, with ${formatPounds(soFar)} in so far`}>
