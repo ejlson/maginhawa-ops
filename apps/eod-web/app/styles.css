@@ -2552,3 +2552,11 @@ a.wmeta { text-decoration: none; } a.wmeta:hover { color: var(--text); }
    clipped while the soft shadow outside the card stays. */
 .hero { will-change: transform; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
 .hero::after { border-radius: inherit; corner-shape: inherit; }
+
+/* Top bars (user, 17 Nov 2026): only each home keeps its bar on screen while scrolling (the site's Today,
+   head office's Today on a phone). Everywhere else the bar scrolls away with the page. On the homes, the
+   bar's background also reaches up behind the status bar, so iOS's bounce can't open a gap above it. */
+.nav { position: relative; top: auto; }
+.nav.homenav, .nav.home-sticky { position: sticky; top: 0; }
+.nav.homenav::before, .nav.home-sticky::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 240px; pointer-events: none;
+  background: inherit; backdrop-filter: inherit; -webkit-backdrop-filter: inherit; }

@@ -273,7 +273,7 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
     <Shell inToday={`${sent.length} of ${sites.length} in`} opsCount={mine ? undefined : opsNow.folded} opsBad={opsNow.tiles.some((t) => t.tone === 'bad')}>
     <main className="page wide ho-page">
       {mine ? <Nav back="/" backLabel={siteName(user?.siteCode ?? '')} title="My sites" right={<WhoMenu />} /> : (
-        <header className="nav" style={{ paddingLeft: 24 }}>
+        <header className="nav home-sticky" style={{ paddingLeft: 24 }}>
           <span className="title">Maginhawa <span className="muted" style={{ fontWeight: 500 }}>Head office</span></span>
           <WhoMenu />
         </header>
