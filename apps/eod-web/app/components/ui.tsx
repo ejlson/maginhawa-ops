@@ -144,9 +144,11 @@ export function SignedTempInput({ value, onChange, label, invalid, disabled, neg
   /** Always show the sign, e.g. for a pass limit, which can sit either side of zero. */
   alwaysSign?: boolean; placeholder?: string;
 }) {
-  // The sign button only shows where below zero is the norm (freezers), or where it's asked for.
-  // Elsewhere a minus can still be typed, or set with the big-button entry.
+  // The sign sits inside the field where below zero is the norm (freezers), or where it's asked for.
+  // Anywhere else a reading may go below zero (fridges), a ± button sits beside the field: phone
+  // number keypads have no minus key, so it's the only way to enter one there.
   const showSign = negative && (expectNegative || alwaysSign);
+  const sideSign = negative && !showSign;
   const [pendingNeg, setPendingNeg] = useState(negative && expectNegative);
   const hasSign = /^\s*[-−]/.test(value);
   const neg = value.trim() === '' ? pendingNeg : hasSign;
@@ -161,7 +163,7 @@ export function SignedTempInput({ value, onChange, label, invalid, disabled, neg
     else onChange(flipSign(value));
   };
   const input = useRef<HTMLInputElement>(null);
-  return (
+  const field = (
     // The field is right-aligned and sized to its digits, so the sign sits right next to the number.
     // A tap anywhere but the sign focuses the field, so an empty box is easy to type into.
     <span className={`tfield${invalid ? ' bad' : ''}`} onClick={(e) => { if (!(e.target as HTMLElement).closest('.tsign')) input.current?.focus(); }}>
@@ -175,6 +177,16 @@ export function SignedTempInput({ value, onChange, label, invalid, disabled, neg
           onPointerDown={(e) => e.preventDefault()} onClick={flip}>{neg ? '−' : '+'}</button>
       )}
       <span className="tunit" aria-hidden="true" onClick={() => input.current?.focus()}>°C</span>
+    </span>
+  );
+  // Freezers keep the sign in the field; a gap the size of the ± button keeps their edge in line with the fridges.
+  if (!sideSign) return negative && !alwaysSign ? <span className="tempin">{field}<span className="pm-gap" aria-hidden="true" /></span> : field;
+  return (
+    <span className="tempin">
+      {field}
+      <button type="button" className="pm" disabled={disabled} aria-label={`Below zero: ${label}`} aria-pressed={hasSign}
+        // Keep the keyboard up: don't take focus from the field.
+        onPointerDown={(e) => e.preventDefault()} onClick={() => onChange(flipSign(value))}>±</button>
     </span>
   );
 }

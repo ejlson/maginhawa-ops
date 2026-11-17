@@ -234,6 +234,26 @@ describe('the temperature box', () => {
     await user.click(sign);
     expect(answer('freezer')).toBe(-18);
   });
+
+  it('a fridge has a ± button beside the box, since phone number pads have no minus key', async () => {
+    at('2026-10-05T08:15:00Z'); // 09:15 BST
+    const { user } = renderApp(opening);
+    const input = screen.getByLabelText('Walk-in fridge');
+    const pm = screen.getByRole('button', { name: 'Below zero: Walk-in fridge' });
+    expect(pm).toHaveTextContent('±');
+    expect(pm).toHaveAttribute('aria-pressed', 'false');
+    // Sign first on an empty box, then the number.
+    await user.click(pm);
+    expect(pm).toHaveAttribute('aria-pressed', 'true');
+    await user.click(input);
+    await user.keyboard('{End}1');
+    expect(input).toHaveValue('−1');
+    expect(answer('walkin')).toBe(-1);
+    // And back above zero.
+    await user.click(pm);
+    expect(input).toHaveValue('1');
+    expect(answer('walkin')).toBe(1);
+  });
 });
 
 describe('the end of a finished checklist', () => {
