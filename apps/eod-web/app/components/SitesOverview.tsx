@@ -6,7 +6,7 @@
  * a site to go and work in it.
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import {
   addDays, cashWords, clockTime, csv, dailyNet, forecastNet, formatPounds, isSyncError, reviewedMessage, siteName, splitPounds,
   type ReportStatus, type Site, type StoredReport,
@@ -28,15 +28,23 @@ import { PageSkeleton } from './Skeleton';
 import { useDelayed } from './skeleton-helpers';
 import { colourVars, SiteMono, useSiteColourChoices } from '../lib/site-colours';
 import { download } from '../lib/ops-helpers';
+import { useOps } from '../lib/ops';
+import { useStock } from '../lib/stock';
+import { useChecklists } from '../lib/checklists';
+import { opsToday, type NeedItem } from '../lib/ho-today';
+import { storage } from '../lib/storage';
 
 /** H3's sort pills: what needs a look first (the default), then the money columns, biggest first. */
 type SortKey = 'look' | 'net' | 'forecast' | 'wages';
-const SORTS: { key: SortKey; label: string; note: string }[] = [
-  { key: 'look', label: 'Needs a look first', note: 'Sorted by what needs a look' },
-  { key: 'net', label: 'Net', note: 'Sorted by net, highest first' },
-  { key: 'forecast', label: 'vs forecast', note: 'Sorted against forecast, highest first' },
-  { key: 'wages', label: 'Wages', note: 'Sorted by wages, highest first' },
+const SORTS: { key: SortKey; label: string }[] = [
+  { key: 'look', label: 'Needs a look first' },
+  { key: 'net', label: 'Net, highest first' },
+  { key: 'forecast', label: 'vs forecast, highest first' },
+  { key: 'wages', label: 'Wages, highest first' },
 ];
+/** A line in "Needs you": a close opens its details here; everything else links to its screen. */
+type Need = Omit<NeedItem, 'to'> & { to?: string; open?: string; rank?: number };
+const OPS_KEY = 'mgh.ho-today.ops-open.v1';
 interface SiteRow {
   s: Site; r: StoredReport | undefined; o: StoredReport['official'] | undefined; warn: number; statusText: string;
   cashDiff: number | null; vsForecast: number | null; vsLastWeek: number | null; spark: number[];
@@ -51,10 +59,11 @@ function lookScore(x: SiteRow): number {
   return 0;
 }
 const pct = (n: number | null) => (n === null ? '—' : `${n >= 0 ? '+' : '−'}${Math.abs(n)}%`);
-type SiteFilter = 'all' | 'check' | 'waiting' | 'approved';
+type SiteFilter = 'all' | 'check' | 'ready' | 'waiting' | 'approved';
 const SITE_FILTERS: { id: SiteFilter; label: string; test: (x: SiteRow) => boolean }[] = [
   { id: 'all', label: 'All', test: () => true },
   { id: 'check', label: 'To check', test: (x) => x.warn > 0 || Boolean(x.cashDiff) || x.o?.wageRag === 'red' },
+  { id: 'ready', label: 'Ready', test: (x) => x.r?.status === 'submitted' && !x.warn && !x.cashDiff && x.o?.wageRag !== 'red' },
   { id: 'waiting', label: 'Not in yet', test: (x) => !x.r || x.r.status === 'draft' },
   { id: 'approved', label: 'Approved', test: (x) => x.r?.status === 'approved' },
 ];
@@ -83,6 +92,26 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
   const allHistory = useTradingHistory();
   const history = useMemo(() => ({ ...allHistory, rows: allHistory.rows.filter((r) => codes.has(r.siteCode)) }), [allHistory, codes]);
   const [sort, setSort] = useState<SortKey>('look');
+  // Layout A: operations across every site, folded away when not wanted (remembered on this device).
+  const ops = useOps();
+  const stock = useStock();
+  const { businessDate: today } = useChecklists();
+  const opsNow = useMemo(() => opsToday({ ...ops.data, recipes: ops.allRecipes }, { ...stock.data, items: stock.allItems }, today), [ops.data, ops.allRecipes, stock.data, stock.allItems, today]);
+  const [opsOpen, setOpsOpen] = useState(() => storage.get<boolean>(OPS_KEY, true));
+  const toggleOps = () => setOpsOpen((v) => { storage.set(OPS_KEY, !v); return !v; });
+  const [moreNeeds, setMoreNeeds] = useState(false);
+  // Taller screens show more of Needs you before "Show more" (the page fills the window, layout A).
+  const [winH, setWinH] = useState(() => (typeof window === 'undefined' ? 900 : window.innerHeight));
+  useEffect(() => {
+    const onResize = () => setWinH(window.innerHeight);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const needsLimit = winH >= 1200 ? 9 : winH >= 1040 ? 7 : winH >= 960 ? 6 : winH >= 860 ? 5 : 4;
+  // Trends sit under the fold; the sidebar's "Trends & forecast" (#trends) opens them.
+  const { hash, key: navKey } = useLocation();
+  const [trendsOpen, setTrendsOpen] = useState(hash === '#trends');
+  useEffect(() => { if (hash === '#trends') setTrendsOpen(true); }, [hash, navKey]);
   const [siteFilter, setSiteFilter] = useState<SiteFilter>('all');
 
   // Tonight against forecast v1: the whole group, and each site against its own forecast.
@@ -116,7 +145,8 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
   const covers = sent.reduce((s, r) => s + (r.official?.covers ?? 0), 0);
   const wageNet = sent.reduce((s, r) => s + (r.official?.wagePct != null ? r.official.totalNet : 0), 0);
   const groupWages = wageNet ? sent.reduce((s, r) => s + (r.official?.wagePct ?? 0) * (r.official?.wagePct != null ? r.official.totalNet : 0), 0) / wageNet : null;
-  const clean = reports.filter((r) => r.status === 'submitted' && !r.issues.some((i) => i.level === 'warn'));
+  // Clean = what the Ready filter shows: nothing to check, cash right and wages under the red line.
+  const clean = reports.filter((r) => r.status === 'submitted' && !r.issues.some((i) => i.level === 'warn') && !(r.official && (dayCashDiff(r.official) || r.official.wageRag === 'red')));
   const [p, d] = splitPounds(net);
   const sentForecast = tonight ? sent.reduce((s, r) => s + (tonight.bySite.get(r.draft.siteCode)?.forecast?.p50 ?? 0), 0) : 0;
   const pace = sentForecast ? net / sentForecast - 1 : null;
@@ -180,8 +210,67 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
     if (mine) { switchSite(code); navigate('/'); } else setOpen(code);
   };
 
+  // Needs you: tonight's closes that need head office first, then the rest of the group's operations.
+  const closeNeeds: Need[] = siteRows.flatMap((x): Need[] => {
+    const n = x.s.name;
+    if (x.r?.status === 'sent-back') return [{ key: `c-${x.s.code}`, title: `${n} · sent back`, sub: 'Waiting for the manager to fix and resend', act: 'View', icon: ICONS.handover, level: 'warn', open: x.s.code, rank: 1 }];
+    if (x.r?.status === 'submitted' && (x.cashDiff || x.warn || x.o?.wageRag === 'red')) {
+      const bits = [x.warn ? `${x.warn} to check` : '', x.o?.wageRag === 'red' ? `wages ${x.o.wagePct}%` : ''].filter(Boolean).join(' · ');
+      return [{ key: `c-${x.s.code}`, title: `${n} · ${x.cashDiff ? cashWords(x.cashDiff) : bits || 'to check'}`, sub: x.cashDiff ? (bits ? `Plus ${bits}` : 'Cash to look at') : 'Sent, needs a look', act: 'Review', icon: x.cashDiff ? ICONS.cash : ICONS.bang, level: x.cashDiff || x.o?.wageRag === 'red' ? 'bad' : 'warn', open: x.s.code }];
+    }
+    return [];
+  });
+  // Sites that haven't started are often just not yet: one line for all of them, last.
+  const notStarted = siteRows.filter((x) => !x.r);
+  if (notStarted.length) closeNeeds.push({ key: 'c-not-started', title: notStarted.length === 1 ? `${notStarted[0]!.s.name} · not started` : `${notStarted.length} sites not started`, sub: notStarted.length === 1 ? 'No close yet tonight' : notStarted.map((x) => x.s.name).join(', '), act: 'View', icon: ICONS.clock, level: 'warn', open: notStarted[0]!.s.code, rank: 3 });
+  // Order: anything red, then closes sent back, then the rest, then sites that haven't started (often just not yet).
+  const order = (n: Need) => (n.level === 'bad' ? 0 : n.rank ?? 2);
+  const needs: Need[] = mine ? [] : [...closeNeeds, ...opsNow.needs].sort((a, b) => order(a) - order(b));
+  const shownNeeds = moreNeeds ? needs : needs.slice(0, needsLimit);
+  const sortSelect = (
+    <label className="ho-sortsel">
+      <span className="vh">Sort by</span>
+      <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
+        {SORTS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+      </select>
+    </label>
+  );
+
+  const sitesCard = (
+    <section id="sites" className="ho-card hot-sites anchor" data-tour="ho-sites" aria-label="Sites">
+      <div className="hot-tools">
+        <h2>Sites</h2>
+        <div className="chips" role="group" aria-label="Show">
+          {SITE_FILTERS.map((f) => {
+            const n = siteRows.filter((x) => f.test(x)).length;
+            return <button key={f.id} type="button" className="chip sm" aria-pressed={siteFilter === f.id} onClick={() => setSiteFilter(f.id)}>{f.label} <span className="muted" style={{ fontWeight: 500 }}>{n}</span></button>;
+          })}
+        </div>
+        {sortSelect}
+      </div>
+      <div className="table stable" role="table" aria-label="Sites">
+        <div className="th" role="row">
+          {['Site', 'Status', 'Net', 'vs forecast', 'Wages', 'Cash'].map((h) => (
+            <span key={h} role="columnheader" aria-sort={(sort === 'net' && h === 'Net') || (sort === 'forecast' && h === 'vs forecast') || (sort === 'wages' && h === 'Wages') ? 'descending' : undefined}>{h}</span>
+          ))}
+          <span role="columnheader" className="r">Last 7 nights</span>
+        </div>
+        {shownRows.map((x) => {
+          const inner = <SiteCells x={x} colour={colourOf(x.s.code).hex} />;
+          return mine
+            ? <Link className="sr link" role="row" key={x.s.code} to="/" onClick={() => switchSite(x.s.code)} aria-label={`${x.s.name}: open`}>{inner}</Link>
+            : <button type="button" className={`sr link${open === x.s.code ? ' sel' : ''}`} role="row" key={x.s.code} aria-label={`${x.s.name}: details`} aria-expanded={open === x.s.code} onClick={() => setOpen(x.s.code)}>{inner}</button>;
+        })}
+        {!shownRows.length && <div className="sr" role="row"><span className="muted" style={{ paddingLeft: 46 }}>No sites here right now.</span></div>}
+      </div>
+      {!sent.length && !demo && (
+        <div className="banner"><Icon d={ICONS.bang} size={16} /><span>No closes yet for this day. In demo mode, this shows reports submitted on this device.</span></div>
+      )}
+    </section>
+  );
+
   return (
-    <Shell inToday={`${sent.length} of ${sites.length} in`}>
+    <Shell inToday={`${sent.length} of ${sites.length} in`} opsCount={mine ? undefined : opsNow.folded} opsBad={opsNow.tiles.some((t) => t.tone === 'bad')}>
     <main className="page wide ho-page">
       {mine ? <Nav back="/" backLabel={siteName(user?.siteCode ?? '')} title="My sites" right={<WhoMenu />} /> : (
         <header className="nav" style={{ paddingLeft: 24 }}>
@@ -189,9 +278,12 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
           <WhoMenu />
         </header>
       )}
-      <div className="body" style={mine ? { paddingTop: 24 } : undefined}>
+      <div className={`body${mine ? '' : ' ho-today'}`} style={mine ? { paddingTop: 24 } : undefined}>
         <div className="ho-head">
-          <div className="titleblock"><span className="eyebrow">{formatDay(date)}</span><h1>{mine ? 'My sites' : 'All sites'}</h1></div>
+          <div className="titleblock">
+            <span className="eyebrow">{formatDay(date)}{demo && <span className="pill p-mut ho-example" title="Every site except yours shows made-up figures so you can see a busy night. Real closes replace it once the app is connected.">Example data</span>}</span>
+            <h1>{mine ? 'My sites' : 'All sites'}</h1>
+          </div>
           <div className="ho-head-r">
             <HoSearch sites={siteRows.map((x) => ({ code: x.s.code, name: x.s.name, sub: x.statusText }))} onSite={pickSite} screens={!mine} />
             {!mine && <button type="button" className="ho-pill" onClick={exportCsv}>Export CSV</button>}
@@ -204,68 +296,73 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
         </div>
         {approveNote && <p className="note" role="status">{approveNote}</p>}
 
-        <div className="hero ho-hero" data-tour="ho-hero">
-          <div className="ho-hero-l">
-            <span className="hl">Tonight · {mine ? 'your sites' : 'group'} net so far</span>
-            <div className="big"><b>{p}</b><i>{d}</i></div>
-            <span className="hs-small">{sent.length} of {sites.length} {sites.length === 1 ? 'close' : 'closes'} in</span>
-            <div className="ho-kpis">
-              <span><small>vs forecast</small>{pace === null ? '—' : `${pace >= 0 ? '+' : '−'}${Math.abs(Math.round(pace * 100))}%`}<small>{pace === null ? 'Waiting for the first close' : `for the ${sent.length} in`}</small></span>
-              <span><small>Wages</small>{groupWages === null ? '—' : `${groupWages.toFixed(1)}%`}<small>{reports.filter((r) => r.official?.wageRag === 'red').length ? `${reports.filter((r) => r.official?.wageRag === 'red').length} over the red line` : 'Weighted by net'}</small></span>
-              <span><small>Covers</small>{covers.toLocaleString('en-GB')}<small>{covers ? `${formatPounds(Math.round(net / covers))} a head` : 'None in yet'}</small></span>
-              <span><small>vs last {lastWeekDay}</small>{pct(groupVsLastWeek)}<small>{groupVsLastWeek === null ? 'Nothing to compare yet' : `the same ${lastWeekPairs.length} ${lastWeekPairs.length === 1 ? 'site' : 'sites'}`}</small></span>
+        <div className={mine ? 'hot-one' : 'hot-grid'}>
+          <div className="hot-l">
+            <div className="hero ho-hero" data-tour="ho-hero">
+              <div className="ho-hero-l">
+                <span className="hl">Tonight · {mine ? 'your sites' : 'group'} net so far</span>
+                <div className="big"><b>{p}</b><i>{d}</i></div>
+                <span className="hs-small">{sent.length} of {sites.length} {sites.length === 1 ? 'close' : 'closes'} in</span>
+                <div className="ho-kpis">
+                  <span><small>vs forecast</small>{pace === null ? '—' : `${pace >= 0 ? '+' : '−'}${Math.abs(Math.round(pace * 100))}%`}<small>{pace === null ? 'Waiting for the first close' : `for the ${sent.length} in`}</small></span>
+                  <span><small>Wages</small>{groupWages === null ? '—' : `${groupWages.toFixed(1)}%`}<small>{reports.filter((r) => r.official?.wageRag === 'red').length ? `${reports.filter((r) => r.official?.wageRag === 'red').length} over the red line` : 'Weighted by net'}</small></span>
+                  <span><small>Covers</small>{covers.toLocaleString('en-GB')}<small>{covers ? `${formatPounds(Math.round(net / covers))} a head` : 'None in yet'}</small></span>
+                  <span><small>vs last {lastWeekDay}</small>{pct(groupVsLastWeek)}<small>{groupVsLastWeek === null ? 'Nothing to compare yet' : `the same ${lastWeekPairs.length} ${lastWeekPairs.length === 1 ? 'site' : 'sites'}`}</small></span>
+                </div>
+              </div>
+              <GroupChart last14={tonight?.last14 ?? []} forecast={tonight?.group} soFar={net} onTrends={mine ? undefined : () => setTrendsOpen(true)} />
             </div>
+            {sitesCard}
           </div>
-          <GroupChart last14={tonight?.last14 ?? []} forecast={tonight?.group} soFar={net} />
+
+          {!mine && (
+            <div className="hot-r">
+              <section className="ho-card hot-needs" aria-label="Needs you">
+                <div className="hot-hd"><h2>Needs you</h2>{needs.length > 0 && <span className={`pill ${needs.some((n) => n.level === 'bad') ? 'p-bad' : 'p-warn'}`}>{needs.length}</span>}<span className="hot-meta">Most urgent first</span></div>
+                {needs.length === 0 ? <p className="hot-empty">Nothing needs you right now.</p> : (
+                  <ul className="hot-list">
+                    {shownNeeds.map((n) => (
+                      <li key={n.key} className="hot-need">
+                        <span className={`hot-ic ${n.level}`} aria-hidden="true"><Icon d={n.icon} size={16} /></span>
+                        <span className="tx"><b>{n.title}</b><small>{n.sub}</small></span>
+                        {n.open
+                          ? <button type="button" className="hot-act" aria-label={`${n.act}: ${n.title}`} onClick={() => setOpen(n.open!)}>{n.act}</button>
+                          : <Link className="hot-act" to={n.to!} aria-label={`${n.act}: ${n.title}`}>{n.act}</Link>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {needs.length > needsLimit && <button type="button" className="hot-more" aria-expanded={moreNeeds} onClick={() => setMoreNeeds((v) => !v)}>{moreNeeds ? 'Show fewer' : `Show ${needs.length - needsLimit} more`}</button>}
+              </section>
+
+              <section className="ho-card hot-ops" aria-label="Operations">
+                <button type="button" className="hot-fold" aria-expanded={opsOpen} aria-controls="hot-ops-tiles" onClick={toggleOps}>
+                  <h2>Operations</h2>
+                  <span className="hot-meta">{opsNow.folded ? `${opsNow.folded} ${opsNow.folded === 1 ? 'needs' : 'need'} a look` : 'All fine'}</span>
+                  <svg className="hot-chev" width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </button>
+                <div id="hot-ops-tiles" className="hot-tiles" hidden={!opsOpen}>
+                  {opsNow.tiles.map((t) => (
+                    <Link key={t.key} to={t.to} className="hot-tile" aria-label={`${t.name}: ${t.big}${t.of ?? ''}, ${t.label}`}>
+                      <span className="hot-tn">{t.name}</span>
+                      <b>{t.big}{t.of && <small>{t.of}</small>}</b>
+                      <span className={`hot-tl${t.tone ? ` t-${t.tone}` : ''}`}>{t.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
+              <button type="button" className="ho-card hot-trends" aria-expanded={trendsOpen} aria-controls={trendsOpen ? 'trends' : undefined} onClick={() => setTrendsOpen((v) => !v)}>
+                <span className="hot-ic" aria-hidden="true"><Icon d={ICONS.chart} size={16} /></span>
+                <span className="tx"><b>Trends and forecast</b><small>{trendsOpen ? 'Shown below the sites' : 'Every site, week by week'}</small></span>
+                <svg className="hot-chev" width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </button>
+            </div>
+          )}
         </div>
 
-        <section id="sites" className="grp anchor" data-tour="ho-sites" style={{ gap: 14 }}>
-          <div className="hd ho-tools">
-            <div className="chips" role="group" aria-label="Show">
-              {SITE_FILTERS.map((f) => {
-                const n = siteRows.filter((x) => f.test(x)).length;
-                return <button key={f.id} type="button" className="chip" aria-pressed={siteFilter === f.id} onClick={() => setSiteFilter(f.id)}>{f.label} <span className="muted" style={{ fontWeight: 500 }}>{n}</span></button>;
-              })}
-            </div>
-            <div className="ho-sort">
-              <div className="chips" role="group" aria-label="Sort by">
-                {SORTS.map((o) => <button key={o.key} type="button" className="chip sm" aria-pressed={sort === o.key} onClick={() => setSort(o.key)}>{o.label}</button>)}
-              </div>
-              <span>{SORTS.find((o) => o.key === sort)!.note}</span>
-            </div>
-          </div>
-          <div className="table stable" role="table" aria-label="Sites">
-            <div className="th" role="row">
-              {['Site', 'Status', 'Net', 'vs forecast', `vs last ${lastWeekDay}`, 'Wages', 'Cash'].map((h) => (
-                <span key={h} role="columnheader" aria-sort={(sort === 'net' && h === 'Net') || (sort === 'forecast' && h === 'vs forecast') || (sort === 'wages' && h === 'Wages') ? 'descending' : undefined}>{h}</span>
-              ))}
-              <span role="columnheader" className="r">Last 7 nights</span>
-            </div>
-            {shownRows.map((x) => {
-              const inner = <SiteCells x={x} colour={colourOf(x.s.code).hex} />;
-              return mine
-                ? <Link className="sr link" role="row" key={x.s.code} to="/" onClick={() => switchSite(x.s.code)} aria-label={`${x.s.name}: open`}>{inner}</Link>
-                : <button type="button" className={`sr link${open === x.s.code ? ' sel' : ''}`} role="row" key={x.s.code} aria-label={`${x.s.name}: details`} aria-expanded={open === x.s.code} onClick={() => setOpen(x.s.code)}>{inner}</button>;
-            })}
-            {!shownRows.length && <div className="sr" role="row"><span className="muted" style={{ paddingLeft: 46 }}>No sites here right now.</span></div>}
-          </div>
-          {demo && (
-            <div className="banner" role="note"><Icon d={ICONS.bang} size={16} /><span>Example data. Every site except yours shows made-up figures so you can see a busy night. Real closes replace it once the app is connected.</span></div>
-          )}
-          {!sent.length && !demo && (
-            <div className="banner"><Icon d={ICONS.bang} size={16} /><span>No closes yet for this day. In demo mode, this shows reports submitted on this device.</span></div>
-          )}
-        </section>
-        <div id="trends" className="anchor"><TrendChart rows={history.rows} scope={mine ? 'your sites' : 'all sites'} /></div>
+        {(mine || trendsOpen) && <div id="trends" className="anchor"><TrendChart rows={history.rows} scope={mine ? 'your sites' : 'all sites'} /></div>}
         {mine && <p className="note">Head office approves closes and sets which sites you work at.</p>}
-        {!mine && <section className="grp">
-          <div className="hd"><h2>Set-up</h2></div>
-          <div className="sub" style={{ maxWidth: 560 }}>
-            <RowLink to="/checklists/edit" lead={<span className="av"><Icon d={ICONS.check} /></span>} title="Checklists" sub="Change the group lists and see every site's own lists" />
-            <RowLink to="/food-safety/records" lead={<span className="av"><Icon d={ICONS.list} /></span>} title="Records for an inspector" sub="One PDF for any site and dates" />
-            <RowLink to="/food-safety/keep" lead={<span className="av"><Icon d={ICONS.lock} /></span>} title="How long we keep records" sub="Food-safety keep periods" />
-          </div>
-        </section>}
       </div>
 
       {openRow && !mine && (
@@ -279,7 +376,7 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
 
 /** One site's row: badge and status, net, against forecast, wages, cash and the last week. */
 function SiteCells({ x, colour }: { x: SiteRow; colour: string }) {
-  const { s, o, warn, statusText, cashDiff, vsForecast, vsLastWeek, spark } = x;
+  const { s, o, warn, statusText, cashDiff, vsForecast, spark } = x;
   return (
     <>
       <span className="st-site">
@@ -289,7 +386,6 @@ function SiteCells({ x, colour }: { x: SiteRow; colour: string }) {
       <span className={`st-status${warn || x.r?.status === 'sent-back' ? ' warn' : ''}`}>{statusText}</span>
       <span className="st-net">{o ? formatPounds(o.totalNet) : '—'}</span>
       <span className="st-fc">{vsForecast === null ? '—' : <>{vsForecast}%<span className="st-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, vsForecast)}%` }} /></span></>}</span>
-      <span className={vsLastWeek !== null && vsLastWeek < 0 ? 'st-down' : ''}>{pct(vsLastWeek)}</span>
       <span className={o?.wageRag === 'red' ? 'bad' : o?.wageRag === 'amber' ? 'warn' : ''}>{o?.wagePct != null ? `${o.wagePct}%` : '—'}</span>
       <span>{cashDiff === null ? <span className="muted">—</span> : <span className={`pill ${cashDiff ? 'bad' : 'ok'}`}>{cashWords(cashDiff)}</span>}</span>
       <span className="r"><Spark values={spark} colour={colour} /></span>
@@ -305,9 +401,10 @@ function Spark({ values, colour, w = 92, h = 24 }: { values: number[]; colour: s
 }
 
 /** The last two weeks of group net, then tonight: the forecast range, its middle, and what's in so far. */
-function GroupChart({ last14, forecast, soFar }: { last14: { date: string; value: number }[]; forecast: { p10: number | null; p50: number; p90: number | null } | undefined; soFar: number }) {
+function GroupChart({ last14, forecast, soFar, onTrends }: { last14: { date: string; value: number }[]; forecast: { p10: number | null; p50: number; p90: number | null } | undefined; soFar: number; onTrends?: () => void }) {
+  const seeTrends = onTrends && <button type="button" className="ho-seetrends" onClick={onTrends}>See trends</button>;
   if (last14.length < 3) {
-    return <div className="ho-chart ho-chart-empty"><span className="hl">Last 2 weeks and tonight</span><span className="hs-small">The chart appears after a few nights of closes.</span></div>;
+    return <div className="ho-chart ho-chart-empty"><span className="hl">Last 2 weeks and tonight</span><span className="hs-small">The chart appears after a few nights of closes.</span>{seeTrends}</div>;
   }
   const W = 640, H = 190, padT = 14, padB = 14;
   const slots = last14.length + 1;
@@ -321,7 +418,7 @@ function GroupChart({ last14, forecast, soFar }: { last14: { date: string; value
   return (
     <div className="ho-chart">
       <div className="ho-chart-hd">
-        <span>Last 2 weeks and tonight</span>
+        <span>Last 2 weeks and tonight{seeTrends}</span>
         <span className="ho-key"><i className="k-line" />Net<i className="k-band" />Tonight's likely range<i className="k-dot" />In so far</span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" role="img"
@@ -392,6 +489,6 @@ function SiteDetails({ x, colour, lastWeekDay, onClose, onReview }: {
 }
 
 /** A manager's frame for My sites: just the page, no head-office sidebar. */
-function Plain({ children }: { inToday?: string; children: ReactNode }) {
+function Plain({ children }: { inToday?: string; opsCount?: number; children: ReactNode }) {
   return <>{children}</>;
 }

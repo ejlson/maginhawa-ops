@@ -8,7 +8,7 @@ import { createContext, useContext } from 'react';
 import type { Pence, StockArea, StockCount, StockItem, StockPlan } from '@maginhawa/core';
 
 export interface StockData {
-  /** The group's item list and costs (head office). */
+  /** The item list and costs. Each site has its own (siteCode); in the hook's value this is the current site's. */
   items: StockItem[];
   /** Each site's storage areas, items in shelf order. */
   areas: StockArea[];
@@ -23,6 +23,9 @@ export interface StockValue {
   /** This site's plans, areas and counts (newest first). */
   site: { plans: StockPlan[]; areas: StockArea[]; counts: StockCount[] };
   item: (id: string) => StockItem | undefined;
+  /** Every site's items (head office). */
+  allItems: StockItem[];
+  itemsFor: (siteCode: string) => StockItem[];
   /** Starts a count from a plan (or carries on the one already open) and returns its id. */
   start: (planId: string, by: string) => string;
   /** Saves one figure as it's typed. Ignored once the count is sent. */
@@ -32,9 +35,9 @@ export interface StockValue {
   send: (countId: string, by: string) => void;
   /** Supervisor and above, after sending: keeps the old figure. */
   correct: (countId: string, itemId: string, to: number, reason: string, by: string) => void;
-  /** Head office: the item list and costs. */
+  /** Supervisors and up: a site's item list and costs. setItem matches on site and id. */
   setItem: (item: StockItem) => void;
-  addItem: (x: { name: string; category: string; unit: string; parts: boolean; costPence: Pence | null }) => void;
+  addItem: (x: { name: string; category: string; unit: string; parts: boolean; costPence: Pence | null }, siteCode?: string) => void;
 }
 
 export const Ctx = createContext<StockValue | null>(null);

@@ -18,9 +18,9 @@ import { ICONS } from '../components/ui-helpers';
 const siteName = (code: string) => SITES.find((s) => s.code === code)?.name ?? code;
 
 export default function HoStock() {
-  const { data } = useStock();
+  const { data, allItems, itemsFor } = useStock();
   const { businessDate: today } = useChecklists();
-  const val = (c: StockCount) => countValue(c, data.items).value;
+  const val = (c: StockCount) => countValue(c, allItems).value;
 
   const rows = SITES.map((s) => {
     const full = data.counts.filter((c) => c.siteCode === s.code && c.kind === 'full').sort((a, b) => b.startedAt.localeCompare(a.startedAt));
@@ -38,13 +38,16 @@ export default function HoStock() {
   });
   const total = rows.reduce((n, r) => n + (r.latest ? val(r.latest) : 0), 0);
   const big = rows.flatMap((r) => (r.latest ? swings(r.latest, data.counts).map((w) => ({ ...w, count: r.latest! })) : []))
-    .map((w) => ({ ...w, diff: Math.round((w.qty - w.last) * (w.count.costs?.[w.itemId] ?? data.items.find((i) => i.id === w.itemId)?.costPence ?? 0)) }))
+    .map((w) => ({ ...w, diff: Math.round((w.qty - w.last) * (w.count.costs?.[w.itemId] ?? itemsFor(w.count.siteCode).find((i) => i.id === w.itemId)?.costPence ?? 0)) }))
     .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
-  const noCost = data.items.filter((i) => i.active && i.costPence === null).length;
+  // Items with no cost, counted once however many sites list them; the link opens the first site that has one.
+  const uncosted = allItems.filter((i) => i.active && i.costPence === null);
+  const noCost = new Set(uncosted.map((i) => i.id)).size;
+  const firstNoCostSite = uncosted[0]?.siteCode;
   const latestCounts = rows.flatMap((r) => (r.latest ? [r.latest] : []));
 
   const exportCsv = () => {
-    const csv = stockCsv(latestCounts, data.items, siteName);
+    const csv = stockCsv(latestCounts, allItems, siteName);
     try {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
@@ -68,7 +71,7 @@ export default function HoStock() {
               <h1>Stock</h1>
             </div>
             <div className="stk-actions">
-              <Link className="chip stk-chip" to="/head-office/stock/items">Items and costs{noCost ? ` · ${noCost} no cost` : ''}</Link>
+              <Link className="chip stk-chip" to={`/head-office/stock/items${firstNoCostSite ? `?site=${firstNoCostSite}` : ''}`}>Items and costs{noCost ? ` · ${noCost} no cost` : ''}</Link>
               <button type="button" className="chip" onClick={exportCsv}>Export CSV</button>
             </div>
           </div>
@@ -110,7 +113,7 @@ export default function HoStock() {
               <div className="sub">
                 {big.length === 0 && <p className="lead">Nothing unusual in the latest counts.</p>}
                 {big.slice(0, 8).map((b) => {
-                  const it = data.items.find((i) => i.id === b.itemId);
+                  const it = itemsFor(b.count.siteCode).find((i) => i.id === b.itemId);
                   return (
                     <div className="li" key={`${b.count.id}-${b.itemId}`}>
                       <SiteMono code={b.count.siteCode} />

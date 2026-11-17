@@ -1,14 +1,18 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { itemsAt, perSite, SITES } from '@maginhawa/core';
 import { storage } from './storage';
 import { now } from './clock';
 import { demoOps } from './ops-demo';
 import { Ctx, type OpsData, type OpsValue } from './ops';
 
+/** Recipes saved before each site had its own are copied onto every site. */
+const normalise = (d: OpsData): OpsData => (d.recipes.some((r) => !r.siteCode) ? { ...d, recipes: perSite(d.recipes, SITES.map((s) => s.code)) } : d);
+
 const KEY = 'mgh.ops.v1';
 const newId = (p: string) => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
 export function OpsProvider({ siteCode, businessDate, children, initial }: { siteCode: string; businessDate: string; children: ReactNode; initial?: OpsData }) {
-  const [data, setData] = useState<OpsData>(() => initial ?? storage.get<OpsData | null>(KEY, null) ?? demoOps(businessDate));
+  const [data, setData] = useState<OpsData>(() => normalise(initial ?? storage.get<OpsData | null>(KEY, null) ?? demoOps(businessDate)));
   const save = useCallback((change: (d: OpsData) => void) => {
     setData((prev) => {
       const next = structuredClone(prev);
@@ -19,7 +23,19 @@ export function OpsProvider({ siteCode, businessDate, children, initial }: { sit
   }, []);
 
   const value = useMemo<OpsValue>(() => ({
-    data, siteCode,
+    data: { ...data, recipes: itemsAt(data.recipes, siteCode) }, siteCode,
+    allRecipes: data.recipes,
+    recipesFor: (code) => itemsAt(data.recipes, code),
+    saveRecipe: (recipe) => {
+      const id = recipe.id ?? newId('recipe');
+      const at = recipe.siteCode ?? siteCode;
+      save((d) => {
+        const next = { ...recipe, id, siteCode: at };
+        const i = d.recipes.findIndex((x) => x.id === id && x.siteCode === at);
+        if (i >= 0) d.recipes[i] = next; else d.recipes.push(next);
+      });
+      return id;
+    },
     supplier: (id) => data.suppliers.find((s) => s.id === id),
     buying: (itemId) => data.supplierItems.find((s) => s.itemId === itemId),
     par: (itemId, site = siteCode) => data.pars.find((p) => p.itemId === itemId && p.siteCode === site)?.par ?? null,
@@ -49,8 +65,8 @@ export function OpsProvider({ siteCode, businessDate, children, initial }: { sit
       }
     }),
     logWaste: (x) => save((d) => { d.waste.push({ ...x, id: newId('waste'), siteCode, at: now().toISOString() }); }),
-    setRecipePrice: (recipeId, pricePence) => save((d) => {
-      const r = d.recipes.find((x) => x.id === recipeId);
+    setRecipePrice: (recipeId, pricePence, at = siteCode) => save((d) => {
+      const r = d.recipes.find((x) => x.id === recipeId && x.siteCode === at);
       if (r) r.pricePence = pricePence;
     }),
     addSafetyCheck: (c) => save((d) => { d.safetyChecks.push({ ...c, id: newId('check'), siteCode }); }),

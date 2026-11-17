@@ -50,14 +50,24 @@ const HO_GROUPS: { title: string; items: HoItem[] }[] = [
   { title: 'Settings', items: [
     { to: '/people', label: 'People', icon: ICONS.people, on: (p) => p.startsWith('/people') },
     { to: '/head-office/sites', label: 'Sites and colours', icon: ICONS.palette, on: (p) => p === '/head-office/sites' },
+    // Set-up moved here from the bottom of Today (layout A, Nov 2026).
+    { to: '/checklists/edit', label: 'Checklists', icon: ICONS.check, on: (p) => p.startsWith('/checklists/edit') },
+    { to: '/food-safety/records', label: 'Records for an inspector', icon: ICONS.doc, on: (p) => p === '/food-safety/records' },
+    { to: '/food-safety/keep', label: 'How long we keep records', icon: ICONS.lock, on: (p) => p === '/food-safety/keep' },
   ] },
 ];
 
-/** Which sidebar sections are folded away, remembered on this device. */
-const FOLDED_KEY = 'mgh.ho-nav.folded.v1';
+/** Which sidebar sections are folded away, remembered on this device. Only Overview starts open (layout A). */
+const FOLDED_KEY = 'mgh.ho-nav.folded.v2';
+const FOLDED_START = ['Operations', 'Reports', 'Settings'];
 function useFolded() {
   const [folded, setFolded] = useState<string[]>(() => {
-    try { const v = JSON.parse(localStorage.getItem(FOLDED_KEY) ?? '[]'); return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []; } catch { return []; }
+    try {
+      const raw = localStorage.getItem(FOLDED_KEY);
+      if (raw === null) return FOLDED_START;
+      const v = JSON.parse(raw);
+      return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : FOLDED_START;
+    } catch { return FOLDED_START; }
   });
   const toggle = (title: string) => setFolded((f) => {
     const next = f.includes(title) ? f.filter((x) => x !== title) : [...f, title];
@@ -67,7 +77,8 @@ function useFolded() {
   return { folded, toggle };
 }
 
-export function HeadOfficeShell({ inToday, children }: { inToday?: string; children: ReactNode }) {
+/** `opsCount`: how many operations areas need a look, shown on the Operations heading while it's folded. */
+export function HeadOfficeShell({ inToday, opsCount, opsBad, children }: { inToday?: string; opsCount?: number; opsBad?: boolean; children: ReactNode }) {
   const { pathname, hash, search } = useLocation();
   const saved = new URLSearchParams(search).get('saved');
   const wide = useWide();
@@ -111,7 +122,9 @@ export function HeadOfficeShell({ inToday, children }: { inToday?: string; child
               <div key={g.title} className={`ho-grp${open ? '' : ' folded'}`}>
                 <button type="button" className="sgh" id={`${id}-h`} aria-expanded={open} aria-controls={id}
                   disabled={hasPage} title={hasPage ? "You're in this section" : undefined} onClick={() => toggle(g.title)}>
-                  {g.title}<svg className="sgh-chev" width="10" height="10" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  {g.title}
+                  {!open && g.title === 'Operations' && opsCount ? <span className={`sgh-cnt${opsBad ? ' bad' : ''}`}><span aria-hidden="true">{opsCount}</span><span className="vh">, {opsCount} {opsCount === 1 ? 'needs' : 'need'} a look</span></span> : null}
+                  <svg className="sgh-chev" width="10" height="10" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
                 <div id={id} role="group" aria-labelledby={`${id}-h`} className="ho-grp-items" hidden={!open}>
                   {g.items.map((l) => {

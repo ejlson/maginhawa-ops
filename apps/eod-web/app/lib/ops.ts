@@ -47,7 +47,13 @@ export interface OpsValue {
   /** Head office: accept or query a new price. Accepting updates the item's cost and the pack price. */
   settlePrice: (id: string, status: 'accepted' | 'queried', updateItemCost: (itemId: string, unitCost: Pence) => void) => void;
   logWaste: (x: { itemId: string; qty: number; reason: WasteReason; unitCost: Pence; by: string }) => void;
-  setRecipePrice: (recipeId: string, pricePence: Pence) => void;
+  /** Head office: a dish's menu price at one site. */
+  setRecipePrice: (recipeId: string, pricePence: Pence, siteCode?: string) => void;
+  /** Supervisors and up: adds or replaces a recipe at its site (matched on site and id). Returns its id. */
+  saveRecipe: (recipe: Omit<Recipe, 'id'> & { id?: string }) => string;
+  /** Every site's recipes (head office); data.recipes is this site's. */
+  allRecipes: Recipe[];
+  recipesFor: (siteCode: string) => Recipe[];
   addSafetyCheck: (c: Omit<SafetyCheck, 'id' | 'siteCode'>) => void;
   addAccident: (a: Omit<Accident, 'id' | 'siteCode' | 'daysOff' | 'hse'>) => void;
   updateAccident: (id: string, change: Partial<Pick<Accident, 'daysOff' | 'hse'>>) => void;

@@ -26,6 +26,18 @@ export interface StockItem {
   active: boolean;
   /** Allergens this ingredient carries (for the recipe check). */
   allergens?: Allergen[];
+  /** The site whose list this is on: each site keeps its own items (16 Nov 2026). The same id can be on
+   *  several sites' lists; site plus id is the item. Missing only on data saved before then. */
+  siteCode?: string;
+}
+
+/** One site's items. Items with no site (saved before items were per site) count as everyone's. */
+export const itemsAt = <T extends { siteCode?: string }>(items: T[], siteCode: string): T[] =>
+  items.filter((i) => !i.siteCode || i.siteCode === siteCode);
+
+/** Copies anything saved before items and recipes were per site onto every site's list. */
+export function perSite<T extends { siteCode?: string }>(list: T[], siteCodes: readonly string[]): (T & { siteCode: string })[] {
+  return list.flatMap((x) => (x.siteCode ? [x as T & { siteCode: string }] : siteCodes.map((siteCode) => ({ ...structuredClone(x), siteCode }))));
 }
 
 /** A storage area at one site, with its items in the order they sit on the shelves. */
@@ -122,7 +134,7 @@ export function stockScheduleText(s: StockSchedule): string {
 
 /** The areas and items a plan covers at its site, in shelf order. Spot counts keep only their items. */
 export function areasFor(plan: StockPlan, areas: StockArea[], items: StockItem[]): StockCount['areas'] {
-  const live = new Set(items.filter((i) => i.active).map((i) => i.id));
+  const live = new Set(itemsAt(items, plan.siteCode).filter((i) => i.active).map((i) => i.id));
   const wanted = plan.itemIds ? new Set(plan.itemIds) : null;
   return areas
     .filter((a) => a.siteCode === plan.siteCode)
@@ -225,7 +237,8 @@ export function lineValue(qty: number, costPence: Pence | null): Pence | null {
 }
 
 /** Stock value, using the costs fixed when the count was sent (or today's costs before then). */
-export function countValue(count: StockCount, items: StockItem[]): { value: Pence; noCost: string[] } {
+export function countValue(count: StockCount, allItems: StockItem[]): { value: Pence; noCost: string[] } {
+  const items = itemsAt(allItems, count.siteCode);
   const cost = (id: string) => (count.costs && id in count.costs ? count.costs[id]! : items.find((i) => i.id === id)?.costPence ?? null);
   let value = 0;
   const noCost: string[] = [];
@@ -239,8 +252,8 @@ export function countValue(count: StockCount, items: StockItem[]): { value: Penc
   return { value, noCost };
 }
 
-export const costsNow = (count: Pick<StockCount, 'areas'>, items: StockItem[]): Record<string, Pence | null> =>
-  Object.fromEntries(itemIdsOf(count).map((id) => [id, items.find((i) => i.id === id)?.costPence ?? null]));
+export const costsNow = (count: Pick<StockCount, 'areas' | 'siteCode'>, items: StockItem[]): Record<string, Pence | null> =>
+  Object.fromEntries(itemIdsOf(count).map((id) => [id, itemsAt(items, count.siteCode).find((i) => i.id === id)?.costPence ?? null]));
 
 /** Cost of sales for a period: opening stock + purchases − closing stock (+ transfers in − transfers out). */
 export function costOfSales(p: { opening: Pence; purchases: Pence; closing: Pence; transfersIn?: Pence; transfersOut?: Pence }): Pence {
@@ -279,7 +292,7 @@ export function stockCsv(counts: StockCount[], items: StockItem[], siteName: (co
       for (const id of a.itemIds) {
         const qty = qtyOf(c, id);
         if (qty === null) continue;
-        const item = items.find((i) => i.id === id);
+        const item = itemsAt(items, c.siteCode).find((i) => i.id === id);
         const cost = c.costs && id in c.costs ? c.costs[id]! : item?.costPence ?? null;
         const fixed = c.corrections.filter((x) => x.itemId === id);
         rows.push([

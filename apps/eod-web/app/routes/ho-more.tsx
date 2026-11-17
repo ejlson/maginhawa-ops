@@ -32,6 +32,9 @@ export default function HoMore() {
             <div className="sub">
               <RowLink to="/people" lead={<span className="av"><Icon d={ICONS.people} /></span>} title="People" />
               <RowLink to="/head-office/sites" lead={<span className="av"><Icon d={ICONS.palette} /></span>} title="Sites and colours" />
+              <RowLink to="/checklists/edit" lead={<span className="av"><Icon d={ICONS.check} /></span>} title="Checklists" sub="Change the group lists and see every site's own lists" />
+              <RowLink to="/food-safety/records" lead={<span className="av"><Icon d={ICONS.doc} /></span>} title="Records for an inspector" sub="One PDF for any site and dates" />
+              <RowLink to="/food-safety/keep" lead={<span className="av"><Icon d={ICONS.lock} /></span>} title="How long we keep records" sub="Food-safety keep periods" />
             </div>
           </section>
         </div>

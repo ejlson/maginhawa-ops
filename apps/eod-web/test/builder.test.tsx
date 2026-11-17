@@ -31,8 +31,9 @@ describe('who can edit checklists', () => {
   });
 
   it('head office can change a group list and reaches the builder from all sites', async () => {
-    const { unmount } = renderApp('/head-office', admin);
-    expect(await screen.findByRole('link', { name: /Checklists/ })).toHaveAttribute('href', '/checklists/edit');
+    // Set-up moved off Today (layout A): Settings in the sidebar, and More on a phone.
+    const { unmount } = renderApp('/head-office/more', admin);
+    expect(await screen.findByRole('link', { name: /^Checklists/ })).toHaveAttribute('href', '/checklists/edit');
     unmount();
     renderApp('/checklists/edit/opening', admin);
     expect(screen.getByLabelText('Name')).toBeEnabled();

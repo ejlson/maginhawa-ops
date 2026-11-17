@@ -12,16 +12,17 @@ import { ICONS } from '../components/ui-helpers';
 
 export default function HoOrdering() {
   const ops = useOps();
-  const { data, setItem } = useStock();
+  const { data, setItem, allItems, itemsFor } = useStock();
   const open = ops.data.priceChanges.filter((p) => p.status === 'open');
   const toPlace = ops.data.orders.filter((o) => o.sentAt && !o.placedAt);
   const bought = (code: string) => ops.data.orders.filter((o) => o.siteCode === code && o.sentAt).reduce((n, o) => n + orderTotal(o.lines), 0);
   // Until every order goes through the app, purchases fall back to the value of the latest full count.
   const lastFullValue = (code: string) => {
     const c = data.counts.filter((x) => x.siteCode === code && x.kind === 'full' && x.sentAt).sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
-    return c ? countValue(c, data.items).value : 0;
+    return c ? countValue(c, allItems).value : 0;
   };
-  const item = (id: string) => data.items.find((i) => i.id === id);
+  // Each site has its own items: look at the site the invoice came from, else any site's (for names and units).
+  const item = (id: string, site?: string) => (site ? itemsFor(site) : allItems).find((i) => i.id === id);
   const waste = SITES.map((s) => {
     const w = ops.data.waste.filter((x) => x.siteCode === s.code).reduce((n, x) => n + wasteValue(x.qty, x.unitCost), 0);
     const purchases = bought(s.code) || lastFullValue(s.code);
@@ -37,12 +38,12 @@ export default function HoOrdering() {
   const boughtAll = sent.reduce((n, o) => n + orderTotal(o.lines), 0);
   const credits = sent.filter((o) => o.receivedAt).reduce((n, o) => n + creditDue(o), 0);
   // Dishes the new invoice price would leave below the GP target (costed at the new price per unit).
-  const belowTarget = (itemId: string, supplierId: string, packPrice: number) => {
+  const belowTarget = (itemId: string, supplierId: string, packPrice: number, site: string) => {
     const b = ops.data.supplierItems.find((x) => x.itemId === itemId && x.supplierId === supplierId);
     if (!b) return 0;
     const unitCost = Math.round(packPrice / (b?.packSize || 1));
-    const items = data.items.map((i) => (i.id === itemId ? { ...i, costPence: unitCost } : i));
-    return dishesUsing(itemId, ops.data.recipes).filter((r) => dishGp(r.pricePence, dishCost(r, items)) < ops.data.targetGp).length;
+    const items = itemsFor(site).map((i) => (i.id === itemId ? { ...i, costPence: unitCost } : i));
+    return dishesUsing(itemId, ops.recipesFor(site)).filter((r) => r.pricePence > 0 && dishGp(r.pricePence, dishCost(r, items)) < ops.data.targetGp).length;
   };
   const perUnit = (itemId: string, supplierId: string, pence: number) => {
     const b = ops.data.supplierItems.find((x) => x.itemId === itemId && x.supplierId === supplierId);
@@ -52,7 +53,11 @@ export default function HoOrdering() {
     const b = ops.data.supplierItems.find((x) => x.itemId === itemId && x.supplierId === supplierId);
     return b && b.packSize > 1 ? unitOne(item(itemId)?.unit ?? 'pack') : 'pack';
   };
-    const accept = (id: string) => ops.settlePrice(id, 'accepted', (itemId, unitCost) => { const it = item(itemId); if (it) setItem({ ...it, costPence: unitCost }); });
+    // The new cost goes on the item at the site whose invoice showed it.
+  const accept = (id: string) => {
+    const site = ops.data.priceChanges.find((x) => x.id === id)?.seenAtSite;
+    ops.settlePrice(id, 'accepted', (itemId, unitCost) => { const it = item(itemId, site); if (it) setItem({ ...it, costPence: unitCost }); });
+  };
 
   return (
     <HeadOfficeShell>
@@ -84,13 +89,13 @@ export default function HoOrdering() {
               <div className="sub">
                 {open.length === 0 && <p className="lead">Nothing to look at.</p>}
                 {open.map((p) => {
-                  const it = item(p.itemId);
+                  const it = item(p.itemId, p.seenAtSite);
                   const up = p.to > p.from;
                   return (
                     <div className="li" key={p.id}>
                       <span className="av"><Icon d={ICONS.tag} /></span>
                       <span className="tx"><span>{it?.name} · {ops.supplier(p.supplierId)?.name}</span><small><b className={up ? 't-warn' : 't-ok'}>{priceChangeText(p.from, p.to)}</b> · {perUnit(p.itemId, p.supplierId, p.from)} → {perUnit(p.itemId, p.supplierId, p.to)} a {unitWord(p.itemId, p.supplierId)}
-                        {belowTarget(p.itemId, p.supplierId, p.to) > 0 && <> · <Link to="/head-office/menu">{belowTarget(p.itemId, p.supplierId, p.to)} {belowTarget(p.itemId, p.supplierId, p.to) === 1 ? 'dish' : 'dishes'} below target</Link></>}</small></span>
+                        {belowTarget(p.itemId, p.supplierId, p.to, p.seenAtSite) > 0 && <> · <Link to={`/head-office/menu?site=${p.seenAtSite}`}>{belowTarget(p.itemId, p.supplierId, p.to, p.seenAtSite)} {belowTarget(p.itemId, p.supplierId, p.to, p.seenAtSite) === 1 ? 'dish' : 'dishes'} below target</Link></>}</small></span>
                       <span className="rt ho-price-act">
                         <button type="button" className="btn b1 btn-sm" aria-label={`Accept ${it?.name} price`} onClick={() => accept(p.id)}>Accept</button>
                         <button type="button" className="stk-link" onClick={() => ops.settlePrice(p.id, 'queried', () => {})}>Ask supplier</button></span>
