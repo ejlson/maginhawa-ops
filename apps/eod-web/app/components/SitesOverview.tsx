@@ -21,7 +21,7 @@ import { Icon, Nav, RowLink } from './ui';
 import { ICONS } from './ui-helpers';
 import { TrendChart } from './TrendChart';
 import { WhoMenu } from './home/WhoMenu';
-import { HeadOfficeShell } from './HeadOfficeShell';
+import { HeadOfficeShell, type OpsTones } from './HeadOfficeShell';
 import { HoSearch } from './HoSearch';
 import { useTradingHistory } from '../lib/history';
 import { PageSkeleton } from './Skeleton';
@@ -97,6 +97,8 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
   const stock = useStock();
   const { businessDate: today } = useChecklists();
   const opsNow = useMemo(() => opsToday({ ...ops.data, recipes: ops.allRecipes }, { ...stock.data, items: stock.allItems }, today), [ops.data, ops.allRecipes, stock.data, stock.allItems, today]);
+  // The sidebar rail's dots: each area's tone with the tile's words, keyed by the area's link.
+  const opsTones = useMemo<OpsTones>(() => Object.fromEntries(opsNow.tiles.filter((t) => t.tone).map((t) => [t.to, { tone: t.tone!, note: t.why ?? t.label }])), [opsNow]);
   const [opsOpen, setOpsOpen] = useState(() => storage.get<boolean>(OPS_KEY, true));
   const toggleOps = () => setOpsOpen((v) => { storage.set(OPS_KEY, !v); return !v; });
   const [moreNeeds, setMoreNeeds] = useState(false);
@@ -270,7 +272,7 @@ export function SitesOverview({ sites, mine = false }: { sites: readonly Site[];
   );
 
   return (
-    <Shell inToday={`${sent.length} of ${sites.length} in`} opsCount={mine ? undefined : opsNow.folded} opsBad={opsNow.tiles.some((t) => t.tone === 'bad')}>
+    <Shell inToday={`${sent.length} of ${sites.length} in`} opsCount={mine ? undefined : opsNow.folded} opsBad={opsNow.tiles.some((t) => t.tone === 'bad')} opsTones={mine ? undefined : opsTones}>
     <main className="page wide ho-page">
       {mine ? <Nav back="/" backLabel={siteName(user?.siteCode ?? '')} title="My sites" right={<WhoMenu />} /> : (
         <header className="nav home-sticky" style={{ paddingLeft: 24 }}>
@@ -489,6 +491,6 @@ function SiteDetails({ x, colour, lastWeekDay, onClose, onReview }: {
 }
 
 /** A manager's frame for My sites: just the page, no head-office sidebar. */
-function Plain({ children }: { inToday?: string; opsCount?: number; children: ReactNode }) {
+function Plain({ children }: { inToday?: string; opsCount?: number; opsBad?: boolean; opsTones?: OpsTones; children: ReactNode }) {
   return <>{children}</>;
 }

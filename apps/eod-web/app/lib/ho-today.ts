@@ -11,7 +11,7 @@ import { dayText, lastDueDay, names } from './stock-helpers';
 import { ICONS } from '../components/ui-helpers';
 
 export type Tone = 'bad' | 'warn';
-export interface OpsTile { key: string; name: string; to: string; icon: string; big: string; of?: string; label: string; tone?: Tone }
+export interface OpsTile { key: string; name: string; to: string; icon: string; big: string; of?: string; label: string; tone?: Tone; why?: string }
 export interface NeedItem { key: string; title: string; sub: string; to: string; act: string; icon: string; level: Tone }
 
 const siteName = (code: string) => SITES.find((s) => s.code === code)?.name ?? code;
@@ -74,13 +74,14 @@ export function opsToday(ops: OpsData, stock: StockData, today: string): { tiles
   }
 
   const tiles: OpsTile[] = [
-    { key: 'maint', name: 'Maintenance', to: '/head-office/maintenance', icon: ICONS.wrench, big: String(overdue.length), of: ' overdue', label: soon ? `${soon} due soon` : 'All in date', tone: overdue.length ? 'bad' : undefined },
+    { key: 'maint', name: 'Maintenance', to: '/head-office/maintenance', icon: ICONS.wrench, big: String(overdue.length), of: ' overdue', label: soon ? `${soon} due soon` : 'All in date', tone: overdue.length ? 'bad' : undefined, why: `${overdue.length} overdue` },
     { key: 'stock', name: 'Stock', to: '/head-office/stock', icon: ICONS.box, big: onHand >= 100000 ? `£${(onHand / 100000).toFixed(1)}k` : formatPounds(onHand), label: lateCounts.length ? `${plural(lateCounts.length, 'count')} late` : 'Counts in date', tone: lateCounts.length ? 'warn' : undefined },
     { key: 'order', name: 'Ordering', to: '/head-office/ordering', icon: ICONS.box, big: String(toPlace.length), of: ' to place', label: prices.length ? plural(prices.length, 'new price') : 'No new prices', tone: prices.length ? 'warn' : undefined },
-    { key: 'menu', name: 'Menu costing', to: '/head-office/menu', icon: ICONS.list, big: String(below), of: below === 1 ? ' dish' : ' dishes', label: below ? `Below ${ops.targetGp}% GP` : 'All on target', tone: below ? 'warn' : undefined },
+    { key: 'menu', name: 'Menu costing', to: '/head-office/menu', icon: ICONS.list, big: String(below), of: below === 1 ? ' dish' : ' dishes', label: below ? `Below ${ops.targetGp}% GP` : 'All on target', tone: below ? 'warn' : undefined, why: `${plural(below, 'dish', 'dishes')} below ${ops.targetGp}% GP` },
     { key: 'hs', name: 'Health & safety', to: '/head-office/safety', icon: ICONS.shield, big: `${SITES.length - noFireTest.length}`, of: ` / ${SITES.length}`, label: toReport.length ? `${toReport.length} to report` : noFireTest.length ? 'Fire tests due' : 'Fire tests done', tone: toReport.length ? 'bad' : noFireTest.length ? 'warn' : undefined },
     { key: 'food', name: 'Food safety', to: '/food-safety', icon: ICONS.thermo, big: String(SITES.length), of: ' sites', label: 'Checks and records' },
   ];
+  // `why` says what the tone is for, where the tile's own line says something else (the sidebar rail's dots read it).
   // The sidebar's folded Operations heading carries how many areas need a look.
   const folded = tiles.filter((t) => t.tone).length;
   return { tiles, needs, folded };
