@@ -55,6 +55,7 @@ import { deviceStore } from '../app/lib/store';
 import { verifiedDraft } from '../../../packages/core/test/fixtures';
 import HoSites from '../app/routes/ho-sites';
 import More from '../app/routes/more';
+import HoMore from '../app/routes/ho-more';
 import HomeCustomise from '../app/routes/home-customise';
 import Stock from '../app/routes/stock';
 import StockCountPage from '../app/routes/stock-count';
@@ -138,6 +139,7 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="people/new" element={<PeopleNew />} />
             <Route path="head-office/report-builder" element={<ReportBuilder />} />
             <Route path="head-office/sites" element={<HoSites />} />
+            <Route path="head-office/more" element={<HoMore />} />
             <Route path="more" element={<More />} />
             <Route path="home/customise" element={<HomeCustomise />} />
             <Route path="stock" element={<Stock />} />

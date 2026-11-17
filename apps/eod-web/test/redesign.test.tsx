@@ -128,10 +128,10 @@ describe('head office all sites', () => {
     renderApp('/head-office', admin);
     const table = await screen.findByRole('table', { name: 'Sites' });
     await within(rowOf(table, 'Belly')).findByText('Approved');
-    const sort = screen.getByRole('group', { name: 'Sort by' });
-    expect(within(sort).getAllByRole('button').map((r) => r.textContent)).toEqual(['Needs a look first', 'Net', 'vs forecast', 'Wages']);
-    expect(within(sort).getByRole('button', { name: 'Needs a look first' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByText('Sorted by what needs a look')).toBeInTheDocument();
+    // Layout A: the sort is one small menu beside the filters.
+    const sort = screen.getByRole('combobox', { name: 'Sort by' });
+    expect(within(sort).getAllByRole('option').map((o) => o.textContent)).toEqual(['Needs a look first', 'Net, highest first', 'vs forecast, highest first', 'Wages, highest first']);
+    expect(sort).toHaveValue('look');
     expect(siteOrder(table)).toEqual([
       'Hoodwood', 'Guanabana', 'Bunso',
       'Bintang', 'Cafe Mama & Sons', 'Mamasons China Town', 'Mamasons Kentish Town',
@@ -139,7 +139,8 @@ describe('head office all sites', () => {
     ]);
     // Plain headers: none is marked sorted while sorting by what needs a look.
     const headers = within(table).getAllByRole('columnheader');
-    expect(headers.map((h) => h.textContent)).toEqual(['Site', 'Status', 'Net', 'vs forecast', 'vs last Mon', 'Wages', 'Cash', 'Last 7 nights']);
+    // vs last Mon is in the group card and each site's details; the table keeps to what's needed to act.
+    expect(headers.map((h) => h.textContent)).toEqual(['Site', 'Status', 'Net', 'vs forecast', 'Wages', 'Cash', 'Last 7 nights']);
     expect(headers.filter((h) => h.hasAttribute('aria-sort'))).toHaveLength(0);
     expect(within(table).queryAllByRole('button')).toHaveLength(0);
   });
@@ -164,19 +165,16 @@ describe('head office all sites', () => {
     const { user } = renderApp('/head-office', admin);
     const table = await screen.findByRole('table', { name: 'Sites' });
     await within(rowOf(table, 'Belly')).findByText('Approved');
-    const sort = screen.getByRole('group', { name: 'Sort by' });
-    await user.click(within(sort).getByRole('button', { name: 'Net' }));
-    expect(within(sort).getByRole('button', { name: 'Net' })).toHaveAttribute('aria-pressed', 'true');
-    expect(within(sort).getByRole('button', { name: 'Needs a look first' })).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByText('Sorted by net, highest first')).toBeInTheDocument();
+    const sort = screen.getByRole('combobox', { name: 'Sort by' });
+    await user.selectOptions(sort, 'net');
+    expect(sort).toHaveValue('net');
     expect(siteOrder(table)).toEqual([
       'Belly', 'Bunso', 'Guanabana', 'Hoodwood',
       'Bintang', 'Cafe Mama & Sons', 'Mamasons China Town', 'Mamasons Kentish Town',
     ]);
     expect(within(table).getByRole('columnheader', { name: 'Net' })).toHaveAttribute('aria-sort', 'descending');
     expect(within(table).getByRole('columnheader', { name: 'Site' })).not.toHaveAttribute('aria-sort');
-    await user.click(within(sort).getByRole('button', { name: 'Wages' }));
-    expect(screen.getByText('Sorted by wages, highest first')).toBeInTheDocument();
+    await user.selectOptions(sort, 'wages');
     expect(within(table).getByRole('columnheader', { name: 'Wages' })).toHaveAttribute('aria-sort', 'descending');
     expect(within(table).getByRole('columnheader', { name: 'Net' })).not.toHaveAttribute('aria-sort');
   });

@@ -82,7 +82,9 @@ describe('loading', () => {
     // A desktop-sized screen, where head office has the sidebar.
     window.matchMedia = ((q: string) => ({ matches: /min-width/.test(q), media: q, addEventListener() {}, removeEventListener() {} })) as unknown as typeof window.matchMedia;
     try {
-      renderApp('/head-office', ana);
+      const { user } = renderApp('/head-office', ana);
+      // Reports starts folded (layout A): open it, then the builder is there.
+      await user.click(await screen.findByRole('button', { name: /^Reports/ }));
       expect(await screen.findByRole('link', { name: 'Report builder' })).toHaveAttribute('href', '/head-office/report-builder');
     } finally {
       delete (window as { matchMedia?: unknown }).matchMedia;
