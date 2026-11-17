@@ -46,8 +46,12 @@ export const can = {
   correctStock: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
   /** See what stock is worth. Staff count without the money. */
   seeStockValue: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
-  /** The group item list and costs. */
-  editStockItems: (r: Role) => r === 'headoffice',
+  /** A site's item list and costs (each site has its own; docs/reports/per-site-recipes-and-items.md). */
+  editStockItems: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
+  /** A site's recipes: everything but the menu price. */
+  editRecipes: (r: Role) => r === 'supervisor' || r === 'manager' || r === 'headoffice',
+  /** Menu prices (Menu costing). */
+  setMenuPrices: (r: Role) => r === 'headoffice',
   // Ordering, safety and maintenance (docs/reports/next-modules-scope.md).
   /** Place an order with the supplier once the team is told about it. Anyone can send an order to the
    *  team, check a delivery in or log waste. */

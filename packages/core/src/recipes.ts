@@ -31,6 +31,8 @@ export interface Recipe {
   allergens: Allergen[];
   /** Usual plates a day at one site, for "runs out tomorrow". */
   perDay: number;
+  /** The site this recipe belongs to: each site keeps its own (16 Nov 2026). Missing only on old data. */
+  siteCode?: string;
 }
 
 export function dishCost(r: Pick<Recipe, 'lines' | 'extras'>, items: StockItem[]): Pence {

@@ -33,7 +33,7 @@ export default function HoRecords() {
   const months = EXPORT_RANGES.find((r) => r.id === range)!.months;
   const from = months === null ? '0000' : addMonths(today, -months);
   const siteName = (c: string) => SITES.find((s) => s.code === c)?.name ?? c;
-  const itemName = (id: string) => stock.data.items.find((i) => i.id === id)?.name ?? id;
+  const itemName = (id: string) => stock.allItems.find((i) => i.id === id)?.name ?? id;
   // Inspector and staff exports don't filter by site. "Everything for one site" is always one site;
   // the others are all sites, or the ones picked (at least one).
   const bySite = kind !== 'inspector' && kind !== 'staff';
@@ -48,7 +48,7 @@ export default function HoRecords() {
     if (kind === 'inspector') return navigate('/food-safety/records');
     const files: [string, string][] = [];
     if (kind === 'accountant' || kind === 'site') {
-      files.push(['stock-counts', stockCsv(stock.data.counts.filter((c) => c.sentAt && inSites(c.siteCode) && inRange(c.businessDate)), stock.data.items, siteName)]);
+      files.push(['stock-counts', stockCsv(stock.data.counts.filter((c) => c.sentAt && inSites(c.siteCode) && inRange(c.businessDate)), stock.allItems, siteName)]);
       files.push(['waste', wasteCsv(ops.data.waste.filter((w) => inSites(w.siteCode) && inRange(w.at)), itemName, siteName)]);
       files.push(['orders', csv(['Site', 'Sent', 'Supplier', 'Total (£)', 'Received', 'Missing packs'], ops.data.orders.filter((o) => o.sentAt && inSites(o.siteCode) && inRange(o.sentAt)).map((o) =>
         [siteName(o.siteCode), o.sentAt!.slice(0, 10), ops.supplier(o.supplierId)?.name ?? '', (orderTotal(o.lines) / 100).toFixed(2), o.receivedAt?.slice(0, 10) ?? 'Not yet', Object.values(o.missing).reduce((n, x) => n + x, 0)]))]);

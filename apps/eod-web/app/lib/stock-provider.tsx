@@ -1,15 +1,18 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
-import { areasFor, costsNow, sendProblem } from '@maginhawa/core';
+import { areasFor, costsNow, itemsAt, perSite, sendProblem, SITES } from '@maginhawa/core';
 import { storage } from './storage';
 import { now } from './clock';
 import { demoStock } from './stock-demo';
 import { Ctx, type StockData, type StockValue } from './stock';
 
+/** Items saved before each site had its own list are copied onto every site's. */
+const normalise = (d: StockData): StockData => (d.items.some((i) => !i.siteCode) ? { ...d, items: perSite(d.items, SITES.map((s) => s.code)) } : d);
+
 const KEY = 'mgh.stock.v1';
 const newId = (p: string) => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
 export function StockProvider({ siteCode, businessDate, children, initial }: { siteCode: string; businessDate: string; children: ReactNode; initial?: StockData }) {
-  const [data, setData] = useState<StockData>(() => initial ?? storage.get<StockData | null>(KEY, null) ?? demoStock(businessDate));
+  const [data, setData] = useState<StockData>(() => normalise(initial ?? storage.get<StockData | null>(KEY, null) ?? demoStock(businessDate)));
   const save = useCallback((change: (d: StockData) => void) => {
     setData((prev) => {
       const next = structuredClone(prev);
@@ -25,9 +28,12 @@ export function StockProvider({ siteCode, businessDate, children, initial }: { s
       areas: data.areas.filter((a) => a.siteCode === siteCode),
       counts: data.counts.filter((c) => c.siteCode === siteCode).sort((a, b) => b.startedAt.localeCompare(a.startedAt)),
     };
+    const items = itemsAt(data.items, siteCode);
     return {
-      data, siteCode, site,
-      item: (id) => data.items.find((i) => i.id === id),
+      data: { ...data, items }, siteCode, site,
+      item: (id) => items.find((i) => i.id === id),
+      allItems: data.items,
+      itemsFor: (code) => itemsAt(data.items, code),
       start: (planId, by) => {
         const open = data.counts.find((c) => c.planId === planId && c.siteCode === siteCode && !c.sentAt);
         if (open) return open.id;
@@ -67,15 +73,15 @@ export function StockProvider({ siteCode, businessDate, children, initial }: { s
         c.corrections.push({ itemId, from, to, reason: reason.trim(), by, at: now().toISOString() });
       }),
       setItem: (item) => save((d) => {
-        const i = d.items.findIndex((x) => x.id === item.id);
+        const i = d.items.findIndex((x) => x.id === item.id && x.siteCode === (item.siteCode ?? siteCode));
         if (i >= 0) d.items[i] = item;
       }),
-      addItem: (x) => save((d) => {
+      addItem: (x, at = siteCode) => save((d) => {
         const id = newId('item');
-        d.items.push({ ...x, id, active: true });
-        // It goes at the end of every area that already holds that kind of item (wine with the wine).
-        const same = new Set(d.items.filter((i) => i.category === x.category && i.id !== id).map((i) => i.id));
-        for (const a of d.areas) if (a.itemIds.some((i) => same.has(i))) a.itemIds.push(id);
+        d.items.push({ ...x, id, active: true, siteCode: at });
+        // It goes at the end of every area at that site that already holds that kind of item (wine with the wine).
+        const same = new Set(d.items.filter((i) => i.siteCode === at && i.category === x.category && i.id !== id).map((i) => i.id));
+        for (const a of d.areas) if (a.siteCode === at && a.itemIds.some((i) => same.has(i))) a.itemIds.push(id);
       }),
     };
   }, [data, siteCode, businessDate, save]);

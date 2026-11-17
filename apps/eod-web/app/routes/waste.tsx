@@ -12,7 +12,21 @@ import { ICONS } from '../components/ui-helpers';
 
 const COMMON = ['pork', 'rice', 'lumpia', 'prosecco', 'prawns'];
 
+/** A site whose item list is empty (a new site) has nothing to log yet. */
 export default function Waste() {
+  const { data } = useStock();
+  if (!data.items.some((i) => i.active)) {
+    return (
+      <main className="page">
+        <Nav back="/stock" backLabel="Stock" title="Log waste" />
+        <div className="body"><p className="lead">This site has no stock items yet. Add them in Stock › Items and costs first.</p></div>
+      </main>
+    );
+  }
+  return <LogWaste />;
+}
+
+function LogWaste() {
   const { user } = useAuth();
   const { data, siteCode } = useStock();
   const ops = useOps();

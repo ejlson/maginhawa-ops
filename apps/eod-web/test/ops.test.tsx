@@ -133,7 +133,7 @@ describe('ordering and waste', () => {
     expect(prices).toHaveTextContent(/Prosecco DOC · Bibendum.*£7\.10 → £6\.75 a bottle/);
     expect(prices).toHaveTextContent(/Pork belly · Fresh Direct.*£9\.80 → £10\.60 a kg/);
     // Pork belly is in adobo, lechon kawali and sisig.
-    expect(within(prices).getByRole('link', { name: '3 dishes below target' })).toHaveAttribute('href', '/head-office/menu');
+    expect(within(prices).getByRole('link', { name: '3 dishes below target' })).toHaveAttribute('href', '/head-office/menu?site=BUN');
     expect(screen.getByText('Bought, ex VAT')).toBeInTheDocument();
     expect(screen.getByText('Credits to chase')).toBeInTheDocument();
   });

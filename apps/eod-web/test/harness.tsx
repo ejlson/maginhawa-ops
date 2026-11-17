@@ -70,6 +70,8 @@ import Waste from '../app/routes/waste';
 import StockItem from '../app/routes/stock-item';
 import Recipes from '../app/routes/recipes';
 import RecipePage from '../app/routes/recipe';
+import RecipeEdit from '../app/routes/recipe-edit';
+import StockItems from '../app/routes/stock-items';
 import Safety from '../app/routes/safety';
 import SafetyCheck from '../app/routes/safety-check';
 import SafetyAccident from '../app/routes/safety-accident';
@@ -151,7 +153,10 @@ export function renderApp(path: string, user: User | null = manager) {
             <Route path="stock/waste" element={<Waste />} />
             <Route path="stock/item/:item" element={<StockItem />} />
             <Route path="recipes" element={<Recipes />} />
+            <Route path="recipes/new" element={<RecipeEdit />} />
+            <Route path="recipes/:id/edit" element={<RecipeEdit />} />
             <Route path="recipes/:id" element={<RecipePage />} />
+            <Route path="stock/items" element={<StockItems />} />
             <Route path="safety" element={<Safety />} />
             <Route path="safety/check/:kind" element={<SafetyCheck />} />
             <Route path="safety/accident" element={<SafetyAccident />} />

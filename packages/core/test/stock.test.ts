@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  areaProgress, areasFor, costOfSales, costsNow, countValue, dueOn, grossProfitPct, isSwing, lastQty, nextArea, nextDue, parseQty,
+  areaProgress, areasFor, costOfSales, costsNow, countValue, dueOn, grossProfitPct, isSwing, itemsAt, lastQty, nextArea, nextDue, parseQty, perSite,
   qtyOf, qtyText, stockScheduleText, sendProblem, stepQty, stockCorrectionProblem, stockCsv, swings, uncounted,
   type StockArea, type StockCount, type StockItem, type StockPlan,
 } from '../src/stock';
@@ -157,5 +157,48 @@ describe('corrections and export', () => {
     expect(csv[1]).toBe('Bunso,2026-11-29,Full stocktake,Bar,Tanduay rum,bottles,5.4,14.20,76.68,Jo,');
     expect(csv[2]).toBe('Bunso,2026-11-29,Full stocktake,Bar,Prosecco,bottles,6,7.10,42.60,Jo,"4 → 6: Two in the back, by the ice"');
     expect(csv).toHaveLength(3);
+  });
+});
+
+describe('each site has its own items (16 Nov 2026)', () => {
+  const bun = (i: StockItem, over: Partial<StockItem> = {}): StockItem => ({ ...i, siteCode: 'BUN', ...over });
+  const gua = (i: StockItem, over: Partial<StockItem> = {}): StockItem => ({ ...i, siteCode: 'GUA', ...over });
+
+  it('itemsAt keeps one site\'s items, and old items with no site count as everyone\'s', () => {
+    const list = [bun(items[0]!), gua(items[0]!, { costPence: 9999 }), items[1]!];
+    expect(itemsAt(list, 'BUN').map((i) => [i.id, i.siteCode])).toEqual([['rum', 'BUN'], ['pro', undefined]]);
+    expect(itemsAt(list, 'GUA').map((i) => [i.id, i.costPence])).toEqual([['rum', 9999], ['pro', 710]]);
+    expect(itemsAt(list, 'HOO').map((i) => i.id)).toEqual(['pro']);
+    expect(itemsAt([], 'BUN')).toEqual([]);
+  });
+
+  it('perSite copies old data onto every site, leaves per-site data alone, and the copies are separate', () => {
+    const out = perSite([items[0]!, gua(items[1]!)], ['BUN', 'GUA']);
+    expect(out.map((i) => `${i.siteCode}:${i.id}`)).toEqual(['BUN:rum', 'GUA:rum', 'GUA:pro']);
+    out[0]!.costPence = 1;
+    expect(out[1]!.costPence).toBe(1420);
+    expect(items[0]!.costPence).toBe(1420);
+    expect(items[0]!.siteCode).toBeUndefined();
+    expect(perSite([items[0]!], [])).toEqual([]);
+  });
+
+  it('countValue, costsNow and areasFor ignore another site\'s item with the same id', () => {
+    const list = [gua(items[0]!, { costPence: 9999 }), bun(items[0]!), bun(items[1]!), bun(items[2]!)];
+    const c = count({ lines: { rum: line(5.4), pro: line(4), ube: line(3) } });
+    expect(countValue(c, list)).toEqual({ value: 10508, noCost: ['ube'] });
+    expect(costsNow(c, list)).toEqual({ rum: 1420, pro: 710, ube: null });
+    // Not on Guanabana's own list: no cost there, even though Bunso has one.
+    expect(countValue(count({ siteCode: 'GUA', lines: { pro: line(4) } }), list)).toEqual({ value: 0, noCost: ['pro'] });
+    // Rum is retired at Bunso only: Bunso's plan drops it, Guanabana's keeps it.
+    const retired = [bun(items[0]!, { active: false }), gua(items[0]!), bun(items[1]!), bun(items[2]!)];
+    const plan = (siteCode: string): StockPlan => ({ id: 'p', siteCode, name: 'Full', kind: 'full', schedule: { kind: 'daily' } });
+    expect(areasFor(plan('BUN'), areas, retired).flatMap((a) => a.itemIds)).toEqual(['pro', 'ube']);
+    expect(areasFor(plan('GUA'), areas, retired).flatMap((a) => a.itemIds)).toEqual(['rum']);
+  });
+
+  it('the export uses the count\'s own site\'s cost', () => {
+    const list = [gua(items[0]!, { costPence: 9999 }), bun(items[0]!)];
+    const c = count({ areas: [{ id: 'bar', name: 'Bar', itemIds: ['rum'] }], lines: { rum: line(2) } });
+    expect(stockCsv([c], list, () => 'Bunso').split('\n')[1]).toContain(',2,14.20,28.40,');
   });
 });

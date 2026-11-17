@@ -120,6 +120,7 @@ export default function Stock() {
               title={`${toPlace.length} ${toPlace.length === 1 ? 'order' : 'orders'} to place`} sub={toPlace.map((o) => ops.supplier(o.supplierId)?.name).join(', ')} />}
             <RowLink to="/stock/order" lead={<span className="av"><Icon d={ICONS.box} /></span>} title="Order" sub="Filled in from your usual levels" />
             <RowLink to="/stock/waste" lead={<span className="av"><Icon d={ICONS.x} /></span>} title="Log waste" sub="Item, then Log" />
+            {can.editStockItems(user.role) && <RowLink to="/stock/items" lead={<span className="av"><Icon d={ICONS.tag} /></span>} title="Items and costs" sub={`${settings.siteName}'s own list`} />}
           </div>
         </section>
 
